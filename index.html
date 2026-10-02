@@ -411,6 +411,13 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
 .ohlc b{color:var(--text);font-weight:600}
 .ohlc i{font-style:normal}
 .cdlabel{position:absolute;right:0;z-index:3;color:#fff;font-size:11px;line-height:16px;text-align:center;font-variant-numeric:tabular-nums;pointer-events:none;border-radius:2px;opacity:.92}
+.btcard{margin-top:14px}
+.btctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:10px 0 4px}
+.btctl input[type=number]{width:70px;background:transparent;border:0;color:var(--text);font:inherit}
+table.btm td{white-space:nowrap}
+.bteq{height:220px;position:relative;margin-top:4px}
+.bteql{margin:4px 0 0;justify-content:flex-start}
+
 </style>
 </head>
 <body>
@@ -496,6 +503,8 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
   <section class="card mguide"><h2>Model Guide</h2><div id="guide"></div></section>
 
   <section class="card scard" id="scorecard"></section>
+
+  <section class="card btcard" id="backtest"></section>
 
   <div class="quick" id="quick" aria-label="One-click views"></div>
   <div class="tabs" id="tabs" role="tablist"></div>
@@ -1875,6 +1884,8 @@ function renderGuide() {
         <p>${M.what}</p>
         <h4>How the Scanner Finds It</h4><ul>${M.rules.map(x => `<li>${x}</li>`).join("")}</ul>
         <h4>How You Trade It</h4><p>${M.trade}</p><p class="meta">${M.grade}</p>
+        ${(() => { const s = btFor(guideSel, null), e = data && data.env ? btFor(guideSel, data.env.label) : null;
+          return s ? `<h4>Your Backtest</h4><p>${fmtR(s.avg)} per trade over ${s.n} trades (win ${s.win.toFixed(0)}%, total ${fmtR(s.tot)})${e ? `; in today's environment ${fmtR(e.avg)} over ${e.n}` : ""}.</p>` : ""; })()}
       </div>
       <div class="gcol">
         <div class="gnow">${data ? `<b>${modelCount(guideSel, true)}</b> triggered · <b>${modelCount(guideSel)}</b> total right now` : "Run a scan to see matches."}</div>
@@ -1959,6 +1970,7 @@ function environment() {
   if (mins >= 0 && mins <= 120 && dirBias === "Both") promote("AMD");
   if (mins > 150 || mins < -120) { if (fit.ORB !== "avoid") fit.ORB = "neutral"; if (fit.AMD === "primary") fit.AMD = "secondary"; }
   if (as != null && as >= 75) why.push(`Altcoin season (${as}): alts are outperforming BTC. Momentum setups on alts get extra follow-through.`);
+  btApply(label, fit, why);
   return { label, desc, dirBias, fit, why, facts: { b, bull, bear, f, mf, atrMed, as, mins, weekend } };
 }
 const FIT_W = { primary: 3, secondary: 2, neutral: 1, avoid: 0 };
@@ -2516,7 +2528,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.02.1544";
+const APP_VERSION = "2026.10.03.0122";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -2773,6 +2785,277 @@ setInterval(() => {
   if (Date.now() - LIVE.moversAt > 10000) { LIVE.moversAt = Date.now(); renderMovers(); }
 }, 1000);
 
+/* ===================== Model Backtest: replay the detectors on history, no look-ahead ===================== */
+const BT_KEY = "altscan-backtest";
+let BT = null; try { BT = JSON.parse(localStorage.getItem(BT_KEY) || "null"); } catch (e) { BT = null; }
+let btView = "model", btRunning = false;
+const BT_USE_KEY = "altscan-bt-use";
+const btUse = () => { try { return localStorage.getItem(BT_USE_KEY) !== "off"; } catch (e) { return true; } };
+const IV_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
+const SESS_LABELS = ["🇯🇵 Asia", "🇬🇧 London", "🇬🇧 Lunch", "🇺🇸 Pre-NY", "🇺🇸 NY AM", "🇺🇸 NY PM", "💤 Out"];
+function sessOf(ms) {                                   // your session map, PHT
+  const d = new Date(ms + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  return h >= 8 && h < 12 ? "🇯🇵 Asia" : h >= 12 && h < 18 ? "🇬🇧 London" : h >= 18 && h < 19.5 ? "🇬🇧 Lunch" : h >= 19.5 && h < 21.5 ? "🇺🇸 Pre-NY"
+       : h >= 21.5 ? "🇺🇸 NY AM" : h < 4 ? "🇺🇸 NY PM" : "💤 Out";
+}
+function envLabel(b, bull, bear) {                      // the same environment rules the playbook uses
+  if (b === "Risk-on" && bull >= 45) return "Trend Up: Risk-On Alts";
+  if (b === "Risk-off" && bear >= 45) return "Trend Down: Risk-Off";
+  if (b === "Risk-on" && bull < 35) return "BTC-Led: Alts Lagging";
+  if (b !== "Risk-off" && bull >= 55 && bear <= 25) return "Alts Trending Up: BTC Ranging";
+  if (b !== "Risk-on" && bear >= 55 && bull <= 25) return "Alts Trending Down: BTC Ranging";
+  return "Chop: Range Day";
+}
+async function klinesRange(sym, interval, startMs, endMs) {
+  const step = IV_MS[interval], rows = new Map();
+  if (EXCHANGE === "bybit") {
+    let end = endMs;
+    for (let n = 0; n < 12 && end > startMs; n++) {
+      await spend(1);
+      const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[interval], start: startMs, end, limit: 1000 }, 2);
+      const list = res.list || []; if (!list.length) break;
+      list.forEach(k => rows.set(+k[0], [+k[0], +k[1], +k[2], +k[3], +k[4], +k[6]]));
+      const oldest = +list.at(-1)[0]; if (list.length < 1000 || oldest >= end) break; end = oldest - 1;
+    }
+  } else {
+    const base = MODE === "futures" ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+    let cur = startMs;
+    for (let n = 0; n < 12 && cur < endMs; n++) {
+      await spend(5);
+      const list = await getJSON(`${base}?${qs({ symbol: sym, interval, startTime: cur, endTime: endMs, limit: 1000 })}`, 2);
+      if (!list.length) break;
+      list.forEach(k => rows.set(+k[0], [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]]));
+      const next = +list.at(-1)[0] + step; if (list.length < 1000 || next <= cur) break; cur = next;
+    }
+  }
+  const now = Date.now(), arr = [...rows.values()].filter(r => r[0] + step <= now).sort((a, b) => a[0] - b[0]);   // closed candles only
+  return { t: arr.map(r => r[0]), o: arr.map(r => r[1]), h: arr.map(r => r[2]), l: arr.map(r => r[3]), c: arr.map(r => r[4]), qv: arr.map(r => r[5]) };
+}
+const sliceK = (k, a, b) => ({ t: k.t.slice(a, b), o: k.o.slice(a, b), h: k.h.slice(a, b), l: k.l.slice(a, b), c: k.c.slice(a, b), qv: k.qv.slice(a, b) });
+function lastClosedIdx(k, ivMs, T) {                    // last candle that had fully closed by time T
+  let lo = 0, hi = k.t.length - 1, ans = -1;
+  while (lo <= hi) { const mid = (lo + hi) >> 1; if (k.t[mid] + ivMs <= T) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+  return ans;
+}
+function stateSeries(k, maFn) {
+  const c = k.c, a = maFn(c, 20), b = maFn(c, 50), d = maFn(c, 100);
+  return c.map((p, i) => {
+    if (a[i] == null || b[i] == null || d[i] == null) return "Tangled";
+    if (a[i] > b[i] && b[i] > d[i]) return p > a[i] ? "Bull stack" : p > d[i] ? "Pullback in bull" : "Bull stack, price below 100";
+    if (a[i] < b[i] && b[i] < d[i]) return p < a[i] ? "Bear stack" : p < d[i] ? "Pullback in bear" : "Bear stack, price above 100";
+    return "Tangled";
+  });
+}
+function simulate(k, i, m, maxBars, hardCloseMs) {      // walk forward from the candle after entry
+  const long = m.dir === "Long", R = m.entry - m.stop;
+  for (let j = i + 1; j < k.c.length && j <= i + maxBars; j++) {
+    if (hardCloseMs && k.t[j] >= hardCloseMs) return { j: j - 1, r: (k.c[j - 1] - m.entry) / R, reason: "11:00 NY close" };
+    const stopHit = long ? k.l[j] <= m.stop : k.h[j] >= m.stop, tHit = long ? k.h[j] >= m.t2 : k.l[j] <= m.t2;
+    if (stopHit) return { j, r: -1, reason: "Stop" };                       // stop and target in the same candle count as a stop
+    if (tHit) return { j, r: (m.t2 - m.entry) / R, reason: "Target" };
+  }
+  const j = Math.min(k.c.length - 1, i + maxBars);
+  return j > i ? { j, r: (k.c[j] - m.entry) / R, reason: "Time limit" } : null;
+}
+function netR(m, gross, feePct) { const sp = Math.abs(m.entry - m.stop) / m.entry; return gross - (feePct / 100) / sp; }
+function validLevels(m) {
+  if (m.entry == null || m.stop == null || m.t2 == null || m.dir === "any") return false;
+  const long = m.dir === "Long", ordered = long ? (m.stop < m.entry && m.t2 > m.entry) : (m.stop > m.entry && m.t2 < m.entry);
+  return ordered && Math.abs(m.entry - m.stop) / m.entry >= 0.001;          // skip unrealistically tight stops
+}
+function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
+  const trades = [], busyUntil = {}, H = IV_MS["1h"], W = 220;
+  for (let i = W; i < k1.c.length - 1; i++) {
+    const T = k1.t[i] + H; if (T < winStart) continue;
+    const j4 = lastClosedIdx(k4, IV_MS["4h"], T), jd = lastClosedIdx(kd, IV_MS["1d"], T);
+    if (j4 < 120 || jd < 110) continue;
+    const s1 = sliceK(k1, i - W + 1, i + 1), s4 = sliceK(k4, Math.max(0, j4 - 159), j4 + 1), sd = sliceK(kd, Math.max(0, jd - 129), jd + 1);
+    let ms; try { ms = detectModels(s1, s4, structure(s1, maFn), structure(s4, maFn), structure(sd, maFn)); } catch (e) { continue; }
+    for (const m of ms) {
+      if (!m.trig || !validLevels(m)) continue;
+      const key = m.model + m.dir; if ((busyUntil[key] ?? -1) >= i) continue;      // one trade per model and side at a time
+      const out = simulate(k1, i, m, 48); if (!out) continue;
+      busyUntil[key] = out.j;
+      trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
+        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state });
+    }
+  }
+  return trades;
+}
+function replaySession(sym, k15, winStart, ctx) {        // ORB and AMD at each NY open, hard close at 11:00 NY
+  const trades = [], Q = IV_MS["15m"], done = new Set();
+  if (k15.t.length < 120) return trades;
+  for (let day = Math.max(winStart, k15.t[100]); day < k15.t.at(-1); day += 86400e3) {
+    const open = nyOpenUTC(day - (day % 86400e3) + 18 * 3600e3), close11 = open + 90 * 60e3;
+    if (open < winStart || done.has(open)) continue; done.add(open);
+    const taken = new Set();
+    for (let j = lastClosedIdx(k15, Q, open + Q); j >= 0 && k15.t[j] < open + 120 * 60e3 && j < k15.t.length - 1; j++) {
+      const T = k15.t[j] + Q;
+      let ms; try { ms = sessionModels(sliceK(k15, Math.max(0, j - 99), j + 1), { s1h: { state: "Tangled" } }, T); } catch (e) { continue; }
+      for (const m of ms) {
+        if (!m.trig || taken.has(m.model) || !validLevels(m)) continue;
+        taken.add(m.model);
+        const out = simulate(k15, j, m, 12, close11); if (!out) continue;
+        trades.push({ sym, model: m.model, dir: m.dir, tf: "15m", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
+          reason: out.reason, bars: out.j - j, session: sessOf(T), env: ctx.envAt(T), state: m.state });
+      }
+    }
+  }
+  return trades;
+}
+async function runBacktest() {
+  if (!data || btRunning) return;
+  btRunning = true;
+  const days = +$("btDays").value, nCoins = +$("btCoins").value, fee = +$("btFee").value || 0;
+  const maFn = data.ma === "sma" ? sma : ema, now = Date.now(), winStart = now - days * 86400e3, H = IV_MS["1h"];
+  const prog = (msg, f) => { $("btStatus").textContent = msg; $("btProg").style.width = (f * 100) + "%"; };
+  const pool0 = data.all.filter(r => r.vol24h >= 10e6).sort((a, b) => b.vol24h - a.vol24h).slice(0, nCoins).map(r => r.symbol);
+  const syms = [...new Set([...pool0, ...Object.keys(WL.coins).filter(s => bySym[s])])];
+  const series = {}; let done = 0;
+  try {
+    prog("Downloading BTC history…", 0.01);
+    const btc1 = await klinesRange("BTCUSDT", "1h", winStart - 220 * H, now), btc4 = await klinesRange("BTCUSDT", "4h", winStart - 170 * IV_MS["4h"], now);
+    const b1 = stateSeries(btc1, maFn), b4 = stateSeries(btc4, maFn);
+    for (const s of syms) {
+      try {
+        const [k1, k4, kd] = [await klinesRange(s, "1h", winStart - 230 * H, now), await klinesRange(s, "4h", winStart - 170 * IV_MS["4h"], now),
+                              await klinesRange(s, "1d", winStart - 140 * IV_MS["1d"], now)];
+        const k15 = await klinesRange(s, "15m", Math.max(winStart, now - 30 * 86400e3) - 110 * IV_MS["15m"], now);
+        series[s] = { k1, k4, kd, k15, s4: stateSeries(k4, maFn) };
+      } catch (e) {}
+      done++; prog(`Downloading history: ${done} of ${syms.length} coins…`, 0.02 + 0.55 * done / syms.length);
+    }
+    const coins = Object.keys(series);
+    const envAt = T => {
+      const i1 = lastClosedIdx(btc1, H, T), i4 = lastClosedIdx(btc4, IV_MS["4h"], T);
+      const s1 = b1[i1], s4 = b4[i4], regime = s1 === "Bull stack" && s4 === "Bull stack" ? "Risk-on" : s1 === "Bear stack" && s4 === "Bear stack" ? "Risk-off" : "Chop";
+      let bull = 0, bear = 0, n = 0;
+      coins.forEach(c => { const x = series[c], j = lastClosedIdx(x.k4, IV_MS["4h"], T); if (j < 100) return; n++;
+        const st = x.s4[j]; if (st === "Bull stack" || st === "Pullback in bull") bull++; else if (st === "Bear stack" || st === "Pullback in bear") bear++; });
+      return n ? envLabel(regime, Math.round(bull / n * 100), Math.round(bear / n * 100)) : envLabel(regime, 0, 0);
+    };
+    const ctx = { fee, envAt }, trades = [];
+    for (let i = 0; i < coins.length; i++) {
+      const c = coins[i], x = series[c];
+      trades.push(...replay1h(c, x.k1, x.k4, x.kd, maFn, winStart, ctx), ...replaySession(c, x.k15, Math.max(winStart, now - 30 * 86400e3), ctx));
+      prog(`Replaying the models: ${i + 1} of ${coins.length} coins…`, 0.57 + 0.42 * (i + 1) / coins.length);
+      await sleep(0);                                       // keep the app responsive
+    }
+    trades.sort((a, b) => a.t - b.t);
+    BT = { at: now, exchange: exName(), mode: data.mode, days, coins: coins.length, fee, ma: data.ma, trades };
+    try { localStorage.setItem(BT_KEY, JSON.stringify(BT)); } catch (e) {}
+    prog(`Done: ${trades.length} trades across ${coins.length} coins.`, 1);
+    renderBacktest(); renderPlaybook(); renderGuide();
+  } catch (e) { $("btStatus").textContent = `Backtest stopped: ${e.message}`; }
+  btRunning = false; setTimeout(() => $("btProg") && ($("btProg").style.width = "0"), 1500);
+}
+function btStats(trades) {
+  const n = trades.length; if (!n) return null;
+  const wins = trades.filter(t => t.reason === "Target").length, losses = trades.filter(t => t.reason === "Stop").length;
+  const tot = trades.reduce((s, t) => s + t.r, 0), gw = trades.filter(t => t.r > 0).reduce((s, t) => s + t.r, 0), gl = -trades.filter(t => t.r < 0).reduce((s, t) => s + t.r, 0);
+  let eq = 0, peak = 0, dd = 0; trades.forEach(t => { eq += t.r; peak = Math.max(peak, eq); dd = Math.max(dd, peak - eq); });
+  return { n, wins, losses, win: n ? wins / n * 100 : 0, avg: tot / n, tot, pf: gl ? gw / gl : (gw ? 99 : 0), dd, bars: trades.reduce((s, t) => s + t.bars, 0) / n };
+}
+const btGroup = (trades, f) => { const g = {}; trades.forEach(t => { const k = f(t); (g[k] = g[k] || []).push(t); }); return g; };
+function btFor(model, env) {                               // expectancy for a model in an environment (used by the playbook)
+  if (!BT || !BT.trades) return null;
+  const s = btStats(BT.trades.filter(t => t.model === model && (!env || t.env === env)));
+  return s && s.n >= 15 ? s : null;
+}
+function btApply(label, fit, why) {                        // let your own backtest move models up or down
+  if (!BT || !btUse()) return;
+  const notes = [];
+  MODEL_KEYS.forEach(k => {
+    const s = btFor(k, label); if (!s) return;
+    const was = fit[k];
+    if (s.avg <= -0.1 && fit[k] !== "avoid") fit[k] = "avoid";
+    else if (s.avg >= 0.25 && fit[k] === "avoid") fit[k] = "neutral";
+    else if (s.avg >= 0.25 && fit[k] === "neutral") fit[k] = "secondary";
+    else if (s.avg >= 0.35 && fit[k] === "secondary") fit[k] = "primary";
+    if (was !== fit[k]) notes.push(`${k} ${s.avg >= 0 ? "+" : ""}${s.avg.toFixed(2)}R over ${s.n} trades → ${fit[k]}`);
+  });
+  if (notes.length) why.push(`Your backtest in this environment moved: ${notes.join("; ")}.`);
+}
+const fmtR = v => `${v >= 0 ? "+" : ""}${v.toFixed(2)}R`;
+const rCls = v => v >= 0.05 ? "up" : v <= -0.05 ? "dn" : "mute";
+function btMatrix(trades, rowKey, colKey, rows, cols) {
+  const head = `<tr><th class="l">Model</th>${cols.map(c => `<th>${c}</th>`).join("")}</tr>`;
+  const body = rows.map(rw => `<tr><td class="l">${MODELS[rw] ? MODELS[rw].icon + " " : ""}${rw}</td>${cols.map(c => {
+    const s = btStats(trades.filter(t => t[rowKey] === rw && t[colKey] === c));
+    return s ? `<td title="${s.n} trades · win ${s.win.toFixed(0)}% · total ${fmtR(s.tot)}"><span class="${s.n < 10 ? "mute" : rCls(s.avg)}">${fmtR(s.avg)}</span> <span class="mute">${s.n}</span></td>` : `<td class="mute">—</td>`;
+  }).join("")}</tr>`).join("");
+  return `<div class="tablewrap"><table class="sct btm"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+let btChart = null;
+async function drawEquity(trades) {
+  const el = $("btEq"); if (!el) return;
+  try {
+    await ensureLWC();
+    if (btChart) { try { btChart.remove(); } catch (e) {} btChart = null; }
+    el.innerHTML = "";
+    const line = cssVar("--line");
+    btChart = LightweightCharts.createChart(el, { width: el.clientWidth, height: 220, layout: { background: { type: "solid", color: "transparent" }, textColor: cssVar("--mute"), fontFamily: cssVar("--font") },
+      grid: { vertLines: { color: line }, horzLines: { color: line } }, rightPriceScale: { borderColor: line }, timeScale: { borderColor: line, timeVisible: true },
+      localization: { locale: "en-US", priceFormatter: v => v.toFixed(1) + "R", timeFormatter: phtTime } });
+    const colors = ["#2962ff", "#22ab94", "#f7a600", "#f23645", "#9c27b0", "#00bcd4", "#e91e63", "#8bc34a"];
+    const byModel = btGroup(trades, t => t.model), addLine = (list, color, width) => {
+      const s = btChart.addLineSeries({ color, lineWidth: width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      let eq = 0, last = 0; const pts = [];
+      list.forEach(t => { eq += t.r; let ts = Math.floor(t.t / 1000); if (ts <= last) ts = last + 1; last = ts; pts.push({ time: ts, value: +eq.toFixed(3) }); });
+      s.setData(pts);
+    };
+    addLine(trades, cssVar("--strong") || "#fff", 2);
+    Object.keys(byModel).forEach((k, i) => addLine(byModel[k], colors[i % colors.length], 1));
+    btChart.timeScale().fitContent();
+    $("btEqLegend").innerHTML = `<i style="background:${cssVar("--strong") || "#fff"}"></i>All` + Object.keys(byModel).map((k, i) => `<i style="background:${colors[i % colors.length]}"></i>${k}`).join("");
+  } catch (e) { el.innerHTML = `<div class="meta">Couldn't draw the equity curve (${e.message}).</div>`; }
+}
+function renderBacktest() {
+  const el = $("backtest"); if (!el) return;
+  const T = BT && BT.trades ? BT.trades : [], all = btStats(T);
+  const viewTabs = [["model", "By Model"], ["session", "Model × Session"], ["env", "Model × Environment"], ["dir", "By Direction"], ["coin", "By Coin"], ["trades", "Trades"]];
+  let body = "";
+  if (all) {
+    const models = MODEL_KEYS.filter(k => T.some(t => t.model === k));
+    if (btView === "model") body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Model</th><th>Trades</th><th>Hit target</th><th>Stopped</th><th>Win rate</th><th>Avg R (after fees)</th><th>Total R</th><th>Profit factor</th><th>Max drawdown</th><th>Avg hold</th></tr></thead><tbody>${
+      models.map(k => { const s = btStats(T.filter(t => t.model === k)); return `<tr><td class="l">${MODELS[k].icon} ${k}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`; }).join("")}</tbody></table></div>`;
+    else if (btView === "session") body = btMatrix(T, "model", "session", models, SESS_LABELS.filter(x => T.some(t => t.session === x)));
+    else if (btView === "env") body = btMatrix(T, "model", "env", models, [...new Set(T.map(t => t.env))]);
+    else if (btView === "dir") body = btMatrix(T, "model", "dir", models, ["Long", "Short"]);
+    else if (btView === "coin") { const g = btGroup(T, t => t.sym), rows = Object.entries(g).map(([k, v]) => ({ k, s: btStats(v) })).sort((a, b) => b.s.tot - a.s.tot);
+      body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Coin</th><th>Trades</th><th>Win rate</th><th>Avg R</th><th>Total R</th></tr></thead><tbody>${rows.map(x => `<tr><td class="l">${coin(x.k)}</td><td>${x.s.n}</td><td>${x.s.win.toFixed(0)}%</td><td class="${rCls(x.s.avg)}">${fmtR(x.s.avg)}</td><td class="${rCls(x.s.tot)}">${fmtR(x.s.tot)}</td></tr>`).join("")}</tbody></table></div>`; }
+    else body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Time (PHT)</th><th class="l">Coin</th><th class="l">Model</th><th class="l">Side</th><th class="l">Session</th><th class="l">Environment</th><th class="l">Exit</th><th>R</th></tr></thead><tbody>${
+      T.slice(-60).reverse().map(t => `<tr><td class="l mute">${fmtPHT(new Date(t.t + PHT_MS))}</td><td class="l">${coin(t.sym)}</td><td class="l">${MODELS[t.model].icon} ${t.model} <span class="mute">${t.tf}</span></td><td class="l">${biasTag(t.dir)}</td><td class="l">${t.session}</td><td class="l mute">${t.env}</td><td class="l">${t.reason}</td><td class="${rCls(t.r)}">${fmtR(t.r)}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+  el.innerHTML = `
+    <div class="schead"><h2>Model Backtest</h2>
+      <span class="meta">${all ? `${BT.exchange} · last ${BT.days} days · ${BT.coins} coins · run ${fmtPHT(new Date(BT.at + PHT_MS))} · <b>${all.n}</b> trades · avg <b class="${rCls(all.avg)}">${fmtR(all.avg)}</b> · total <b class="${rCls(all.tot)}">${fmtR(all.tot)}</b>` : "Replays every model on real history to show which ones actually pay, and where."}</span></div>
+    <div class="btctl">
+      <label class="pill"><span>Period</span><select id="btDays"><option value="30">30 days</option><option value="60" selected>60 days</option><option value="90">90 days</option></select></label>
+      <label class="pill"><span>Coins</span><select id="btCoins"><option value="20">Top 20</option><option value="30" selected>Top 30</option><option value="50">Top 50</option></select></label>
+      <label class="pill"><span>Fees (round trip %)</span><input id="btFee" type="number" step="0.01" value="${BT ? BT.fee : 0.1}"></label>
+      <button class="btn primary" id="btRun" ${data && !btRunning ? "" : "disabled"}>${btRunning ? "Running…" : all ? "Run Again" : "Run Backtest"}</button>
+      <label class="tog"><input type="checkbox" id="btUse" ${btUse() ? "checked" : ""}> Use results in the playbook</label>
+      ${all ? `<button class="btn sm" id="btCsv">Export CSV</button>` : ""}
+    </div>
+    <div class="status" id="btStatus">${data ? (all ? "Results below. Run it again any time, for example weekly, to keep the numbers fresh." : "Takes about a minute: it downloads the history, then replays each model candle by candle.") : "Run a scan first."}</div>
+    <div class="progress"><i id="btProg"></i></div>
+    ${all ? `<div class="sctabs">${viewTabs.map(([v, l]) => `<button class="tab ${btView === v ? "on" : ""}" data-bv="${v}">${l}</button>`).join("")}</div>${body}
+      <h3 class="pbh3">Equity Curve <span class="meta">cumulative R after fees</span></h3><div id="btEq" class="bteq"></div><div class="clegend bteql" id="btEqLegend"></div>` : ""}
+    <p class="meta">How it works: at every historical candle the detectors only see candles that had already closed (your 1H, plus the 4H and Daily closed by then), exactly as the live scanner would. A triggered setup is entered at that candle's close and walked forward until the stop, the target (2R, or the 4H OEZ for Pullback) or 48 hours. ORB and AMD are replayed on 15m candles for the last 30 days with your 11:00 NY hard close. If the stop and target land in the same candle it counts as a stop, and fees come off every trade. The environment uses the playbook's rules (BTC regime plus 4H breadth of the tested coins). Limits: today's top coins (coins that died aren't in the list), no slippage beyond fees, and the gray cells have fewer than 10 trades, too few to trust.</p>`;
+  if ($("btDays") && BT) { $("btDays").value = BT.days; $("btCoins").value = Math.min(50, Math.max(20, BT.coins <= 20 ? 20 : BT.coins <= 30 ? 30 : 50)); }
+  if ($("btRun")) $("btRun").onclick = () => { runBacktest(); renderBacktestControls(); };
+  if ($("btUse")) $("btUse").onchange = () => { try { localStorage.setItem(BT_USE_KEY, $("btUse").checked ? "on" : "off"); } catch (e) {} if (data) { renderPlaybook(); renderGuide(); } };
+  el.querySelectorAll("[data-bv]").forEach(b => b.onclick = () => { btView = b.dataset.bv; renderBacktest(); });
+  if ($("btCsv")) $("btCsv").onclick = () => {
+    const csv = "time_pht,coin,model,timeframe,side,session,environment,entry,stop,target,exit,r_after_fees,r_before_fees,candles\n" +
+      T.map(t => [fmtPHT(new Date(t.t + PHT_MS)), t.sym, t.model, t.tf, t.dir, t.session.replace(/^\S+\s/, ""), `"${t.env}"`, t.entry, t.stop, t.t2, t.reason, t.r, t.gross, t.bars].join(",")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "alt-scanner-backtest.csv"; a.click();
+  };
+  if (all) drawEquity(T);
+}
+function renderBacktestControls() { const b = $("btRun"); if (b) { b.disabled = btRunning || !data; b.textContent = btRunning ? "Running…" : "Run Backtest"; } }
+
 /* ---- tabs + table (TradingView-style column sets) ---- */
 const C = {
   inst:   { t: "Instrument", l: true, v: r => r.symbol, h: r => instHTML(r) },
@@ -2954,6 +3237,7 @@ function claudeText() {
   t += `\n\nMODEL SETUPS (triggered, $10M+ volume)\n` + (trig.map((r, i) => `${i + 1}. ${r.symbol} | ` + r.models.filter(m => m.trig).map(m => `${m.model} ${m.dir} ${m.state} (${m.tf})${m.entry != null ? ` E ${fmtPrice(m.entry)}` : ""}${m.stop != null ? ` S ${fmtPrice(m.stop)}` : ""}${m.t2 != null ? ` T ${fmtPrice(m.t2)}` : ""}${m.baseNo ? ` base#${m.baseNo}` : ""}${m.sweep ? " swept" : ""}`).join("; ")).join("\n") || "None.");
   const sc = scoreRows("model").filter(x => x.done);
   if (sc.length) t += `\n\nSCORECARD (resolved picks on this device, by model)\n` + sc.map(x => `${x.k}: ${x.done} resolved, ${x.wins} hit target, ${x.losses} stopped, win ${x.win == null ? "n/a" : x.win.toFixed(0) + "%"}, avg ${x.avgR >= 0 ? "+" : ""}${x.avgR.toFixed(2)}R`).join("\n");
+  if (BT && BT.trades && BT.trades.length) { t += `\n\nBACKTEST (${BT.exchange}, ${BT.days} days, ${BT.coins} coins, fees ${BT.fee}%)\n` + MODEL_KEYS.map(k => { const s = btStats(BT.trades.filter(x => x.model === k)); return s ? `${k}: ${s.n} trades, win ${s.win.toFixed(0)}%, avg ${fmtR(s.avg)}, total ${fmtR(s.tot)}, PF ${s.pf >= 99 ? "inf" : s.pf.toFixed(2)}` : null; }).filter(Boolean).join("\n"); }
   if (Object.keys(WL.coins).length) t += `\n\nWATCHLIST: ${Object.keys(WL.coins).map(coin).join(", ")}`;
   return t + "\n\nRun the crypto scanner on these.";
 }
@@ -2974,7 +3258,7 @@ async function run() {
   try {
     data = await scan(opts(), (msg, f) => { $("status").textContent = msg; $("prog").style.width = (f * 100) + "%"; });
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
-    renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); tickClock();
+    renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
     renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan();
     { const t = liveTarget(); if (t && (!LIVE.ws || LIVE.url !== t.url)) liveConnect(); else liveSync(); } renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
@@ -3006,7 +3290,7 @@ $("search").oninput = renderTable;
 $("auto").onchange = () => { savePrefs(); clearInterval(autoTimer); if ($("auto").checked) autoTimer = setInterval(run, 15 * 60 * 1000); };
 
 $("verLbl").textContent = "Version " + APP_VERSION + ".";
-wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard();
+wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard(); renderBacktest();
 $("dlg").addEventListener("close", killChart);
 $("liveBadge").onclick = () => {
   if (LIVE.state === "down") { LIVE.retry = 0; liveConnect(); return; }

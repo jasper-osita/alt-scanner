@@ -9,6 +9,14 @@ Also includes: session picks (the best 3 coins to day trade in Asia, London and 
 (EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, price and setup alerts
 (while the app is open), and a scorecard that tracks every scan's picks and checks whether they hit target or stop.
 
+## Model backtest
+The Model Backtest card replays every model on the last 30, 60 or 90 days of real candles for your top coins
+(plus your watchlist) and shows which models pay, by model, session, environment, direction and coin, with an equity
+curve. No look-ahead: at each candle the detectors only see candles that had closed. Trades run to the stop, the target
+or 48 hours (ORB and AMD on 15m candles with the 11:00 NY close); same-candle stop and target counts as a stop; fees
+come off every trade. With "Use results in the playbook" on, a model that loses in an environment (≤ −0.10R over 15+
+trades) is moved to Avoid there, and one that pays (≥ +0.25R) is promoted. Results are saved in your browser.
+
 ## Live data
 The **● Live** badge in the header shows the live stream. While it's live, prices, 24h change and funding update in real
 time, the coin chart's current candle moves as it forms, price alerts fire instantly, and at every 1H candle close the

@@ -398,6 +398,19 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
 
 #updBar{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--pill);border:1px solid var(--blue);
   border-radius:10px;padding:8px 10px 8px 14px;font-size:13.5px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.livebadge{font-size:12.5px;padding:4px 10px;border-radius:12px;border:1px solid var(--pill-b);background:var(--pill);cursor:pointer;white-space:nowrap}
+.livebadge.live{color:var(--green);border-color:color-mix(in srgb,var(--green) 50%,transparent)}
+.livebadge.connecting{color:var(--amber)}
+.livebadge.down,.livebadge.off{color:var(--mute)}
+.lp{transition:color .6s}
+.tick-up{color:var(--green)!important;transition:none}
+.tick-dn{color:var(--red)!important;transition:none}
+
+.ohlc{position:absolute;left:8px;top:6px;z-index:3;font-size:12px;color:var(--mute);display:flex;flex-wrap:wrap;gap:2px 10px;pointer-events:none;
+  background:color-mix(in srgb,var(--panel) 70%,transparent);padding:2px 6px;border-radius:6px;max-width:calc(100% - 90px)}
+.ohlc b{color:var(--text);font-weight:600}
+.ohlc i{font-style:normal}
+.cdlabel{position:absolute;right:0;z-index:3;color:#fff;font-size:11px;line-height:16px;text-align:center;font-variant-numeric:tabular-nums;pointer-events:none;border-radius:2px;opacity:.92}
 </style>
 </head>
 <body>
@@ -405,6 +418,7 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
   <div class="topbar">
     <div class="appname"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 8h14M8 8v9"/></svg>Crypto Coins Screener</div>
     <div class="actions">
+      <button class="livebadge off" id="liveBadge" title="Live data">○ Live</button>
       <label class="tog"><input type="checkbox" id="auto"> Auto-Refresh (15 min)</label>
       <button class="btn" id="copyBtn" disabled>Copy for Claude</button>
       <button class="btn" id="jsonBtn" disabled>Export JSON</button>
@@ -1158,6 +1172,15 @@ async function fundamentals(base) {
     unlocked: circ && max ? circ / max : null, athChg: md.ath_change_percentage && md.ath_change_percentage.usd, desc };
 }
 
+function applyRS(r, btc) {
+  r.rs24 = r.ret24 != null && btc.ret24 != null ? r2((r.ret24 - btc.ret24) * 100) : null;
+  r.rs7 = r.ret7 != null && btc.ret7 != null ? r2((r.ret7 - btc.ret7) * 100) : null;
+  const dDir = FULL.includes(r.s1h.state) ? r.s1h.dir : null, sDir = r.swingDir;
+  r.dayParts.rs = dDir && r.rs24 != null ? r1(clamp(((dDir === "Long" ? r.rs24 : -r.rs24) + 1) / 5) * 15) : 0;
+  r.swingParts.rs = sDir && r.rs7 != null ? r1(clamp(((sDir === "Long" ? r.rs7 : -r.rs7) + 2) / 12) * 15) : 0;
+  r.dayScore = r1(Object.values(r.dayParts).reduce((a, b) => a + b, 0));
+  r.swingScore = r1(Object.values(r.swingParts).reduce((a, b) => a + b, 0));
+}
 async function btcRegime(maFn) {
   const [a, b, d] = await Promise.all([klines("BTCUSDT", "1h", 400), klines("BTCUSDT", "4h", 160), klines("BTCUSDT", "1d", 130)]);
   const s1 = structure(a, maFn), s4 = structure(b, maFn);
@@ -1209,15 +1232,7 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
   })).filter(Boolean);
 
   // relative strength vs BTC (percentage points), folded into the scores
-  results.forEach(r => {
-    r.rs24 = r.ret24 != null && btc.ret24 != null ? r2((r.ret24 - btc.ret24) * 100) : null;
-    r.rs7 = r.ret7 != null && btc.ret7 != null ? r2((r.ret7 - btc.ret7) * 100) : null;
-    const dDir = FULL.includes(r.s1h.state) ? r.s1h.dir : null, sDir = r.swingDir;
-    r.dayParts.rs = dDir && r.rs24 != null ? r1(clamp(((dDir === "Long" ? r.rs24 : -r.rs24) + 1) / 5) * 15) : 0;
-    r.swingParts.rs = sDir && r.rs7 != null ? r1(clamp(((sDir === "Long" ? r.rs7 : -r.rs7) + 2) / 12) * 15) : 0;
-    r.dayScore = r1(Object.values(r.dayParts).reduce((a, b) => a + b, 0));
-    r.swingScore = r1(Object.values(r.swingParts).reduce((a, b) => a + b, 0));
-  });
+  results.forEach(r => applyRS(r, btc));
 
   // Day trade: 1H structure, liquid enough, leverage checked on the best 25
   const dayMin = DAY_MIN_VOL[MODE];
@@ -1744,7 +1759,7 @@ function renderMarket() {
 }
 function moverRow(r, i) {
   return `<div class="mv" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>${instHTML(r)}
-    <span class="mvp">${fmtPrice(r.price)}</span>${pctCell(r.chg24h)}</div>`;
+    <span class="mvp lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span><span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span></div>`;
 }
 function renderMovers() {
   const pool = data.all.filter(r => r.vol24h >= 5e6);
@@ -2136,7 +2151,7 @@ function toggleWatch(sym) {
   if (WL.coins[sym]) delete WL.coins[sym];
   else WL.coins[sym] = { note: "", added: Date.now(), setupAlert: true, seen: trigKeys(bySym[sym]) };
   wlSave(); renderQuick();
-  if (data) renderTable();
+  if (data) { renderTable(); liveSync(); }
   document.querySelectorAll(`[data-star="${sym}"]`).forEach(b => { b.outerHTML = starBtn(sym); });
   bindStars(document);
   if ($("dlg").open && $("dlgBody").dataset.sym === sym) renderWatchBox(bySym[sym]);
@@ -2268,7 +2283,9 @@ async function ensureLWC() {
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const pricePrec = p => p >= 1000 ? 2 : p >= 1 ? 4 : p >= 0.01 ? 5 : 7;
 const phtTime = t => { const d = new Date(t * 1000 + PHT_MS); return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")} PHT`; };
-function killChart() { if (mRO) { mRO.disconnect(); mRO = null; } if (mChart) { try { mChart.remove(); } catch (e) {} mChart = null; } }
+function killChart() { if (mRO) { mRO.disconnect(); mRO = null; } if (mChart) { try { mChart.remove(); } catch (e) {} mChart = null; }
+  clearInterval(LIVE.chartTimer);
+  if (LIVE.chart) { LIVE.chart = null; liveSync(); } }
 async function drawChart(r, tf) {
   const el = $("mchart"); if (!el) return;
   el.innerHTML = `<div class="meta cload">Loading ${tf.toUpperCase()} chart…</div>`;
@@ -2288,9 +2305,11 @@ async function drawChart(r, tf) {
     const ts = k.t.map(t => Math.floor(t / 1000));
     cs.setData(ts.map((t, i) => ({ time: t, open: k.o[i], high: k.h[i], low: k.l[i], close: k.c[i] })));
     const maFn = data.ma === "sma" ? sma : ema;
+    const maLines = [];
     [[20, "#f23645"], [50, "#9c27b0"], [100, "#2962ff"]].forEach(([n, col]) => {
       const v = maFn(k.c, n), s = mChart.addLineSeries({ color: col, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
       s.setData(ts.map((t, i) => v[i] == null ? null : { time: t, value: v[i] }).filter(Boolean));
+      maLines.push({ n, s });
     });
     const p = coinPlay(r), m = p.lv;
     if (m) {
@@ -2300,6 +2319,19 @@ async function drawChart(r, tf) {
     }
     const nBars = k.c.length;
     if (nBars > 120) mChart.timeScale().setVisibleLogicalRange({ from: nBars - 120, to: nBars + 3 }); else mChart.timeScale().fitContent();
+    const last = k.c.length - 1;
+    LIVE.chart = { sym: r.symbol, tf, cs, lines: maLines, closes: k.c.slice(), times: ts.slice(), maFn,
+                   lastBar: last >= 0 ? { o: k.o[last], h: k.h[last], l: k.l[last], c: k.c[last] } : null, hover: false };
+    el.insertAdjacentHTML("beforeend", `<div id="ohlcLegend" class="ohlc"></div><div id="cdLabel" class="cdlabel" hidden></div>`);
+    mChart.subscribeCrosshairMove(prm => {
+      const d = prm && prm.seriesData && prm.seriesData.get(cs);
+      LIVE.chart && (LIVE.chart.hover = !!d); if (d) paintLegend({ o: d.open, h: d.high, l: d.low, c: d.close }); else chartDecor();
+    });
+    chartDecor(); liveSync();
+    const sym0 = r.symbol, pull = async () => { try { const b = await formingBar(sym0, tf); if (b && LIVE.chart && LIVE.chart.sym === sym0 && LIVE.chart.tf === tf) chartLiveBar(b); } catch (e) {} };
+    pull();                                                         // show the forming candle immediately
+    clearInterval(LIVE.chartTimer); let tick = 0;
+    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && LIVE.state !== "live") pull(); }, 1000);
     if (window.ResizeObserver) { if (mRO) mRO.disconnect(); mRO = new ResizeObserver(() => { if (mChart && el.isConnected) mChart.applyOptions({ width: el.clientWidth, height: Math.max(160, el.clientHeight) }); }); mRO.observe(el); }
   } catch (e) { el.innerHTML = `<div class="meta cload">Couldn't load the chart (${e.message}).</div>`; }
 }
@@ -2484,7 +2516,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.02.1543";
+const APP_VERSION = "2026.10.02.1544";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -2507,14 +2539,245 @@ function applyUpdateWhenIdle() {
   setTimeout(applyUpdateWhenIdle, 15000);
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(); });
-setInterval(checkForUpdate, 30 * 60 * 1000);
+setInterval(checkForUpdate, 2 * 60 * 1000);
 setTimeout(checkForUpdate, 4000);
+
+
+/* ===================== TradingView feel: candle countdown, OHLC legend, always-moving chart ===================== */
+const TF_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
+async function formingBar(sym, tf) {                 // the candle that's still forming (the scanner's normal candles skip it)
+  await spend(1);
+  if (EXCHANGE === "bybit") {
+    const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[tf], limit: 1 }, 1);
+    const k = res.list[0]; return k ? { t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4] } : null;
+  }
+  const base = MODE === "futures" ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+  const raw = await getJSON(`${base}?${qs({ symbol: sym, interval: tf, limit: 1 })}`, 1);
+  const k = raw.at(-1); return k ? { t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4] } : null;
+}
+const fmtCountdown = ms => { ms = Math.max(0, ms); const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return h ? `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}`; };
+function chartDecor() {                               // countdown under the price label + OHLC legend
+  const C = LIVE.chart; if (!C || !mChart) return;
+  const lb = C.lastBar; if (!lb) return;
+  const up = lb.c >= lb.o, col = up ? "#22ab94" : "#f23645";
+  const y = C.cs.priceToCoordinate(lb.c), cd = $("cdLabel");
+  if (cd && y != null) {
+    const ps = mChart.priceScale("right").width();
+    cd.style.width = ps + "px"; cd.style.top = (y + 10) + "px"; cd.style.background = col;
+    cd.textContent = fmtCountdown(Math.ceil(Date.now() / TF_MS[C.tf]) * TF_MS[C.tf] - Date.now());
+    cd.hidden = y < 0 || y > $("mchart").clientHeight - 14;
+  }
+  if (!C.hover) paintLegend(lb);
+}
+function paintLegend(bar) {
+  const el = $("ohlcLegend"), C = LIVE.chart; if (!el || !C || !bar) return;
+  const r = bySym[C.sym], prev = C.closes.length > 1 ? C.closes.at(-2) : bar.o, chg = prev ? (bar.c - prev) / prev * 100 : 0;
+  const cls = bar.c >= bar.o ? "up" : "dn", f = v => fmtPrice(v);
+  el.innerHTML = `<b>${C.sym}${data.mode === "futures" ? ".P" : ""}</b> · ${C.tf.toUpperCase()} · ${exName()}
+    <span>O <i class="${cls}">${f(bar.o)}</i></span><span>H <i class="${cls}">${f(bar.h)}</i></span><span>L <i class="${cls}">${f(bar.l)}</i></span><span>C <i class="${cls}">${f(bar.c)}</i></span>
+    <i class="${chg >= 0 ? "up" : "dn"}">${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%</i>`;
+}
+
+/* ===================== Live data (WebSocket streams) ===================== */
+const LIVE = { ws: null, state: "off", url: "", kind: "", subs: new Set(), dirty: new Set(), retry: 0, ping: null, chart: null,
+               queue: [], busy: false, lastMsg: 0, rerender: null, moversAt: 0 };
+const LIVE_KEY = "altscan-live";
+const liveOn = () => { try { return localStorage.getItem(LIVE_KEY) !== "off"; } catch (e) { return true; } };
+const BY_IV_BACK = { "15": "15m", "60": "1h", "240": "4h", "D": "1d" };
+function liveSetState(st, note) {
+  LIVE.state = st;
+  const b = $("liveBadge"); if (!b) return;
+  b.className = "livebadge " + st;
+  b.textContent = { live: "● Live", connecting: "● Connecting…", down: "○ Live off: polling", off: "○ Live paused" }[st] || st;
+  b.title = note || { live: "Prices, chart and alerts update in real time. Click to pause.", connecting: "Connecting to the live stream…",
+    down: "The live stream is blocked or unreachable on this network. Alerts fall back to checking every 30 seconds. Click to retry.",
+    off: "Live data is paused. Click to resume." }[st];
+}
+function liveTarget() {
+  if (!data) return null;
+  if (data.exchange === "bybit") return { kind: "bybit", url: `wss://stream.bybit.com/v5/public/${data.mode === "futures" ? "linear" : "spot"}` };
+  if (data.mode === "futures") return { kind: "binance", url: "wss://fstream.binance.com/stream" };
+  return { kind: "binance", url: data.fellBack ? "wss://data-stream.binance.vision/stream" : "wss://stream.binance.com:9443/stream" };
+}
+function focusSymbols() {                 // coins worth re-checking at each candle close
+  const s = new Set(Object.keys(WL.coins).filter(x => bySym[x]));
+  (data.day || []).forEach(p => s.add(p.symbol)); (data.swing || []).forEach(p => s.add(p.symbol));
+  aotsList().slice(0, 5).forEach(e => s.add(e.symbol)); (data.suggest || []).forEach(x => s.add(x.r.symbol));
+  Object.values(data.sessionPicks || {}).flat().forEach(x => s.add(x.r.symbol));
+  if ($("dlg").open && bySym[$("dlgBody").dataset.sym]) s.add($("dlgBody").dataset.sym);
+  return [...s].slice(0, 60);
+}
+function desiredStreams() {
+  const want = new Set(), T = LIVE.kind, focus = focusSymbols(), pool = (data.dayPool || []).slice(0, 25);
+  if (T === "binance") {
+    want.add("!miniTicker@arr"); if (data.mode === "futures") want.add("!markPrice@arr@1s");
+    want.add("btcusdt@kline_1h");
+    focus.forEach(s => want.add(s.toLowerCase() + "@kline_1h"));
+    pool.forEach(s => want.add(s.toLowerCase() + "@kline_15m"));
+    if (LIVE.chart) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
+  } else {
+    data.all.forEach(r => want.add("tickers." + r.symbol));
+    want.add("kline.60.BTCUSDT");
+    focus.forEach(s => want.add("kline.60." + s)); pool.forEach(s => want.add("kline.15." + s));
+    if (LIVE.chart) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
+  }
+  return want;
+}
+let subId = 1;
+function liveSend(op, list) {
+  if (!LIVE.ws || LIVE.ws.readyState !== 1 || !list.length) return;
+  const batch = LIVE.kind === "bybit" ? 10 : 100;
+  for (let i = 0; i < list.length; i += batch) {
+    const part = list.slice(i, i + batch);
+    setTimeout(() => {
+      if (!LIVE.ws || LIVE.ws.readyState !== 1) return;
+      LIVE.ws.send(JSON.stringify(LIVE.kind === "bybit" ? { op, args: part } : { method: op === "subscribe" ? "SUBSCRIBE" : "UNSUBSCRIBE", params: part, id: subId++ }));
+    }, (i / batch) * 150);                                    // stay under the exchanges' message-rate limits
+  }
+}
+function liveSync() {
+  if (!LIVE.ws || LIVE.ws.readyState !== 1 || !data) return;
+  const want = desiredStreams();
+  const add = [...want].filter(x => !LIVE.subs.has(x)), drop = [...LIVE.subs].filter(x => !want.has(x));
+  liveSend("unsubscribe", drop); liveSend("subscribe", add);
+  LIVE.subs = want;
+}
+function liveConnect() {
+  liveClose(false);
+  if (!liveOn()) { liveSetState("off"); return; }
+  const t = liveTarget(); if (!t) return;
+  LIVE.kind = t.kind; LIVE.url = t.url; LIVE.subs = new Set(); liveSetState("connecting");
+  let ws;
+  try { ws = new WebSocket(t.url); } catch (e) { liveRetry(); return; }
+  LIVE.ws = ws;
+  ws.onopen = () => {
+    LIVE.retry = 0; liveSetState("live"); liveSync();
+    if (LIVE.kind === "bybit") LIVE.ping = setInterval(() => { try { ws.send(JSON.stringify({ op: "ping" })); } catch (e) {} }, 20000);
+  };
+  ws.onmessage = ev => { LIVE.lastMsg = Date.now(); try { liveMessage(JSON.parse(ev.data)); } catch (e) {} };
+  ws.onclose = () => { if (LIVE.ws === ws) { clearInterval(LIVE.ping); LIVE.ws = null; liveRetry(); } };
+  ws.onerror = () => {};
+}
+function liveRetry() {
+  if (!liveOn()) return;
+  LIVE.retry++;
+  liveSetState(LIVE.retry >= 3 ? "down" : "connecting");
+  if (LIVE.retry >= 3) startPricePoll();                       // alerts keep working without the stream
+  clearTimeout(LIVE.rt); LIVE.rt = setTimeout(liveConnect, Math.min(60000, 1000 * 2 ** Math.min(LIVE.retry, 6)));
+}
+function liveClose(markOff = true) {
+  clearTimeout(LIVE.rt); clearInterval(LIVE.ping);
+  if (LIVE.ws) { const w = LIVE.ws; LIVE.ws = null; try { w.close(); } catch (e) {} }
+  if (markOff) liveSetState("off");
+}
+function liveTick(sym, fields) {
+  const r = bySym[sym]; if (!r) return;
+  if (fields.price != null && isFinite(fields.price)) r.price = fields.price;
+  if (fields.chg != null && isFinite(fields.chg)) r.chg24h = fields.chg;
+  if (fields.vol != null && isFinite(fields.vol)) r.vol24h = fields.vol;
+  if (fields.funding != null && isFinite(fields.funding)) r.funding = fields.funding;
+  LIVE.dirty.add(sym);
+}
+function liveMessage(m) {
+  if (LIVE.kind === "binance") {
+    const st = m.stream || "", d = m.data; if (!d) return;
+    if (st === "!miniTicker@arr") d.forEach(t => { const o = +t.o, c = +t.c; liveTick(t.s, { price: c, chg: o ? (c - o) / o * 100 : null, vol: +t.q }); });
+    else if (st.startsWith("!markPrice")) d.forEach(t => { if (bySym[t.s]) bySym[t.s].funding = +t.r; });
+    else if (d.e === "kline") { const k = d.k; onLiveKline(d.s, k.i, { t: +k.t, o: +k.o, h: +k.h, l: +k.l, c: +k.c }, !!k.x); }
+  } else {
+    const tp = m.topic || ""; if (!tp || !m.data) return;
+    if (tp.startsWith("tickers.")) { const d = m.data, f = {};
+      if (d.lastPrice != null) f.price = +d.lastPrice; if (d.price24hPcnt != null) f.chg = +d.price24hPcnt * 100;
+      if (d.turnover24h != null) f.vol = +d.turnover24h; if (d.fundingRate != null) f.funding = +d.fundingRate;
+      liveTick(d.symbol || tp.slice(8), f); }
+    else if (tp.startsWith("kline.")) { const [, iv, sym] = tp.split(".");
+      (m.data || []).forEach(k => onLiveKline(sym, BY_IV_BACK[iv], { t: +k.start, o: +k.open, h: +k.high, l: +k.low, c: +k.close }, !!k.confirm)); }
+  }
+}
+function onLiveKline(sym, iv, bar, closed) {
+  if (LIVE.chart && LIVE.chart.sym === sym && LIVE.chart.tf === iv) chartLiveBar(bar);
+  if (!closed) return;
+  if (iv === "1h") liveQueue(sym === "BTCUSDT" ? "BTC" : sym, "coin");
+  else if (iv === "15m") { const mins = (Date.now() - nyOpenUTC(Date.now())) / 60000; if (mins >= -120 && mins <= 150) liveQueue(sym, "session"); }
+}
+function liveQueue(sym, what) {
+  if (LIVE.queue.some(q => q.sym === sym && q.what === what)) return;
+  LIVE.queue.push({ sym, what }); liveDrain();
+}
+async function liveDrain() {
+  if (LIVE.busy) return; LIVE.busy = true;
+  while (LIVE.queue.length) {
+    const { sym, what } = LIVE.queue.shift();
+    try {
+      if (sym === "BTC") { data.btc = await btcRegime(data.ma === "sma" ? sma : ema); renderRegime(); }
+      else if (what === "coin") await refreshCoin(sym);
+      else await refreshSession(sym);
+    } catch (e) {}
+    await sleep(250);
+  }
+  LIVE.busy = false; scheduleRerender();
+}
+async function refreshCoin(sym) {
+  const old = bySym[sym]; if (!old) return;
+  const n = await analyse({ symbol: old.symbol, base: old.base, quote: old.quote, vol24h: old.vol24h, chg24h: old.chg24h, funding: old.funding, spotVol: old.spotVol },
+                          data.ma === "sma" ? sma : ema);
+  if (!n) return;
+  applyRS(n, data.btc);
+  n.maxLev = old.maxLev; n.drv = old.drv;
+  n.models = [...(n.models || []), ...(old.models || []).filter(m => m.tf === "15m")];
+  const i = data.all.indexOf(old); if (i >= 0) data.all[i] = n; bySym[sym] = n;
+}
+async function refreshSession(sym) {
+  const r = bySym[sym]; if (!r) return;
+  const k15 = await klines(sym, "15m", 100);
+  if (data.market === "futures") r.maxLev = levFrom(k15);
+  r.models = (r.models || []).filter(m => m.tf !== "15m").concat(sessionModels(k15, r));
+}
+function scheduleRerender() {
+  clearTimeout(LIVE.rerender);
+  LIVE.rerender = setTimeout(() => {
+    if (!data) return;
+    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); checkSetupAlerts(); liveSync();
+  }, 800);
+}
+/* live chart: the forming candle and the MAs move with each update */
+function chartLiveBar(bar) {
+  const C = LIVE.chart; if (!C || !C.cs || !mChart) return;
+  const t = Math.floor(bar.t / 1000), last = C.times.at(-1);
+  if (last != null && t < last) return;
+  if (t === last) C.closes[C.closes.length - 1] = bar.c; else { C.times.push(t); C.closes.push(bar.c); }
+  C.lastBar = { o: bar.o, h: bar.h, l: bar.l, c: bar.c };
+  try {
+    C.cs.update({ time: t, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
+    chartDecor();
+    C.lines.forEach(({ n, s }) => { const v = C.maFn(C.closes, n).at(-1); if (v != null) s.update({ time: t, value: v }); });
+  } catch (e) {}
+}
+/* paint live prices into whatever is on screen, once a second */
+setInterval(() => {
+  if (!data || !LIVE.dirty.size) return;
+  const changed = LIVE.dirty; LIVE.dirty = new Set();
+  // instant price alerts
+  const live = WL.alerts.filter(a => !a.fired && changed.has(a.sym));
+  if (live.length) { let any = false;
+    live.forEach(a => { const p = bySym[a.sym] && bySym[a.sym].price; if (p == null) return;
+      if ((a.dir === "above" && p >= a.price) || (a.dir === "below" && p <= a.price)) { a.fired = Date.now(); any = true;
+        notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`); } });
+    if (any) { wlSave(); if ($("dlg").open) renderWatchBox(bySym[$("dlgBody").dataset.sym]); } }
+  if (document.visibilityState !== "visible") return;
+  document.querySelectorAll(".lp[data-sym]").forEach(el => { const s = el.dataset.sym; if (!changed.has(s)) return;
+    const r = bySym[s], prev = +el.dataset.v || r.price, txt = fmtPrice(r.price);
+    if (el.textContent !== txt) { el.textContent = txt; el.dataset.v = r.price; el.classList.remove("tick-up", "tick-dn"); void el.offsetWidth; el.classList.add(r.price >= prev ? "tick-up" : "tick-dn"); } });
+  document.querySelectorAll(".lc[data-sym]").forEach(el => { const s = el.dataset.sym; if (changed.has(s)) el.innerHTML = pctCell(bySym[s].chg24h); });
+  if (Date.now() - LIVE.moversAt > 10000) { LIVE.moversAt = Date.now(); renderMovers(); }
+}, 1000);
 
 /* ---- tabs + table (TradingView-style column sets) ---- */
 const C = {
   inst:   { t: "Instrument", l: true, v: r => r.symbol, h: r => instHTML(r) },
-  price:  { t: "Price", v: r => r.price, h: r => `${fmtPrice(r.price)}<span class="unit">${r.quote}</span>` },
-  chg:    { t: "Chg %<br>24h", v: r => r.chg24h, h: r => pctCell(r.chg24h) },
+  price:  { t: "Price", v: r => r.price, h: r => `<span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span><span class="unit">${r.quote}</span>` },
+  chg:    { t: "Chg %<br>24h", v: r => r.chg24h, h: r => `<span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span>` },
   vol:    { t: "Vol in USD<br>24h", v: r => r.vol24h, h: r => `${fmtVol(r.vol24h)}<span class="unit">USD</span>` },
   day:    { t: "Day Score", v: r => r.dayScore, h: r => `<b>${r.dayScore}</b>` },
   swing:  { t: "Swing Score", v: r => r.swingScore, h: r => `<b>${r.swingScore}</b>` },
@@ -2608,7 +2871,7 @@ function openDetail(sym) {
   $("dlgBody").innerHTML = `
     <div class="dhead">
       <h3>${starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
-      <span class="meta">${fmtPrice(r.price)} ${r.quote} · ${pctCell(r.chg24h)} · $${fmtVol(r.vol24h)} volume · Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
+      <span class="meta"><span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span> ${r.quote} · <span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span> · $${fmtVol(r.vol24h)} volume · Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
       <div class="dacts"><button class="btn primary" data-tv="${r.symbol}">Open in TradingView</button><button class="btn" id="dlgClose" aria-label="Close">Close</button></div>
     </div>
     <div class="dgrid">
@@ -2712,7 +2975,8 @@ async function run() {
     data = await scan(opts(), (msg, f) => { $("status").textContent = msg; $("prog").style.width = (f * 100) + "%"; });
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); tickClock();
-    renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan(); renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
+    renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan();
+    { const t = liveTarget(); if (t && (!LIVE.ws || LIVE.url !== t.url)) liveConnect(); else liveSync(); } renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
     $("status").textContent = `${data.analysed} coins analysed.`;
     setTimeout(() => $("prog").style.width = "0", 600);
@@ -2744,6 +3008,12 @@ $("auto").onchange = () => { savePrefs(); clearInterval(autoTimer); if ($("auto"
 $("verLbl").textContent = "Version " + APP_VERSION + ".";
 wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard();
 $("dlg").addEventListener("close", killChart);
+$("liveBadge").onclick = () => {
+  if (LIVE.state === "down") { LIVE.retry = 0; liveConnect(); return; }
+  const on = !liveOn(); try { localStorage.setItem(LIVE_KEY, on ? "on" : "off"); } catch (e) {}
+  if (on) { LIVE.retry = 0; liveConnect(); } else liveClose(true);
+};
+liveSetState(liveOn() ? "connecting" : "off");
 $("fToggle").onclick = () => togglePanel(); $("fClose").onclick = () => togglePanel(false);
 try { if (localStorage.getItem("altscan-fopen")) togglePanel(true); } catch (e) {}
 new MutationObserver(() => { $("fBadge2").textContent = $("fBadge").textContent; }).observe($("fBadge"), { childList: true, characterData: true, subtree: true });

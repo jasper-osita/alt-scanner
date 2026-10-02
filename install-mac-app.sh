@@ -69,7 +69,7 @@ if [ -n "$REPO" ]; then
   <key>Label</key><string>$LABEL.update</string>
   <key>ProgramArguments</key><array><string>/bin/bash</string><string>$APPDIR/site/update-mac-app.sh</string></array>
   <key>RunAtLoad</key><true/>
-  <key>StartInterval</key><integer>1800</integer>
+  <key>StartInterval</key><integer>900</integer>
   <key>StandardOutPath</key><string>$APPDIR/logs/update.log</string>
   <key>StandardErrorPath</key><string>$APPDIR/logs/update.log</string>
 </dict>
@@ -102,7 +102,7 @@ Last step, install it as an app:
 It then lives in your Dock, Launchpad and Cmd+Tab like any other app.
 MSG
 if [ -n "$REPO" ]; then
-  echo "Auto-update is on: new versions pushed to the repo arrive within 30 minutes (and at every login)."
+  echo "Auto-update is on: new versions pushed to the repo arrive within about 2 minutes."
   echo "If the app is open when one lands, it reloads itself as soon as you're not in the middle of something."
 else
   echo "Tip: install from a Git repo to get automatic updates (see README: Automatic updates)."

@@ -9,6 +9,13 @@ Also includes: session picks (the best 3 coins to day trade in Asia, London and 
 (EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, price and setup alerts
 (while the app is open), and a scorecard that tracks every scan's picks and checks whether they hit target or stop.
 
+## Live data
+The **● Live** badge in the header shows the live stream. While it's live, prices, 24h change and funding update in real
+time, the coin chart's current candle moves as it forms, price alerts fire instantly, and at every 1H candle close the
+coins that matter (watchlist, board picks, session picks, playbook setups) are re-checked; during the NY window the
+15m closes re-check ORB and AMD. Click the badge to pause or resume. If your network blocks the stream, the badge
+shows "Live off: polling" and alerts fall back to checking every 30 seconds.
+
 ## Exchanges
 Switch between **Binance** and **Bybit** with the Exchange pill. Every board, filter, model, chart, alert and scorecard
 works on either. Bybit's positioning data has open interest, funding and the accounts long/short ratio (Bybit doesn't
@@ -54,7 +61,7 @@ After this, you never install updates yourself: open the app and it's already on
 3. **Optional, for your phone:** vercel.com → Add New → Project → import the repo. Every push redeploys within a minute.
 
 **How an update reaches you:** the change is committed with `bash bump-version.sh` and pushed → your Mac pulls it within
-30 minutes (Vercel within a minute) → the next time you open the app it's the new version. If the app is already open,
+about 2 minutes (Vercel within a minute) → the next time you open the app it's the new version. If the app is already open,
 it reloads itself as soon as you're not in the middle of something (otherwise it shows a "Reload now" banner).
 
 **Applying an update from a Claude chat:** download the zip, then tell Claude Code:

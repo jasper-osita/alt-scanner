@@ -10,8 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Alt Scanner">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/scanner-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icons/scanner-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="/icons/scanner-touch-180.png">
 <style>:root{
   --bg:#000; --panel:#0c0e14; --pill:#1a1d26; --pill-b:#2a2e39; --hover:#141821; --line:#1e222d;
   --text:#d1d4dc; --strong:#fff; --mute:#787b86; --blue:#2962ff; --green:#22ab94; --green-s:#089981; --red:#f23645; --amber:#f7a600;
@@ -2151,7 +2152,7 @@ async function notify(title, body) {
   try {
     if ("Notification" in window && Notification.permission === "granted") {
       const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-      if (reg) reg.showNotification(title, { body, icon: "icons/icon-192.png", tag: title }); else new Notification(title, { body });
+      if (reg) reg.showNotification(title, { body, icon: "icons/scanner-192.png", tag: title }); else new Notification(title, { body });
     }
   } catch (e) {}
 }
@@ -2483,7 +2484,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.02.1";
+const APP_VERSION = "2026.10.02.1543";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update

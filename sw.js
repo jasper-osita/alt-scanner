@@ -1,6 +1,6 @@
 /* Alt Scanner service worker: keeps the app shell available, never caches market data. */
-const SHELL = "alt-scanner-shell-2026.10.02.1";
-const FILES = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/lib/lightweight-charts.standalone.production.js"];
+const SHELL = "alt-scanner-shell-2026.10.02.1543";
+const FILES = ["/", "/index.html", "/manifest.webmanifest", "/icons/scanner-192.png", "/icons/scanner-512.png", "/lib/lightweight-charts.standalone.production.js"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== SHELL).map(k => caches.delete(k)))));

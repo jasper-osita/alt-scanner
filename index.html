@@ -427,6 +427,16 @@ table.btm td{white-space:nowrap}
 .rsiaxis span{position:absolute;left:0;right:0;text-align:left;padding-left:6px;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
 .rsiaxis b{position:absolute;left:0;right:0;font-size:11px;font-weight:500;text-align:left;padding-left:6px;background:#e0e3eb;color:#131722;border-radius:2px;line-height:16px;font-variant-numeric:tabular-nums}
 .rsisep{position:absolute;left:0;right:0;height:1px;background:var(--line);z-index:2;pointer-events:none}
+/* coin panel v2: chart fills the left; play and tabs on the right */
+.dgrid{grid-template-columns:minmax(0,1.9fr) minmax(340px,1fr)}
+.dleft .chartbox{flex:1;min-height:320px}
+.dright .play{margin:0 0 10px;padding:8px 11px}
+.dright .play p{font-size:12.5px;line-height:1.45;margin:4px 0}
+.dright .play .phead{font-size:14px}
+.dright .stance,.dright .cautions,.dright .boosts{font-size:12px}
+.dright .cgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dright .cgrid label:first-child{grid-column:1/-1}
+@media (max-width:1000px){.dgrid{grid-template-columns:1fr}.dleft .chartbox{min-height:0}}
 </style>
 </head>
 <body>
@@ -2440,7 +2450,7 @@ function sizeText(m) {
 }
 
 /* ===================== Mini chart (TradingView Lightweight Charts) ===================== */
-let mChart = null, mRO = null;
+let mChart = null, mRO = null, chartFit = null;
 async function ensureLWC() {
   if (window.LightweightCharts) return;
   await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "lib/lightweight-charts.standalone.production.js";
@@ -2481,13 +2491,21 @@ async function drawChart(r, tf) {
     mChart.priceScale("right").applyOptions({ scaleMargins: showRsi ? { top: 0.05, bottom: 0.39 } : { top: 0.08, bottom: 0.06 } });
     const rsiP = showRsi ? addRsiPane(mChart, ts, k.c) : null;
     const p = coinPlay(r), m = p.lv;
+    const win = Math.min(120, k.c.length), lo = minOf(k.l.slice(-win)), hi = maxOf(k.h.slice(-win)), span = hi - lo;
+    const near = v => v != null && isFinite(v) && v >= lo - 0.6 * span && v <= hi + 0.6 * span, shown = [], offChart = [];
+    cs.applyOptions({ autoscaleInfoProvider: orig => {             // keep drawn levels inside the price pane (not over the RSI)
+      const res = orig(); if (!res || !res.priceRange || !shown.length) return res;
+      return { ...res, priceRange: { minValue: Math.min(res.priceRange.minValue, ...shown), maxValue: Math.max(res.priceRange.maxValue, ...shown) } }; } });
     if (m) {
-      const pl = (price, color, title, style = 0) => { if (price != null && isFinite(price)) cs.createPriceLine({ price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: true, title }); };
+      const pl = (price, color, title, style = 0) => { if (price == null || !isFinite(price)) return; if (!near(price)) { if (title) offChart.push(`${title} ${fmtPrice(price)}`); return; } shown.push(price); cs.createPriceLine({ price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: true, title }); };
       if (m.zoneHi != null && m.zoneLo != null) { pl(Math.max(m.zoneHi, m.zoneLo), "#f7a600", "Zone", 2); pl(Math.min(m.zoneHi, m.zoneLo), "#f7a600", "", 2); }
       pl(m.entry, "#2962ff", "Entry"); pl(m.stop, "#f23645", "Stop"); pl(m.t2, "#22ab94", tLabel(m)); pl(m.t3, "#22ab94", m.model === "Reset20" ? "4R" : "3R", 2);
     }
+    { const lg = document.querySelector("#tfRow .clegend"); if (lg) { lg.querySelectorAll(".offc").forEach(x => x.remove()); if (offChart.length) lg.insertAdjacentHTML("beforeend", `<span class="offc mute"> · off-chart: ${offChart.join(", ")}</span>`); } }
     const nBars = k.c.length;
-    if (nBars > 120) mChart.timeScale().setVisibleLogicalRange({ from: nBars - 120, to: nBars + 3 }); else mChart.timeScale().fitContent();
+    const fit = () => { const n = LIVE.chart && LIVE.chart.sym === r.symbol ? LIVE.chart.times.length : nBars;
+      if (n > 120) mChart.timeScale().setVisibleLogicalRange({ from: n - 120, to: n + 3 }); else mChart.timeScale().fitContent(); };
+    fit(); chartFit = fit;
     const last = k.c.length - 1;
     LIVE.chart = { sym: r.symbol, tf, cs, rsiP, lines: maLines, closes: k.c.slice(), times: ts.slice(), maFn,
                    lastBar: last >= 0 ? { o: k.o[last], h: k.h[last], l: k.l[last], c: k.c[last] } : null, hover: false };
@@ -2501,7 +2519,7 @@ async function drawChart(r, tf) {
     pull();                                                         // show the forming candle immediately
     clearInterval(LIVE.chartTimer); let tick = 0;
     LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && LIVE.state !== "live") pull(); }, 1000);
-    if (window.ResizeObserver) { if (mRO) mRO.disconnect(); mRO = new ResizeObserver(() => { if (mChart && el.isConnected) mChart.applyOptions({ width: el.clientWidth, height: Math.max(160, el.clientHeight) }); }); mRO.observe(el); }
+    if (window.ResizeObserver) { if (mRO) mRO.disconnect(); mRO = new ResizeObserver(() => { if (mChart && el.isConnected) { mChart.applyOptions({ width: el.clientWidth, height: Math.max(160, el.clientHeight) }); if (chartFit && LIVE.chart && LIVE.chart.times.length <= 120) chartFit(); } }); mRO.observe(el); }
   } catch (e) { el.innerHTML = `<div class="meta cload">Couldn't load the chart (${e.message}).</div>`; }
 }
 function chartBoxHTML(r) {
@@ -2690,7 +2708,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.03.1444";
+const APP_VERSION = "2026.10.04.0027";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3578,15 +3596,15 @@ function openDetail(sym) {
     </div>
     <div class="dgrid">
       <div class="dleft">
-        ${playHTML(r)}
         ${chartBoxHTML(r)}
-        <div class="dsec"><h4>Position Size</h4><div id="cBox"></div></div>
       </div>
       <div class="dright">
+        ${playHTML(r)}
         <div class="dtabs" role="tablist">
-          ${[["score", "Score"], ["setups", `Setups${nSet ? ` (${nSet})` : ""}`], ["why", "Why It's Moving"], ["fund", "Fundamentals"], ["watch", "Alerts &amp; Notes"]]
+          ${[["score", "Score"], ["size", "Size"], ["setups", `Setups${nSet ? ` (${nSet})` : ""}`], ["why", "Why It's Moving"], ["fund", "Fundamentals"], ["watch", "Alerts &amp; Notes"]]
             .map(([k, l], i) => `<button class="tab ${i === 0 ? "on" : ""}" role="tab" data-pane="${k}">${l}</button>`).join("")}
         </div>
+        <div class="dpane" data-pane="size" hidden><div id="cBox"></div></div>
         <div class="dpane" data-pane="score">
           <div class="parts">
             ${partRow("1H structure", r.dayParts.structure, 40)}${partRow("Relative volume now", r.dayParts.rvol, 20)}

@@ -418,6 +418,15 @@ table.btm td{white-space:nowrap}
 .bteq{height:220px;position:relative;margin-top:4px}
 .bteql{margin:4px 0 0;justify-content:flex-start}
 
+.rsi{display:inline-block;min-width:26px;text-align:center;border-radius:4px;font-weight:600;font-size:12px;padding:0 4px}
+.rz-mo{color:#fff;background:#22ab94}.rz-pm{color:var(--green);background:color-mix(in srgb,var(--green) 16%,transparent)}
+.rz-ne{color:var(--mute)}.rz-pw{color:var(--red);background:color-mix(in srgb,var(--red) 16%,transparent)}.rz-wk{color:#fff;background:#f23645}
+.rsilbl{position:absolute;left:8px;z-index:3;font-size:11.5px;color:var(--mute);pointer-events:none;background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:4px}
+.rsilbl i{font-style:normal;margin-left:6px}
+.rsiaxis{position:absolute;right:0;z-index:3;background:var(--panel);border-left:1px solid var(--line);pointer-events:none;overflow:hidden}
+.rsiaxis span{position:absolute;left:0;right:0;text-align:left;padding-left:6px;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+.rsiaxis b{position:absolute;left:0;right:0;font-size:11px;font-weight:500;text-align:left;padding-left:6px;background:#e0e3eb;color:#131722;border-radius:2px;line-height:16px;font-variant-numeric:tabular-nums}
+.rsisep{position:absolute;left:0;right:0;height:1px;background:var(--line);z-index:2;pointer-events:none}
 </style>
 </head>
 <body>
@@ -506,6 +515,8 @@ table.btm td{white-space:nowrap}
 
   <section class="card btcard" id="backtest"></section>
 
+  <section class="card btcard" id="botSim"></section>
+
   <div class="quick" id="quick" aria-label="One-click views"></div>
   <div class="tabs" id="tabs" role="tablist"></div>
   <div class="tablewrap">
@@ -519,6 +530,7 @@ table.btm td{white-space:nowrap}
     Rating blends the 20/50/100 stack on 1H (30%), 4H (40%) and Daily (30%), plus a nudge for a fresh AOTS break; two or more tangled timeframes always read Chop.
     Wick % is the share of each candle that is wick, averaged over the last 48 1H and 42 4H candles: under 50% is clean, over 65% (or 3+ spikes larger than 1.5× ATR) is wicky.
     Day score: 1H structure 40, relative volume now (last 6 hours vs the same hours on the previous 7 days) 20, volatility fit 15, strength vs BTC over 24h 15, entry location (distance from the 1H 20) 10. Swing score: 4H and Daily structure 50, daily relative volume 20, volatility fit 15, strength vs BTC over 7 days 15. Boards keep at most 2 coins per sector. Picks are a watchlist, not entries.
+    RSI is the 14-period Wilder RSI on 1H, 4H and Daily: 70+ momentum, 60–70 pre-momentum, 40–60 neutral, 30–40 pre-weak, 30 or below weak; divergence compares the last two swing highs (or lows) with RSI; ignition is a cross of 60 (or 40) in the last 3 candles. Momentum score: RSI alignment 40, volume now 20, strength vs BTC 20, range expansion 20, minus 10 for a divergence against the move.
     Position sizing, the watchlist, notes, alerts and the scorecard are saved in this browser only. Alerts fire while the app is open. Charts by TradingView Lightweight Charts™ (Apache 2.0).
     Data: Binance and Bybit public APIs, read in your browser. Logos: TradingView. <span id="verLbl"></span>
   </footer>
@@ -947,7 +959,54 @@ function pullbackLong(k, a, k4) {
   return { model: "Pullback", state: room ? "Retrace underway" : "Retrace underway, little room", trig: room, entry: c, stop, t2: target, t3: null, sweep: true,
     note: "Swept the extreme, LTF structure shifted; target is the 4H OEZ near edge (62%). Counter-HTF: caps at B-Silver." };
 }
-function detectModels(k1h, k4h, s1h, s4h, s1d) {
+/* ===================== Claude's setups: Leader Pullback (day) and Daily 20 Reset (swing) ===================== */
+/* Leader Pullback, 1H: a fresh 48h high made by a big, high-volume impulse, a quiet pullback into the 20 or the 38% of the
+   leg that holds the 50 and gives back at most 62%, then a reclaim candle. */
+function leaderLong(k, a) {
+  const n = k.c.length; if (n < 120) return null;
+  const e20 = ema(k.c, 20), e50 = ema(k.c, 50), e100 = ema(k.c, 100), i = n - 1;
+  if (!(e20[i] > e50[i] && e50[i] > e100[i] && e50[i] > e50[i - 10])) return null;              // 1H uptrend, rising 50
+  const ab = avgBody(k, n - 40, n - 12) || 1e-12, vb = k.qv.slice(n - 40, n - 12), av = (vb.reduce((x, y) => x + y, 0) / vb.length) || 1e-12;
+  let imp = -1;
+  for (let j = n - 12; j < n - 1; j++) {
+    if (k.h[j] > maxOf(k.h.slice(Math.max(0, j - 48), j)) && k.c[j] > k.o[j] && body(k, j) >= 1.8 * ab && k.qv[j] >= 1.8 * av) imp = j;
+  }
+  if (imp < 0 || imp > n - 3) return null;                                                        // needs a pullback after the impulse
+  const legLow = minOf(k.l.slice(Math.max(0, imp - 12), imp + 1)), top = maxOf(k.h.slice(imp, n)), pbLow = minOf(k.l.slice(imp + 1, n));
+  if (top - legLow <= 0) return null;
+  const fib38 = top - 0.382 * (top - legLow);
+  let touched = false, held = true;                          // pullback reaches the 20 or the 38% of the leg, holds the 50
+  for (let j = imp + 1; j < n; j++) { if (k.l[j] <= Math.max(e20[j] + 0.3 * a, fib38)) touched = true; if (k.c[j] < e50[j]) held = false; }
+  if (!touched || !held || (top - pbLow) / (top - legLow) > 0.62) return null;
+  const pbVol = k.qv.slice(imp + 1, i), quiet = pbVol.length ? pbVol.reduce((x, y) => x + y, 0) / pbVol.length < 0.7 * k.qv[imp] : true;
+  const trig = k.c[i] > k.o[i] && k.c[i] > k.h[i - 1] && k.c[i] > e20[i];
+  const stop = pbLow - 0.2 * a, entry = trig ? k.c[i] : Math.max(k.h[i], e20[i]);
+  return { model: "Leader", state: trig ? "Reclaim after the pullback" : "Pulling back to the 20", trig, zoneHi: e20[i] + 0.3 * a, zoneLo: pbLow, ...levels(entry, stop),
+    note: `Fresh 48h high on a ${(k.qv[imp] / av).toFixed(1)}× volume impulse, pullback held the 50 and gave back ${Math.round((top - pbLow) / (top - legLow) * 100)}% of the leg${quiet ? " on lighter volume" : ""}.` };
+}
+/* Daily 20 Reset, 4H trigger: Daily uptrend with a rising 20; price dips into the Daily 20 zone (±0.5 daily ATR), closes below
+   the 4H 20 at least twice (the reset), then a 4H candle reclaims the 20 and the prior high. Target 3R. */
+function reset20Long(k4, kd) {
+  if (!kd || kd.c.length < 110 || k4.c.length < 120) return null;
+  const d20 = ema(kd.c, 20), d50 = ema(kd.c, 50), d100 = ema(kd.c, 100), m = kd.c.length - 1;
+  if (!(d20[m] > d50[m] && d50[m] > d100[m] && d20[m] > d20[m - 5])) return null;
+  for (let j = m - 9; j <= m; j++) if (kd.c[j] < d50[j]) return null;                            // no daily close below the 50 lately
+  const da = atr(kd.h, kd.l, kd.c).at(-1), a4 = atr(k4.h, k4.l, k4.c).at(-1); if (!da || !a4) return null;
+  const zTop = d20[m] + 0.5 * da, zBot = d20[m] - 0.5 * da;
+  const e20 = ema(k4.c, 20), n = k4.c.length, i = n - 1, win = [];
+  for (let j = n - 12; j < n; j++) win.push(j);
+  const low = minOf(win.map(j => k4.l[j]));
+  if (low > zTop || low < zBot - 0.5 * da) return null;                                           // must reach the zone, not crash through it
+  if (win.filter(j => k4.c[j] < e20[j]).length < 2) return null;                                  // a real reset below the 4H 20
+  const trig = k4.c[i] > e20[i] && k4.c[i] > k4.h[i - 1] && k4.c[i] > k4.o[i];
+  const entry = trig ? k4.c[i] : Math.max(e20[i], k4.h[i]), stop = low - 0.25 * a4, R = entry - stop;
+  if (R <= 0) return null;
+  return { model: "Reset20", state: trig ? "Reclaimed the 4H 20" : "Resetting at the Daily 20", trig, zoneHi: zTop, zoneLo: zBot,
+    entry, stop, t2: entry + 3 * R, t3: entry + 4 * R, tf: "4H",
+    note: `Daily uptrend; price reset into the Daily 20 zone and closed below the 4H 20 ${win.filter(j => k4.c[j] < e20[j]).length} times${trig ? ", then reclaimed it" : ""}. Swing target 3R.` };
+}
+
+function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
   const out = [], a = atr(k1h.h, k1h.l, k1h.c).at(-1); if (!a || k1h.c.length < 120) return out;
   const D = FULL.includes(s1h.state) ? s1h.dir : null, dD = FULL.includes(s1d.state) ? s1d.dir : null;
   const run = (fn, dir, extra) => {
@@ -958,11 +1017,17 @@ function detectModels(k1h, k4h, s1h, s4h, s1d) {
     } catch (e) {}
   };
   for (const dir of ["Long", "Short"]) {
-    if (D === dir) { run(nbbLong, dir); run(bounceLong, dir); }
+    if (D === dir) { run(nbbLong, dir); run(bounceLong, dir); run(leaderLong, dir); }
     run(breakerLong, dir); run(fadeLong, dir); run(vtradeLong, dir);
   }
   const T = FULL.includes(s4h.state) ? s4h.dir : null;
   if (T && k4h.c.length > 40) run(pullbackLong, T === "Short" ? "Long" : "Short", k4h);
+  if (kd) for (const dir of ["Long", "Short"]) {                    // Daily 20 Reset reads the 4H and Daily candles
+    try {
+      let m = reset20Long(dir === "Long" ? k4h : mirror(k4h), dir === "Long" ? kd : mirror(kd));
+      if (m) { if (dir === "Short") m = unmirror(m); out.push({ ...m, dir, tf: "4H", withDaily: true }); }
+    } catch (e) {}
+  }
   return out;
 }
 
@@ -1058,6 +1123,48 @@ const SECTORS = {
 const SECTOR_OF = {}; for (const [sec, list] of Object.entries(SECTORS)) list.split(" ").forEach(b => { if (!SECTOR_OF[b]) SECTOR_OF[b] = sec; });
 const sectorOf = base => SECTOR_OF[base.replace(/^1000+|^1M(?=[A-Z])/, "")] || null;
 
+
+/* ---- RSI (14, Wilder): zones, divergence, ignition, and the momentum score ---- */
+function rsiSeries(c, n = 14) {
+  const out = new Array(c.length).fill(null); if (c.length <= n) return out;
+  let g = 0, l = 0;
+  for (let i = 1; i <= n; i++) { const d = c[i] - c[i - 1]; if (d >= 0) g += d; else l -= d; }
+  g /= n; l /= n; out[n] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+  for (let i = n + 1; i < c.length; i++) { const d = c[i] - c[i - 1]; g = (g * (n - 1) + Math.max(d, 0)) / n; l = (l * (n - 1) + Math.max(-d, 0)) / n; out[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); }
+  return out;
+}
+const rsiZone = v => v == null ? "" : v >= 70 ? "Momentum" : v >= 60 ? "Pre-momentum" : v > 40 ? "Neutral" : v > 30 ? "Pre-weak" : "Weak";
+function rsiDivergence(k, rs) {                    // regular divergence between the last two swing highs or lows
+  const n = k.c.length; if (n < 60) return null;
+  const p = pivots(k, 3, n - 45), hs = p.hi.slice(-2), ls = p.lo.slice(-2);
+  if (hs.length === 2 && hs[1] >= n - 12 && k.h[hs[1]] > k.h[hs[0]] && rs[hs[0]] != null && rs[hs[1]] != null && rs[hs[1]] < rs[hs[0]] - 3 && rs[hs[0]] >= 60) return "bear";
+  if (ls.length === 2 && ls[1] >= n - 12 && k.l[ls[1]] < k.l[ls[0]] && rs[ls[0]] != null && rs[ls[1]] != null && rs[ls[1]] > rs[ls[0]] + 3 && rs[ls[0]] <= 40) return "bull";
+  return null;
+}
+function rsiCross(rs) {                            // momentum ignition: RSI crossed 60 up (or 40 down) in the last 3 candles
+  const n = rs.length;
+  for (let i = n - 1; i >= n - 3; i--) { if (i < 1 || rs[i - 1] == null) continue; if (rs[i - 1] < 60 && rs[i] >= 60) return "up60"; if (rs[i - 1] > 40 && rs[i] <= 40) return "down40"; }
+  return null;
+}
+function rsiPack(k1h, k4h, k1d) {
+  const a = rsiSeries(k1h.c), b = rsiSeries(k4h.c), d = rsiSeries(k1d.c);
+  return { rsi: { h1: a.at(-1) == null ? null : r1(a.at(-1)), h4: b.at(-1) == null ? null : r1(b.at(-1)), d1: d.at(-1) == null ? null : r1(d.at(-1)) },
+           rsiDiv: { h1: rsiDivergence(k1h, a), h4: rsiDivergence(k4h, b) }, rsiCross: { h1: rsiCross(a), h4: rsiCross(b) } };
+}
+function momentum(r) {                             // 0–100: RSI alignment 40, volume now 20, strength vs BTC 20, range expansion 20
+  if (!r.rsi) return { score: 0, dir: null, label: "" };
+  const d = FULL.includes(r.s1h.state) ? r.s1h.dir : (r.rsi.h1 != null ? (r.rsi.h1 >= 50 ? "Long" : "Short") : null);
+  if (!d) return { score: 0, dir: null, label: "" };
+  const sg = d === "Long" ? 1 : -1, rp = (v, w) => v == null ? 0 : clamp(sg * (v - 50) / 20) * w;
+  let s = rp(r.rsi.h1, 15) + rp(r.rsi.h4, 15) + rp(r.rsi.d1, 10) + clamp((r.rvolNow ?? r.rvol) - 1) * 20;
+  if (r.rs24 != null) s += clamp((sg * r.rs24 + 1) / 6) * 20;
+  if (r.atrPct) s += clamp(sg * r.chg24h / (1.5 * r.atrPct)) * 20;
+  const against = d === "Long" ? "bear" : "bull";
+  if (r.rsiDiv && (r.rsiDiv.h1 === against || r.rsiDiv.h4 === against)) s -= 10;
+  s = r1(Math.max(0, s));
+  return { score: s, dir: d, label: s >= 70 ? "Strong" : s >= 50 ? "Building" : "" };
+}
+
 /* ---- per-coin analysis (1H / 4H / Daily) ---- */
 async function analyse(c, maFn) {
   const [k1h, k4h, k1d] = await Promise.all([klines(c.symbol, "1h", 400), klines(c.symbol, "4h", 160), klines(c.symbol, "1d", 130)]);
@@ -1080,7 +1187,7 @@ async function analyse(c, maFn) {
   return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
-           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, maxLev: null, models: detectModels(k1h, k4h, s1h, s4h, s1d), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
+           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, maxLev: null, models: detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...rsiPack(k1h, k4h, k1d), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
            wick: wick === null ? null : r1(wick), spikes, wicky: (wick !== null && wick > WICK_MAX) || spikes >= SPIKE_MAX,
            ret90: k1d.c.length > 91 ? k1d.c.at(-1) / k1d.c.at(-91) - 1 : null,
            ...rate(s1h, s4h, s1d, a4, a1), mp: { "1H": maPack(k1h), "4H": maPack(k4h), "1D": maPack(k1d) },
@@ -1189,6 +1296,7 @@ function applyRS(r, btc) {
   r.swingParts.rs = sDir && r.rs7 != null ? r1(clamp(((sDir === "Long" ? r.rs7 : -r.rs7) + 2) / 12) * 15) : 0;
   r.dayScore = r1(Object.values(r.dayParts).reduce((a, b) => a + b, 0));
   r.swingScore = r1(Object.values(r.swingParts).reduce((a, b) => a + b, 0));
+  r.mom = momentum(r);
 }
 async function btcRegime(maFn) {
   const [a, b, d] = await Promise.all([klines("BTCUSDT", "1h", 400), klines("BTCUSDT", "4h", 160), klines("BTCUSDT", "1d", 130)]);
@@ -1480,6 +1588,8 @@ const MA_PRICE = [
 const MA_MA = [["above", "Above"], ["below", "Below"], ["cross_above", "Crosses above"], ["cross_below", "Crosses below"]];
 const STACKS = [["bull", "Bull stack (price > 20 > 50 > 100)"], ["bull_any", "Bull stack or pullback in it"], ["pb_bull", "Pullback in bull"],
   ["bear", "Bear stack (price < 20 < 50 < 100)"], ["bear_any", "Bear stack or pullback in it"], ["pb_bear", "Pullback in bear"], ["tangled", "Tangled"]];
+const RSI_CONDS = [["mom_up", "Momentum (70 or higher)"], ["pre_up", "Bullish momentum (60 or higher)"], ["neutral", "Neutral (40–60)"], ["pre_dn", "Bearish momentum (40 or lower)"],
+  ["mom_dn", "Weak (30 or lower)"], ["cross_up", "Just crossed above 60 (ignition)"], ["cross_dn", "Just crossed below 40"], ["div_bull", "Bullish divergence"], ["div_bear", "Bearish divergence"]];
 const NUM = {
   chg24h: { label: "24h Change", unit: "%", get: r => r.chg24h },
   vol24h: { label: "24h Volume", unit: "$M", get: r => r.vol24h / 1e6 },
@@ -1491,6 +1601,10 @@ const NUM = {
   rvolNow:{ label: "Relative Volume Now", unit: "×", get: r => r.rvolNow },
   rs24:   { label: "Strength vs BTC (24h)", unit: "%", get: r => r.rs24 },
   rs7:    { label: "Strength vs BTC (7d)", unit: "%", get: r => r.rs7 },
+  rsi1h:  { label: "RSI 1H", unit: "", get: r => r.rsi ? r.rsi.h1 : null },
+  rsi4h:  { label: "RSI 4H", unit: "", get: r => r.rsi ? r.rsi.h4 : null },
+  rsi1d:  { label: "RSI Daily", unit: "", get: r => r.rsi ? r.rsi.d1 : null },
+  mom:    { label: "Momentum Score", unit: "", get: r => r.mom ? r.mom.score : null },
   dayScore: { label: "Day Score", unit: "", get: r => r.dayScore },
   swingScore: { label: "Swing Score", unit: "", get: r => r.swingScore },
   aotsScore: { label: "AOTS Score", unit: "", get: r => Math.max(r.aots4h ? r.aots4h.score : 0, r.aots1h ? r.aots1h.score : 0) || null },
@@ -1506,12 +1620,14 @@ const KINDS = [
     make: () => ({ kind: "stack", tf: "4H", cond: "bull_any" }) },
   { kind: "model", title: "Model Setup", sub: "NBB, Bounce (OEZ), Fade, Breaker (Flip), V-Trade, Pullback, ORB, AMD",
     make: () => ({ kind: "model", model: "NBB", stage: "any", dir: "any" }) },
+  { kind: "rsi", title: "RSI", sub: "Momentum 70+, pre-momentum 60–70, weak, divergence, or a fresh cross of 60 / 40 on 1H, 4H or Daily",
+    make: () => ({ kind: "rsi", tf: "h1", cond: "pre_up" }) },
   { kind: "aots", title: "AOTS (Trend Starting)", sub: "Breaking out or fresh alignment on 4H or 1H",
     make: () => ({ kind: "aots", tf: "any", dir: "Long", stage: "any" }) },
   { kind: "rating", title: "Tech Rating", sub: "Strong buy, Buy, Chop, Sell, Strong sell",
     make: () => ({ kind: "rating", set: ["Strong buy", "Buy"] }) },
   ...Object.entries(NUM).map(([k, m]) => ({ kind: "num:" + k, title: m.label, sub: `Greater than, less than or between${m.unit ? " (" + m.unit + ")" : ""}`,
-    make: () => ({ kind: "num", field: k, op: ">", a: { chg24h: 0, vol24h: 20, rvol: 1.2, rvolNow: 1.5, rs24: 2, rs7: 5, atrPct: 2.5, wick: 60, spikes: 3, funding: 0.05, dayScore: 60, swingScore: 60, aotsScore: 60, price: 1 }[k], b: null }) })),
+    make: () => ({ kind: "num", field: k, op: ">", a: { chg24h: 0, vol24h: 20, rvol: 1.2, rvolNow: 1.5, rsi1h: 60, rsi4h: 60, rsi1d: 60, mom: 70, rs24: 2, rs7: 5, atrPct: 2.5, wick: 60, spikes: 3, funding: 0.05, dayScore: 60, swingScore: 60, aotsScore: 60, price: 1 }[k], b: null }) })),
   { kind: "flag:notWicky", title: "Clean Candles Only", sub: "Excludes coins flagged wicky", make: () => ({ kind: "flag", name: "notWicky" }) },
   { kind: "flag:spotOk", title: "Tradeable on Spot", sub: "Spot volume of $20M or more", make: () => ({ kind: "flag", name: "spotOk" }) },
   { kind: "flag:trending", title: "Trending Today", sub: "Moved 8%+ on 1.8×+ relative volume", make: () => ({ kind: "flag", name: "trending" }) },
@@ -1567,6 +1683,11 @@ function testFilter(r, f) {
                bull_any: st === "Bull stack" || st === "Pullback in bull", bear_any: st === "Bear stack" || st === "Pullback in bear", tangled: st === "Tangled" }[f.cond];
     }
     case "model": return (r.models || []).some(m => (f.model === "any" || m.model === f.model) && (f.stage === "any" || (f.stage === "trig" ? m.trig : !m.trig)) && (f.dir === "any" || m.dir === f.dir));
+    case "rsi": {
+      const v = r.rsi ? r.rsi[f.tf] : null, dv = r.rsiDiv ? r.rsiDiv[f.tf] : null, cx = r.rsiCross ? r.rsiCross[f.tf] : null;
+      return { mom_up: v != null && v >= 70, pre_up: v != null && v >= 60, neutral: v != null && v > 40 && v < 60, pre_dn: v != null && v <= 40, mom_dn: v != null && v <= 30,
+               div_bull: dv === "bull", div_bear: dv === "bear", cross_up: cx === "up60", cross_dn: cx === "down40" }[f.cond];
+    }
     case "aots": return [r.aots4h, r.aots1h].some(a => a && (f.tf === "any" || a.tf === f.tf) && (f.dir === "any" || a.dir === f.dir) && (f.stage === "any" || a.stage === f.stage));
     case "rating": return f.set.includes(r.rating);
     case "num": {
@@ -1592,6 +1713,7 @@ function describe(f) {
     case "ma_ma": return `${M(f.ma)} ${f.p} ${MA_MA.find(c => c[0] === f.cond)[1].toLowerCase()} ${M(f.ma)} ${f.p2} (${f.tf})`;
     case "stack": return `${f.tf}: ${STACKS.find(c => c[0] === f.cond)[1]}`;
     case "model": return `${f.model === "any" ? "Any model" : f.model} setup${f.stage === "trig" ? ", triggered" : f.stage === "setup" ? ", setting up" : ""}${f.dir !== "any" ? ", " + f.dir.toLowerCase() : ""}`;
+    case "rsi": return `RSI ${{ h1: "1H", h4: "4H", d1: "Daily" }[f.tf]}: ${RSI_CONDS.find(c => c[0] === f.cond)[1].toLowerCase()}`;
     case "aots": return `AOTS ${f.tf === "any" ? "4H or 1H" : f.tf}${f.dir !== "any" ? " " + f.dir.toLowerCase() : ""}${f.stage !== "any" ? ", " + f.stage.toLowerCase() : ""}`;
     case "rating": return `Rating: ${f.set.join(" / ")}`;
     case "num": { const m = NUM[f.field]; return `${m.label} ${f.op === "between" ? `between ${f.a} and ${f.b}` : `${f.op} ${f.a}`}${m.unit && m.unit !== "$M" ? m.unit : m.unit === "$M" ? "M" : ""}`; }
@@ -1613,6 +1735,7 @@ function editorHTML(f, i) {
     case "stack": return `<div class="fx">${sel(i, "tf", TFS.map(t => [t, TF_LABEL[t]]), f.tf, "Timeframe")}${sel(i, "cond", STACKS, f.cond, "Stack")}</div>`;
     case "model": return `<div class="fx">${sel(i, "model", [["any", "Any model"], ...MODEL_KEYS.map(k => [k, MODELS[k].icon + " " + k + (MODELS[k].alias ? " (" + MODELS[k].alias + ")" : "")])], f.model, "Model")}</div>
       <div class="fx">${sel(i, "stage", [["any", "Any stage"], ["trig", "Triggered"], ["setup", "Setting up"]], f.stage, "Stage")}${sel(i, "dir", [["any", "Either way"], ["Long", "Long"], ["Short", "Short"]], f.dir, "Direction")}</div>`;
+    case "rsi": return `<div class="fx">${sel(i, "tf", [["h1", "1 hour"], ["h4", "4 hours"], ["d1", "1 day"]], f.tf, "Timeframe")}${sel(i, "cond", RSI_CONDS, f.cond, "Condition")}</div>`;
     case "aots": return `<div class="fx">${sel(i, "tf", [["any", "4H or 1H"], ["4H", "4H"], ["1H", "1H"]], f.tf, "Timeframe")}${sel(i, "dir", [["Long", "Long"], ["Short", "Short"], ["any", "Either way"]], f.dir, "Direction")}${sel(i, "stage", [["any", "Any stage"], ["Breaking out", "Breaking out"], ["Fresh AOTS", "Fresh AOTS"]], f.stage, "Stage")}</div>`;
     case "rating": return `<div class="fx wrap">${RATINGS.map(rt => `<label class="mini"><input type="checkbox" data-i="${i}" data-set="${rt}" ${f.set.includes(rt) ? "checked" : ""}>${rt}</label>`).join("")}</div>`;
     case "session": return `<div class="fx wrap">${["Asia", "London", "NY AM"].map(s => `<label class="mini"><input type="checkbox" data-i="${i}" data-set="${s}" ${f.set.includes(s) ? "checked" : ""}>${sessLabel(s)}</label>`).join("")}</div>`;
@@ -1786,6 +1909,10 @@ const QUICK = [
   { name: "Trending", filters: [{ kind: "flag", name: "trending" }], tab: "overview", key: "chg", dir: -1, boards: false },
   { name: "Outperforming BTC", filters: [{ kind: "num", field: "rs24", op: ">", a: 2 }, { kind: "num", field: "rs7", op: ">", a: 5 }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "swing", key: "rs7", dir: -1, boards: false },
   { name: "Active Now", filters: [{ kind: "num", field: "rvolNow", op: ">", a: 1.8 }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "day", key: "rvn", dir: -1, boards: false },
+  { name: "Strong Momentum", filters: [{ kind: "num", field: "mom", op: ">", a: 70 }, { kind: "num", field: "vol24h", op: ">", a: 10 }, { kind: "flag", name: "notWicky" }], tab: "momentum", key: "mom", dir: -1, boards: false },
+  { name: "Momentum Ignition", filters: [{ kind: "rsi", tf: "h1", cond: "cross_up" }, { kind: "stack", tf: "1H", cond: "bull_any" }, { kind: "num", field: "rvolNow", op: ">", a: 1.3 }], tab: "momentum", key: "mom", dir: -1, boards: false },
+  { name: "RSI Divergence", filters: [{ kind: "rsi", tf: "h1", cond: "div_bear" }, { kind: "rsi", tf: "h1", cond: "div_bull" }, { kind: "rsi", tf: "h4", cond: "div_bear" }, { kind: "rsi", tf: "h4", cond: "div_bull" }], match: "any", tab: "momentum", key: "rsisig", dir: -1, boards: false },
+  { name: "RSI Reset in Uptrend", filters: [{ kind: "stack", tf: "4H", cond: "bull_any" }, { kind: "num", field: "rsi1h", op: "between", a: 35, b: 50 }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "momentum", key: "rsi4h", dir: -1, boards: false },
   { name: "Volume Spike", filters: [{ kind: "num", field: "rvol", op: ">", a: 2 }, { kind: "num", field: "vol24h", op: ">", a: 5 }], tab: "tech", key: "rvol", dir: -1, boards: false },
   { name: "Breaking Out (AOTS)", filters: [{ kind: "aots", tf: "any", dir: "Long", stage: "any" }, { kind: "num", field: "vol24h", op: ">", a: 10 }, { kind: "flag", name: "notWicky" }], tab: "aots", key: "stage", dir: -1, boards: true },
   { name: "Pullback to the 1H 20", filters: [{ kind: "stack", tf: "1H", cond: "bull_any" }, { kind: "ma_price", ma: "ema", p: 20, tf: "1H", cond: "near" }, { kind: "num", field: "vol24h", op: ">", a: 20 }], tab: "day", key: "day", dir: -1, boards: true },
@@ -1796,23 +1923,23 @@ const QUICK = [
   { name: "Squeeze Fuel", filters: [{ kind: "num", field: "funding", op: "<", a: -0.03 }], tab: "deriv", key: "fund", dir: 1, boards: false },
 ];
 const quickByName = n => QUICK.find(q => q.name === n);
-function countMatch(filters) { return data ? data.all.filter(r => filters.every(f => testFilter(r, f))).length : null; }
+function countMatch(filters, match = "all") { return data ? data.all.filter(r => match === "any" ? filters.some(f => testFilter(r, f)) : filters.every(f => testFilter(r, f))).length : null; }
 function applyView(name) {
   if (FS.template === name) { FS.filters = []; FS.template = ""; FS.boards = true; tab = "overview"; sortKey = null; sortDir = -1; }   // click again to clear
   else {
     const q = quickByName(name), list = q ? q.filters : (BUILTIN_TEMPLATES[name] || FS.saved[name] || []);
     FS.filters = JSON.parse(JSON.stringify(list)); FS.template = name;
-    if (q) { FS.boards = q.boards; tab = q.tab; sortKey = q.key; sortDir = q.dir; } else { FS.boards = true; sortKey = null; sortDir = -1; }
+    if (q) { FS.boards = q.boards; tab = q.tab; sortKey = q.key; sortDir = q.dir; FS.match = q.match || "all"; } else { FS.boards = true; sortKey = null; sortDir = -1; FS.match = "all"; }
   }
   fsSave(); renderPanel(); renderQuick(); renderTabs();
   if (data) { renderBoards(); renderTable(); }
 }
 function renderQuick() {
-  const chip = (name, filters, cls = "") => {
-    const n = countMatch(filters);
+  const chip = (name, filters, cls = "", match = "all") => {
+    const n = countMatch(filters, match);
     return `<button class="qchip ${cls} ${FS.template === name ? "on" : ""}" data-v="${name.replace(/"/g, "&quot;")}">${name}${n != null ? `<span>${n}</span>` : ""}</button>`;
   };
-  $("quick").innerHTML = `<span class="qlabel">Quick Views</span>${QUICK.map(q => chip(q.name, q.filters)).join("")}
+  $("quick").innerHTML = `<span class="qlabel">Quick Views</span>${QUICK.map(q => chip(q.name, q.filters, "", q.match)).join("")}
     <span class="sep"></span>${Object.entries(BUILTIN_TEMPLATES).map(([n, f]) => chip(n, f, "tpl")).join("")}
     ${Object.entries(FS.saved).map(([n, f]) => chip(n, f, "mine")).join("")}`;
   $("quick").querySelectorAll(".qchip").forEach(b => b.onclick = () => applyView(b.dataset.v));
@@ -1856,6 +1983,18 @@ const MODELS = {
     rules: ["Range = the 9:30–9:45 NY 15m candle (9:30 PM PHT now; 10:30 PM PHT after US daylight saving ends Nov 1)", "<b>Range set</b> = marked, no break yet",
       "<b>Broke the range</b> = 15m close outside it with body ≥ 1.5× average", "<b>Sweep, then break</b> = the opposite side was swept first (A-grade)", "Only shown 9:30–10:30 NY, and only for the day-trade candidates (they're the coins with 15m data)"],
     trade: "Enter the breakout close or the retest of the broken edge. Stop beyond the far side of the range. 2–3R, hard close by 11:00 NY.", grade: "Sweep-then-break with trend = A; clean break = B." },
+  "Leader": { icon: "🦅", name: "Leader Pullback (Claude's day setup)", tf: "1H",
+    what: "My day-trade setup, built to buy only the coins that are leading. A coin prints a fresh 48-hour high on a big, high-volume impulse candle, then pulls back quietly into its 1H 20 or the 38% of that leg while holding the 50, then reclaims. Leaders that pull back on light volume tend to resume; the 48-hour high and the volume prove it's a leader, not a random pop. A hypothesis until the backtest and the bot prove it.",
+    rules: ["1H 20 > 50 > 100 with the 50 rising", "Impulse in the last 12 candles: a new 48-hour high on a candle with a body ≥ 1.8× average and volume ≥ 1.8× average",
+      "Pullback reaches the 1H 20 (within 0.3 ATR) or the 38% retracement of the impulse leg", "Holds the 50 (no close below it) and gives back no more than 62% of the leg; lighter pullback volume is noted",
+      "<b>Pulling back to the 20</b> = in the zone, no trigger yet", "<b>Reclaim after the pullback</b> = a green candle closes above the prior candle's high and the 20", "Shorts mirror this on the weakest coins"],
+    trade: "Enter the reclaim close. Stop below the pullback low (−0.2 ATR). Target 2R.", grade: "With-trend, can reach A when the Daily agrees. Mine, not yet proven: check the backtest and the bot." },
+  "Reset20": { icon: "🌊", name: "Daily 20 Reset (Claude's swing setup)", tf: "4H + Daily",
+    what: "My swing setup. In a Daily uptrend, the Daily 20 is where institutions defend the trend. Wait for price to dip into the Daily 20 zone and reset below the 4H 20 (shaking out late longs), then buy the 4H reclaim. It aims for a bigger move (3R) and holds up to 10 days. A hypothesis until the backtest and the bot prove it.",
+    rules: ["Daily 20 > 50 > 100, with the Daily 20 rising over the last 5 days and no daily close below the 50 in the last 10", "In the last 12 4H candles price reached the Daily 20 zone (±0.5 daily ATR) without crashing more than 0.5 daily ATR below it",
+      "At least 2 of those 4H candles closed below the 4H 20 (the reset)", "<b>Resetting at the Daily 20</b> = in the zone, waiting", "<b>Reclaimed the 4H 20</b> = a green 4H candle closes above the 4H 20 and the prior candle's high",
+      "Shorts mirror this in a Daily downtrend"],
+    trade: "Enter the 4H reclaim close. Stop below the reset low (−0.25 × 4H ATR). Target 3R, time limit 10 days. Spot is fine for longs.", grade: "Swing, Daily with-trend by design. Mine, not yet proven: check the backtest and the bot." },
   "AMD": { icon: "💯", name: "AMD (Power of 3)", tf: "15m",
     what: "Accumulation, manipulation, distribution. The pre-open range builds, the open sweeps one side to trap breakout traders, then price expands hard the other way. Trade the distribution leg.",
     rules: ["Accumulation = the 2 hours before the NY open (Pre-NY window)", "<b>Accumulating</b> = before the open, range building", "<b>Swept the high/low</b> = after the open, a wick beyond one side closed back inside",
@@ -1863,6 +2002,7 @@ const MODELS = {
     trade: "Enter the distribution break. Stop beyond the manipulation extreme. 2–3R into the opposite liquidity, hard close by 11:00 NY.", grade: "Liquidity Sweep is required (the manipulation is the sweep)." },
 };
 const MODEL_KEYS = Object.keys(MODELS);
+const tLabel = m => m.model === "Pullback" ? "Target" : m.model === "Reset20" ? "3R" : "2R";
 let guideSel = "NBB";
 function modelTag(m, short) {
   const M = MODELS[m.model], cls = m.dir === "Long" ? "long" : m.dir === "Short" ? "short" : "";
@@ -1912,7 +2052,7 @@ function setupsHTML(r) {
   return r.models.map(m => `<div class="setup">${modelTag(m)}${isCounter(r, m) ? `<span class="tag flag">Against the coin's ${r.rating} rating${m.trig ? "" : ", not triggered"}</span>` : ""}${fitOf(m) && fitOf(m) !== "neutral" ? `<span class="tag fit-${fitOf(m)}">${fitOf(m) === "avoid" ? (data.env.fit[m.model] === "avoid" ? "Avoid today" : "Against today's bias") : FIT_LABEL[fitOf(m)] + " today"}</span>` : ""}${m.withDaily === true ? '<span class="tag long">Daily with-trend</span>' : m.withDaily === false ? '<span class="tag flag">Against Daily</span>' : ""}
     ${m.sweep ? '<span class="tag">Sweep</span>' : ""}${m.baseNo ? `<span class="tag">Base #${m.baseNo}</span>` : ""}${m.room === false ? '<span class="tag flag">No room</span>' : ""}
     <div class="meta">${m.note || ""}</div>
-    <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : "2R"} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>3R ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
+    <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : "2R"} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
 }
 
 /* ===================== Today's playbook: which models fit the environment ===================== */
@@ -1929,27 +2069,27 @@ function environment() {
   if (b === "Risk-on" && bull >= 45) {
     label = "Trend Up: Risk-On Alts"; dirBias = "Long";
     desc = "BTC is stacked up on 1H and 4H and most liquid alts are in 4H bull structure. Continuation setups pay; fighting the trend doesn't.";
-    set("primary", "NBB", "Bounce"); set("secondary", "Breaker", "V-Trade", "ORB"); set("avoid", "Fade", "Pullback");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Fade", "Pullback");
   } else if (b === "Risk-off" && bear >= 45) {
     label = "Trend Down: Risk-Off"; dirBias = "Short";
     desc = "BTC is stacked down and most liquid alts are in 4H bear structure. Sell breakdowns and rallies into the premium OEZ; longs only as a swept, MSS-confirmed Fade.";
-    set("primary", "NBB", "Bounce"); set("secondary", "Breaker", "V-Trade", "ORB"); set("avoid", "Pullback"); set("neutral", "Fade");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Pullback"); set("neutral", "Fade");
   } else if (b === "Risk-on" && bull < 35) {
     label = "BTC-Led: Alts Lagging"; dirBias = "Long";
     desc = `BTC is trending up but only ${bull}% of liquid alts are in 4H bull structure. Most alts aren't following: be selective, take only the strongest coins, and prefer pullbacks over chasing breakouts.`;
-    set("primary", "Bounce"); set("secondary", "NBB", "Breaker"); set("avoid", "Fade", "Pullback", "ORB");
+    set("primary", "Bounce", "Leader"); set("secondary", "NBB", "Breaker", "Reset20"); set("avoid", "Fade", "Pullback", "ORB");
   } else if (b !== "Risk-off" && bull >= 55 && bear <= 25) {
     label = "Alts Trending Up: BTC Ranging"; dirBias = "Long";
     desc = `BTC isn't trending cleanly, but ${bull}% of liquid alts are in 4H bull structure (only ${bear}% bearish). Money is rotating into alts: take continuation longs on the strongest coins, not range fades.`;
-    set("primary", "NBB", "Bounce"); set("secondary", "Breaker", "V-Trade", "ORB"); set("avoid", "Fade", "Pullback");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Fade", "Pullback");
   } else if (b !== "Risk-on" && bear >= 55 && bull <= 25) {
     label = "Alts Trending Down: BTC Ranging"; dirBias = "Short";
     desc = `BTC isn't trending cleanly, but ${bear}% of liquid alts are in 4H bear structure (only ${bull}% bullish). Alts are bleeding: sell breakdowns and rallies into the OEZ, and don't bottom-fish.`;
-    set("primary", "NBB", "Bounce"); set("secondary", "Breaker", "V-Trade", "ORB"); set("avoid", "Pullback"); set("neutral", "Fade");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Pullback"); set("neutral", "Fade");
   } else {
     label = "Chop: Range Day"; dirBias = "Both";
     desc = `BTC isn't trending cleanly (${b}) and alt breadth is split (${bull}% bull / ${bear}% bear). Breakouts tend to fail; the edge is at range extremes after a sweep. Size down or stand aside.`;
-    set("primary", "Fade", "AMD"); set("secondary", "V-Trade", "Breaker"); set("avoid", "NBB", "ORB", "Pullback");
+    set("primary", "Fade", "AMD"); set("secondary", "V-Trade", "Breaker"); set("avoid", "NBB", "ORB", "Pullback", "Leader", "Reset20");
   }
   // modifiers
   const demote = k => { fit[k] = fit[k] === "primary" ? "secondary" : fit[k] === "secondary" ? "neutral" : fit[k]; };
@@ -1993,6 +2133,9 @@ function suggestions(env, n = 3) {
       if (m.room === false) s -= 6;
       if (m.fvg) s += 1;
       if (r.vol24h >= 50e6) { s += 2; reasons.push("liquid"); }
+      if (r.rsi && r.rsi.h1 != null) { const sg = m.dir === "Long" ? 1 : -1;
+        if (sg * (r.rsi.h1 - 50) >= 10 && sg * (r.rsi.h4 ?? 50) >= sg * 55) { s += 3; reasons.push(`RSI momentum (1H ${r.rsi.h1.toFixed(0)})`); }
+        if (r.rsiDiv && (r.rsiDiv.h1 === (sg > 0 ? "bear" : "bull"))) { s -= 5; reasons.push("RSI divergence against it"); } }
       if (coinDir(r) === m.dir) { s += 6; reasons.push("with the coin's trend"); } else if (isCounter(r, m)) s -= 8;
       if (r.funding !== null) {
         if (m.dir === "Short" && r.funding > FUNDING_EXTREME) { s += 3; reasons.push("crowded longs as fuel"); }
@@ -2031,7 +2174,7 @@ function renderPlaybook() {
     ${sug.length ? sug.map((x, i) => `<div class="row" data-s="${x.r.symbol}" tabindex="0" role="button">
       <span class="rk">${i + 1}</span>
       <div><div class="nm">${instHTML(x.r)}${modelTag(x.m)}<span class="tag fit-${x.fit}">${FIT_LABEL[x.fit]}</span></div>
-        <div class="ln">${x.m.entry != null ? `Entry ${fmtPrice(x.m.entry)} · ` : ""}${x.m.stop != null ? `Stop ${fmtPrice(x.m.stop)} · ` : ""}${x.m.t2 != null ? `${x.m.model === "Pullback" ? "Target" : "2R"} ${fmtPrice(x.m.t2)} · ` : ""}${x.reasons.join(", ") || x.m.state}${sizeText(x.m)}</div></div>
+        <div class="ln">${x.m.entry != null ? `Entry ${fmtPrice(x.m.entry)} · ` : ""}${x.m.stop != null ? `Stop ${fmtPrice(x.m.stop)} · ` : ""}${x.m.t2 != null ? `${tLabel(x.m)} ${fmtPrice(x.m.t2)} · ` : ""}${x.reasons.join(", ") || x.m.state}${sizeText(x.m)}</div></div>
       <span class="sc">${x.s}</span>${chartBtn(x.r.symbol)}</div>`).join("")
       : `<div class="empty">No setup from today's fitting models right now. ${env.dirBias === "Both" ? "On a chop day, no trade is a fine outcome." : "Wait for one to trigger, or re-scan after the next 1H close."}</div>`}
     <p class="meta pbnote">Rule-based suggestion from the market read and your model definitions, not a backtested edge. Still confirm the trigger on your entry timeframe and pass your Gate. Max 3 names tonight.</p>`;
@@ -2055,6 +2198,7 @@ function setupScore(r, m, env) {
   if (m.withDaily) s += 4; else if (m.withDaily === false) s -= 3;
   if (m.sweep) s += 3; if (m.baseNo === 2) s += 3; else if (m.baseNo >= 3) s -= 2;
   if (m.room === false) s -= 6; if (m.dir === "any") s -= 8;
+  if (r.rsi && r.rsi.h1 != null && m.dir !== "any") { const sg = m.dir === "Long" ? 1 : -1; if (sg * (r.rsi.h1 - 50) >= 5) s += 3; if (r.rsiDiv && r.rsiDiv.h1 === (sg > 0 ? "bear" : "bull")) s -= 4; }
   if (r.funding !== null && ((m.dir === "Short" && r.funding > FUNDING_EXTREME) || (m.dir === "Long" && r.funding < -FUNDING_EXTREME))) s += 2;
   return s;
 }
@@ -2129,6 +2273,16 @@ function coinPlay(r) {
   }
   // crowding is a risk for the crowded side and fuel for the other side
   const boosts = [];
+  if (r.rsi && play.dir !== "any") {                         // RSI in the play's favor, or against it
+    const sg = play.dir === "Long" ? 1 : -1, against = play.dir === "Long" ? "bear" : "bull";
+    const dv = r.rsiDiv ? [r.rsiDiv.h1 === against ? "1H" : null, r.rsiDiv.h4 === against ? "4H" : null].filter(Boolean) : [];
+    if (dv.length) cautions.push(`${play.dir === "Long" ? "Bearish" : "Bullish"} RSI divergence on ${dv.join(" and ")}: momentum is fading against this ${play.dir.toLowerCase()}.`);
+    if (r.rsi.h1 != null && sg * (r.rsi.h1 - 50) >= 30) cautions.push(`RSI 1H at ${r.rsi.h1.toFixed(0)}: stretched. Wait for a reset before entering; don't chase.`);
+    const pro = [["1H", r.rsi.h1], ["4H", r.rsi.h4]].filter(([, v]) => v != null && sg * (v - 50) >= 10);
+    if (pro.length === 2 && !dv.length) boosts.push(`RSI ${pro.map(([tf, v]) => `${tf} ${v.toFixed(0)}`).join(", ")}: momentum is behind this ${play.dir.toLowerCase()}.`);
+    if (r.rsiCross && (sg > 0 ? (r.rsiCross.h1 === "up60" || r.rsiCross.h4 === "up60") : (r.rsiCross.h1 === "down40" || r.rsiCross.h4 === "down40")))
+      boosts.push(`RSI just crossed ${sg > 0 ? "above 60" : "below 40"}: momentum ignition.`);
+  }
   if (r.funding !== null && r.funding > FUNDING_EXTREME) {
     if (play.dir === "Short") boosts.push("Crowded longs (hot funding): fuel for a flush lower, which helps this short.");
     else cautions.push("Crowded longs (hot funding): longs are fragile here.");
@@ -2144,7 +2298,7 @@ function playHTML(r) {
   return `<div class="play ${p.kind}">
     <div class="phead">${p.dir !== "any" ? biasTag(p.dir) : ""}<b>${p.head}</b></div>
     <p>${p.text}</p>
-    ${m ? `<div class="lv">${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target" : "2R"} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>3R ${fmtPrice(m.t3)}</span>` : ""}</div>` : ""}
+    ${m ? `<div class="lv">${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div>` : ""}
     ${p.stance ? `<div class="stance ${p.stance.cls}">${p.stance.text}</div>` : ""}
     ${p.boosts && p.boosts.length ? `<ul class="boosts">${p.boosts.map(c => `<li>${c}</li>`).join("")}</ul>` : ""}
     ${p.cautions.length ? `<ul class="cautions">${p.cautions.map(c => `<li>${c}</li>`).join("")}</ul>` : ""}
@@ -2323,18 +2477,21 @@ async function drawChart(r, tf) {
       s.setData(ts.map((t, i) => v[i] == null ? null : { time: t, value: v[i] }).filter(Boolean));
       maLines.push({ n, s });
     });
+    const showRsi = rsiPaneOn();
+    mChart.priceScale("right").applyOptions({ scaleMargins: showRsi ? { top: 0.05, bottom: 0.39 } : { top: 0.08, bottom: 0.06 } });
+    const rsiP = showRsi ? addRsiPane(mChart, ts, k.c) : null;
     const p = coinPlay(r), m = p.lv;
     if (m) {
       const pl = (price, color, title, style = 0) => { if (price != null && isFinite(price)) cs.createPriceLine({ price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: true, title }); };
       if (m.zoneHi != null && m.zoneLo != null) { pl(Math.max(m.zoneHi, m.zoneLo), "#f7a600", "Zone", 2); pl(Math.min(m.zoneHi, m.zoneLo), "#f7a600", "", 2); }
-      pl(m.entry, "#2962ff", "Entry"); pl(m.stop, "#f23645", "Stop"); pl(m.t2, "#22ab94", m.model === "Pullback" ? "Target" : "2R"); pl(m.t3, "#22ab94", "3R", 2);
+      pl(m.entry, "#2962ff", "Entry"); pl(m.stop, "#f23645", "Stop"); pl(m.t2, "#22ab94", tLabel(m)); pl(m.t3, "#22ab94", m.model === "Reset20" ? "4R" : "3R", 2);
     }
     const nBars = k.c.length;
     if (nBars > 120) mChart.timeScale().setVisibleLogicalRange({ from: nBars - 120, to: nBars + 3 }); else mChart.timeScale().fitContent();
     const last = k.c.length - 1;
-    LIVE.chart = { sym: r.symbol, tf, cs, lines: maLines, closes: k.c.slice(), times: ts.slice(), maFn,
+    LIVE.chart = { sym: r.symbol, tf, cs, rsiP, lines: maLines, closes: k.c.slice(), times: ts.slice(), maFn,
                    lastBar: last >= 0 ? { o: k.o[last], h: k.h[last], l: k.l[last], c: k.c[last] } : null, hover: false };
-    el.insertAdjacentHTML("beforeend", `<div id="ohlcLegend" class="ohlc"></div><div id="cdLabel" class="cdlabel" hidden></div>`);
+    el.insertAdjacentHTML("beforeend", `<div id="ohlcLegend" class="ohlc"></div><div id="cdLabel" class="cdlabel" hidden></div>${rsiP ? `<div id="rsiSep" class="rsisep"></div><div id="rsiLbl" class="rsilbl"></div><div id="rsiAxis" class="rsiaxis"><span data-l="70">70.00</span><span data-l="50">50.00</span><span data-l="30">30.00</span><b id="rsiVal" hidden></b></div>` : ""}`);
     mChart.subscribeCrosshairMove(prm => {
       const d = prm && prm.seriesData && prm.seriesData.get(cs);
       LIVE.chart && (LIVE.chart.hover = !!d); if (d) paintLegend({ o: d.open, h: d.high, l: d.low, c: d.close }); else chartDecor();
@@ -2349,7 +2506,7 @@ async function drawChart(r, tf) {
 }
 function chartBoxHTML(r) {
   const p = coinPlay(r), tf = p.lv && p.lv.tf === "15m" ? "15m" : "1h";
-  return `<div class="chartbox"><div class="tfrow" id="tfRow">${["15m", "1h", "4h", "1d"].map(t => `<button class="qchip ${t === tf ? "on" : ""}" data-tf="${t}">${t.toUpperCase()}</button>`).join("")}
+  return `<div class="chartbox"><div class="tfrow" id="tfRow">${["15m", "1h", "4h", "1d"].map(t => `<button class="qchip ${t === tf ? "on" : ""}" data-tf="${t}">${t.toUpperCase()}</button>`).join("")}<span class="sep"></span><button class="qchip ${rsiPaneOn() ? "on" : ""}" id="rsiTog" title="Show or hide the RSI pane">RSI</button>
     <span class="clegend"><i style="background:#f23645"></i>20 <i style="background:#9c27b0"></i>50 <i style="background:#2962ff"></i>100 ${p.lv ? `· <i style="background:#f7a600"></i>zone <i style="background:#2962ff"></i>entry <i style="background:#f23645"></i>stop <i style="background:#22ab94"></i>target` : ""}</span></div>
     <div id="mchart" data-tf="${tf}"></div></div>`;
 }
@@ -2357,6 +2514,11 @@ function initPanelExtras(r) {
   renderCalc(r); renderWatchBox(r);
   const tf = $("mchart") ? $("mchart").dataset.tf : "1h";
   document.querySelectorAll("#tfRow [data-tf]").forEach(b => b.onclick = () => drawChart(r, b.dataset.tf));
+  if ($("rsiTog")) $("rsiTog").onclick = () => {
+    const on = !rsiPaneOn(); try { localStorage.setItem(RSI_KEY, on ? "on" : "off"); } catch (e) {}
+    $("rsiTog").classList.toggle("on", on);
+    drawChart(r, (LIVE.chart && LIVE.chart.tf) || $("mchart").dataset.tf);
+  };
   drawChart(r, tf);
 }
 
@@ -2456,9 +2618,9 @@ function renderScorecard() {
 
 /* ===================== Session Picks: what to day trade in Asia, London and New York ===================== */
 const SESSION_DEFS = [
-  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, window: "8:00 AM – 12:00 NN", models: ["NBB", "Bounce", "Breaker", "V-Trade"] },
-  { key: "London", label: "🇬🇧 London", start: 12, end: 18, window: "12:00 NN – 6:00 PM", models: ["NBB", "Bounce", "Breaker", "Fade"] },
-  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, window: "9:30 PM – 12:00 MN", models: ["ORB", "AMD", "NBB", "Bounce"] },
+  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, window: "8:00 AM – 12:00 NN", models: ["NBB", "Leader", "Bounce", "Breaker", "V-Trade"] },
+  { key: "London", label: "🇬🇧 London", start: 12, end: 18, window: "12:00 NN – 6:00 PM", models: ["NBB", "Leader", "Bounce", "Breaker", "Fade"] },
+  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, window: "9:30 PM – 12:00 MN", models: ["ORB", "AMD", "NBB", "Leader", "Bounce"] },
 ];
 function sessionStatus(def) {
   const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
@@ -2528,7 +2690,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.03.0122";
+const APP_VERSION = "2026.10.03.1444";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -2554,6 +2716,58 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 setInterval(checkForUpdate, 2 * 60 * 1000);
 setTimeout(checkForUpdate, 4000);
 
+
+
+/* ---- TradingView-style RSI pane: white RSI, yellow RSI MA, 70/50/30 dashed, shaded 30–70 band, fills beyond 70 / 30 ---- */
+const RSI_KEY = "altscan-rsi-pane";
+const rsiPaneOn = () => { try { return localStorage.getItem(RSI_KEY) !== "off"; } catch (e) { return true; } };
+function rsiMA(rv, n = 14) {                               // simple moving average of RSI (TradingView's "RSI-based MA")
+  const out = new Array(rv.length).fill(null); let sum = 0, cnt = 0;
+  for (let i = 0; i < rv.length; i++) {
+    if (rv[i] == null) continue;
+    sum += rv[i]; cnt++;
+    if (cnt > n) { let j = i - n; while (rv[j] == null) j--; sum -= rv[j]; cnt = n; }
+    if (cnt === n) out[i] = sum / n;
+  }
+  return out;
+}
+function addRsiPane(chart, ts, closes) {
+  const fixed = () => ({ priceRange: { minValue: 0, maxValue: 100 } }), clear = "rgba(0,0,0,0)";
+  const base = { priceScaleId: "rsi", priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: fixed, lineWidth: 1 };
+  const band = chart.addBaselineSeries({ ...base, baseValue: { type: "price", price: 30 }, topLineColor: clear, bottomLineColor: clear,
+    topFillColor1: "rgba(126,87,194,0.10)", topFillColor2: "rgba(126,87,194,0.10)", bottomFillColor1: clear, bottomFillColor2: clear });
+  const os = chart.addBaselineSeries({ ...base, baseValue: { type: "price", price: 30 }, topLineColor: clear, bottomLineColor: clear,
+    topFillColor1: clear, topFillColor2: clear, bottomFillColor1: "rgba(242,54,69,0.05)", bottomFillColor2: "rgba(242,54,69,0.35)" });
+  const ob = chart.addBaselineSeries({ ...base, baseValue: { type: "price", price: 70 }, topLineColor: "#e0e3eb", bottomLineColor: "#e0e3eb",
+    topFillColor1: "rgba(34,171,148,0.40)", topFillColor2: "rgba(34,171,148,0.08)", bottomFillColor1: clear, bottomFillColor2: clear });
+  const ma = chart.addLineSeries({ ...base, color: "#f7d038" });
+  chart.priceScale("rsi").applyOptions({ scaleMargins: { top: 0.66, bottom: 0.03 } });
+  [70, 50, 30].forEach(lv => band.createPriceLine({ price: lv, color: "rgba(120,123,134,0.75)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: "" }));
+  const rv = rsiSeries(closes), mv = rsiMA(rv), pts = (arr) => ts.map((t, i) => arr[i] == null ? null : { time: t, value: arr[i] }).filter(Boolean);
+  band.setData(ts.map(t => ({ time: t, value: 70 }))); os.setData(pts(rv)); ob.setData(pts(rv)); ma.setData(pts(mv));
+  return { band, os, ob, ma };
+}
+function updateRsiPane(P, closes, t) {
+  const rv = rsiSeries(closes), v = rv.at(-1), m = rsiMA(rv).at(-1);
+  if (v != null) { P.ob.update({ time: t, value: v }); P.os.update({ time: t, value: v }); }
+  P.band.update({ time: t, value: 70 });
+  if (m != null) P.ma.update({ time: t, value: m });
+}
+function paintRsiOverlay() {                               // "RSI 14" label with live values, plus a pane divider
+  const C = LIVE.chart, lbl = $("rsiLbl"), sep = $("rsiSep"); if (!C || !C.rsiP || !lbl) return;
+  const top = C.rsiP.ob.priceToCoordinate(100); if (top == null) return;
+  const rv = rsiSeries(C.closes), v = rv.at(-1), m = rsiMA(rv).at(-1);
+  const divider = top - 6; lbl.style.top = (top + 2) + "px"; sep.style.top = divider + "px";
+  const ax = $("rsiAxis");                                 // the RSI pane's own scale (70 / 50 / 30 + live value), covering the price labels
+  if (ax && mChart) {
+    const w = mChart.priceScale("right").width(), bottom = $("mchart").clientHeight - mChart.timeScale().height();
+    ax.style.width = w + "px"; ax.style.top = divider + "px"; ax.style.height = Math.max(0, bottom - divider) + "px";
+    ax.querySelectorAll("[data-l]").forEach(e => { const y = C.rsiP.ob.priceToCoordinate(+e.dataset.l); if (y != null) e.style.top = (y - divider - 7) + "px"; });
+    const vy = v == null ? null : C.rsiP.ob.priceToCoordinate(v), tag = $("rsiVal");
+    if (tag && vy != null) { tag.style.top = (vy - divider - 8) + "px"; tag.textContent = v.toFixed(2); tag.hidden = false; }
+  }
+  lbl.innerHTML = `RSI 14 <i style="color:#e0e3eb">${v == null ? "—" : v.toFixed(2)}</i> <i style="color:#f7d038">${m == null ? "—" : m.toFixed(2)}</i>`;
+}
 
 /* ===================== TradingView feel: candle countdown, OHLC legend, always-moving chart ===================== */
 const TF_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
@@ -2581,6 +2795,7 @@ function chartDecor() {                               // countdown under the pri
     cd.hidden = y < 0 || y > $("mchart").clientHeight - 14;
   }
   if (!C.hover) paintLegend(lb);
+  paintRsiOverlay();
 }
 function paintLegend(bar) {
   const el = $("ohlcLegend"), C = LIVE.chart; if (!el || !C || !bar) return;
@@ -2588,7 +2803,8 @@ function paintLegend(bar) {
   const cls = bar.c >= bar.o ? "up" : "dn", f = v => fmtPrice(v);
   el.innerHTML = `<b>${C.sym}${data.mode === "futures" ? ".P" : ""}</b> · ${C.tf.toUpperCase()} · ${exName()}
     <span>O <i class="${cls}">${f(bar.o)}</i></span><span>H <i class="${cls}">${f(bar.h)}</i></span><span>L <i class="${cls}">${f(bar.l)}</i></span><span>C <i class="${cls}">${f(bar.c)}</i></span>
-    <i class="${chg >= 0 ? "up" : "dn"}">${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%</i>`;
+    <i class="${chg >= 0 ? "up" : "dn"}">${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%</i>
+`;
 }
 
 /* ===================== Live data (WebSocket streams) ===================== */
@@ -2750,7 +2966,7 @@ function scheduleRerender() {
   clearTimeout(LIVE.rerender);
   LIVE.rerender = setTimeout(() => {
     if (!data) return;
-    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); checkSetupAlerts(); liveSync();
+    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); checkSetupAlerts(); liveSync(); botOnScan();
   }, 800);
 }
 /* live chart: the forming candle and the MAs move with each update */
@@ -2763,6 +2979,7 @@ function chartLiveBar(bar) {
   try {
     C.cs.update({ time: t, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
     chartDecor();
+    if (C.rsiP) { updateRsiPane(C.rsiP, C.closes, t); paintRsiOverlay(); }
     C.lines.forEach(({ n, s }) => { const v = C.maFn(C.closes, n).at(-1); if (v != null) s.update({ time: t, value: v }); });
   } catch (e) {}
 }
@@ -2777,6 +2994,7 @@ setInterval(() => {
       if ((a.dir === "above" && p >= a.price) || (a.dir === "below" && p <= a.price)) { a.fired = Date.now(); any = true;
         notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`); } });
     if (any) { wlSave(); if ($("dlg").open) renderWatchBox(bySym[$("dlgBody").dataset.sym]); } }
+  if (BOT && BOT.running && BOT_STRATS().some(k => BOT.bots[k].positions.some(p => changed.has(p.sym)))) botCheckExits();
   if (document.visibilityState !== "visible") return;
   document.querySelectorAll(".lp[data-sym]").forEach(el => { const s = el.dataset.sym; if (!changed.has(s)) return;
     const r = bySym[s], prev = +el.dataset.v || r.price, txt = fmtPrice(r.price);
@@ -2792,6 +3010,7 @@ let btView = "model", btRunning = false;
 const BT_USE_KEY = "altscan-bt-use";
 const btUse = () => { try { return localStorage.getItem(BT_USE_KEY) !== "off"; } catch (e) { return true; } };
 const IV_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
+const MODEL_HOLD_H = { Reset20: 240 };                     // swing setups can be held up to 10 days
 const SESS_LABELS = ["🇯🇵 Asia", "🇬🇧 London", "🇬🇧 Lunch", "🇺🇸 Pre-NY", "🇺🇸 NY AM", "🇺🇸 NY PM", "💤 Out"];
 function sessOf(ms) {                                   // your session map, PHT
   const d = new Date(ms + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
@@ -2864,23 +3083,28 @@ function validLevels(m) {
   return ordered && Math.abs(m.entry - m.stop) / m.entry >= 0.001;          // skip unrealistically tight stops
 }
 function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
-  const trades = [], busyUntil = {}, H = IV_MS["1h"], W = 220;
+  const trades = [], busyUntil = {}, H = IV_MS["1h"], W = 220, rs1 = rsiSeries(k1.c);
   for (let i = W; i < k1.c.length - 1; i++) {
     const T = k1.t[i] + H; if (T < winStart) continue;
     const j4 = lastClosedIdx(k4, IV_MS["4h"], T), jd = lastClosedIdx(kd, IV_MS["1d"], T);
     if (j4 < 120 || jd < 110) continue;
     const s1 = sliceK(k1, i - W + 1, i + 1), s4 = sliceK(k4, Math.max(0, j4 - 159), j4 + 1), sd = sliceK(kd, Math.max(0, jd - 129), jd + 1);
-    let ms; try { ms = detectModels(s1, s4, structure(s1, maFn), structure(s4, maFn), structure(sd, maFn)); } catch (e) { continue; }
+    let ms; try { ms = detectModels(s1, s4, structure(s1, maFn), structure(s4, maFn), structure(sd, maFn), sd); } catch (e) { continue; }
     for (const m of ms) {
       if (!m.trig || !validLevels(m)) continue;
       const key = m.model + m.dir; if ((busyUntil[key] ?? -1) >= i) continue;      // one trade per model and side at a time
-      const out = simulate(k1, i, m, 48); if (!out) continue;
+      const out = simulate(k1, i, m, MODEL_HOLD_H[m.model] || 48); if (!out) continue;
       busyUntil[key] = out.j;
       trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state });
+        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir) });
     }
   }
   return trades;
+}
+function rsiBand(v, dir) {                                 // RSI at entry, read in the trade's direction
+  if (v == null) return "n/a";
+  const x = dir === "Short" ? 100 - v : v;
+  return x >= 70 ? "70+ momentum" : x >= 60 ? "60–70 pre-momentum" : x >= 50 ? "50–60" : x >= 40 ? "40–50 reset" : "below 40";
 }
 function replaySession(sym, k15, winStart, ctx) {        // ORB and AMD at each NY open, hard close at 11:00 NY
   const trades = [], Q = IV_MS["15m"], done = new Set();
@@ -3013,7 +3237,7 @@ async function drawEquity(trades) {
 function renderBacktest() {
   const el = $("backtest"); if (!el) return;
   const T = BT && BT.trades ? BT.trades : [], all = btStats(T);
-  const viewTabs = [["model", "By Model"], ["session", "Model × Session"], ["env", "Model × Environment"], ["dir", "By Direction"], ["coin", "By Coin"], ["trades", "Trades"]];
+  const viewTabs = [["model", "By Model"], ["session", "Model × Session"], ["env", "Model × Environment"], ["rsi", "Model × RSI at Entry"], ["dir", "By Direction"], ["coin", "By Coin"], ["trades", "Trades"]];
   let body = "";
   if (all) {
     const models = MODEL_KEYS.filter(k => T.some(t => t.model === k));
@@ -3021,6 +3245,7 @@ function renderBacktest() {
       models.map(k => { const s = btStats(T.filter(t => t.model === k)); return `<tr><td class="l">${MODELS[k].icon} ${k}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`; }).join("")}</tbody></table></div>`;
     else if (btView === "session") body = btMatrix(T, "model", "session", models, SESS_LABELS.filter(x => T.some(t => t.session === x)));
     else if (btView === "env") body = btMatrix(T, "model", "env", models, [...new Set(T.map(t => t.env))]);
+    else if (btView === "rsi") body = btMatrix(T.filter(t => t.rsi), "model", "rsi", models, ["70+ momentum", "60–70 pre-momentum", "50–60", "40–50 reset", "below 40"].filter(x => T.some(t => t.rsi === x)));
     else if (btView === "dir") body = btMatrix(T, "model", "dir", models, ["Long", "Short"]);
     else if (btView === "coin") { const g = btGroup(T, t => t.sym), rows = Object.entries(g).map(([k, v]) => ({ k, s: btStats(v) })).sort((a, b) => b.s.tot - a.s.tot);
       body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Coin</th><th>Trades</th><th>Win rate</th><th>Avg R</th><th>Total R</th></tr></thead><tbody>${rows.map(x => `<tr><td class="l">${coin(x.k)}</td><td>${x.s.n}</td><td>${x.s.win.toFixed(0)}%</td><td class="${rCls(x.s.avg)}">${fmtR(x.s.avg)}</td><td class="${rCls(x.s.tot)}">${fmtR(x.s.tot)}</td></tr>`).join("")}</tbody></table></div>`; }
@@ -3056,6 +3281,194 @@ function renderBacktest() {
 }
 function renderBacktestControls() { const b = $("btRun"); if (b) { b.disabled = btRunning || !data; b.textContent = btRunning ? "Running…" : "Run Backtest"; } }
 
+/* ===================== Bot Simulator: forward-test every strategy on live prices (paper money) ===================== */
+const BOT_KEY = "altscan-bot";
+const BOT_STRATS = () => MODEL_KEYS.filter(k => !["ORB", "AMD"].includes(k));
+const BOT_HOLD_MS = m => (MODEL_HOLD_H[m] || 48) * 3600e3;
+let BOT = null;
+function botDefault() {
+  return { running: false, startBal: 1000, risk: 1, maxOpen: 3, fee: 0.1, slip: 0.05, notify: true, started: null, lastRecon: 0,
+           bots: Object.fromEntries(BOT_STRATS().map(k => [k, { on: true, bal: 1000, peak: 1000, dd: 0, positions: [], closed: [], eq: [] }])) };
+}
+function botLoad() {
+  try { BOT = JSON.parse(localStorage.getItem(BOT_KEY) || "null"); } catch (e) { BOT = null; }
+  if (!BOT) BOT = botDefault();
+  BOT_STRATS().forEach(k => { if (!BOT.bots[k]) BOT.bots[k] = { on: true, bal: BOT.startBal, peak: BOT.startBal, dd: 0, positions: [], closed: [], eq: [] }; });
+}
+const botSave = () => { try { localStorage.setItem(BOT_KEY, JSON.stringify(BOT)); } catch (e) {} };
+function botPrice(sym) { const r = bySym[sym]; return r ? r.price : null; }
+function botOpen(strat, r, m) {
+  const b = BOT.bots[strat], px = r.price, long = m.dir === "Long";
+  if (!px || !validLevels(m)) return false;
+  if (long ? (px <= m.stop || px >= m.t2) : (px >= m.stop || px <= m.t2)) return false;            // already stopped out or at target
+  const R0 = Math.abs(m.entry - m.stop);
+  if ((long ? px - m.entry : m.entry - px) > 0.5 * R0) return false;                                 // moved too far past the entry: don't chase
+  const fill = px * (1 + (long ? 1 : -1) * BOT.slip / 100), risk = b.bal * BOT.risk / 100, R = Math.abs(fill - m.stop);
+  if (R <= 0 || R / fill < 0.001) return false;
+  const qty = risk / R, notional = qty * fill, feeIn = notional * BOT.fee / 200;
+  b.positions.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), sym: r.symbol, dir: m.dir, model: strat, state: m.state,
+    entry: fill, stop: m.stop, target: m.t2, qty, risk, feeIn, opened: Date.now(), until: Date.now() + BOT_HOLD_MS(strat), checked: Date.now(),
+    env: data.env ? data.env.label : "", session: sessOf(Date.now()) });
+  if (BOT.notify) toast(`🤖 <b>${MODELS[strat].icon} ${strat} bot</b> ${long ? "bought" : "shorted"} <b>${coin(r.symbol)}</b> at ${fmtPrice(fill)} · stop ${fmtPrice(m.stop)} · target ${fmtPrice(m.t2)}`);
+  return true;
+}
+function botClose(strat, p, exitPx, reason, when = Date.now()) {
+  const b = BOT.bots[strat], long = p.dir === "Long";
+  const fill = reason === "Target" ? exitPx : exitPx * (1 - (long ? 1 : -1) * BOT.slip / 100);   // limit target fills; stops and market exits slip
+  const feeOut = p.qty * fill * BOT.fee / 200, pnl = (long ? fill - p.entry : p.entry - fill) * p.qty - p.feeIn - feeOut;
+  b.bal += pnl; b.peak = Math.max(b.peak, b.bal); b.dd = Math.max(b.dd, (b.peak - b.bal) / b.peak * 100);
+  b.positions = b.positions.filter(x => x.id !== p.id);
+  b.closed.push({ sym: p.sym, dir: p.dir, model: strat, entry: p.entry, exit: fill, stop: p.stop, target: p.target, pnl, r: pnl / p.risk, reason,
+    opened: p.opened, closed: when, env: p.env, session: p.session });
+  if (b.closed.length > 400) b.closed = b.closed.slice(-400);
+  b.eq.push([when, +b.bal.toFixed(2)]); if (b.eq.length > 1000) b.eq = b.eq.slice(-1000);
+  if (BOT.notify) toast(`🤖 <b>${strat} bot</b> closed <b>${coin(p.sym)}</b> · ${reason} · <span class="${pnl >= 0 ? "up" : "dn"}">${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)} (${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R)</span>`);
+}
+function botCheckExits() {                                   // on live prices (the stream ticks, or the last scan)
+  if (!BOT.running || !data) return;
+  BOT_STRATS().forEach(k => {
+    const b = BOT.bots[k];
+    b.positions.slice().forEach(p => {
+      const px = botPrice(p.sym); if (px == null) return;
+      const long = p.dir === "Long";
+      if (long ? px <= p.stop : px >= p.stop) botClose(k, p, p.stop, "Stop");
+      else if (long ? px >= p.target : px <= p.target) botClose(k, p, p.target, "Target");
+      else if (Date.now() >= p.until) botClose(k, p, px, "Time limit");
+    });
+  });
+  botSave();
+}
+async function botReconcile() {                              // catch wicks between checks, and anything that happened while the app was closed
+  if (!BOT.running || !data) return;
+  const open = BOT_STRATS().flatMap(k => BOT.bots[k].positions.map(p => ({ k, p })));
+  for (const { k, p } of open) {
+    try {
+      const since = Math.max(p.opened, p.checked - 15 * 60e3);
+      const bars = await klinesSince(p.sym, since, "15m", Math.min(1000, Math.ceil((Date.now() - since) / 900e3) + 2), exName(), data.mode);
+      const long = p.dir === "Long";
+      for (const c of bars) {
+        if (c.t + 900e3 <= p.opened) continue;
+        if (long ? c.l <= p.stop : c.h >= p.stop) { botClose(k, p, p.stop, "Stop", c.t); break; }       // stop first if both: conservative
+        if (long ? c.h >= p.target : c.l <= p.target) { botClose(k, p, p.target, "Target", c.t); break; }
+        if (c.t >= p.until) { botClose(k, p, c.c, "Time limit", c.t); break; }
+      }
+      p.checked = Date.now();
+    } catch (e) {}
+  }
+  BOT.lastRecon = Date.now(); botSave();
+}
+function botOnScan() {                                        // new setups from a scan or a candle-close refresh
+  if (!BOT || !BOT.running || !data) return;
+  botCheckExits();
+  const cooldown = 6 * 3600e3;
+  BOT_STRATS().forEach(k => {
+    const b = BOT.bots[k]; if (!b.on) return;
+    const cands = [];
+    data.all.forEach(r => (r.models || []).forEach(m => {
+      if (m.model !== k || !m.trig || m.dir === "any") return;
+      if (b.positions.some(p => p.sym === r.symbol)) return;
+      if (b.closed.some(c => c.sym === r.symbol && Date.now() - c.closed < cooldown)) return;
+      if (r.vol24h < 10e6) return;                                                                 // skip illiquid coins
+      cands.push({ r, m, s: setupScore(r, m, data.env) + alignScore(r, m) });
+    }));
+    cands.sort((a, b2) => b2.s - a.s);
+    for (const c of cands) { if (b.positions.length >= BOT.maxOpen) break; botOpen(k, c.r, c.m); }
+  });
+  botSave(); renderBot();
+}
+function botStats(k) {
+  const b = BOT.bots[k], c = b.closed, n = c.length;
+  const wins = c.filter(x => x.pnl > 0).length, gw = c.filter(x => x.pnl > 0).reduce((s, x) => s + x.pnl, 0), gl = -c.filter(x => x.pnl < 0).reduce((s, x) => s + x.pnl, 0);
+  const unreal = b.positions.reduce((s, p) => { const px = botPrice(p.sym); return px == null ? s : s + (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; }, 0);
+  return { n, wins, win: n ? wins / n * 100 : 0, avgR: n ? c.reduce((s, x) => s + x.r, 0) / n : 0, pf: gl ? gw / gl : (gw ? 99 : 0), ret: (b.bal - BOT.startBal) / BOT.startBal * 100, unreal };
+}
+let botChart = null;
+async function drawBotEquity() {
+  const el = $("botEq"); if (!el) return;
+  const series = BOT_STRATS().map((k, i) => ({ k, pts: BOT.bots[k].eq })).filter(x => x.pts.length);
+  if (!series.length) { el.innerHTML = `<div class="meta cload">The equity curves appear after the first closed trades.</div>`; $("botEqLegend").innerHTML = ""; return; }
+  try {
+    await ensureLWC();
+    if (botChart) { try { botChart.remove(); } catch (e) {} botChart = null; }
+    el.innerHTML = "";
+    const line = cssVar("--line");
+    botChart = LightweightCharts.createChart(el, { width: el.clientWidth, height: 200, layout: { background: { type: "solid", color: "transparent" }, textColor: cssVar("--mute"), fontFamily: cssVar("--font") },
+      grid: { vertLines: { color: line }, horzLines: { color: line } }, rightPriceScale: { borderColor: line }, timeScale: { borderColor: line, timeVisible: true },
+      localization: { locale: "en-US", priceFormatter: v => "$" + v.toFixed(0), timeFormatter: phtTime } });
+    const colors = ["#2962ff", "#22ab94", "#f7a600", "#f23645", "#9c27b0", "#00bcd4", "#e91e63", "#8bc34a"];
+    series.forEach((x, i) => {
+      const s = botChart.addLineSeries({ color: colors[i % colors.length], lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+      let last = 0; const pts = [{ time: Math.floor((BOT.started || x.pts[0][0]) / 1000) - 1, value: BOT.startBal }];
+      x.pts.forEach(([t, v]) => { let ts = Math.floor(t / 1000); if (ts <= pts.at(-1).time) ts = pts.at(-1).time + 1; pts.push({ time: ts, value: v }); });
+      s.setData(pts);
+    });
+    botChart.timeScale().fitContent();
+    $("botEqLegend").innerHTML = series.map((x, i) => `<i style="background:${colors[i % colors.length]}"></i>${x.k}`).join("");
+  } catch (e) { el.innerHTML = `<div class="meta">Couldn't draw the equity curves (${e.message}).</div>`; }
+}
+function renderBot() {
+  const el = $("botSim"); if (!el || !BOT) return;
+  const strats = BOT_STRATS(), allOpen = strats.flatMap(k => BOT.bots[k].positions.map(p => ({ k, p })));
+  const recent = strats.flatMap(k => BOT.bots[k].closed).sort((a, b) => b.closed - a.closed).slice(0, 15);
+  el.innerHTML = `
+    <div class="schead"><h2>Bot Simulator <span class="meta">forward test · paper money</span></h2>
+      <span class="meta">${BOT.running ? `<span class="up">● Running</span> since ${fmtPHT(new Date(BOT.started + PHT_MS))}` : "Paused"} · each strategy trades its own $${BOT.startBal.toLocaleString()} account</span>
+      <div class="scbtns"><button class="btn ${BOT.running ? "" : "primary"}" id="botRun" ${data ? "" : "disabled"}>${BOT.running ? "Pause" : "Start Bots"}</button><button class="btn sm" id="botReset">Reset</button></div></div>
+    <div class="btctl">
+      <label class="pill"><span>Account per bot ($)</span><input id="botBal" type="number" step="100" value="${BOT.startBal}" ${BOT.started ? "disabled title='Reset to change'" : ""}></label>
+      <label class="pill"><span>Risk per trade %</span><input id="botRisk" type="number" step="0.25" value="${BOT.risk}"></label>
+      <label class="pill"><span>Max open per bot</span><input id="botMax" type="number" step="1" min="1" value="${BOT.maxOpen}"></label>
+      <label class="pill"><span>Fees %</span><input id="botFee" type="number" step="0.01" value="${BOT.fee}"></label>
+      <label class="pill"><span>Slippage %</span><input id="botSlip" type="number" step="0.01" value="${BOT.slip}"></label>
+      <label class="tog"><input type="checkbox" id="botNotify" ${BOT.notify ? "checked" : ""}> Notify me of bot trades</label>
+    </div>
+    <div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">On</th><th>Balance</th><th>Return</th><th>Trades</th><th>Win rate</th><th>Avg R</th><th>Profit factor</th><th>Max drawdown</th><th>Open</th><th>Open P&L</th></tr></thead><tbody>${
+      strats.map(k => { const b = BOT.bots[k], s = botStats(k);
+        return `<tr><td class="l">${MODELS[k].icon} ${k}${["Leader", "Reset20"].includes(k) ? ' <span class="tag">Claude</span>' : ""}</td><td class="l"><input type="checkbox" data-bon="${k}" ${b.on ? "checked" : ""} aria-label="Run the ${k} bot"></td>
+          <td><b>$${b.bal.toFixed(2)}</b></td><td class="${rCls(s.ret / 10)}">${s.ret >= 0 ? "+" : ""}${s.ret.toFixed(1)}%</td><td>${s.n}</td><td>${s.n ? s.win.toFixed(0) + "%" : "—"}</td>
+          <td class="${s.n ? rCls(s.avgR) : "mute"}">${s.n ? fmtR(s.avgR) : "—"}</td><td>${s.n ? (s.pf >= 99 ? "∞" : s.pf.toFixed(2)) : "—"}</td><td class="dn">${b.dd ? "−" + b.dd.toFixed(1) + "%" : "—"}</td>
+          <td>${b.positions.length}</td><td class="${s.unreal >= 0 ? "up" : "dn"}">${b.positions.length ? (s.unreal >= 0 ? "+" : "−") + "$" + Math.abs(s.unreal).toFixed(2) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
+    <h3 class="pbh3">Open Positions <span class="meta">${allOpen.length}</span></h3>
+    ${allOpen.length ? `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th>Entry</th><th>Stop</th><th>Target</th><th>Price</th><th>P&L</th><th class="l">Opened</th></tr></thead><tbody>${
+      allOpen.map(({ k, p }) => { const px = botPrice(p.sym), pnl = px == null ? 0 : (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty;
+        return `<tr data-s="${p.sym}"><td class="l">${MODELS[k].icon} ${k}</td><td class="l"><b>${coin(p.sym)}</b></td><td class="l">${biasTag(p.dir)}</td><td>${fmtPrice(p.entry)}</td><td class="dn">${fmtPrice(p.stop)}</td><td class="up">${fmtPrice(p.target)}</td>
+          <td><span class="lp" data-sym="${p.sym}">${px == null ? "—" : fmtPrice(px)}</span></td><td class="${pnl >= 0 ? "up" : "dn"}">${(pnl >= 0 ? "+" : "−") + "$" + Math.abs(pnl).toFixed(2)} <span class="mute">${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R</span></td>
+          <td class="l mute">${fmtPHT(new Date(p.opened + PHT_MS)).replace(/^\w+, /, "")}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty">No open positions. ${BOT.running ? "The bots enter as soon as a setup triggers." : "Press Start Bots."}</div>`}
+    ${recent.length ? `<h3 class="pbh3">Recent Bot Trades</h3><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Closed (PHT)</th><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th class="l">Exit</th><th>P&L</th><th>R</th></tr></thead><tbody>${
+      recent.map(c => `<tr><td class="l mute">${fmtPHT(new Date(c.closed + PHT_MS))}</td><td class="l">${MODELS[c.model].icon} ${c.model}</td><td class="l">${coin(c.sym)}</td><td class="l">${biasTag(c.dir)}</td><td class="l">${c.reason}</td>
+        <td class="${c.pnl >= 0 ? "up" : "dn"}">${(c.pnl >= 0 ? "+" : "−") + "$" + Math.abs(c.pnl).toFixed(2)}</td><td class="${rCls(c.r)}">${fmtR(c.r)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    <h3 class="pbh3">Bot Equity</h3><div id="botEq" class="bteq"></div><div class="clegend bteql" id="botEqLegend"></div>
+    <p class="meta">Paper trading only. Each bot takes its strategy's triggered setups (ORB and AMD excluded) on coins with $10M+ volume: up to ${BOT.maxOpen} at a time, one per coin, no re-entry on a coin for 6 hours, and no chasing (it skips a setup once price has run more than half the risk past the entry). Fills are at the live price plus slippage; targets fill at the target. Exits: stop, target, or time limit (48 hours, 10 days for the Daily 20 Reset). The bots run while the app is open; every 2 minutes they check the 15m candles so a wick to the stop or target between checks still counts, and when you reopen the app they settle anything that happened while it was closed (new entries can't be made while it's closed). While running, the scanner refreshes every 15 minutes so new setups are found.</p>`;
+  if ($("botRun")) $("botRun").onclick = () => {
+    BOT.running = !BOT.running;
+    if (BOT.running) { if (!BOT.started) BOT.started = Date.now(); if (!$("auto").checked) { $("auto").checked = true; $("auto").onchange(); } botOnScan(); botReconcile(); }
+    botSave(); renderBot();
+  };
+  $("botReset").onclick = () => { if (confirm("Reset all bots? This clears their balances, positions and history.")) { const keep = { startBal: +$("botBal").value || 1000, risk: BOT.risk, maxOpen: BOT.maxOpen, fee: BOT.fee, slip: BOT.slip, notify: BOT.notify };
+    BOT = botDefault(); Object.assign(BOT, keep); BOT_STRATS().forEach(k => { BOT.bots[k].bal = BOT.bots[k].peak = BOT.startBal; }); botSave(); renderBot(); } };
+  [["botRisk", "risk"], ["botMax", "maxOpen"], ["botFee", "fee"], ["botSlip", "slip"], ["botBal", "startBal"]].forEach(([id, key]) => { if ($(id)) $(id).onchange = () => {
+    const v = +$(id).value; if (!(v >= 0)) return; BOT[key] = key === "maxOpen" ? Math.max(1, Math.round(v)) : v;
+    if (key === "startBal" && !BOT.started) BOT_STRATS().forEach(k => { BOT.bots[k].bal = BOT.bots[k].peak = v; });
+    botSave(); }; });
+  $("botNotify").onchange = () => { BOT.notify = $("botNotify").checked; botSave(); };
+  el.querySelectorAll("[data-bon]").forEach(c => c.onchange = () => { BOT.bots[c.dataset.bon].on = c.checked; botSave(); });
+  el.querySelectorAll("tr[data-s]").forEach(tr => tr.onclick = () => openDetail(tr.dataset.s));
+  drawBotEquity();
+}
+setInterval(() => { if (BOT && BOT.running && data) { botCheckExits(); if (Date.now() - BOT.lastRecon > 120e3) botReconcile(); if (document.visibilityState === "visible" && $("botSim")) renderBotLight(); } }, 30000);
+function renderBotLight() {                                  // refresh numbers without redrawing the charts
+  if (!$("botSim")) return;
+  const y = window.scrollY; renderBot(); window.scrollTo(0, y);
+}
+
+
+/* ---- RSI + momentum display helpers ---- */
+const rsiCls = v => v == null ? "mute" : v >= 70 ? "rz-mo" : v >= 60 ? "rz-pm" : v > 40 ? "rz-ne" : v > 30 ? "rz-pw" : "rz-wk";
+const rsiChip = v => v == null ? '<span class="mute">—</span>' : `<span class="rsi ${rsiCls(v)}" title="${rsiZone(v)}">${v.toFixed(0)}</span>`;
+const divTags = r => [["1H", r.rsiDiv && r.rsiDiv.h1], ["4H", r.rsiDiv && r.rsiDiv.h4]].filter(x => x[1]).map(([tf, d]) => `<span class="tag ${d === "bull" ? "long" : "short"}">${tf} ${d === "bull" ? "bull" : "bear"} div</span>`).join("")
+  + [["1H", r.rsiCross && r.rsiCross.h1], ["4H", r.rsiCross && r.rsiCross.h4]].filter(x => x[1]).map(([tf, c]) => `<span class="tag ${c === "up60" ? "long" : "short"}">${tf} RSI ${c === "up60" ? "↑60" : "↓40"}</span>`).join("");
+const momHTML = r => !r.mom || !r.mom.score ? '<span class="mute">—</span>' : `<b class="${r.mom.label === "Strong" ? (r.mom.dir === "Long" ? "up" : "dn") : ""}">${r.mom.score}</b>${r.mom.label ? ` <span class="mute">${r.mom.label} ${r.mom.dir === "Long" ? "▲" : "▼"}</span>` : ""}`;
+
 /* ---- tabs + table (TradingView-style column sets) ---- */
 const C = {
   inst:   { t: "Instrument", l: true, v: r => r.symbol, h: r => instHTML(r) },
@@ -3073,6 +3486,11 @@ const C = {
   rvn:    { t: "RVOL Now", v: r => r.rvolNow ?? -1, h: r => r.rvolNow == null ? '<span class="mute">—</span>' : `<span class="${r.rvolNow >= 1.5 ? "up" : ""}">${r.rvolNow.toFixed(2)}×</span>` },
   rs:     { t: "vs BTC<br>24h", v: r => r.rs24 ?? -999, h: r => r.rs24 == null ? '<span class="mute">—</span>' : `<span class="${r.rs24 >= 0 ? "up" : "dn"}">${fmtRS(r.rs24)}</span>` },
   rs7:    { t: "vs BTC<br>7d", v: r => r.rs7 ?? -999, h: r => r.rs7 == null ? '<span class="mute">—</span>' : `<span class="${r.rs7 >= 0 ? "up" : "dn"}">${fmtRS(r.rs7)}</span>` },
+  rsi1h:  { t: "RSI<br>1H", v: r => r.rsi ? r.rsi.h1 ?? -1 : -1, h: r => rsiChip(r.rsi && r.rsi.h1) },
+  rsi4h:  { t: "RSI<br>4H", v: r => r.rsi ? r.rsi.h4 ?? -1 : -1, h: r => rsiChip(r.rsi && r.rsi.h4) },
+  rsi1d:  { t: "RSI<br>1D", v: r => r.rsi ? r.rsi.d1 ?? -1 : -1, h: r => rsiChip(r.rsi && r.rsi.d1) },
+  mom:    { t: "Momentum", v: r => r.mom ? r.mom.score : 0, h: r => momHTML(r) },
+  rsisig: { t: "RSI Signals", l: true, v: r => (r.rsiDiv && (r.rsiDiv.h1 || r.rsiDiv.h4) ? 2 : 0) + (r.rsiCross && (r.rsiCross.h1 || r.rsiCross.h4) ? 1 : 0), h: r => divTags(r) || '<span class="mute">—</span>' },
   sector: { t: "Sector", l: true, v: r => r.sector || "", h: r => r.sector ? `<span class="mute">${r.sector}</span>` : '<span class="mute">—</span>' },
   atr:    { t: "Daily ATR", v: r => r.atrPct, h: r => `${r.atrPct.toFixed(2)}%` },
   wick:   { t: "Wick %", v: r => r.wick ?? 999, h: r => wickHTML(r) },
@@ -3097,6 +3515,7 @@ const TABS = [
   { id: "aots", label: "Trend Starting", cols: ["inst","price","chg","vol","aots","stage","rvol","wick","rating"], sort: "stage",
     f: r => !!(r.aots4h || r.aots1h) && r.vol24h >= AOTS_MIN_VOL },
   { id: "models", label: "Models", cols: ["inst","price","chg","vol","mdl","mplan","play","rating"], sort: "mdl", f: r => (r.models || []).length > 0 },
+  { id: "momentum", label: "Momentum", cols: ["inst","price","chg","mom","rsi1h","rsi4h","rsi1d","rsisig","rvn","rs","aots","play","rating"], sort: "mom" },
   { id: "tech", label: "Technicals", cols: ["inst","s1h","s4h","s1d","aots","rvol","atr","wick","rating"], sort: "rating" },
   { id: "deriv", label: "Derivatives", cols: ["inst","price","chg","vol","fund","lev","spot","drv","rating"], sort: "vol" },
   { id: "watch", label: "★ Watchlist", cols: ["inst","price","chg","rvn","rs","play","alerts","note","rating"], sort: "chg", f: r => isWatched(r.symbol) },
@@ -3179,6 +3598,8 @@ function openDetail(sym) {
             <span>Day Score</span><span><b>${r.dayScore}</b> / 100 ${biasTag(FULL.includes(r.s1h.state) ? r.s1h.dir : null)}</span>
             <span>Swing Score</span><span><b>${r.swingScore}</b> / 100 ${r.swingDir ? biasTag(r.swingDir) : '<span class="mute">4H and Daily not aligned</span>'}</span>
             <span>vs BTC</span><span>24h ${fmtRS(r.rs24)} · 7d ${fmtRS(r.rs7)} · RVOL now ${r.rvolNow != null ? r.rvolNow.toFixed(2) + "×" : "—"}</span>
+            <span>RSI (14)</span><span>1H ${rsiChip(r.rsi && r.rsi.h1)} · 4H ${rsiChip(r.rsi && r.rsi.h4)} · D ${rsiChip(r.rsi && r.rsi.d1)} <span class="mute">${rsiZone(r.rsi && r.rsi.h1)}</span> ${divTags(r)}</span>
+            <span>Momentum</span><span>${momHTML(r)} <span class="mute">/ 100</span></span>
             <span>Wickiness</span><span>${wickHTML(r)} ${r.wicky ? '<span class="tag flag">Wicky</span>' : r.wick !== null && r.wick < 50 ? '<span class="tag long">Clean</span>' : ""}</span>
             <span>1H</span><span>${r.s1h.state} · ${r.s1h.crosses} crosses of the 20 · ${r.s1h.ext} ATR from it</span>
             <span>4H</span><span>${r.s4h.state} · ${r.s4h.ext} ATR from the 20</span><span>Daily</span><span>${r.s1d.state}</span>
@@ -3238,6 +3659,7 @@ function claudeText() {
   const sc = scoreRows("model").filter(x => x.done);
   if (sc.length) t += `\n\nSCORECARD (resolved picks on this device, by model)\n` + sc.map(x => `${x.k}: ${x.done} resolved, ${x.wins} hit target, ${x.losses} stopped, win ${x.win == null ? "n/a" : x.win.toFixed(0) + "%"}, avg ${x.avgR >= 0 ? "+" : ""}${x.avgR.toFixed(2)}R`).join("\n");
   if (BT && BT.trades && BT.trades.length) { t += `\n\nBACKTEST (${BT.exchange}, ${BT.days} days, ${BT.coins} coins, fees ${BT.fee}%)\n` + MODEL_KEYS.map(k => { const s = btStats(BT.trades.filter(x => x.model === k)); return s ? `${k}: ${s.n} trades, win ${s.win.toFixed(0)}%, avg ${fmtR(s.avg)}, total ${fmtR(s.tot)}, PF ${s.pf >= 99 ? "inf" : s.pf.toFixed(2)}` : null; }).filter(Boolean).join("\n"); }
+  if (BOT && BOT.started) { t += `\n\nBOT SIMULATOR (forward test since ${fmtPHT(new Date(BOT.started + PHT_MS))}, $${BOT.startBal} per bot, ${BOT.risk}% risk)\n` + BOT_STRATS().map(k => { const s = botStats(k), b = BOT.bots[k]; return `${k}: $${b.bal.toFixed(2)} (${s.ret >= 0 ? "+" : ""}${s.ret.toFixed(1)}%), ${s.n} trades, win ${s.n ? s.win.toFixed(0) : 0}%, avg ${fmtR(s.avgR)}, max DD ${b.dd.toFixed(1)}%, ${b.positions.length} open`; }).join("\n"); }
   if (Object.keys(WL.coins).length) t += `\n\nWATCHLIST: ${Object.keys(WL.coins).map(coin).join(", ")}`;
   return t + "\n\nRun the crypto scanner on these.";
 }
@@ -3260,7 +3682,8 @@ async function run() {
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
     renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan();
-    { const t = liveTarget(); if (t && (!LIVE.ws || LIVE.url !== t.url)) liveConnect(); else liveSync(); } renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
+    { const t = liveTarget(); if (t && (!LIVE.ws || LIVE.url !== t.url)) liveConnect(); else liveSync(); }
+    if (BOT && BOT.running) { botReconcile().then(() => botOnScan()); } else renderBot(); renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
     $("status").textContent = `${data.analysed} coins analysed.`;
     setTimeout(() => $("prog").style.width = "0", 600);
@@ -3268,6 +3691,8 @@ async function run() {
     loadBoardDrivers().catch(() => {});
   } catch (e) {
     $("status").className = "status err";
+    const net = /fetch|network|unreachable|HTTP|refuses|Failed|timeout|abort/i.test(e.message || "");
+    if (!net) { $("status").textContent = `Something went wrong after the scan (${e.message}). Please send this message to Claude.`; console.error(e); $("prog").style.width = "0"; $("runBtn").disabled = false; return; }
     $("status").textContent = $("exF").value === "bybit"
       ? `Couldn't reach Bybit: ${e.message}. Try secure DNS or a VPN. If Bybit loads in your browser but not here, open the scanner from the Mac app (localhost), which relays Bybit's data.`
       : `Couldn't reach Binance: ${e.message}. Your internet provider may be blocking Binance. Try DNS 1.1.1.1 or 8.8.8.8, or a VPN, then press Scan Now.`;
@@ -3290,7 +3715,7 @@ $("search").oninput = renderTable;
 $("auto").onchange = () => { savePrefs(); clearInterval(autoTimer); if ($("auto").checked) autoTimer = setInterval(run, 15 * 60 * 1000); };
 
 $("verLbl").textContent = "Version " + APP_VERSION + ".";
-wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard(); renderBacktest();
+botLoad(); wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard(); renderBacktest(); renderBot();
 $("dlg").addEventListener("close", killChart);
 $("liveBadge").onclick = () => {
   if (LIVE.state === "down") { LIVE.retry = 0; liveConnect(); return; }

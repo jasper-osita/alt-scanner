@@ -9,6 +9,26 @@ Also includes: session picks (the best 3 coins to day trade in Asia, London and 
 (EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, price and setup alerts
 (while the app is open), and a scorecard that tracks every scan's picks and checks whether they hit target or stop.
 
+## RSI and momentum
+RSI (14) on 1H, 4H and Daily for every coin, with your zones (70+ momentum, 60–70 pre-momentum, 30–40 pre-weak, 30 or
+below weak), divergence and ignition (a fresh cross of 60 or 40). The Momentum score (0–100) blends RSI alignment, volume
+now, strength vs BTC and range expansion. Use the Momentum tab, the RSI filter, and the Strong Momentum, Momentum Ignition,
+RSI Divergence and RSI Reset in Uptrend views. The coin chart has an RSI pane, suggested plays warn about divergence or a
+stretched RSI, and the backtest's Model × RSI at Entry view shows whether high-momentum entries pay.
+
+## Bot simulator (forward test)
+Paper-trades every strategy (NBB, Bounce, Fade, Breaker, V-Trade, Pullback, plus Claude's Leader Pullback and Daily 20
+Reset; ORB and AMD excluded) on live prices, each in its own account. Set the account size, risk %, max open positions,
+fees and slippage, press Start Bots, and compare balances, win rates, R, drawdowns and equity curves. The bots trade while
+the app is open; on reopen they settle stops and targets hit while it was closed (using 15m candles).
+
+## Claude's setups
+**Leader Pullback (day, 1H):** a fresh 48h high on a big, high-volume impulse; a quiet pullback into the 1H 20 or the 38% of
+the leg that holds the 50 and gives back ≤ 62%; a reclaim candle. Stop below the pullback low, target 2R.
+**Daily 20 Reset (swing, 4H + Daily):** in a Daily uptrend with a rising 20, price resets into the Daily 20 zone (closing
+below the 4H 20 at least twice), then a 4H candle reclaims the 20. Stop below the reset low, target 3R, up to 10 days.
+Both run long and short and are hypotheses until the backtest and the bots prove them.
+
 ## Model backtest
 The Model Backtest card replays every model on the last 30, 60 or 90 days of real candles for your top coins
 (plus your watchlist) and shows which models pay, by model, session, environment, direction and coin, with an equity

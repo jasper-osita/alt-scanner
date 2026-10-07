@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.07.1147">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.07.1216">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -493,6 +493,15 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .subline #title{color:var(--text);font-weight:500}
 .pg-off{display:none!important}
+.mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+@media (max-width:1100px){.mgrid{grid-template-columns:minmax(0,1fr)}}
+.macroread{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.mchip{background:var(--pill);border:1px solid var(--pill-b);border-radius:999px;padding:4px 11px;font-size:12.5px;color:var(--mute)}
+.mchip b{color:var(--text);font-weight:600}.mchip b.up{color:var(--green)}.mchip b.dn{color:var(--red)}
+.mstat{margin-left:auto;font-size:11.5px;color:var(--mute);white-space:nowrap}.mstat.open{color:var(--green)}.mstat.closed{color:var(--amber)}
+.mname{color:var(--strong);font-weight:600}
+.mpx{color:var(--text);font-weight:600}
+.mstk{display:flex;gap:4px 12px;flex-wrap:wrap;align-items:center}.mstk>span{white-space:nowrap}
 input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 .boards.single{grid-template-columns:minmax(0,1fr)}
 .boards.single .board{max-width:none}
@@ -607,6 +616,14 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
     </div>
   </section>
 
+  <section class="card macrocard" id="macro" data-page="macro">
+    <div class="momohead"><h2>Gold, Oil &amp; Indices</h2><span class="meta" id="macroMeta">Binance TradFi perpetuals</span>
+      <button class="btn" id="macroRun" style="margin-left:auto">Refresh</button></div>
+    <div class="why">Gold, silver, oil and the US index ETFs (S&amp;P 500 via SPY, Nasdaq 100 via QQQ), read with the same 20/50/100 structure, RSI, momentum and setups as your coins. These are Binance's 24/7 TradFi perpetuals: they track the real market closely while it's open, but trade thin and can drift from your broker's chart on weekends and after hours. Chart opens the real market on TradingView. Forex comes with the cTrader connection.</div>
+    <div id="macroRead" class="macroread"></div>
+    <div id="macroBody"><div class="empty">Open this page or press Refresh to load gold, oil and the indices.</div></div>
+  </section>
+
   <section class="card mguide" data-page="guide"><h2>Model Guide</h2><div id="guide"></div></section>
 
   <section class="card scard" id="scorecard" data-page="scorecard"></section>
@@ -648,6 +665,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 
 <script id="core">/* ===================== scanner core (mirrors crypto_screener.py rules) ===================== */
 const FAPI = "https://fapi.binance.com";
+/* Binance TradFi perpetuals (gold, oil, index ETFs): always read from Binance futures, whatever exchange the crypto scan uses */
+const TRADFI_SYMS = new Set();
+const MACRO = { rows: [], by: {}, at: null, running: false, err: null };
+const MACRO_INFO = {      // base → [name, group, the real market on TradingView]
+  XAU: ["Gold", "Metals", "OANDA:XAUUSD"], XAG: ["Silver", "Metals", "OANDA:XAGUSD"], XPT: ["Platinum", "Metals", "OANDA:XPTUSD"],
+  XPD: ["Palladium", "Metals", "OANDA:XPDUSD"], COPPER: ["Copper", "Metals", "OANDA:XCUUSD"],
+  CL: ["WTI Crude Oil", "Energy", "TVC:USOIL"], BZ: ["Brent Crude Oil", "Energy", "TVC:UKOIL"], NATGAS: ["Natural Gas", "Energy", "OANDA:NATGASUSD"],
+  SPY: ["S&P 500", "US Indices", "OANDA:SPX500USD"], QQQ: ["Nasdaq 100", "US Indices", "OANDA:NAS100USD"], DIA: ["Dow Jones", "US Indices", "OANDA:US30USD"],
+  IWM: ["Russell 2000", "US Indices", "OANDA:US2000USD"], SMH: ["Semiconductors", "US Indices", "NASDAQ:SMH"], UVXY: ["Volatility (VIX)", "US Indices", "TVC:VIX"],
+};
 const SPOT_HOSTS = ["https://data-api.binance.vision", "https://api.binance.com"];
 const STABLES = new Set(["USDC","USDT","FDUSD","TUSD","USDP","DAI","BUSD","USDE","PYUSD","EUR","EURI","USD1","RLUSD","XUSD","UST","USTC","SUSD","AEUR","BFUSD"]);
 const MAJORS = new Set(["BTC","ETH","SOL"]);
@@ -818,14 +845,14 @@ async function spend(w) {
 }
 const klineWeight = limit => MODE === "spot" ? 2 : limit < 100 ? 1 : limit < 500 ? 2 : limit <= 1000 ? 5 : 10;
 async function klines(sym, interval, limit) {
-  if (EXCHANGE === "bybit") {
+  if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
     await spend(1);
     const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[interval], limit: Math.min(1000, limit) });
     const raw = res.list.slice().reverse().slice(0, -1);      // Bybit sends newest first; drop the candle still forming
     return { t: raw.map(k => +k[0]), o: raw.map(k => +k[1]), h: raw.map(k => +k[2]), l: raw.map(k => +k[3]), c: raw.map(k => +k[4]), qv: raw.map(k => +k[6]) };
   }
   await spend(klineWeight(limit));
-  const base = MODE === "futures" ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+  const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
   const raw = (await getJSON(`${base}?${qs({symbol: sym, interval, limit})}`)).slice(0, -1);
   return { t: raw.map(k => +k[0]), o: raw.map(k => +k[1]), h: raw.map(k => +k[2]), l: raw.map(k => +k[3]), c: raw.map(k => +k[4]), qv: raw.map(k => +k[7]) };
 }
@@ -1359,6 +1386,26 @@ async function analyse(c, maFn) {
            ...rate(s1h, s4h, s1d, a4, a1), mp: { "1H": maPack(k1h), "4H": maPack(k4h), "1D": maPack(k1d) },
            trending: Math.abs(c.chg24h) >= TREND_MOVE && rvol >= TREND_RVOL };
 }
+/* ---- gold, oil and the US index ETFs: Binance TradFi perpetuals, same analysis as the coins ---- */
+async function scanMacro(maFn, progress = () => {}) {
+  const [info, tick, prem] = await Promise.all([getJSON(`${FAPI}/fapi/v1/exchangeInfo`), getJSON(`${FAPI}/fapi/v1/ticker/24hr`), getJSON(`${FAPI}/fapi/v1/premiumIndex`)]);
+  const meta = {};
+  info.symbols.forEach(s => {
+    if (s.contractType !== "TRADIFI_PERPETUAL" || s.status !== "TRADING" || s.quoteAsset !== "USDT") return;
+    const known = MACRO_INFO[s.baseAsset];
+    if (known || s.underlyingType === "COMMODITY") meta[s.symbol] = { base: s.baseAsset, info: known || [s.baseAsset, "Commodities", `BINANCE:${s.symbol}.P`] };
+  });
+  const fund = {}; prem.forEach(f => fund[f.symbol] = +(f.lastFundingRate || 0));
+  const coins = tick.filter(t => meta[t.symbol]).map(t => ({ symbol: t.symbol, base: meta[t.symbol].base, quote: "USDT", vol24h: +t.quoteVolume,
+    chg24h: +t.priceChangePercent, funding: fund[t.symbol] ?? 0, spotVol: null }));
+  coins.forEach(c => TRADFI_SYMS.add(c.symbol));
+  const out = await pool(coins, 4, c => analyse(c, maFn), progress);
+  const order = Object.keys(MACRO_INFO), rank = b => { const i = order.indexOf(b); return i < 0 ? 99 : i; };
+  return out.filter(Boolean).map(r => {
+    const [name, group, tv] = meta[r.symbol].info;
+    Object.assign(r, { macro: true, name, group, tv, rs24: null, rs7: null, sector: null }); r.mom = momentum(r); return r;
+  }).sort((a, b) => rank(a.base) - rank(b.base));
+}
 async function maxLeverage(sym, levMax = 20) {
   const k = await klines(sym, "15m", 100);
   const a = atr(k.h, k.l, k.c).at(-1) || 0, stop = 1.5 * a / k.c.at(-1);
@@ -1368,7 +1415,8 @@ async function maxLeverage(sym, levMax = 20) {
 /* ---- why it's moving: derivatives read (Binance) ---- */
 async function drivers(r) {
   const d = { priceChg: r.chg24h, oiChg: null, oiUsd: null, topLS: null, globLS: null, takerRatio: null, fundNow: null, fundAvg: null };
-  if (EXCHANGE === "bybit" && MODE === "futures") {
+  const EXq = r.macro ? "binance" : EXCHANGE, MDq = r.macro ? "futures" : MODE;
+  if (EXq === "bybit" && MDq === "futures") {
     const safe = p => p.catch(() => null);
     const [oi, ratio, fr] = await Promise.all([
       safe(byGet("/v5/market/open-interest", { category: "linear", symbol: r.symbol, intervalTime: "1h", limit: 25 })),
@@ -1377,9 +1425,9 @@ async function drivers(r) {
     if (oi && oi.list.length > 1) { const nw = +oi.list[0].openInterest, od = +oi.list.at(-1).openInterest; d.oiChg = od > 0 ? (nw / od - 1) * 100 : null; d.oiUsd = nw * r.price; }
     if (ratio && ratio.list.length) { const x = ratio.list[0]; d.globLS = +x.sellRatio > 0 ? +x.buyRatio / +x.sellRatio : null; }
     if (fr && fr.list.length) { d.fundNow = +fr.list[0].fundingRate; d.fundAvg = fr.list.reduce((s, x) => s + +x.fundingRate, 0) / fr.list.length; }
-  } else if (EXCHANGE === "bybit") {
+  } else if (EXq === "bybit") {
     // spot on Bybit: no positioning data
-  } else if (MODE === "futures") {
+  } else if (MDq === "futures") {
     const q = qs({ symbol: r.symbol, period: "1h", limit: 25 });
     const safe = p => p.catch(() => null);
     const [oi, top, glob, taker, fr] = await Promise.all([
@@ -1397,7 +1445,7 @@ async function drivers(r) {
     const qv = k.reduce((s, x) => s + +x[7], 0), tb = k.reduce((s, x) => s + +x[10], 0);
     d.takerRatio = qv - tb > 0 ? tb / (qv - tb) : null;
   }
-  d.spotShare = MODE === "futures" && r.spotVol !== null ? r.spotVol / (r.spotVol + r.vol24h) : null;
+  d.spotShare = MDq === "futures" && r.spotVol !== null ? r.spotVol / (r.spotVol + r.vol24h) : null;
   return Object.assign(d, readDrivers(d));
 }
 function readDrivers(d) {
@@ -1588,7 +1636,9 @@ const dirSel = () => ($("dirF") ? $("dirF").value : "Both");
 const dirOK = d => dirSel() === "Both" || d === dirSel();
 const pctCell = v => `<span class="${v >= 0 ? "up" : "dn"}">${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}%</span>`;
 const PALETTE = ["#2962ff","#089981","#f7a600","#9c27b0","#e91e63","#00bcd4","#ff5722","#607d8b"];
+const MACRO_COL = { Metals: "#b8892b", Energy: "#4a5361", Commodities: "#4a5361", "US Indices": "#2f5bd8" };
 function logoHTML(r) {
+  if (r.macro) return `<span class="logo fb" style="background:${MACRO_COL[r.group] || "#4a5361"}">${r.name[0]}</span>`;
   const b = r.base.replace(/^1000+/, ""), col = PALETTE[[...b].reduce((a, c) => a + c.charCodeAt(0), 0) % PALETTE.length];
   return `<img class="logo" alt="" loading="lazy" src="https://s3-symbol-logo.tradingview.com/crypto/XTVC${b}.svg"
     onerror="this.outerHTML='<span class=&quot;logo fb&quot; style=&quot;background:${col}&quot;>${b[0] || "?"}</span>'">`;
@@ -1616,8 +1666,8 @@ const hideWicky = () => $("wickF").value === "hide";
 /* ---- TradingView app ---- */
 function toast(msg) { const t = $("toast"); t.innerHTML = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 6000); }
 const exName = () => data && data.exchange === "bybit" ? "Bybit" : "Binance";
-const tvLink = sym => `https://www.tradingview.com/chart/?symbol=${data && data.exchange === "bybit" ? "BYBIT" : "BINANCE"}:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
-const tvSymbol = sym => `BINANCE:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
+const tvLink = sym => MACRO.by[sym] ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(MACRO.by[sym].tv)}` : `https://www.tradingview.com/chart/?symbol=${data && data.exchange === "bybit" ? "BYBIT" : "BINANCE"}:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
+const tvSymbol = sym => MACRO.by[sym] ? MACRO.by[sym].tv : `BINANCE:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
 async function openTV(sym) {
   const url = tvLink(sym), mode = $("chartMode").value;
   if (mode === "tab") { window.open(url, "_blank", "noopener"); return; }   // default: TradingView chart in a new tab
@@ -1728,6 +1778,9 @@ function fundHTML(f) {
     </div>${warn.map(w => `<div class="tag flag">${w}</div>`).join("")}${f.desc ? `<p class="meta desc">${f.desc}</p>` : ""}`;
 }
 function askClaudeText(r, d, f) {
+  if (r.macro) return `Why is ${r.name} moving? I'm reading it from Binance's ${coin(r.symbol)} TradFi perpetual (tracks ${r.tv.split(":")[1]}): price ${fmtPrice(r.price)}, ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(1)}% in 24h.
+Structure: 1H ${r.s1h.state}, 4H ${r.s4h.state}, Daily ${r.s1d.state}. RSI 1H ${r.rsi && r.rsi.h1 != null ? r.rsi.h1.toFixed(0) : "n/a"}, 4H ${r.rsi && r.rsi.h4 != null ? r.rsi.h4.toFixed(0) : "n/a"}.
+Search the last 7 days for the catalyst: Fed and rates, US data (CPI, jobs, PMI), the dollar, yields, geopolitics and supply news${r.group === "US Indices" ? ", plus big-tech earnings and guidance" : ""}. Tell me what's driving it, what's scheduled next that could move it, and what would end the move.`;
   return `Why is ${r.symbol} moving? Price ${fmtPrice(r.price)}, ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(1)}% in 24h on $${fmtVol(r.vol24h)}.
 Derivatives read: ${d ? d.head + (d.health ? " (" + d.health + ")" : "") + ". " + d.lines.join(" ") : "not loaded"}
 Fundamentals: ${f && !f.missing ? `${f.name}, narrative ${f.cats.join(", ") || "n/a"}, mcap $${f.mcap ? fmtVol(f.mcap) : "n/a"}, FDV $${f.fdv ? fmtVol(f.fdv) : "n/a"}, ${f.unlocked !== null ? (f.unlocked * 100).toFixed(0) + "% unlocked" : "unlock % n/a"}` : "not loaded"}
@@ -1744,7 +1797,7 @@ async function fillWhy(r) {
   ask();
   try { d = await getDrivers(r); if ($("dlgBody").dataset.sym === sym) drvEl.innerHTML = driversHTML(d); }
   catch (e) { if ($("dlgBody").dataset.sym === sym) drvEl.innerHTML = `<div class="meta">Couldn't load positioning data (${e.message}).</div>`; }
-  try { f = await fundamentals(r.base); if ($("dlgBody").dataset.sym === sym) fundEl.innerHTML = fundHTML(f); }
+  if (!r.macro) try { f = await fundamentals(r.base); if ($("dlgBody").dataset.sym === sym) fundEl.innerHTML = fundHTML(f); }
   catch (e) { if ($("dlgBody").dataset.sym === sym) fundEl.innerHTML = `<div class="meta">CoinGecko didn't answer (it limits free requests to a few per minute). Close and reopen the coin in a minute.</div>`; }
   ask();
 }
@@ -2414,7 +2467,7 @@ function setupScore(r, m, env) {
   return s;
 }
 function coinPlay(r) {
-  const env = data && data.env, ema20 = r.mp && r.mp["1H"] ? r.mp["1H"].ema20.at(-1) : null;
+  const env = r.macro ? null : data && data.env, ema20 = r.mp && r.mp["1H"] ? r.mp["1H"].ema20.at(-1) : null;
   const L = x => x == null ? "" : fmtPrice(x), cautions = [];
   if (r.wicky) cautions.push("Wicky coin: stops get hunted. Size down or give the stop more room.");
   if (r.vol24h < 10e6) cautions.push("Thin volume: wide spreads and slippage at leverage.");
@@ -2691,7 +2744,7 @@ async function drawChart(r, tf) {
     const cs = mChart.addCandlestickSeries({ upColor: "#22ab94", downColor: "#f23645", borderVisible: false, wickUpColor: "#22ab94", wickDownColor: "#f23645" });
     const ts = k.t.map(t => Math.floor(t / 1000));
     cs.setData(ts.map((t, i) => ({ time: t, open: k.o[i], high: k.h[i], low: k.l[i], close: k.c[i] })));
-    const maFn = data.ma === "sma" ? sma : ema;
+    const maFn = (data ? data.ma : $("maType").value) === "sma" ? sma : ema;
     const maLines = [];
     [[20, "#f23645"], [50, "#9c27b0"], [100, "#2962ff"]].forEach(([n, col]) => {
       const v = maFn(k.c, n), s = mChart.addLineSeries({ color: col, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
@@ -2729,7 +2782,7 @@ async function drawChart(r, tf) {
     const sym0 = r.symbol, pull = async () => { try { const b = await formingBar(sym0, tf); if (b && LIVE.chart && LIVE.chart.sym === sym0 && LIVE.chart.tf === tf) chartLiveBar(b); } catch (e) {} };
     pull();                                                         // show the forming candle immediately
     clearInterval(LIVE.chartTimer); let tick = 0;
-    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && LIVE.state !== "live") pull(); }, 1000);
+    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && (LIVE.state !== "live" || TRADFI_SYMS.has(sym0))) pull(); }, 1000);
     if (window.ResizeObserver) { if (mRO) mRO.disconnect(); mRO = new ResizeObserver(() => { if (mChart && el.isConnected) { mChart.applyOptions({ width: el.clientWidth, height: Math.max(160, el.clientHeight) }); if (chartFit && LIVE.chart && LIVE.chart.times.length <= 120) chartFit(); } }); mRO.observe(el); }
   } catch (e) { el.innerHTML = `<div class="meta cload">Couldn't load the chart (${e.message}).</div>`; }
 }
@@ -2782,7 +2835,7 @@ async function klinesSince(sym, startMs, interval = "1h", limit = 200, ex = "Bin
     return res.list.slice().reverse().map(k => ({ t: +k[0], h: +k[2], l: +k[3], c: +k[4] }));
   }
   await spend(2);
-  const base = MODE === "futures" ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+  const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
   const raw = await getJSON(`${base}?${qs({ symbol: sym, interval, startTime: startMs, limit })}`, 2);
   return raw.map(k => ({ t: +k[0], h: +k[2], l: +k[3], c: +k[4] }));
 }
@@ -2919,7 +2972,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.07.1147";
+const APP_VERSION = "2026.10.07.1216";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3002,11 +3055,11 @@ function paintRsiOverlay() {                               // "RSI 14" label wit
 const TF_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 async function formingBar(sym, tf) {                 // the candle that's still forming (the scanner's normal candles skip it)
   await spend(1);
-  if (EXCHANGE === "bybit") {
+  if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
     const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[tf], limit: 1 }, 1);
     const k = res.list[0]; return k ? { t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4] } : null;
   }
-  const base = MODE === "futures" ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+  const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
   const raw = await getJSON(`${base}?${qs({ symbol: sym, interval: tf, limit: 1 })}`, 1);
   const k = raw.at(-1); return k ? { t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4] } : null;
 }
@@ -3073,12 +3126,12 @@ function desiredStreams() {
     want.add("btcusdt@kline_1h");
     focus.forEach(s => want.add(s.toLowerCase() + "@kline_1h"));
     pool.forEach(s => want.add(s.toLowerCase() + "@kline_15m"));
-    if (LIVE.chart) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
+    if (LIVE.chart && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
   } else {
     data.all.forEach(r => want.add("tickers." + r.symbol));
     want.add("kline.60.BTCUSDT");
     focus.forEach(s => want.add("kline.60." + s)); pool.forEach(s => want.add("kline.15." + s));
-    if (LIVE.chart) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
+    if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym)) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
   }
   return want;
 }
@@ -3267,7 +3320,7 @@ async function klinesRange(sym, interval, startMs, endMs) {
       const oldest = +list.at(-1)[0]; if (list.length < 1000 || oldest >= end) break; end = oldest - 1;
     }
   } else {
-    const base = MODE === "futures" ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+    const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
     let cur = startMs;
     for (let n = 0; n < 12 && cur < endMs; n++) {
       await spend(5);
@@ -3726,6 +3779,7 @@ function tierOf(r) {                         // Large = top 20 alts by market ca
   return i == null ? "Small" : i < 20 ? "Large" : i < 100 ? "Mid" : "Small";
 }
 function coinRot(r) {                        // is this coin participating, measured against BTC
+  if (r.macro) return { status: "n/a", rel30: null, rel7: null };
   const b = data && data.btc;
   if (!b || b.ret30 == null || r.ret30 == null) return { status: "n/a", rel30: null, rel7: r.rs7 ?? null };
   const rel30 = r2((r.ret30 - b.ret30) * 100), rel7 = r.rs7 ?? null;
@@ -4024,12 +4078,13 @@ function renderRegime() {
 /* ---- coin panel ---- */
 function partRow(label, v, max) { return `<div class="part"><span>${label}</span><div class="track"><i style="width:${v / max * 100}%"></i></div><span>${v}/${max}</span></div>`; }
 function openDetail(sym) {
-  const r = bySym[sym]; if (!r) return;
+  const r = bySym[sym] || MACRO.by[sym]; if (!r) return;
+  const M = !!r.macro;
   killChart();
   const nSet = (r.models || []).length, X = r.base.replace(/^1000+/, "");
   $("dlgBody").innerHTML = `
     <div class="dhead">
-      <h3>${starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
+      <h3>${M ? `<b class="mname">${r.name}</b>` : starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${M ? `<span class="tag">${r.group}</span>` : r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
       <span class="meta"><span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span> ${r.quote} · <span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span> · $${fmtVol(r.vol24h)} volume · Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
       <div class="dacts"><button class="btn primary" data-tv="${r.symbol}">Open in TradingView</button><button class="btn" id="dlgClose" aria-label="Close">Close</button></div>
     </div>
@@ -4040,23 +4095,23 @@ function openDetail(sym) {
       <div class="dright">
         ${playHTML(r)}
         <div class="dtabs" role="tablist">
-          ${[["score", "Score"], ["size", "Size"], ["setups", `Setups${nSet ? ` (${nSet})` : ""}`], ["why", "Why It's Moving"], ["fund", "Fundamentals"], ["watch", "Alerts &amp; Notes"]]
+          ${[["score", "Score"], ["size", "Size"], ["setups", `Setups${nSet ? ` (${nSet})` : ""}`], ["why", "Why It's Moving"], ...(M ? [] : [["fund", "Fundamentals"], ["watch", "Alerts &amp; Notes"]])]
             .map(([k, l], i) => `<button class="tab ${i === 0 ? "on" : ""}" role="tab" data-pane="${k}">${l}</button>`).join("")}
         </div>
         <div class="dpane" data-pane="size" hidden><div id="cBox"></div></div>
         <div class="dpane" data-pane="score">
           <div class="parts">
             ${partRow("1H structure", r.dayParts.structure, 40)}${partRow("Relative volume now", r.dayParts.rvol, 20)}
-            ${partRow("Volatility fit", r.dayParts.vol, 15)}${partRow("Strength vs BTC (24h)", r.dayParts.rs, 15)}
+            ${partRow("Volatility fit", r.dayParts.vol, 15)}${partRow(M ? "Strength vs BTC (n/a)" : "Strength vs BTC (24h)", r.dayParts.rs, 15)}
             ${partRow("Entry location", r.dayParts.loc, 10)}
           </div>
           <div class="kv">
             <span>Tech Rating</span><span>${ratingHTML(r.rating)} <span class="mute">(${r.ratingVal >= 0 ? "+" : ""}${r.ratingVal})</span></span>
             <span>Day Score</span><span><b>${r.dayScore}</b> / 100 ${biasTag(FULL.includes(r.s1h.state) ? r.s1h.dir : null)}</span>
             <span>Swing Score</span><span><b>${r.swingScore}</b> / 100 ${r.swingDir ? biasTag(r.swingDir) : '<span class="mute">4H and Daily not aligned</span>'}</span>
-            <span>vs BTC</span><span>24h ${fmtRS(r.rs24)} · 7d ${fmtRS(r.rs7)} · RVOL now ${r.rvolNow != null ? r.rvolNow.toFixed(2) + "×" : "—"}</span>
+            <span>${M ? "Volume" : "vs BTC"}</span><span>${M ? "" : `24h ${fmtRS(r.rs24)} · 7d ${fmtRS(r.rs7)} · `}RVOL now ${r.rvolNow != null ? r.rvolNow.toFixed(2) + "×" : "—"}</span>
             <span>RSI (14)</span><span>1H ${rsiChip(r.rsi && r.rsi.h1)} · 4H ${rsiChip(r.rsi && r.rsi.h4)} · D ${rsiChip(r.rsi && r.rsi.d1)} <span class="mute">${rsiZone(r.rsi && r.rsi.h1)}</span> ${divTags(r)}</span>
-            <span>vs BTC (30d)</span><span>${(c => `${c.rel30 == null ? "—" : fmtRS(c.rel30)} · ${tierOf(r)} cap ${rotTag(c.status)}`)(coinRot(r))}</span>
+            <span${M ? " hidden" : ""}>vs BTC (30d)</span><span${M ? " hidden" : ""}>${(c => `${c.rel30 == null ? "—" : fmtRS(c.rel30)} · ${tierOf(r)} cap ${rotTag(c.status)}`)(coinRot(r))}</span>
             <span>Momentum Stage</span><span>${r.momo ? `${MOMO_STAGE[r.momo.stage]} ${biasTag(r.momo.dir)} <span class="mute">${momoLine(r, r.momo)}</span> ${r.momo.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${r.momo.stretched ? '<span class="tag flag">Stretched</span>' : ""}` : '<span class="mute">None</span>'}</span>
             <span>Momentum</span><span>${momHTML(r)} <span class="mute">/ 100</span></span>
             <span>Wickiness</span><span>${wickHTML(r)} ${r.wicky ? '<span class="tag flag">Wicky</span>' : r.wick !== null && r.wick < 50 ? '<span class="tag long">Clean</span>' : ""}</span>
@@ -4072,8 +4127,8 @@ function openDetail(sym) {
         <div class="dpane" data-pane="why" hidden>
           <div id="drv"><div class="meta">Reading open interest, funding, taker flow and positioning…</div></div>
           <div class="links">
-            <a class="btn sm" target="_blank" rel="noopener" href="https://x.com/search?q=%24${encodeURIComponent(X)}&f=live">Search X</a>
-            <a class="btn sm" target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(X + " crypto")}">Search News</a>
+            ${M ? "" : `<a class="btn sm" target="_blank" rel="noopener" href="https://x.com/search?q=%24${encodeURIComponent(X)}&f=live">Search X</a>`}
+            <a class="btn sm" target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(M ? r.name + " price" : X + " crypto")}">Search News</a>
             <button class="btn sm" id="askBtn">Ask Claude Why</button>
           </div>
         </div>
@@ -4107,6 +4162,7 @@ function claudeText() {
     t += `Top gainers: ${top.map(r => `${coin(r.symbol)} ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(1)}%`).join(", ")}\nTop losers: ${bot.map(r => `${coin(r.symbol)} ${r.chg24h.toFixed(1)}%`).join(", ")}\n`; }
   { const M = momoRows(), f = k => M[k].map(x => `${coin(x.r.symbol)} ${x.m.dir}${x.m.stretched ? " (stretched)" : ""}${x.m.h4ok ? " 4H✓" : ""}`).join(", ") || "none";
     t += `Momentum board (1H): in momentum ${f("momentum")} | awaiting ${f("awaiting")} | breaking out ${f("breakout")}\n`; }
+  if (MACRO.rows.length) t += `Gold, oil & indices (Binance TradFi perps, 24/7): ${MACRO.rows.map(r => `${r.name} ${fmtPrice(r.price)} ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(2)}% ${r.rating}, 4H ${r.s4h.state}${r.rsi && r.rsi.h1 != null ? ", RSI 1H " + r.rsi.h1.toFixed(0) : ""}`).join(" | ")}\n`;
   if (data.rotation) { const R = data.rotation, m = R.m, f = v => v == null ? "n/a" : (v >= 0 ? "+" : "") + v.toFixed(1) + "%";
     t += `Money flow (30d vs BTC): ${R.label} | BTC ${f(m.b30)}, ETH ${f(m.e30)}, large caps ${f(m.L)}, mid ${f(m.Mi)}, small ${f(m.Sm)}, memes ${f(m.Me)} | ${m.breadth}% of alts beating BTC | leaders ${R.counts.Leader}, laggards ${R.counts.Laggard} | top leaders: ${R.leaders.slice(0, 5).map(x => `${coin(x.r.symbol)} ${fmtRS(x.c.rel30)}`).join(", ") || "none"}\n`; }
   if (data.env) { const e = data.env, by = l => MODEL_KEYS.filter(k => e.fit[k] === l).join(", ") || "none";
@@ -4152,6 +4208,7 @@ async function run() {
     setTimeout(() => $("prog").style.width = "0", 600);
     $("copyBtn").disabled = false; $("jsonBtn").disabled = false;
     loadBoardDrivers().catch(() => {});
+    macroScan(true).catch(() => {});
   } catch (e) {
     $("status").className = "status err";
     const net = /fetch|network|unreachable|HTTP|refuses|Failed|timeout|abort/i.test(e.message || "");
@@ -4200,6 +4257,7 @@ run();
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
+  { g: "MACRO", items: [["macro", "Gold, Oil & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
   { g: "MY TRADING", items: [["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
@@ -4230,6 +4288,7 @@ function goPage(id, keepTab) {
     if (want !== tab) { tab = want; sortKey = null; sortDir = -1; renderTabs(); renderTable(); }
   }
   renderNav();
+  if (id === "macro") macroScan(false).catch(() => {});
   if (changed) window.scrollTo(0, 0);
   // charts sized while hidden need a nudge once their page shows
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
@@ -4245,6 +4304,7 @@ function navBadges() {
   set("aots", has ? n("#aotsBoard .row") : "");
   set("sessions", has ? n("#sessionPicks .row") : "");
   set("screener", has ? data.all.length : "");
+  { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n ? n + (n > 1 ? " setups" : " setup") : MACRO.rows.length) : ""); }
   const fa = typeof activeFilters === "function" ? activeFilters().length : 0;
   set("filters", fa ? fa + " on" : "");
   let w = 0, al = 0;
@@ -4269,6 +4329,83 @@ new MutationObserver(mirrorSide).observe($("liveBadge"), { attributes: true, chi
 ["exF", "dirF", "market"].forEach(id => $(id).addEventListener("change", () => setTimeout(mirrorSide, 0)));
 $("side").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b) return; e.preventDefault(); goPage(b.dataset.go); });
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
+
+/* ===================== Gold, Oil & Indices page ===================== */
+const MACRO_GROUPS = ["Metals", "Energy", "Commodities", "US Indices"];
+function etClock(ms) {                                // weekday and minutes after midnight in New York (handles daylight saving)
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date(ms)).map(x => [x.type, x.value]));
+  return { wd: p.weekday, m: (+p.hour % 24) * 60 + +p.minute };
+}
+function usSession(ms) {                              // NYSE cash session (holidays not included)
+  const { wd, m } = etClock(ms), tip = "The perps trade 24/7. Outside 9:30 AM to 4:00 PM New York time they're thin and can drift from the real index.";
+  if (wd === "Sat" || wd === "Sun") return { label: "US market closed", cls: "closed", tip };
+  if (m >= 570 && m < 960) return { label: "US market open", cls: "open", tip };
+  if (m >= 240 && m < 570) return { label: "US pre-market", cls: "closed", tip };
+  if (m >= 960 && m < 1200) return { label: "US after-hours", cls: "closed", tip };
+  return { label: "US market closed", cls: "closed", tip };
+}
+function cmeSession(ms) {                             // CME metals and energy: Sunday 6 PM to Friday 5 PM New York time, daily 5–6 PM break
+  const { wd, m } = etClock(ms), tip = "The perps trade 24/7. While the futures market is shut they're thin and can drift from your broker's price.";
+  if (wd === "Sat" || (wd === "Sun" && m < 1080) || (wd === "Fri" && m >= 1020)) return { label: "Futures market closed", cls: "closed", tip };
+  if (m >= 1020 && m < 1080) return { label: "Futures daily break", cls: "closed", tip };
+  return { label: "Futures market open", cls: "open", tip };
+}
+function macroTrend(r) {
+  if (!r) return null;
+  const up = s => ["Bull stack", "Pullback in bull"].includes(s.state), dn = s => ["Bear stack", "Pullback in bear"].includes(s.state);
+  return up(r.s4h) && up(r.s1d) ? "Uptrend" : dn(r.s4h) && dn(r.s1d) ? "Downtrend" : "Mixed";
+}
+function macroReadHTML() {
+  const by = b => MACRO.rows.find(r => r.base === b), cls = v => v === "Uptrend" || v === "Risk-on" ? "up" : v === "Downtrend" || v === "Risk-off" ? "dn" : "";
+  const spy = macroTrend(by("SPY")), qqq = macroTrend(by("QQQ")), vix = by("UVXY"), chips = [];
+  if (spy && qqq) { const tone = spy === "Uptrend" && qqq === "Uptrend" ? "Risk-on" : spy === "Downtrend" && qqq === "Downtrend" ? "Risk-off" : "Mixed";
+    chips.push(`<span class="mchip">US risk tone <b class="${cls(tone)}">${tone}</b>${vix && vix.chg24h >= 5 ? " · volatility rising" : ""}</span>`); }
+  [["XAU", "Gold"], ["XAG", "Silver"], ["CL", "Oil"]].forEach(([b, n]) => { const t = macroTrend(by(b)); if (t) chips.push(`<span class="mchip">${n} <b class="${cls(t)}">${t}</b></span>`); });
+  return chips.join("") + (chips.length ? `<span class="meta">Trend = 4H and Daily stacks agree</span>` : "");
+}
+function macroRowHTML(r, i) {
+  const p = coinPlay(r), m = r.momo;
+  return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
+    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${ratingHTML(r.rating)}</div>
+      <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span>${m ? ` <span class="tag ${m.dir === "Long" ? "long" : "short"}">${MOMO_STAGE[m.stage]}</span>` : ""}</div>
+      <div class="ln mstk"><span>1H ${chip(r.s1h)} 4H ${chip(r.s4h)} D ${chip(r.s1d)}</span><span class="rsis">RSI 1H ${rsiChip(r.rsi && r.rsi.h1)} 4H ${rsiChip(r.rsi && r.rsi.h4)}</span></div>
+      <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""}</div></div>
+    <span class="sc" title="Day score">${r.dayScore}</span>${chartBtn(r.symbol)}</div>`;
+}
+function renderMacro() {
+  const body = $("macroBody"); if (!body) return;
+  if (!MACRO.rows.length) body.innerHTML = `<div class="empty">${MACRO.err ? `Couldn't load Binance's gold, oil and index data (${MACRO.err}). If Binance is blocked on your network, try DNS 1.1.1.1 or a VPN, then press Refresh.`
+    : MACRO.running ? "Reading gold, oil and the index ETFs…" : "Open this page or press Refresh to load gold, oil and the indices."}</div>`;
+  else {
+    const now = Date.now(), groups = MACRO_GROUPS.map(g => [g, MACRO.rows.filter(r => r.group === g)]).filter(([, rs]) => rs.length);
+    body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" ? usSession(now) : cmeSession(now);
+      return `<div class="board"><div class="board-head"><h2>${g}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div>${rs.map(macroRowHTML).join("")}</div>`; }).join("")}</div>`;
+    bindRows(body);
+  }
+  $("macroRead").innerHTML = MACRO.rows.length ? macroReadHTML() : "";
+  if (!MACRO.running) $("macroMeta").textContent = MACRO.at ? `Binance TradFi perpetuals · updated ${fmtPHT(new Date(MACRO.at + PHT_MS)).split(", ")[1]}${MACRO.err ? " · last refresh failed" : ""}` : "Binance TradFi perpetuals";
+  $("macroRun").disabled = MACRO.running; $("macroRun").textContent = MACRO.running ? "Loading…" : "Refresh";
+}
+async function macroScan(force) {
+  if (MACRO.running || (!force && MACRO.at && Date.now() - MACRO.at < 10 * 60e3)) return;
+  MACRO.running = true; MACRO.err = null; renderMacro();
+  try {
+    const maFn = $("maType").value === "sma" ? sma : ema;
+    const rows = await scanMacro(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; });
+    if (!rows.length) throw new Error("no TradFi contracts found");
+    MACRO.rows = rows; MACRO.by = Object.fromEntries(rows.map(r => [r.symbol, r])); MACRO.at = Date.now();
+  } catch (e) { MACRO.err = e.message || String(e); }
+  MACRO.running = false; renderMacro(); navBadges();
+}
+$("macroRun").onclick = () => macroScan(true);
+setInterval(async () => {                             // live prices while the page is open; full re-read every 15 minutes
+  if (page !== "macro" || document.hidden || MACRO.running || !MACRO.rows.length) return;
+  if (Date.now() - MACRO.at > 15 * 60e3) { macroScan(true); return; }
+  await Promise.all(MACRO.rows.map(async r => { try { await spend(1); const t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${r.symbol}`, 1); r.price = +t.lastPrice; r.chg24h = +t.priceChangePercent; } catch (e) {} }));
+  MACRO.rows.forEach(r => { const p = document.querySelector(`[data-mp="${r.symbol}"]`), c = document.querySelector(`[data-mc="${r.symbol}"]`);
+    if (p) p.textContent = fmtPrice(r.price); if (c) c.innerHTML = pctCell(r.chg24h); });
+}, 10000);
 (function () {
   let start = location.hash.slice(1);
   if (!PAGE_INFO[start] || start === "filters") { try { start = localStorage.getItem("finder-page") || "overview"; } catch (e) { start = "overview"; } }

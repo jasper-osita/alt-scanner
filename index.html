@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.07.1216">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.07.2231">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -501,6 +501,16 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .mstat{margin-left:auto;font-size:11.5px;color:var(--mute);white-space:nowrap}.mstat.open{color:var(--green)}.mstat.closed{color:var(--amber)}
 .mname{color:var(--strong);font-weight:600}
 .mpx{color:var(--text);font-weight:600}
+.board.wide{grid-column:1/-1}
+.rows3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:18px}
+@media (max-width:1100px){.rows3{grid-template-columns:minmax(0,1fr)}}
+.ctbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;padding:8px 12px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;font-size:13px}
+.ctbar .btn{margin-left:auto}
+.ctform{display:flex;flex-direction:column;gap:10px;max-width:560px;padding:6px 2px}
+.ctform label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mute)}
+.ctform input,.ctform select{background:var(--bg);border:1px solid var(--pill-b);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit}
+.ctsteps{margin:0;padding-left:18px;line-height:1.6}
+.ctacts{display:flex;gap:8px}
 .mstk{display:flex;gap:4px 12px;flex-wrap:wrap;align-items:center}.mstk>span{white-space:nowrap}
 input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 .boards.single{grid-template-columns:minmax(0,1fr)}
@@ -617,9 +627,10 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
   </section>
 
   <section class="card macrocard" id="macro" data-page="macro">
-    <div class="momohead"><h2>Gold, Oil &amp; Indices</h2><span class="meta" id="macroMeta">Binance TradFi perpetuals</span>
+    <div class="momohead"><h2>Forex, Gold &amp; Indices</h2><span class="meta" id="macroMeta">Binance TradFi perpetuals</span>
       <button class="btn" id="macroRun" style="margin-left:auto">Refresh</button></div>
-    <div class="why">Gold, silver, oil and the US index ETFs (S&amp;P 500 via SPY, Nasdaq 100 via QQQ), read with the same 20/50/100 structure, RSI, momentum and setups as your coins. These are Binance's 24/7 TradFi perpetuals: they track the real market closely while it's open, but trade thin and can drift from your broker's chart on weekends and after hours. Chart opens the real market on TradingView. Forex comes with the cTrader connection.</div>
+    <div class="why">Read with the same 20/50/100 structure, RSI, momentum and setups as your coins. Forex and your broker's gold and index prices come from your cTrader account. Gold, oil and the US index ETFs (S&amp;P 500 via SPY, Nasdaq 100 via QQQ) also come from Binance's 24/7 TradFi perpetuals, which track the real market while it's open but trade thin and can drift on weekends and after hours. Chart opens the real market on TradingView.</div>
+    <div id="ctBar" class="ctbar"></div>
     <div id="macroRead" class="macroread"></div>
     <div id="macroBody"><div class="empty">Open this page or press Refresh to load gold, oil and the indices.</div></div>
   </section>
@@ -845,6 +856,7 @@ async function spend(w) {
 }
 const klineWeight = limit => MODE === "spot" ? 2 : limit < 100 ? 1 : limit < 500 ? 2 : limit <= 1000 ? 5 : 10;
 async function klines(sym, interval, limit) {
+  if (CT_SYMS.has(sym)) return ctKlines(sym, interval, limit);
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
     await spend(1);
     const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[interval], limit: Math.min(1000, limit) });
@@ -1386,6 +1398,138 @@ async function analyse(c, maFn) {
            ...rate(s1h, s4h, s1d, a4, a1), mp: { "1H": maPack(k1h), "4H": maPack(k4h), "1D": maPack(k1d) },
            trending: Math.abs(c.chg24h) >= TREND_MOVE && rvol >= TREND_RVOL };
 }
+
+/* ---- cTrader Open API (JSON over WebSocket): forex and broker CFDs from the user's own cTrader account ---- */
+const CT_SYMS = new Set();                                   // internal symbols look like "CT:EURUSD"
+const CT = { ws: null, state: "off", err: null, seq: 0, pending: new Map(), hb: null, acct: null, accounts: [], live: true,
+             symbols: {}, byId: {}, broker: "", onSpot: null, connecting: null };
+const CT_KEY = "finder-ctrader";
+const CT_HOST = live => `wss://${live ? "live" : "demo"}.ctraderapi.com:5036`;
+const CT_PERIOD = { "15m": 7, "1h": 9, "4h": 10, "1d": 12 }, CT_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
+const CT_SPAN = { "15m": 7 * 86400e3, "1h": 35 * 86400e3, "4h": 120 * 86400e3, "1d": 365 * 86400e3 };   // calendar span per request (weekends included)
+const FX_PAIRS = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
+  "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"];
+const CT_CFD = [["Gold", ["XAUUSD", "GOLD"], "OANDA:XAUUSD"], ["Silver", ["XAGUSD", "SILVER"], "OANDA:XAGUSD"],
+  ["S&P 500", ["US500", "SPX500", "SP500", "US500CASH", "USA500"], "OANDA:SPX500USD"], ["Nasdaq 100", ["NAS100", "USTEC", "US100", "NDX100", "USTECH"], "OANDA:NAS100USD"],
+  ["Dow Jones", ["US30", "DJ30", "WS30", "DOW30", "USA30"], "OANDA:US30USD"], ["WTI Crude Oil", ["SPOTCRUDE", "USOIL", "XTIUSD", "WTI", "CRUDEOIL"], "TVC:USOIL"]];
+const CT_TV = { pepperstone: "PEPPERSTONE", icmarkets: "ICMARKETS", fxpro: "FXPRO", blackbull: "BLACKBULL", fusionmarkets: "FUSIONMARKETS", fpmarkets: "FPMARKETS" };
+const ctNorm = n => String(n || "").toUpperCase().split(/[._\s]/)[0].replace(/[^A-Z0-9]/g, "");
+function ctCfg() { try { return JSON.parse(localStorage.getItem(CT_KEY) || "null"); } catch (e) { return null; } }
+function ctSaveCfg(c) { try { if (c) localStorage.setItem(CT_KEY, JSON.stringify(c)); else localStorage.removeItem(CT_KEY); } catch (e) {} }
+const ctConfigured = () => { const c = ctCfg(); return !!(c && c.clientId && c.clientSecret && c.accessToken); };
+function ctErrText(p) {
+  const code = (p && p.errorCode) || "", d = (p && p.description) || "";
+  if (/CLIENT_AUTH|APP_AUTH|INVALID_CLIENT/i.test(code)) return "cTrader rejected the Client ID or Secret (or the app isn't approved yet)";
+  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Create a new one on your app's Sandbox page and paste it in Settings";
+  if (/RATE|LIMIT|FREQUENCY/i.test(code)) return "cTrader is rate-limiting requests; try again in a minute";
+  return `${code || "cTrader error"}${d ? ": " + d : ""}`;
+}
+function ctClose() {
+  const ws = CT.ws; CT.ws = null; clearInterval(CT.hb);
+  CT.pending.forEach(p => { clearTimeout(p.t); p.rej(new Error("cTrader connection closed")); }); CT.pending.clear();
+  if (ws) { try { ws.close(); } catch (e) {} }
+}
+function ctOpen(url) {
+  return new Promise((res, rej) => {
+    let ws; try { ws = new WebSocket(url); } catch (e) { rej(new Error("couldn't open the cTrader connection")); return; }
+    const t = setTimeout(() => { try { ws.close(); } catch (e) {} rej(new Error("cTrader didn't answer")); }, 15000);
+    ws.onopen = () => { clearTimeout(t); res(ws); };
+    ws.onerror = () => { clearTimeout(t); rej(new Error("couldn't reach cTrader (network or firewall)")); };
+  });
+}
+function ctBind(ws) {
+  ws.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (m.payloadType === 2131) { if (CT.onSpot) CT.onSpot(m.payload || {}); return; }
+    if (m.payloadType === 2147 || m.payloadType === 2148) {
+      CT.state = "error"; CT.err = "your cTrader session ended (token expired or access removed). Paste a fresh access token in Settings";
+      ctClose(); if (typeof renderMacro === "function") renderMacro(); return; }
+    const p = m.clientMsgId && CT.pending.get(m.clientMsgId); if (!p) return;
+    CT.pending.delete(m.clientMsgId); clearTimeout(p.t);
+    if (m.payloadType === 2142 || m.payloadType === 50) p.rej(Object.assign(new Error(ctErrText(m.payload)), { code: m.payload && m.payload.errorCode }));
+    else p.res(m.payload || {});
+  };
+  ws.onclose = () => { if (CT.ws !== ws) return; ctClose(); if (CT.state === "ready") CT.state = "closed"; if (typeof renderMacro === "function") renderMacro(); };
+  clearInterval(CT.hb);
+  CT.hb = setInterval(() => { try { ws.send(JSON.stringify({ payloadType: 51, payload: {} })); } catch (e) {} }, 10000);
+}
+function ctReq(type, payload, timeout = 20000) {
+  return new Promise((res, rej) => {
+    if (!CT.ws || CT.ws.readyState !== 1) { rej(new Error("not connected to cTrader")); return; }
+    const id = "f" + (++CT.seq), t = setTimeout(() => { CT.pending.delete(id); rej(new Error("cTrader timed out")); }, timeout);
+    CT.pending.set(id, { res, rej, t }); CT.ws.send(JSON.stringify({ clientMsgId: id, payloadType: type, payload }));
+  });
+}
+async function ctConnect(cfg = ctCfg()) {
+  if (CT.connecting) return CT.connecting;
+  CT.connecting = (async () => {
+    if (!cfg || !cfg.clientId || !cfg.clientSecret || !cfg.accessToken) throw new Error("enter your Client ID, Secret and access token");
+    ctClose(); CT.state = "connecting"; CT.err = null;
+    let live = cfg.live !== false;
+    try {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const ws = await ctOpen(CT_HOST(live)); CT.ws = ws; ctBind(ws);
+        await ctReq(2100, { clientId: cfg.clientId, clientSecret: cfg.clientSecret });
+        const accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || [];
+        if (!accts.length) throw new Error("this access token has no cTrader accounts attached");
+        CT.accounts = accts;
+        const a = accts.find(x => String(x.ctidTraderAccountId) === String(cfg.accountId)) || accts.find(x => !!x.isLive === live) || accts[0];
+        if (!!a.isLive !== live) { live = !!a.isLive; ctClose(); continue; }    // demo accounts live on the demo server
+        await ctReq(2102, { ctidTraderAccountId: a.ctidTraderAccountId, accessToken: cfg.accessToken });
+        const list = (await ctReq(2114, { ctidTraderAccountId: a.ctidTraderAccountId })).symbol || [];
+        CT.symbols = {}; CT.byId = {};
+        list.forEach(x => { if (x.enabled === false) return; const k = ctNorm(x.symbolName); if (!CT.symbols[k]) CT.symbols[k] = x; CT.byId[x.symbolId] = x; });
+        CT.acct = a; CT.live = live; CT.broker = a.brokerTitleShort || "Broker"; CT.state = "ready";
+        ctSaveCfg({ ...cfg, accountId: a.ctidTraderAccountId, live });
+        return CT;
+      }
+      throw new Error("couldn't match the account to a cTrader server");
+    } catch (e) { CT.state = "error"; CT.err = e.message; ctClose(); throw e; }
+  })();
+  try { return await CT.connecting; } finally { CT.connecting = null; }
+}
+let ctNextAt = 0;
+async function ctThrottle() { const now = Date.now(), at = Math.max(now, ctNextAt); ctNextAt = at + 230; if (at > now) await sleep(at - now); }   // history limit: 5 requests/s
+async function ctKlines(sym, interval, limit, keepForming = false) {
+  if (CT.state !== "ready") await ctConnect();
+  const s = CT.symbols[ctNorm(sym.slice(3))]; if (!s) throw new Error(`${sym.slice(3)} isn't available on this cTrader account`);
+  const per = CT_PERIOD[interval], ms = CT_MS[interval]; if (!per) throw new Error(`no ${interval} bars from cTrader`);
+  const to = Date.now(); let span = Math.min(CT_SPAN[interval], Math.max(limit * ms * 2.2, ms * 6)), res = null, lastErr = null;
+  for (let i = 0; i < 3 && !res; i++) {
+    await ctThrottle();
+    try { res = await ctReq(2137, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: s.symbolId, period: per, fromTimestamp: Math.floor(to - span), toTimestamp: to, count: limit + 1 }); }
+    catch (e) { lastErr = e; if (/token|Client ID/i.test(e.message)) throw e; span = Math.floor(span / 2); }
+  }
+  if (!res) throw lastErr || new Error("cTrader didn't send bars");
+  const bars = (res.trendbar || []).map(b => { const lo = +b.low;
+    return { t: +b.utcTimestampInMinutes * 60000, o: (lo + +(b.deltaOpen || 0)) / 1e5, h: (lo + +(b.deltaHigh || 0)) / 1e5, l: lo / 1e5, c: (lo + +(b.deltaClose || 0)) / 1e5, v: +(b.volume || 0) }; })
+    .sort((a, b) => a.t - b.t);
+  const k = (keepForming ? bars : bars.filter(b => b.t + ms <= to)).slice(-limit);
+  return { t: k.map(b => b.t), o: k.map(b => b.o), h: k.map(b => b.h), l: k.map(b => b.l), c: k.map(b => b.c), qv: k.map(b => b.v) };
+}
+function ctTV(name, group, fallback) {
+  const pfx = CT_TV[CT.broker.toLowerCase().replace(/[^a-z]/g, "")];
+  if (pfx) return `${pfx}:${name}`;
+  return group === "Forex" ? `FX:${name}` : fallback;
+}
+async function ctScan(maFn) {
+  if (CT.state !== "ready") await ctConnect();
+  const list = [];
+  FX_PAIRS.forEach(p => { const x = CT.symbols[p]; if (x) list.push({ x, name: p.slice(0, 3) + "/" + p.slice(3), group: "Forex", fb: "FX:" + p }); });
+  CT_CFD.forEach(([name, al, fb]) => { const x = al.map(a => CT.symbols[a]).find(Boolean); if (x) list.push({ x, name, group: "Broker CFDs", fb }); });
+  if (!list.length) throw new Error("no forex pairs found on this cTrader account");
+  list.forEach(o => CT_SYMS.add("CT:" + o.x.symbolName));
+  const out = await pool(list, 2, o => analyse({ symbol: "CT:" + o.x.symbolName, base: ctNorm(o.x.symbolName), quote: "", vol24h: 0, chg24h: 0, funding: null, spotVol: null }, maFn), () => {});
+  return out.map((r, i) => { if (!r) return null; const o = list[i];
+    Object.assign(r, { macro: true, ct: true, name: o.name, group: o.group, tv: ctTV(o.x.symbolName, o.group, o.fb), symbolId: o.x.symbolId,
+      chg24h: r.ret24 != null ? r.ret24 * 100 : 0, ref24: r.ret24 != null ? r.price / (1 + r.ret24) : null, rs24: null, rs7: null, sector: null });
+    r.mom = momentum(r); return r; }).filter(Boolean);
+}
+async function ctSubscribe(rows) {
+  if (CT.state !== "ready" || !rows.length) return;
+  try { await ctReq(2127, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: rows.map(r => r.symbolId) }); } catch (e) {}
+}
+
 /* ---- gold, oil and the US index ETFs: Binance TradFi perpetuals, same analysis as the coins ---- */
 async function scanMacro(maFn, progress = () => {}) {
   const [info, tick, prem] = await Promise.all([getJSON(`${FAPI}/fapi/v1/exchangeInfo`), getJSON(`${FAPI}/fapi/v1/ticker/24hr`), getJSON(`${FAPI}/fapi/v1/premiumIndex`)]);
@@ -1624,8 +1768,8 @@ function tickClock() {
 }
 
 /* ---- formatting ---- */
-const coin = s => s.replace(/(USDT|USDC)$/, "");
-const fmtPrice = p => p >= 100 ? p.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : p >= 1 ? p.toFixed(3) : p >= 0.01 ? p.toFixed(5) : p.toPrecision(4);
+const coin = s => s.startsWith("CT:") ? s.slice(3) : s.replace(/(USDT|USDC)$/, "");
+const fmtPrice = p => p >= 100 ? p.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : p >= 10 ? p.toFixed(3) : p >= 1 ? p.toFixed(4) : p >= 0.01 ? p.toFixed(5) : p.toPrecision(4);
 const fmtVol = v => v >= 1e12 ? (v / 1e12).toFixed(2) + " T" : v >= 1e9 ? (v / 1e9).toFixed(2) + " B" : v >= 1e6 ? (v / 1e6).toFixed(2) + " M" : (v / 1e3).toFixed(1) + " K";
 const fmtRS = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
 const fmtFund = f => f === null || f === undefined ? "n/a" : (f * 100).toFixed(4) + "%";
@@ -1756,7 +1900,10 @@ function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAot
 
 /* ---- why it's moving + fundamentals in the coin panel ---- */
 const drvCache = {};
-async function getDrivers(r) { return drvCache[r.symbol] || (drvCache[r.symbol] = await drivers(r)); }
+async function getDrivers(r) {
+  if (r.ct) return { head: "No positioning data for broker prices", tag: null, health: null, oiUsd: null, spotShare: null, takerRatio: null, globLS: null, topLS: null,
+    lines: ["Forex and CFD prices from your broker don't come with open interest or funding. Use Ask Claude Why for the news and macro behind the move."] };
+  return drvCache[r.symbol] || (drvCache[r.symbol] = await drivers(r)); }
 function driversHTML(d) {
   const h = d.health ? `<span class="tag ${d.health === "Looks healthy" ? "long" : d.health === "Looks fragile" ? "short" : ""}">${d.health}</span>` : "";
   const facts = [d.oiUsd ? `Open interest $${fmtVol(d.oiUsd)}` : null, d.spotShare !== null ? `Spot ${(d.spotShare * 100).toFixed(0)}% of volume` : null,
@@ -2470,7 +2617,7 @@ function coinPlay(r) {
   const env = r.macro ? null : data && data.env, ema20 = r.mp && r.mp["1H"] ? r.mp["1H"].ema20.at(-1) : null;
   const L = x => x == null ? "" : fmtPrice(x), cautions = [];
   if (r.wicky) cautions.push("Wicky coin: stops get hunted. Size down or give the stop more room.");
-  if (r.vol24h < 10e6) cautions.push("Thin volume: wide spreads and slippage at leverage.");
+  if (!r.ct && r.vol24h < 10e6) cautions.push("Thin volume: wide spreads and slippage at leverage.");
 
   let play;
   // a setup against the coin's own trend only counts once it has triggered, and never against a Strong rating
@@ -2782,7 +2929,7 @@ async function drawChart(r, tf) {
     const sym0 = r.symbol, pull = async () => { try { const b = await formingBar(sym0, tf); if (b && LIVE.chart && LIVE.chart.sym === sym0 && LIVE.chart.tf === tf) chartLiveBar(b); } catch (e) {} };
     pull();                                                         // show the forming candle immediately
     clearInterval(LIVE.chartTimer); let tick = 0;
-    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && (LIVE.state !== "live" || TRADFI_SYMS.has(sym0))) pull(); }, 1000);
+    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && (LIVE.state !== "live" || TRADFI_SYMS.has(sym0) || CT_SYMS.has(sym0))) pull(); }, 1000);
     if (window.ResizeObserver) { if (mRO) mRO.disconnect(); mRO = new ResizeObserver(() => { if (mChart && el.isConnected) { mChart.applyOptions({ width: el.clientWidth, height: Math.max(160, el.clientHeight) }); if (chartFit && LIVE.chart && LIVE.chart.times.length <= 120) chartFit(); } }); mRO.observe(el); }
   } catch (e) { el.innerHTML = `<div class="meta cload">Couldn't load the chart (${e.message}).</div>`; }
 }
@@ -2972,7 +3119,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.07.1216";
+const APP_VERSION = "2026.10.07.2231";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3054,6 +3201,7 @@ function paintRsiOverlay() {                               // "RSI 14" label wit
 /* ===================== TradingView feel: candle countdown, OHLC legend, always-moving chart ===================== */
 const TF_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 async function formingBar(sym, tf) {                 // the candle that's still forming (the scanner's normal candles skip it)
+  if (CT_SYMS.has(sym)) { const k = await ctKlines(sym, tf, 1, true), i = k.t.length - 1; return i >= 0 ? { t: k.t[i], o: k.o[i], h: k.h[i], l: k.l[i], c: k.c[i] } : null; }
   await spend(1);
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
     const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[tf], limit: 1 }, 1);
@@ -3126,12 +3274,12 @@ function desiredStreams() {
     want.add("btcusdt@kline_1h");
     focus.forEach(s => want.add(s.toLowerCase() + "@kline_1h"));
     pool.forEach(s => want.add(s.toLowerCase() + "@kline_15m"));
-    if (LIVE.chart && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
+    if (LIVE.chart && !CT_SYMS.has(LIVE.chart.sym) && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
   } else {
     data.all.forEach(r => want.add("tickers." + r.symbol));
     want.add("kline.60.BTCUSDT");
     focus.forEach(s => want.add("kline.60." + s)); pool.forEach(s => want.add("kline.15." + s));
-    if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym)) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
+    if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym)) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
   }
   return want;
 }
@@ -4085,7 +4233,7 @@ function openDetail(sym) {
   $("dlgBody").innerHTML = `
     <div class="dhead">
       <h3>${M ? `<b class="mname">${r.name}</b>` : starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${M ? `<span class="tag">${r.group}</span>` : r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
-      <span class="meta"><span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span> ${r.quote} · <span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span> · $${fmtVol(r.vol24h)} volume · Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
+      <span class="meta"><span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span> ${r.quote} · <span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span> ${r.ct ? "" : `· $${fmtVol(r.vol24h)} volume `}· Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
       <div class="dacts"><button class="btn primary" data-tv="${r.symbol}">Open in TradingView</button><button class="btn" id="dlgClose" aria-label="Close">Close</button></div>
     </div>
     <div class="dgrid">
@@ -4162,7 +4310,7 @@ function claudeText() {
     t += `Top gainers: ${top.map(r => `${coin(r.symbol)} ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(1)}%`).join(", ")}\nTop losers: ${bot.map(r => `${coin(r.symbol)} ${r.chg24h.toFixed(1)}%`).join(", ")}\n`; }
   { const M = momoRows(), f = k => M[k].map(x => `${coin(x.r.symbol)} ${x.m.dir}${x.m.stretched ? " (stretched)" : ""}${x.m.h4ok ? " 4H✓" : ""}`).join(", ") || "none";
     t += `Momentum board (1H): in momentum ${f("momentum")} | awaiting ${f("awaiting")} | breaking out ${f("breakout")}\n`; }
-  if (MACRO.rows.length) t += `Gold, oil & indices (Binance TradFi perps, 24/7): ${MACRO.rows.map(r => `${r.name} ${fmtPrice(r.price)} ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(2)}% ${r.rating}, 4H ${r.s4h.state}${r.rsi && r.rsi.h1 != null ? ", RSI 1H " + r.rsi.h1.toFixed(0) : ""}`).join(" | ")}\n`;
+  if (MACRO.rows.length) t += `Forex, gold & indices (cTrader broker prices and Binance TradFi perps): ${MACRO.rows.map(r => `${r.name} ${fmtPrice(r.price)} ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(2)}% ${r.rating}, 4H ${r.s4h.state}${r.rsi && r.rsi.h1 != null ? ", RSI 1H " + r.rsi.h1.toFixed(0) : ""}`).join(" | ")}\n`;
   if (data.rotation) { const R = data.rotation, m = R.m, f = v => v == null ? "n/a" : (v >= 0 ? "+" : "") + v.toFixed(1) + "%";
     t += `Money flow (30d vs BTC): ${R.label} | BTC ${f(m.b30)}, ETH ${f(m.e30)}, large caps ${f(m.L)}, mid ${f(m.Mi)}, small ${f(m.Sm)}, memes ${f(m.Me)} | ${m.breadth}% of alts beating BTC | leaders ${R.counts.Leader}, laggards ${R.counts.Laggard} | top leaders: ${R.leaders.slice(0, 5).map(x => `${coin(x.r.symbol)} ${fmtRS(x.c.rel30)}`).join(", ") || "none"}\n`; }
   if (data.env) { const e = data.env, by = l => MODEL_KEYS.filter(k => e.fit[k] === l).join(", ") || "none";
@@ -4257,7 +4405,7 @@ run();
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
-  { g: "MACRO", items: [["macro", "Gold, Oil & Indices"]] },
+  { g: "MACRO", items: [["macro", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
   { g: "MY TRADING", items: [["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
@@ -4304,7 +4452,7 @@ function navBadges() {
   set("aots", has ? n("#aotsBoard .row") : "");
   set("sessions", has ? n("#sessionPicks .row") : "");
   set("screener", has ? data.all.length : "");
-  { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n ? n + (n > 1 ? " setups" : " setup") : MACRO.rows.length) : ""); }
+  { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n || MACRO.rows.length) : ""); }
   const fa = typeof activeFilters === "function" ? activeFilters().length : 0;
   set("filters", fa ? fa + " on" : "");
   let w = 0, al = 0;
@@ -4331,7 +4479,26 @@ $("side").addEventListener("click", e => { const b = e.target.closest("[data-go]
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
 
 /* ===================== Gold, Oil & Indices page ===================== */
-const MACRO_GROUPS = ["Metals", "Energy", "Commodities", "US Indices"];
+const MACRO_GROUPS = ["Forex", "Broker CFDs", "Metals", "Energy", "Commodities", "US Indices"];
+const MACRO_TITLE = g => g === "Broker CFDs" ? `${CT.broker || "Broker"} Gold &amp; Indices` : g === "Metals" || g === "Energy" || g === "US Indices" ? `${g} <span class="meta">Binance</span>` : g;
+function fxSession(ms) {                              // forex: Sunday 5 PM to Friday 5 PM New York time
+  const { wd, m } = etClock(ms), tip = "Forex trades around the clock from Sunday 5 PM to Friday 5 PM New York time. Prices freeze over the weekend.";
+  if (wd === "Sat" || (wd === "Sun" && m < 1020) || (wd === "Fri" && m >= 1020)) return { label: "Forex market closed", cls: "closed", tip };
+  return { label: "Forex market open", cls: "open", tip };
+}
+function ccyStrength(rows) {                          // 24h change of each currency against the others, averaged over its pairs
+  const acc = {};
+  rows.filter(r => r.group === "Forex").forEach(r => { const p = coin(r.symbol), b = p.slice(0, 3), q = p.slice(3, 6);
+    (acc[b] = acc[b] || []).push(r.chg24h); (acc[q] = acc[q] || []).push(-r.chg24h); });
+  return Object.entries(acc).map(([c, v]) => [c, v.reduce((a, x) => a + x, 0) / v.length]).sort((a, b) => b[1] - a[1]);
+}
+function ctBarHTML() {
+  const c = ctCfg();
+  if (!c) return `<span>Connect your cTrader account to add 28 forex pairs plus your broker's gold and index prices.</span><button class="btn primary sm" id="ctOpen">Connect cTrader</button>`;
+  if (CT.state === "connecting" || (MACRO.running && CT.state !== "error")) return `<span class="mute">Connecting to cTrader…</span><button class="btn sm" id="ctOpen">Settings</button>`;
+  if (CT.state === "ready" || (CT.state === "closed" && CT.acct)) return `<span><span class="${CT.state === "ready" ? "up" : "mute"}">●</span> cTrader · ${CT.broker} ${CT.live ? "live" : "demo"} account ${CT.acct.traderLogin || CT.acct.ctidTraderAccountId}${CT.state === "ready" ? "" : " · reconnects on the next refresh"}</span><button class="btn sm" id="ctOpen">Settings</button>`;
+  return `<span class="dn">cTrader: ${CT.err || "not connected"}.</span><button class="btn sm" id="ctOpen">Settings</button>`;
+}
 function etClock(ms) {                                // weekday and minutes after midnight in New York (handles daylight saving)
   const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
     .formatToParts(new Date(ms)).map(x => [x.type, x.value]));
@@ -4362,6 +4529,8 @@ function macroReadHTML() {
   if (spy && qqq) { const tone = spy === "Uptrend" && qqq === "Uptrend" ? "Risk-on" : spy === "Downtrend" && qqq === "Downtrend" ? "Risk-off" : "Mixed";
     chips.push(`<span class="mchip">US risk tone <b class="${cls(tone)}">${tone}</b>${vix && vix.chg24h >= 5 ? " · volatility rising" : ""}</span>`); }
   [["XAU", "Gold"], ["XAG", "Silver"], ["CL", "Oil"]].forEach(([b, n]) => { const t = macroTrend(by(b)); if (t) chips.push(`<span class="mchip">${n} <b class="${cls(t)}">${t}</b></span>`); });
+  const cs = ccyStrength(MACRO.rows);
+  if (cs.length >= 4) chips.unshift(`<span class="mchip">Currency strength 24h ${cs.map(([c, v]) => `<b class="${v >= 0 ? "up" : "dn"}">${c} ${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}%</b>`).join(" ")}</span>`);
   return chips.join("") + (chips.length ? `<span class="meta">Trend = 4H and Daily stacks agree</span>` : "");
 }
 function macroRowHTML(r, i) {
@@ -4379,12 +4548,13 @@ function renderMacro() {
     : MACRO.running ? "Reading gold, oil and the index ETFs…" : "Open this page or press Refresh to load gold, oil and the indices."}</div>`;
   else {
     const now = Date.now(), groups = MACRO_GROUPS.map(g => [g, MACRO.rows.filter(r => r.group === g)]).filter(([, rs]) => rs.length);
-    body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" ? usSession(now) : cmeSession(now);
-      return `<div class="board"><div class="board-head"><h2>${g}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div>${rs.map(macroRowHTML).join("")}</div>`; }).join("")}</div>`;
+    body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" ? usSession(now) : g === "Forex" ? fxSession(now) : cmeSession(now);
+      return `<div class="board${g === "Forex" ? " wide" : ""}"><div class="board-head"><h2>${MACRO_TITLE(g)}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div><div class="${g === "Forex" ? "rows3" : ""}">${rs.map(macroRowHTML).join("")}</div></div>`; }).join("")}</div>`;
     bindRows(body);
   }
   $("macroRead").innerHTML = MACRO.rows.length ? macroReadHTML() : "";
-  if (!MACRO.running) $("macroMeta").textContent = MACRO.at ? `Binance TradFi perpetuals · updated ${fmtPHT(new Date(MACRO.at + PHT_MS)).split(", ")[1]}${MACRO.err ? " · last refresh failed" : ""}` : "Binance TradFi perpetuals";
+  $("ctBar").innerHTML = ctBarHTML(); if ($("ctOpen")) $("ctOpen").onclick = openCTSettings;
+  if (!MACRO.running) $("macroMeta").textContent = MACRO.at ? `${MACRO.rows.some(r => r.ct) ? CT.broker + " via cTrader + " : ""}Binance TradFi perpetuals · updated ${fmtPHT(new Date(MACRO.at + PHT_MS)).split(", ")[1]}${MACRO.err ? " · last refresh failed" : ""}` : "Binance TradFi perpetuals";
   $("macroRun").disabled = MACRO.running; $("macroRun").textContent = MACRO.running ? "Loading…" : "Refresh";
 }
 async function macroScan(force) {
@@ -4392,17 +4562,70 @@ async function macroScan(force) {
   MACRO.running = true; MACRO.err = null; renderMacro();
   try {
     const maFn = $("maType").value === "sma" ? sma : ema;
-    const rows = await scanMacro(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; });
-    if (!rows.length) throw new Error("no TradFi contracts found");
+    const [bin, ct] = await Promise.allSettled([
+      scanMacro(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; }),
+      ctConfigured() ? ctScan(maFn) : Promise.resolve([])]);
+    if (ct.status === "rejected") { CT.state = "error"; CT.err = ct.reason && ct.reason.message || "couldn't load forex"; }
+    const rows = [...(ct.status === "fulfilled" ? ct.value : []), ...(bin.status === "fulfilled" ? bin.value : [])];
+    if (bin.status === "rejected") MACRO.err = bin.reason && bin.reason.message || "Binance didn't answer";
+    if (!rows.length) throw new Error(MACRO.err || "no instruments found");
     MACRO.rows = rows; MACRO.by = Object.fromEntries(rows.map(r => [r.symbol, r])); MACRO.at = Date.now();
+    ctSubscribe(rows.filter(r => r.ct));
   } catch (e) { MACRO.err = e.message || String(e); }
   MACRO.running = false; renderMacro(); navBadges();
 }
 $("macroRun").onclick = () => macroScan(true);
+CT.onSpot = p => {                                    // live bid from cTrader for the forex and broker rows
+  const x = CT.byId[p.symbolId]; if (!x || p.bid == null) return;
+  const r = MACRO.by["CT:" + x.symbolName]; if (!r) return;
+  r.price = +p.bid / 1e5; if (r.ref24) r.chg24h = (r.price / r.ref24 - 1) * 100;
+  const pe = document.querySelector(`[data-mp="${r.symbol}"]`), ce = document.querySelector(`[data-mc="${r.symbol}"]`);
+  if (pe) pe.textContent = fmtPrice(r.price); if (ce) ce.innerHTML = pctCell(r.chg24h);
+};
+function openCTSettings() {
+  killChart();
+  const c = ctCfg() || {}, esc = v => String(v || "").replace(/"/g, "&quot;");
+  $("dlgBody").dataset.sym = "";
+  $("dlgBody").innerHTML = `
+    <div class="dhead"><h3>Connect cTrader</h3><div class="dacts"><button class="btn" id="dlgClose">Close</button></div></div>
+    <div class="ctform">
+      <ol class="meta ctsteps">
+        <li>On <b>openapi.ctrader.com → Applications</b>, open <b>Credentials</b> on your approved app and copy the Client ID and Secret.</li>
+        <li>Open <b>Sandbox</b> on the same app, choose the <b>accounts</b> (read-only) scope, sign in with your cTrader ID and copy the access token.</li>
+        <li>Paste all three here. A demo or live account both work; the right server is picked automatically.</li>
+      </ol>
+      <label>Client ID<input id="ctId" autocomplete="off" spellcheck="false" value="${esc(c.clientId)}"></label>
+      <label>Client Secret<input id="ctSecret" type="password" autocomplete="off" value="${esc(c.clientSecret)}"></label>
+      <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
+      ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${a.brokerTitleShort || "Broker"} ${a.isLive ? "live" : "demo"} ${a.traderLogin || a.ctidTraderAccountId}</option>`).join("")}</select></label>` : ""}
+      <p class="meta">Saved in this browser only and sent only to cTrader. The token gives read access to prices and your account list; the app never places orders.</p>
+      <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
+      <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
+    </div>`;
+  $("dlgClose").onclick = () => $("dlg").close();
+  $("ctSave").onclick = async () => {
+    const cfg = { ...(ctCfg() || {}), clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: $("ctToken").value.trim() };
+    if ($("ctAcct")) cfg.accountId = $("ctAcct").value;
+    $("ctSave").disabled = true; $("ctMsg").textContent = "Connecting to cTrader…";
+    try {
+      await ctConnect(cfg);
+      $("ctMsg").innerHTML = `<span class="up">Connected to ${CT.broker} ${CT.live ? "live" : "demo"} account ${CT.acct.traderLogin || CT.acct.ctidTraderAccountId}. Loading forex…</span>`;
+      setTimeout(() => $("dlg").open && $("dlg").close(), 900);
+      if (typeof goPage === "function") goPage("macro"); macroScan(true);
+    } catch (e) { $("ctMsg").innerHTML = `<span class="dn">Couldn't connect: ${e.message}.</span>`; }
+    $("ctSave").disabled = false; renderMacro();
+  };
+  if ($("ctForget")) $("ctForget").onclick = () => {
+    ctClose(); ctSaveCfg(null); CT.state = "off"; CT.acct = null; CT.accounts = []; CT.err = null;
+    MACRO.rows = MACRO.rows.filter(r => !r.ct); MACRO.by = Object.fromEntries(MACRO.rows.map(r => [r.symbol, r]));
+    $("dlg").close(); renderMacro(); navBadges();
+  };
+  if (!$("dlg").open) $("dlg").showModal();
+}
 setInterval(async () => {                             // live prices while the page is open; full re-read every 15 minutes
   if (page !== "macro" || document.hidden || MACRO.running || !MACRO.rows.length) return;
   if (Date.now() - MACRO.at > 15 * 60e3) { macroScan(true); return; }
-  await Promise.all(MACRO.rows.map(async r => { try { await spend(1); const t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${r.symbol}`, 1); r.price = +t.lastPrice; r.chg24h = +t.priceChangePercent; } catch (e) {} }));
+  await Promise.all(MACRO.rows.filter(r => !r.ct).map(async r => { try { await spend(1); const t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${r.symbol}`, 1); r.price = +t.lastPrice; r.chg24h = +t.priceChangePercent; } catch (e) {} }));
   MACRO.rows.forEach(r => { const p = document.querySelector(`[data-mp="${r.symbol}"]`), c = document.querySelector(`[data-mc="${r.symbol}"]`);
     if (p) p.textContent = fmtPrice(r.price); if (c) c.innerHTML = pctCell(r.chg24h); });
 }, 10000);

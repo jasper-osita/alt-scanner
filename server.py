@@ -5,7 +5,7 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8787
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
        "img-src 'self' data: https://s3-symbol-logo.tradingview.com; "
-       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://api.coingecko.com https://api.alternative.me wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com; "
+       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://api.coingecko.com https://api.alternative.me wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
        "manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'")
 # Relay for Bybit's public market data, used when Bybit refuses requests made directly from a web page.
 # Only /v5/market/* paths are forwarded: read-only prices, candles, funding and open interest. No account endpoints.

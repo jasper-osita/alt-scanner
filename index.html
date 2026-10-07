@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.07.2231">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.07.2329">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -493,6 +493,41 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .subline #title{color:var(--text);font-weight:500}
 .pg-off{display:none!important}
+/* ===== notifications: bell, drawer, toast cards ===== */
+.bell{position:relative;width:36px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;cursor:pointer;color:var(--text)}
+.bell svg{width:18px;height:18px}.bell:hover{border-color:var(--mute)}.bell[aria-expanded="true"]{border-color:var(--accent);color:var(--accent);background:var(--active)}
+.bellct{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--accent);color:var(--on-accent);font:700 11px/18px var(--font);text-align:center}
+#ncScrim{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:40}
+#ncDrawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--panel);border-left:1px solid var(--line);box-shadow:-24px 0 48px rgba(0,0,0,.45);z-index:41;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .22s ease;visibility:hidden}
+#ncDrawer.open{transform:none;visibility:visible}
+.nchead{display:flex;align-items:center;gap:10px;padding:16px 18px 10px}.nchead h2{margin:0;font:600 18px var(--display);color:var(--strong)}
+.ncnew{font-size:12px;font-weight:700;color:var(--on-accent);background:var(--accent);border-radius:9px;padding:1px 7px}
+.nclink{background:transparent;border:0;color:var(--accent);font-size:12.5px;cursor:pointer;padding:4px}.nchead .nclink{margin-left:auto}
+.ncx{background:var(--pill);border:1px solid var(--pill-b);border-radius:7px;width:30px;height:28px;cursor:pointer;font-size:16px;line-height:1}
+.ncchips{display:flex;gap:6px;flex-wrap:wrap;padding:0 18px 10px}
+.ncchips button{background:transparent;color:var(--mute);border:1px solid var(--pill-b);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.ncchips button.on{background:var(--active);color:var(--strong);border-color:var(--accent)}
+.nclist{flex:1;overflow-y:auto;padding:0 10px 10px;display:flex;flex-direction:column;gap:3px}
+.ncgrp{font-size:11px;letter-spacing:.08em;color:var(--mute);padding:8px 8px 2px}
+.ncitem{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border-radius:9px;cursor:pointer;text-align:left;width:100%;background:transparent;border:0;color:var(--text)}
+.ncitem:hover{background:var(--hover)}.ncitem.unread{background:#1c1d21;box-shadow:inset 3px 0 0 var(--nc)}
+.ncic{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--nc);background:color-mix(in srgb,var(--nc) 15%,transparent)}
+.ncbody{min-width:0;flex:1}.nct{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:600;color:var(--text)}
+.nct b{color:var(--strong);background:var(--pill);padding:0 6px;border-radius:4px;font-size:12px}
+.ncd{font-size:12px;color:var(--mute);margin-top:3px;line-height:1.4}
+.ncmeta{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:11.5px;color:var(--mute)}
+.ncdot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ncempty{color:var(--mute);font-size:13px;text-align:center;padding:40px 16px;line-height:1.6}
+.ncfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
+#ncToasts{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;z-index:42;pointer-events:none}
+.nctoast{pointer-events:auto;background:var(--panel);border:1px solid var(--pill-b);border-left:3px solid var(--nc);border-radius:10px;padding:11px 12px;box-shadow:0 12px 30px rgba(0,0,0,.5);display:flex;gap:10px;align-items:flex-start;animation:ncin .2s ease}
+.nctoast.out{opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s}
+.nctoast .ncacts{display:flex;gap:8px;margin-top:8px}.nctoast .ncacts button{border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}
+.nctoast .go{background:var(--accent);color:var(--on-accent);border:0;font-weight:700}.nctoast .no{background:transparent;color:var(--mute);border:1px solid var(--pill-b)}
+.ncmore{pointer-events:auto;align-self:flex-end;background:var(--pill);border:1px solid var(--pill-b);color:var(--accent);border-radius:999px;padding:4px 11px;font-size:12px;cursor:pointer}
+@keyframes ncin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#ncDrawer{transition:none}.nctoast{animation:none}}
+@media (max-width:900px){#ncToasts{right:16px;left:16px;width:auto}}
 .mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
 @media (max-width:1100px){.mgrid{grid-template-columns:minmax(0,1fr)}}
 .macroread{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
@@ -544,6 +579,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
     <div class="actions">
       <button class="livebadge off" id="liveBadge" title="Live data">○ Live</button>
       <label class="tog"><input type="checkbox" id="auto"> Auto-Refresh (15 min)</label>
+      <button class="bell" id="bellBtn" aria-label="Notifications" aria-expanded="false" aria-controls="ncDrawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bellct" id="bellCt" hidden></span></button>
       <button class="btn" id="copyBtn" disabled>Copy for Claude</button>
       <button class="btn" id="jsonBtn" disabled>Export JSON</button>
       <button class="btn" id="fToggle" aria-expanded="false" aria-controls="fPanel">Filters <span class="badge" id="fBadge"></span></button>
@@ -672,6 +708,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="ncScrim" hidden></div>
+<aside id="ncDrawer" aria-label="Notifications" aria-hidden="true">
+  <div class="nchead"><h2>Notifications</h2><span class="ncnew" id="ncNew" hidden></span>
+    <button class="nclink" id="ncReadAll">Mark all read</button><button class="ncx" id="ncClose" aria-label="Close notifications">×</button></div>
+  <div class="ncchips" id="ncChips" role="tablist" aria-label="Filter notifications"></div>
+  <div class="nclist" id="ncList"></div>
+  <div class="ncfoot"><span>Kept for 7 days on this device</span>
+    <label class="tog"><input type="checkbox" id="ncMacro"> Forex &amp; gold triggers</label><button class="nclink" id="ncClear">Clear all</button></div>
+</aside>
+<div id="ncToasts" aria-live="polite"></div>
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 
 <script id="core">/* ===================== scanner core (mirrors crypto_screener.py rules) ===================== */
@@ -2749,8 +2795,8 @@ function beep() {
   try { const A = new (window.AudioContext || window.webkitAudioContext)(), o = A.createOscillator(), g = A.createGain();
     o.connect(g); g.connect(A.destination); o.frequency.value = 880; g.gain.value = 0.05; o.start(); setTimeout(() => { o.stop(); A.close(); }, 180); } catch (e) {}
 }
-async function notify(title, body) {
-  toast(`<b>${title}</b><br>${body}`); beep();
+async function notify(title, body, meta = {}) {
+  ncAdd({ title: meta.title || title, detail: body, sym: meta.sym || null, kind: meta.kind || "Setups", icon: meta.icon || "🔔", tone: meta.tone || "gold", action: meta.action || null }); beep();
   try {
     if ("Notification" in window && Notification.permission === "granted") {
       const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
@@ -2769,7 +2815,7 @@ async function checkPrices() {
     let fired = false;
     live.forEach(a => { const p = px[a.sym]; if (p == null) return;
       if ((a.dir === "above" && p >= a.price) || (a.dir === "below" && p <= a.price)) { a.fired = Date.now(); fired = true;
-        notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`); } });
+        notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`, { sym: a.sym, kind: "Price", icon: "🔔", tone: "blue", title: `${a.dir === "above" ? "Crossed above" : "Crossed below"} your ${fmtPrice(a.price)} alert` }); } });
     if (fired) { wlSave(); if ($("dlg").open) renderWatchBox(bySym[$("dlgBody").dataset.sym]); if (data && tab === "watch") renderTable(); }
   } catch (e) {}
 }
@@ -2778,7 +2824,8 @@ function checkSetupAlerts() {
     const r = bySym[sym]; if (!r) return;
     const now = trigKeys(r), fresh = now.filter(k => !(w.seen || []).includes(k));
     if (w.setupAlert && fresh.length) { const [model, dir, state] = fresh[0].split("|");
-      notify(`${coin(sym)}: ${model} ${dir.toLowerCase()} triggered`, `${state}. Open the scanner for entry, stop and target.`); }
+      notify(`${coin(sym)}: ${model} ${dir.toLowerCase()} triggered`, `${state}. Open the chart for entry, stop and target.`,
+        { sym, kind: "Setups", icon: (MODELS[model] || {}).icon || "🎯", tone: dir === "Short" ? "down" : "gold", title: `${model} ${dir.toLowerCase()} triggered` }); }
     w.seen = now;
   });
   wlSave();
@@ -3119,7 +3166,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.07.2231";
+const APP_VERSION = "2026.10.07.2329";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3423,7 +3470,7 @@ setInterval(() => {
   if (live.length) { let any = false;
     live.forEach(a => { const p = bySym[a.sym] && bySym[a.sym].price; if (p == null) return;
       if ((a.dir === "above" && p >= a.price) || (a.dir === "below" && p <= a.price)) { a.fired = Date.now(); any = true;
-        notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`); } });
+        notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`, { sym: a.sym, kind: "Price", icon: "🔔", tone: "blue", title: `${a.dir === "above" ? "Crossed above" : "Crossed below"} your ${fmtPrice(a.price)} alert` }); } });
     if (any) { wlSave(); if ($("dlg").open) renderWatchBox(bySym[$("dlgBody").dataset.sym]); } }
   if (BOT && BOT.running && BOT_STRATS().some(k => BOT.bots[k].positions.some(p => changed.has(p.sym)))) botCheckExits();
   if (document.visibilityState !== "visible") return;
@@ -3749,7 +3796,8 @@ function botOpen(strat, r, m) {
   b.positions.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), sym: r.symbol, dir: m.dir, model: strat, state: m.state,
     entry: fill, stop: m.stop, target: m.t2, qty, risk, feeIn, opened: Date.now(), until: Date.now() + BOT_HOLD_MS(strat), checked: Date.now(),
     env: data.env ? data.env.label : "", session: sessOf(Date.now()) });
-  if (BOT.notify) toast(`🤖 <b>${MODELS[strat].icon} ${strat} bot</b> ${long ? "bought" : "shorted"} <b>${coin(r.symbol)}</b> at ${fmtPrice(fill)} · stop ${fmtPrice(m.stop)} · target ${fmtPrice(m.t2)}`);
+  if (BOT.notify) ncAdd({ sym: r.symbol, kind: "Bots", icon: "🤖", tone: "blue", title: `${strat} bot opened a ${long ? "long" : "short"}`,
+    detail: `Paper trade · entry ${fmtPrice(fill)} · stop ${fmtPrice(m.stop)} · target ${fmtPrice(m.t2)}` });
   return true;
 }
 function botClose(strat, p, exitPx, reason, when = Date.now()) {
@@ -3762,7 +3810,8 @@ function botClose(strat, p, exitPx, reason, when = Date.now()) {
     opened: p.opened, closed: when, env: p.env, session: p.session });
   if (b.closed.length > 400) b.closed = b.closed.slice(-400);
   b.eq.push([when, +b.bal.toFixed(2)]); if (b.eq.length > 1000) b.eq = b.eq.slice(-1000);
-  if (BOT.notify) toast(`🤖 <b>${strat} bot</b> closed <b>${coin(p.sym)}</b> · ${reason} · <span class="${pnl >= 0 ? "up" : "dn"}">${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)} (${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R)</span>`);
+  if (BOT.notify) ncAdd({ sym: p.sym, kind: "Bots", icon: "🤖", tone: pnl >= 0 ? "up" : "down", title: `${strat} bot closed at ${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R`,
+    detail: `Paper trade · ${reason} · ${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}` });
 }
 function botCheckExits() {                                   // on live prices (the stream ticks, or the last scan)
   if (!BOT.running || !data) return;
@@ -4106,7 +4155,8 @@ function momoAlerts(fresh) {
   fresh.forEach(({ r, m }) => {
     const key = r.symbol + "|" + m.breakAt; if (seen[key]) return; seen[key] = now;
     notify(`🚀 ${coin(r.symbol)} ${m.dir === "Long" ? "broke out above" : "broke down below"} its 20/50/100`,
-      `RSI ${r.rsi && r.rsi.h1 != null ? r.rsi.h1.toFixed(0) : "—"}${m.volx ? `, ${m.volx}× volume` : ""}${m.h4ok ? ", 4H agrees" : ", 4H not yet"}. Check the chart before acting.`);
+      `RSI ${r.rsi && r.rsi.h1 != null ? r.rsi.h1.toFixed(0) : "—"}${m.volx ? `, ${m.volx}× volume` : ""}${m.h4ok ? ", 4H agrees" : ", 4H not yet"}. Check the chart before acting.`,
+      { sym: r.symbol, kind: "Breakouts", icon: "🚀", tone: m.dir === "Long" ? "up" : "down", title: `${m.dir === "Long" ? "Broke out above" : "Broke down below"} its 20/50/100` });
   });
   try { localStorage.setItem(MOMO_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
 }
@@ -4401,6 +4451,119 @@ window.addEventListener("resize", tickClock);
 if ($("auto").checked) autoTimer = setInterval(run, 15 * 60 * 1000);
 run();
 
+
+/* ===================== Notification center: bell + drawer + toast cards ===================== */
+const NC_KEY = "finder-notifs", NC_DAYS = 7, NC_STATE = { filter: "All", ctErr: null, toasts: [] };
+const NC_TONE = { up: "var(--green)", down: "var(--red)", gold: "var(--accent)", blue: "var(--blue)", warn: "var(--amber)" };
+const NC_KINDS = ["All", "Breakouts", "Setups", "Price", "Bots", "System"];
+let NC = [];
+try { NC = JSON.parse(localStorage.getItem(NC_KEY) || "[]"); } catch (e) { NC = []; }
+const ncSave = () => { try { localStorage.setItem(NC_KEY, JSON.stringify(NC)); } catch (e) {} };
+function ncPrune() { const cut = Date.now() - NC_DAYS * 864e5; NC = NC.filter(n => n.at >= cut).slice(0, 300); }
+const ncEsc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function ncAgo(t) {
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 45) return "now"; if (s < 3600) return Math.round(s / 60) + "m"; if (s < 86400) return Math.round(s / 3600) + "h";
+  const d = new Date(t + PHT_MS), y = new Date(Date.now() + PHT_MS - 864e5);
+  return d.toISOString().slice(0, 10) === y.toISOString().slice(0, 10) ? "Yesterday" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+function ncAdd(n) {
+  const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), read: false, ...n };
+  NC.unshift(item); ncPrune(); ncSave(); ncRenderBell();
+  if (ncOpen()) ncRenderList();
+  ncToast(item);
+  return item;
+}
+const ncOpen = () => $("ncDrawer").classList.contains("open");
+function ncRenderBell() {
+  const n = NC.filter(x => !x.read).length, el = $("bellCt");
+  el.hidden = !n; el.textContent = n > 99 ? "99+" : n;
+  $("bellBtn").setAttribute("aria-label", n ? `Notifications, ${n} unread` : "Notifications");
+  $("ncNew").hidden = !n; $("ncNew").textContent = `${n} new`;
+}
+function ncItemHTML(n, cls = "ncitem") {
+  return `<button class="${cls}${n.read ? "" : " unread"}" data-nc="${n.id}" style="--nc:${NC_TONE[n.tone] || NC_TONE.gold}">
+    <span class="ncic" aria-hidden="true">${ncEsc(n.icon)}</span>
+    <span class="ncbody"><span class="nct">${n.sym ? `<b>${ncEsc(coin(n.sym))}</b>` : ""}${ncEsc(n.title)}</span>${n.detail ? `<span class="ncd">${ncEsc(n.detail)}</span>` : ""}</span>
+    <span class="ncmeta"><span>${ncAgo(n.at)}</span>${n.read ? "" : '<span class="ncdot" aria-label="unread"></span>'}</span></button>`;
+}
+function ncRenderList() {
+  $("ncChips").innerHTML = NC_KINDS.map(k => { const c = k === "All" ? NC.length : NC.filter(n => n.kind === k).length;
+    return `<button role="tab" aria-selected="${NC_STATE.filter === k}" class="${NC_STATE.filter === k ? "on" : ""}" data-k="${k}">${k}${c && k !== "All" ? ` · ${c}` : ""}</button>`; }).join("");
+  $("ncChips").querySelectorAll("[data-k]").forEach(b => b.onclick = () => { NC_STATE.filter = b.dataset.k; ncRenderList(); });
+  const list = NC.filter(n => NC_STATE.filter === "All" || n.kind === NC_STATE.filter), fresh = list.filter(n => !n.read), old = list.filter(n => n.read);
+  $("ncList").innerHTML = !list.length ? `<div class="ncempty">${NC.length ? "Nothing in this filter." : "No notifications yet.<br>Breakouts, setup triggers, price alerts and bot trades show up here."}</div>`
+    : (fresh.length ? `<div class="ncgrp">NEW</div>${fresh.map(n => ncItemHTML(n)).join("")}` : "") + (old.length ? `<div class="ncgrp">EARLIER</div>${old.map(n => ncItemHTML(n)).join("")}` : "");
+  $("ncList").querySelectorAll("[data-nc]").forEach(b => b.onclick = () => ncGo(b.dataset.nc));
+}
+function ncShow(open) {
+  $("ncDrawer").classList.toggle("open", open); $("ncDrawer").setAttribute("aria-hidden", String(!open));
+  $("ncScrim").hidden = !open; $("bellBtn").setAttribute("aria-expanded", String(open));
+  if (open) { ncRenderList(); setTimeout(() => $("ncClose").focus(), 50); } else $("bellBtn").focus({ preventScroll: true });
+}
+function ncGo(id) {                                  // open the market behind a notification, the same popup as the boards
+  const n = NC.find(x => x.id === id); if (!n) return;
+  n.read = true; ncSave(); ncRenderBell();
+  if (ncOpen()) ncShow(false);
+  ncDropToast(id);
+  if (n.action === "ctrader") { goPage("macro"); openCTSettings(); return; }
+  if (!n.sym) return;
+  if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
+  if (n.sym.startsWith("CT:") || TRADFI_SYMS.has(n.sym)) { goPage("macro"); toast(`<b>${coin(n.sym)}</b> loads with the Forex, Gold &amp; Indices page; open it there.`); return; }
+  openTV(n.sym);                                       // no longer in the current scan: fall back to its TradingView chart
+}
+function ncToast(n) {
+  const box = $("ncToasts"), el = document.createElement("div");
+  el.className = "nctoast"; el.dataset.t = n.id; el.style.setProperty("--nc", NC_TONE[n.tone] || NC_TONE.gold); el.setAttribute("role", "status");
+  el.innerHTML = `<span class="ncic" aria-hidden="true">${ncEsc(n.icon)}</span><div class="ncbody"><div class="nct">${n.sym ? `<b>${ncEsc(coin(n.sym))}</b>` : ""}${ncEsc(n.title)}</div>${n.detail ? `<div class="ncd">${ncEsc(n.detail)}</div>` : ""}
+    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
+  const go = el.querySelector(".go"); if (go) go.onclick = () => ncGo(n.id);
+  el.querySelector(".no").onclick = () => ncDropToast(n.id);
+  let timer = null; const arm = () => { clearTimeout(timer); timer = setTimeout(() => ncDropToast(n.id), 8000); };
+  el.onmouseenter = () => clearTimeout(timer); el.onmouseleave = arm; arm();
+  box.prepend(el); NC_STATE.toasts.unshift(n.id);
+  ncTrimToasts();
+}
+function ncTrimToasts() {                              // at most 3 cards; the rest wait in the bell
+  const box = $("ncToasts"), cards = [...box.querySelectorAll(".nctoast")];
+  cards.slice(3).forEach(c => c.remove());
+  let more = box.querySelector(".ncmore"); const extra = NC_STATE.toasts.length - Math.min(3, cards.length);
+  if (extra > 0) { if (!more) { more = document.createElement("button"); more.className = "ncmore"; more.onclick = () => { ncClearToasts(); ncShow(true); }; box.appendChild(more); }
+    more.textContent = `+${extra} more in the bell`; }
+  else if (more) more.remove();
+}
+function ncDropToast(id) {
+  NC_STATE.toasts = NC_STATE.toasts.filter(x => x !== id);
+  const el = document.querySelector(`#ncToasts [data-t="${id}"]`);
+  if (el) { el.classList.add("out"); setTimeout(() => { el.remove(); ncTrimToasts(); }, 260); } else ncTrimToasts();
+}
+function ncClearToasts() { NC_STATE.toasts = []; $("ncToasts").innerHTML = ""; }
+const NC_MACRO_KEY = "finder-macro-alert", NC_MACRO_SEEN = "finder-macro-seen";
+const macroAlertOn = () => { try { return localStorage.getItem(NC_MACRO_KEY) !== "off"; } catch (e) { return true; } };
+function macroAlerts(rows) {                           // newly triggered setups on forex, gold and the indices
+  if (!macroAlertOn()) return;
+  let seen = {}; try { seen = JSON.parse(localStorage.getItem(NC_MACRO_SEEN) || "{}"); } catch (e) {}
+  const now = Date.now(), first = !Object.keys(seen).length;
+  Object.keys(seen).forEach(k => { if (now - seen[k] > 3 * 864e5) delete seen[k]; });
+  rows.forEach(r => { const p = coinPlay(r); if (p.kind !== "setup" || !p.lv || !p.lv.trig) return;
+    const key = `${r.symbol}|${p.model}|${p.dir}|${new Date(now + PHT_MS).toISOString().slice(0, 10)}`; if (seen[key]) return; seen[key] = now;
+    if (first) return;                                 // the first read only records what's already open, so you aren't flooded
+    ncAdd({ sym: r.symbol, kind: "Setups", icon: (MODELS[p.model] || {}).icon || "🎯", tone: p.dir === "Short" ? "down" : "gold",
+      title: `${r.name}: ${p.model} ${p.dir.toLowerCase()} triggered`, detail: `${r.ct ? CT.broker + " · " : "Binance TradFi · "}${p.lv.entry != null ? `Entry ${fmtPrice(p.lv.entry)} · Stop ${fmtPrice(p.lv.stop)}` : p.lv.state}` });
+  });
+  try { localStorage.setItem(NC_MACRO_SEEN, JSON.stringify(seen)); } catch (e) {}
+}
+$("bellBtn").onclick = () => { ncClearToasts(); ncShow(!ncOpen()); };
+$("ncClose").onclick = () => ncShow(false);
+$("ncScrim").onclick = () => ncShow(false);
+$("ncReadAll").onclick = () => { NC.forEach(n => n.read = true); ncSave(); ncRenderBell(); ncRenderList(); };
+$("ncClear").onclick = () => { NC = []; ncSave(); ncRenderBell(); ncRenderList(); };
+$("ncMacro").checked = macroAlertOn();
+$("ncMacro").onchange = () => { try { localStorage.setItem(NC_MACRO_KEY, $("ncMacro").checked ? "on" : "off"); } catch (e) {} };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && ncOpen() && !$("dlg").open) ncShow(false); });
+setInterval(() => { if (ncOpen()) ncRenderList(); }, 60000);   // keep the "2m ago" labels fresh
+ncPrune(); ncSave(); ncRenderBell();
+
 /* ===================== The Finder: sidebar pages ===================== */
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"]] },
@@ -4565,12 +4728,14 @@ async function macroScan(force) {
     const [bin, ct] = await Promise.allSettled([
       scanMacro(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; }),
       ctConfigured() ? ctScan(maFn) : Promise.resolve([])]);
-    if (ct.status === "rejected") { CT.state = "error"; CT.err = ct.reason && ct.reason.message || "couldn't load forex"; }
+    if (ct.status === "rejected") { CT.state = "error"; CT.err = ct.reason && ct.reason.message || "couldn't load forex";
+      if (NC_STATE.ctErr !== CT.err) { NC_STATE.ctErr = CT.err; ncAdd({ kind: "System", icon: "⚠️", tone: "warn", sym: null, action: "ctrader", title: "cTrader didn't connect", detail: CT.err.charAt(0).toUpperCase() + CT.err.slice(1) + "." }); } }
+    else if (ct.status === "fulfilled" && ct.value.length) NC_STATE.ctErr = null;
     const rows = [...(ct.status === "fulfilled" ? ct.value : []), ...(bin.status === "fulfilled" ? bin.value : [])];
     if (bin.status === "rejected") MACRO.err = bin.reason && bin.reason.message || "Binance didn't answer";
     if (!rows.length) throw new Error(MACRO.err || "no instruments found");
     MACRO.rows = rows; MACRO.by = Object.fromEntries(rows.map(r => [r.symbol, r])); MACRO.at = Date.now();
-    ctSubscribe(rows.filter(r => r.ct));
+    ctSubscribe(rows.filter(r => r.ct)); macroAlerts(rows);
   } catch (e) { MACRO.err = e.message || String(e); }
   MACRO.running = false; renderMacro(); navBadges();
 }

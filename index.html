@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.0020">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.0134">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -493,6 +493,10 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .subline #title{color:var(--text);font-weight:500}
 .pg-off{display:none!important}
+.edget td,.edget th{vertical-align:middle}.edgem td{border-top:1px solid var(--pill-b)}
+.edgesub{padding:4px 10px 8px 26px!important;border-top:0!important}
+.edgerule{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.edgeab{margin-left:auto;font-size:12.5px}
+.edgeintro{line-height:1.55;max-width:110ch}.pbag{margin-left:auto;font-size:13px}
 .obchk{list-style:none;margin:8px 0 6px;padding:0;display:grid;gap:3px;font-size:12.5px}
 .obchk li{display:flex;gap:6px;align-items:baseline}.obchk li>span:first-child{width:14px;font-weight:700}
 .obchk li.ok>span:first-child{color:var(--green)}.obchk li.no>span:first-child{color:var(--red)}.obchk b{font-weight:600;color:var(--text)}
@@ -679,6 +683,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
   <section class="card scard" id="scorecard" data-page="scorecard"></section>
 
   <section class="card btcard" id="backtest" data-page="backtest"></section>
+
+  <section class="card btcard" id="edgeCard" data-page="backtest"></section>
 
   <section class="card btcard" id="botSim" data-page="bots"></section>
 
@@ -2205,7 +2211,7 @@ function testFilter(r, f) {
       return { bull: st === "Bull stack", bear: st === "Bear stack", pb_bull: st === "Pullback in bull", pb_bear: st === "Pullback in bear",
                bull_any: st === "Bull stack" || st === "Pullback in bull", bear_any: st === "Bear stack" || st === "Pullback in bear", tangled: st === "Tangled" }[f.cond];
     }
-    case "model": return (r.models || []).some(m => (f.model === "any" || m.model === f.model) && (f.stage === "any" || (f.stage === "trig" ? m.trig : !m.trig)) && (f.dir === "any" || m.dir === f.dir));
+    case "model": return liveModels(r).some(m => (f.model === "any" || m.model === f.model) && (f.stage === "any" || (f.stage === "trig" ? m.trig : !m.trig)) && (f.dir === "any" || m.dir === f.dir));
     case "momo": return !!r.momo && (f.stage === "any" || r.momo.stage === f.stage);
     case "rot": return (f.tier === "any" || tierOf(r) === f.tier) && (f.status === "any" || coinRot(r).status === f.status);
     case "rsi": {
@@ -2605,7 +2611,7 @@ function setupsHTML(r) {
     if (e.dirBias !== "Both" && m.dir !== "any" && m.dir !== e.dirBias && m.model !== "Fade") return "avoid";
     return e.fit[m.model];
   };
-  return r.models.map(m => `<div class="setup">${modelTag(m)}${isCounter(r, m) ? `<span class="tag flag">Against the coin's ${r.rating} rating${m.trig ? "" : ", not triggered"}</span>` : ""}${fitOf(m) && fitOf(m) !== "neutral" ? `<span class="tag fit-${fitOf(m)}">${fitOf(m) === "avoid" ? (data.env.fit[m.model] === "avoid" ? "Avoid today" : "Against today's bias") : FIT_LABEL[fitOf(m)] + " today"}</span>` : ""}${m.withDaily === true ? '<span class="tag long">Daily with-trend</span>' : m.withDaily === false ? '<span class="tag flag">Against Daily</span>' : ""}
+  return r.models.map(m => `<div class="setup">${modelTag(m)}${edgeTag(r, m)}${isCounter(r, m) ? `<span class="tag flag">Against the coin's ${r.rating} rating${m.trig ? "" : ", not triggered"}</span>` : ""}${fitOf(m) && fitOf(m) !== "neutral" ? `<span class="tag fit-${fitOf(m)}">${fitOf(m) === "avoid" ? (data.env.fit[m.model] === "avoid" ? "Avoid today" : "Against today's bias") : FIT_LABEL[fitOf(m)] + " today"}</span>` : ""}${m.withDaily === true ? '<span class="tag long">Daily with-trend</span>' : m.withDaily === false ? '<span class="tag flag">Against Daily</span>' : ""}
     ${m.sweep ? '<span class="tag">Sweep</span>' : ""}${m.baseNo ? `<span class="tag">Base #${m.baseNo}</span>` : ""}${m.room === false ? '<span class="tag flag">No room</span>' : ""}
     <div class="meta">${m.note || ""}</div>
     ${m.checks ? `<ul class="obchk">${m.checks.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.checks.every(c => c[1]) ? '<span class="up">All checklist items pass: valid trade.</span>' : '<span class="dn">Checklist incomplete: no trade.</span>'}</div>` : ""}
@@ -2677,7 +2683,7 @@ function suggestions(env, n = 3) {
   const out = [];
   data.all.forEach(r => {
     if (r.vol24h < 10e6 || (hideWicky() && r.wicky)) return;
-    (r.models || []).forEach(m => {
+    liveModels(r).forEach(m => {
       const fw = FIT_W[env.fit[m.model]]; if (!fw) return;
       if (dirSel() !== "Both") { if (m.dir !== dirSel()) return; }
       else if (env.dirBias !== "Both" && m.dir !== "any" && m.dir !== env.dirBias && m.model !== "Fade") return;
@@ -2722,7 +2728,7 @@ function renderPlaybook() {
   const F = env.facts, groups = ["primary", "secondary", "avoid"].map(lvl => [lvl, MODEL_KEYS.filter(k => env.fit[k] === lvl)]);
   const sug = suggestions(env); data.suggest = sug;
   $("playbook").innerHTML = `
-    <div class="pbhead"><h2>Today's Playbook</h2><span class="pblabel ${env.dirBias === "Long" ? "up" : env.dirBias === "Short" ? "dn" : "chopc"}">${env.label}</span></div>
+    <div class="pbhead"><h2>Today's Playbook</h2><span class="pblabel ${env.dirBias === "Long" ? "up" : env.dirBias === "Short" ? "dn" : "chopc"}">${env.label}</span>${EDGE.rules.length ? `<label class="tog pbag"><input type="checkbox" id="pbAGrade" ${EDGE.aOnly ? "checked" : ""}> A-grade only <span class="mute">(${EDGE.rules.length} rule${EDGE.rules.length === 1 ? "" : "s"})</span></label>` : ""}</div>
     <p class="pbdesc">${env.desc}</p>
     <div class="pbfacts">
       <span>BTC <b>${F.b}</b></span><span>Breadth <b class="up">${F.bull}%</b>/<b class="dn">${F.bear}%</b></span>
@@ -2742,6 +2748,7 @@ function renderPlaybook() {
       : `<div class="empty">No setup from today's fitting models right now. ${env.dirBias === "Both" ? "On a chop day, no trade is a fine outcome." : "Wait for one to trigger, or re-scan after the next 1H close."}</div>`}
     <p class="meta pbnote">Rule-based suggestion from the market read and your model definitions, not a backtested edge. Still confirm the trigger on your entry timeframe and pass your Gate. Max 3 names tonight.</p>`;
   bindRows($("playbook"));
+  if ($("pbAGrade")) $("pbAGrade").onchange = () => { EDGE.aOnly = $("pbAGrade").checked; edgeChanged(); };
   $("playbook").querySelectorAll("[data-pm]").forEach(b => b.onclick = () => {
     const k = b.dataset.pm; guideSel = k; renderGuide();
     FS.filters = [{ kind: "model", model: k, stage: "any", dir: env.dirBias === "Both" || k === "Fade" ? "any" : env.dirBias }]; FS.template = `${k} setups`; FS.boards = false;
@@ -2775,7 +2782,7 @@ function coinPlay(r) {
 
   let play;
   // a setup against the coin's own trend only counts once it has triggered, and never against a Strong rating
-  const all = (r.models || []).filter(m => m.dir !== "any");
+  const all = liveModels(r).filter(m => m.dir !== "any");
   const setups = all.filter(m => !blockedCounter(r, m));
   const blocked = all.filter(m => blockedCounter(r, m));
   if (blocked.length) {
@@ -2886,7 +2893,7 @@ let WL = { coins: {}, alerts: [] };
 function wlLoad() { try { Object.assign(WL, JSON.parse(localStorage.getItem(WL_KEY) || "{}")); } catch (e) {} }
 function wlSave() { try { localStorage.setItem(WL_KEY, JSON.stringify(WL)); } catch (e) {} }
 const isWatched = sym => !!WL.coins[sym];
-const trigKeys = r => r ? (r.models || []).filter(m => m.trig).map(m => `${m.model}|${m.dir}|${m.state}`) : [];
+const trigKeys = r => r ? liveModels(r).filter(m => m.trig).map(m => `${m.model}|${m.dir}|${m.state}`) : [];
 const starBtn = sym => `<button class="star ${isWatched(sym) ? "on" : ""}" data-star="${sym}" title="${isWatched(sym) ? "Remove from" : "Add to"} watchlist" aria-label="${isWatched(sym) ? "Remove from" : "Add to"} watchlist">${isWatched(sym) ? "★" : "☆"}</button>`;
 function toggleWatch(sym) {
   if (WL.coins[sym]) delete WL.coins[sym];
@@ -3274,7 +3281,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.08.0020";
+const APP_VERSION = "2026.10.08.0134";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3662,6 +3669,26 @@ function simulate(k, i, m, maxBars, hardCloseMs) {      // walk forward from the
   const j = Math.min(k.c.length - 1, i + maxBars);
   return j > i ? { j, r: (k.c[j] - m.entry) / R, reason: "Time limit" } : null;
 }
+function btVariants(k, i, m, maxBars, hardCloseMs, feePct) {   // the same entry, managed three other ways
+  const long = m.dir === "Long", sg = long ? 1 : -1, R = Math.abs(m.entry - m.stop); if (!(R > 0)) return null;
+  const at = x => m.entry + sg * x * R, tgtR = m.t2 != null ? Math.abs(m.t2 - m.entry) / R : 2;
+  const hit = (j, lvl) => long ? k.h[j] >= lvl : k.l[j] <= lvl, under = (j, lvl) => long ? k.l[j] <= lvl : k.h[j] >= lvl, rAt = j => sg * (k.c[j] - m.entry) / R;
+  const v = { t1: null, t15: null, pbe: null }; let pbePhase = 0, last = i;
+  for (let j = i + 1; j < k.c.length && j <= i + maxBars; j++) {
+    if (hardCloseMs && k.t[j] >= hardCloseMs) break;
+    last = j;
+    for (const [key, x] of [["t1", 1], ["t15", 1.5]]) if (v[key] == null) { if (under(j, m.stop)) v[key] = -1; else if (hit(j, at(x))) v[key] = x; }
+    if (v.pbe == null) {
+      if (pbePhase === 0) { if (under(j, m.stop)) v.pbe = -1; else if (hit(j, at(1))) { pbePhase = 1; if (hit(j, at(tgtR))) v.pbe = 0.5 + 0.5 * tgtR; } }
+      else if (under(j, m.entry)) v.pbe = 0.5; else if (hit(j, at(tgtR))) v.pbe = 0.5 + 0.5 * tgtR;
+    }
+    if (v.t1 != null && v.t15 != null && v.pbe != null) break;
+  }
+  if (last === i) return null;
+  const end = rAt(last);
+  if (v.t1 == null) v.t1 = end; if (v.t15 == null) v.t15 = end; if (v.pbe == null) v.pbe = pbePhase ? 0.5 + 0.5 * end : end;
+  return { t1: r2(netR(m, v.t1, feePct)), t15: r2(netR(m, v.t15, feePct)), pbe: r2(netR(m, v.pbe, feePct)) };
+}
 function netR(m, gross, feePct) { const sp = Math.abs(m.entry - m.stop) / m.entry; return gross - (feePct / 100) / sp; }
 function validLevels(m) {
   if (m.entry == null || m.stop == null || m.t2 == null || m.dir === "any") return false;
@@ -3682,7 +3709,8 @@ function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
       const out = simulate(k1, i, m, MODEL_HOLD_H[m.model] || 48); if (!out) continue;
       busyUntil[key] = out.j;
       trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir), rot: rotBand(kd, ctx.btcD, T, m.dir) });
+        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir), rot: rotBand(kd, ctx.btcD, T, m.dir),
+        v: btVariants(k1, i, m, MODEL_HOLD_H[m.model] || 48, null, ctx.fee), wd: m.withDaily ?? null, sw: !!m.sweep });
     }
   }
   return trades;
@@ -3722,7 +3750,9 @@ function replayOB(sym, x, winStart, ctx) {              // OB Entry on 15m: limi
     if (!out) continue;
     busy = out.j;
     trades.push({ sym, model: "OB", dir: m.dir, tf: "15m", t: k15.t[f], entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-      reason: out.reason, bars: out.j - f, session: sessOf(k15.t[f]), env: ctx.envAt(T), state: `${m.state} · ${m.poi}`, rot: rotBand(x.kd, ctx.btcD, T, m.dir) });
+      reason: out.reason, bars: out.j - f, session: sessOf(k15.t[f]), env: ctx.envAt(T), state: `${m.state} · ${m.poi}`, rot: rotBand(x.kd, ctx.btcD, T, m.dir),
+      v: out.reason === "Stop" && out.j === f ? { t1: r2(netR(m, -1, ctx.fee)), t15: r2(netR(m, -1, ctx.fee)), pbe: r2(netR(m, -1, ctx.fee)) } : btVariants(k15, f, m, 48, null, ctx.fee),
+      wd: m.withDaily ?? null, sw: true });
   }
   return trades;
 }
@@ -3741,7 +3771,8 @@ function replaySession(sym, k15, winStart, ctx) {        // ORB and AMD at each 
         taken.add(m.model);
         const out = simulate(k15, j, m, 12, close11); if (!out) continue;
         trades.push({ sym, model: m.model, dir: m.dir, tf: "15m", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-          reason: out.reason, bars: out.j - j, session: sessOf(T), env: ctx.envAt(T), state: m.state });
+          reason: out.reason, bars: out.j - j, session: sessOf(T), env: ctx.envAt(T), state: m.state,
+          v: btVariants(k15, j, m, 12, close11, ctx.fee), wd: null, sw: !!m.sweep });
       }
     }
   }
@@ -3901,8 +3932,158 @@ function renderBacktest() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "the-finder-backtest.csv"; a.click();
   };
   if (all) drawEquity(T);
+  renderEdge();
 }
 function renderBacktestControls() { const b = $("btRun"); if (b) { b.disabled = btRunning || !data; b.textContent = btRunning ? "Running…" : "Run Backtest"; } }
+
+
+/* ===================== Edge Finder: where each model actually wins, checked on trades it never saw ===================== */
+const EDGE_KEY = "finder-edge";
+let EDGE = { rules: [], aOnly: false, minN: 30 };
+try { Object.assign(EDGE, JSON.parse(localStorage.getItem(EDGE_KEY) || "{}")); } catch (e) {}
+const edgeSave = () => { try { localStorage.setItem(EDGE_KEY, JSON.stringify(EDGE)); } catch (e) {} };
+const EDGE_VARS = { base: "Model target", t15: "1.5R target", t1: "1R target", pbe: "Half at 1R, rest to target or breakeven" };
+const EDGE_FEATS = {
+  env: ["Environment", t => t.env || null], session: ["Session", t => t.session || null], dir: ["Side", t => t.dir || null],
+  rsi: ["RSI at entry", t => t.rsi || null], rot: ["Strength vs BTC", t => t.rot && t.rot !== "n/a" ? t.rot : null],
+  wd: ["Daily", t => t.wd === true ? "With the Daily" : t.wd === false ? "Against the Daily" : null],
+  sw: ["Sweep", t => t.sw === true ? "Swept first" : t.sw === false ? "No sweep" : null] };
+const edgeR = (t, v) => v === "base" ? t.r : (t.v ? t.v[v] : null);
+function edgeStats(ts, v) {
+  const rs = ts.map(t => edgeR(t, v)).filter(x => x != null && isFinite(x)), n = rs.length; if (!n) return null;
+  const tot = rs.reduce((a, b) => a + b, 0), avg = tot / n, sd = Math.sqrt(rs.reduce((a, x) => a + (x - avg) ** 2, 0) / Math.max(1, n - 1)) || 1e-9;
+  return { n, win: rs.filter(x => x > 0).length / n * 100, avg, tot, t: avg / (sd / Math.sqrt(n)) };   // t: how far the average is from zero, in standard errors
+}
+const edgeMatch = (t, cs) => cs.every(([f, x]) => EDGE_FEATS[f][1](t) === x);
+const edgeCondText = cs => cs.map(([f, x]) => f === "dir" ? x + "s" : x).join(" · ");
+const edgeId = (model, v, cs) => `${model}|${v}|${cs.map(c => c.join("=")).join("&")}`;
+function edgeSearch(T, minN = 30) {
+  const hasV = T.some(t => t.v), vars = hasV ? Object.keys(EDGE_VARS) : ["base"], out = [];
+  MODEL_KEYS.forEach(model => {
+    const ts = T.filter(t => t.model === model).sort((a, b) => a.t - b.t), n = ts.length; if (!n) return;
+    const row = { model, n, base: {}, rules: [], tested: 0 };
+    vars.forEach(v => row.base[v] = edgeStats(ts, v));
+    if (n < minN) { out.push(row); return; }
+    const cut = Math.floor(n * 2 / 3), train = ts.slice(0, cut), test = ts.slice(cut);
+    row.split = { trainTo: train.at(-1).t, testFrom: test[0] ? test[0].t : null };
+    const fk = Object.keys(EDGE_FEATS), vals = {};
+    fk.forEach(f => vals[f] = [...new Set(train.map(EDGE_FEATS[f][1]).filter(x => x != null))]);
+    const conds = [];
+    fk.forEach(f => vals[f].forEach(x => conds.push([[f, x]])));
+    for (let a = 0; a < fk.length; a++) for (let b = a + 1; b < fk.length; b++) vals[fk[a]].forEach(x => vals[fk[b]].forEach(y => conds.push([[fk[a], x], [fk[b], y]])));
+    const minTrain = Math.ceil(minN * 2 / 3), minTest = Math.ceil(minN / 3), cands = [];
+    conds.forEach(cs => {
+      const tr = train.filter(t => edgeMatch(t, cs)); if (tr.length < minTrain) return;
+      vars.forEach(v => { const st = edgeStats(tr, v); row.tested++;
+        if (st && st.n >= minTrain && st.win >= 50 && st.avg > 0 && st.t >= 2.5) cands.push({ v, cs, train: st, score: st.t }); });   // strong enough that luck is unlikely
+    });
+    // commit to the 5 strongest candidates on the OLDER trades first (one per distinct trade set), then test only those:
+    // scoring every candidate on the newest trades and keeping the winners would quietly turn the test into another search
+    cands.sort((a, b) => b.score - a.score);
+    const seen = new Set(), picked = [];
+    for (const c of cands) {
+      const sel = ts.filter(t => edgeMatch(t, c.cs)), k = sel.length + ":" + sel.reduce((a, t) => a + t.t, 0);
+      if (seen.has(k)) continue; seen.add(k); picked.push(c); if (picked.length >= 5) break;
+    }
+    picked.forEach(c => {                                  // judged only on the newest third, which played no part in finding it
+      const te = edgeStats(test.filter(t => edgeMatch(t, c.cs)), c.v);
+      c.test = te;                                         // must stay at 50%+, clearly positive, and keep at least a third of the older edge
+      c.verdict = !te || te.n < minTest ? "few" : te.win >= 50 && te.avg >= Math.max(0.05, c.train.avg / 3) && te.t >= 1.5 ? "ok" : te.avg > 0 ? "part" : "fail";
+      c.all = edgeStats(ts.filter(t => edgeMatch(t, c.cs)), c.v); c.id = edgeId(model, c.v, c.cs); c.model = model;
+    });
+    const rank = { ok: 0, part: 1, few: 2, fail: 3 };
+    row.rules = picked.filter(c => c.verdict !== "fail").sort((a, b) => rank[a.verdict] - rank[b.verdict] || b.score - a.score).slice(0, 3);
+    row.failed = picked.filter(c => c.verdict === "fail").length; row.cands = cands.length; row.picked = picked.length;
+    out.push(row);
+  });
+  return out;
+}
+let EDGE_RES = null, EDGE_AT = null;
+function edgeResults() { if (!BT || !BT.trades) return null; if (EDGE_AT !== BT.at + ":" + EDGE.minN) { EDGE_RES = edgeSearch(BT.trades, EDGE.minN); EDGE_AT = BT.at + ":" + EDGE.minN; } return EDGE_RES; }
+const aGradeOn = () => !!EDGE.aOnly;
+function edgeLiveFeat(r, m, f) {
+  switch (f) {
+    case "env": return data && data.env ? data.env.label : null;
+    case "session": return sessOf(Date.now());
+    case "dir": return m.dir;
+    case "rsi": return r.rsi && r.rsi.h1 != null ? rsiBand(r.rsi.h1, m.dir) : null;
+    case "rot": { const c = coinRot(r); if (c.rel30 == null) return null; const x = m.dir === "Short" ? -c.rel30 : c.rel30;
+      return x >= 5 ? "With the trade (5+ pts)" : x <= -10 ? "Against the trade (10+ pts)" : "In line"; }
+    case "wd": return m.withDaily === true ? "With the Daily" : m.withDaily === false ? "Against the Daily" : null;
+    case "sw": return m.sweep ? "Swept first" : "No sweep";
+  }
+  return null;
+}
+function edgeRuleFor(r, m) { return EDGE.rules.find(x => x.model === m.model && x.cs.every(([f, v]) => edgeLiveFeat(r, m, f) === v)) || null; }
+const edgeOK = (r, m) => !!edgeRuleFor(r, m);
+function liveModels(r) { const ms = (r && r.models) || []; return aGradeOn() ? ms.filter(m => edgeOK(r, m)) : ms; }
+function edgeTag(r, m) {
+  if (!EDGE.rules.length) return "";
+  const rule = edgeRuleFor(r, m);
+  if (rule) return `<span class="tag long" title="${edgeCondText(rule.cs)}: newest trades ${rule.test.n}, win ${rule.test.win.toFixed(0)}%, ${fmtR(rule.test.avg)}">A-grade · ${rule.v === "base" ? "model target" : EDGE_VARS[rule.v].toLowerCase()}</span>`;
+  if (!EDGE.rules.some(x => x.model === m.model)) return aGradeOn() ? '<span class="tag">No proven edge yet</span>' : "";
+  return '<span class="tag">Not A-grade</span>';
+}
+function edgeChanged() { edgeSave(); renderEdge(); if (data) { renderPlaybook(); renderTable(); renderBoards(); } if (typeof navBadges === "function") navBadges(); }
+const edgeCell = s => s ? `<span class="${s.win >= 50 ? "up" : ""}">${s.win.toFixed(0)}%</span> · <span class="${rCls(s.avg)}">${fmtR(s.avg)}</span> <span class="mute">${s.n}</span>` : '<span class="mute">—</span>';
+const EDGE_VERDICT = { ok: ["long", "Confirmed"], part: ["", "Holds R, not 50%"], few: ["", "Too few new trades"], fail: ["short", "Failed"] };
+function edgeText() {
+  const res = edgeResults(); if (!res) return "";
+  let t = `EDGE FINDER (${BT.exchange}, last ${BT.days} days, ${BT.coins} coins, fees ${BT.fee}% round trip, min ${EDGE.minN} trades per condition; found on the older 2/3, confirmed on the newest 1/3)\n`;
+  res.forEach(row => {
+    const b = row.base;
+    t += `\n${row.model}: ${row.n} trades | model target ${b.base ? `${b.base.win.toFixed(0)}% win, ${fmtR(b.base.avg)}` : "n/a"}` +
+      (b.t15 ? ` | 1.5R ${b.t15.win.toFixed(0)}%, ${fmtR(b.t15.avg)} | 1R ${b.t1.win.toFixed(0)}%, ${fmtR(b.t1.avg)} | half@1R+BE ${b.pbe.win.toFixed(0)}%, ${fmtR(b.pbe.avg)}` : "") + "\n";
+    if (row.n < EDGE.minN) { t += `  not enough trades to search\n`; return; }
+    if (!row.rules.length) t += `  no condition reached 50% with positive R (${row.tested} tested, ${row.failed || 0} failed on new trades)\n`;
+    row.rules.forEach(c => t += `  ${EDGE_VERDICT[c.verdict][1]}: ${edgeCondText(c.cs)} + ${EDGE_VARS[c.v]} | older ${c.train.n} trades ${c.train.win.toFixed(0)}% ${fmtR(c.train.avg)} | newest ${c.test ? `${c.test.n} trades ${c.test.win.toFixed(0)}% ${fmtR(c.test.avg)}` : "none"}\n`);
+  });
+  return t;
+}
+function renderEdge() {
+  const el = $("edgeCard"); if (!el) return;
+  const res = edgeResults(), hasV = BT && BT.trades && BT.trades.some(t => t.v);
+  const used = new Set(EDGE.rules.map(x => x.id)), nOk = res ? res.reduce((s, r) => s + r.rules.filter(c => c.verdict === "ok").length, 0) : 0;
+  const tested = res ? res.reduce((s, r) => s + r.tested, 0) : 0;
+  let body;
+  if (!res) body = `<div class="empty">Run the backtest above first. The Edge Finder searches its trades.</div>`;
+  else body = `${hasV ? "" : `<div class="status err">This backtest was run before management variants existed: press Run Again above to include the 1R, 1.5R and half-at-1R results.</div>`}
+    <div class="tablewrap"><table class="sct edget"><thead><tr><th class="l">Model</th><th>Trades</th><th>Model target</th>${hasV ? "<th>1.5R</th><th>1R</th><th>Half at 1R + BE</th>" : ""}</tr></thead><tbody>${res.map(row => {
+      const head = `<tr class="edgem"><td class="l">${MODELS[row.model].icon} <b>${row.model}</b></td><td>${row.n}</td><td>${edgeCell(row.base.base)}</td>${hasV ? `<td>${edgeCell(row.base.t15)}</td><td>${edgeCell(row.base.t1)}</td><td>${edgeCell(row.base.pbe)}</td>` : ""}</tr>`;
+      const span = hasV ? 6 : 3;
+      if (row.n < EDGE.minN) return head + `<tr><td colspan="${span}" class="l mute edgesub">Not enough trades to search (${row.n} of ${EDGE.minN}). Run a longer backtest or more coins.</td></tr>`;
+      if (!row.rules.length) return head + `<tr><td colspan="${span}" class="l mute edgesub">No condition reached a 50% win rate with positive R on the older trades${row.failed ? `; ${row.failed} that did were rejected by the newest trades` : ""}. Treat this model as unproven.</td></tr>`;
+      return head + row.rules.map(c => `<tr><td colspan="${span}" class="l edgesub"><div class="edgerule">
+        <label class="tog"><input type="checkbox" data-edge="${c.id}" ${used.has(c.id) ? "checked" : ""} ${c.verdict === "ok" || c.verdict === "part" ? "" : "disabled"}> Use</label>
+        <span class="tag ${EDGE_VERDICT[c.verdict][0]}">${EDGE_VERDICT[c.verdict][1]}</span>
+        <b>${edgeCondText(c.cs)}</b><span class="mute">+ ${EDGE_VARS[c.v]}</span>
+        <span class="edgeab">Older ⅔: ${edgeCell(c.train)} · Newest ⅓: ${edgeCell(c.test)}</span></div></td></tr>`).join("");
+    }).join("")}</tbody></table></div>`;
+  el.innerHTML = `
+    <div class="schead"><h2>Edge Finder</h2><span class="meta">${res ? `${nOk} confirmed rule${nOk === 1 ? "" : "s"} · ${tested.toLocaleString("en-US")} conditions tested · ${EDGE.rules.length} in use` : "Finds where each model wins 50%+ with positive R"}</span></div>
+    <p class="meta edgeintro">For each model it looks for conditions (environment, session, side, RSI at entry, strength vs BTC, with or against the Daily, sweep first) and a way to manage the trade where the win rate is 50%+ <b>and</b> the average R is positive. It searches only the <b>older two-thirds</b> of the backtest and then checks each find on the <b>newest third</b>, which it never saw. A rule needs ${Math.ceil(EDGE.minN * 2 / 3)}+ older trades with an edge too strong to be luck (average R at least 2.5 standard errors above zero), then ${Math.ceil(EDGE.minN / 3)}+ newer trades that keep 50%+, stay clearly positive and keep at least a third of the edge. Only <span class="tag long">Confirmed</span> rules held up on new trades; the more conditions tested, the more likely a lucky one slips through, so re-run the backtest weekly and drop rules that stop confirming.</p>
+    <div class="btctl">
+      <label class="pill"><span>Min trades per rule</span><select id="edgeMin"><option value="30">30</option><option value="50">50</option><option value="80">80</option></select></label>
+      ${res && nOk ? `<button class="btn" id="edgeAll">Use all confirmed</button>` : ""}
+      ${EDGE.rules.length ? `<button class="btn" id="edgeNone">Clear rules in use</button>` : ""}
+      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""} ${EDGE.rules.length ? "" : "disabled"}> <b>A-grade only</b>: playbook, coin plays, alerts and bots use only setups matching a rule in use</label>
+      ${res ? `<button class="btn sm" id="edgeCopy">Copy for Claude</button>` : ""}
+    </div>
+    ${body}
+    <p class="meta">Win rate needed just to break even before fees: 50% at a 1R target, 40% at 1.5R, 33% at 2R, 25% at 3R. A lower win rate with bigger winners can still be the better model, so read the R column with the win rate.</p>`;
+  if ($("edgeMin")) { $("edgeMin").value = String(EDGE.minN); $("edgeMin").onchange = () => { EDGE.minN = +$("edgeMin").value; edgeChanged(); }; }
+  el.querySelectorAll("[data-edge]").forEach(cb => cb.onchange = () => {
+    const c = res.flatMap(r => r.rules).find(x => x.id === cb.dataset.edge); if (!c) return;
+    EDGE.rules = EDGE.rules.filter(x => x.id !== c.id);
+    if (cb.checked) EDGE.rules.push({ id: c.id, model: c.model, v: c.v, cs: c.cs, train: c.train, test: c.test, verdict: c.verdict });
+    if (!EDGE.rules.length) EDGE.aOnly = false;
+    edgeChanged();
+  });
+  if ($("edgeAll")) $("edgeAll").onclick = () => { res.forEach(r => r.rules.filter(c => c.verdict === "ok").forEach(c => { if (!EDGE.rules.some(x => x.id === c.id)) EDGE.rules.push({ id: c.id, model: c.model, v: c.v, cs: c.cs, train: c.train, test: c.test, verdict: c.verdict }); })); edgeChanged(); };
+  if ($("edgeNone")) $("edgeNone").onclick = () => { EDGE.rules = []; EDGE.aOnly = false; edgeChanged(); };
+  if ($("edgeAOnly")) $("edgeAOnly").onchange = () => { EDGE.aOnly = $("edgeAOnly").checked; edgeChanged(); };
+  if ($("edgeCopy")) $("edgeCopy").onclick = async () => { const t = edgeText(); try { await navigator.clipboard.writeText(t); toast("Edge Finder results copied. Paste them to Claude."); } catch (e) { prompt("Copy this:", t); } };
+}
 
 /* ===================== Bot Simulator: forward-test every strategy on live prices (paper money) ===================== */
 const BOT_KEY = "altscan-bot";
@@ -3989,7 +4170,7 @@ function botOnScan() {                                        // new setups from
   BOT_STRATS().forEach(k => {
     const b = BOT.bots[k]; if (!b.on) return;
     const cands = [];
-    data.all.forEach(r => (r.models || []).forEach(m => {
+    data.all.forEach(r => liveModels(r).forEach(m => {
       if (m.model !== k || !m.trig || m.dir === "any") return;
       if (b.positions.some(p => p.sym === r.symbol)) return;
       if (b.closed.some(c => c.sym === r.symbol && Date.now() - c.closed < cooldown)) return;

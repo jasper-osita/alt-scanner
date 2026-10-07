@@ -8,7 +8,8 @@ python3 - "$V" << 'PY'
 import sys, re, json
 v = sys.argv[1]
 s = open("index.html").read()
-s = re.sub(r'const APP_VERSION = "[^"]+";', f'const APP_VERSION = "{v}";', s); open("index.html", "w").write(s)
+s = re.sub(r'const APP_VERSION = "[^"]+";', f'const APP_VERSION = "{v}";', s)
+s = re.sub(r'href="/manifest\.webmanifest(\?v=[^"]*)?"', f'href="/manifest.webmanifest?v={v}"', s); open("index.html", "w").write(s)
 json.dump({"version": v}, open("version.json", "w"))
 w = open("sw.js").read()
 w = re.sub(r'const SHELL = "[a-z-]+-shell-[^"]+";', f'const SHELL = "the-finder-shell-{v}";', w); open("sw.js", "w").write(w)

@@ -29,7 +29,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-Security-Policy", CSP)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
-        if self.path in ("/", "/index.html", "/sw.js"): self.send_header("Cache-Control", "no-cache")
+        if self.path.split("?")[0] in ("/", "/index.html", "/sw.js", "/manifest.webmanifest"): self.send_header("Cache-Control", "no-cache")
         if self.path.startswith("/version.json"): self.send_header("Cache-Control", "no-store")
         super().end_headers()
     def do_GET(self):

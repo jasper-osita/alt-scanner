@@ -9,6 +9,25 @@ Also includes: session picks (the best 3 coins to day trade in Asia, London and 
 (EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, price and setup alerts
 (while the app is open), and a scorecard that tracks every scan's picks and checks whether they hit target or stop.
 
+## Momentum Board
+Three 1H columns, with 4H shown as context ("4H agrees" = 4H RSI 50+ and price above the 4H 20, for longs):
+🔥 **In Momentum**: RSI 70+ with price beyond all three MAs. ⏳ **Awaiting Momentum**: RSI tapped 70 in the last 12 hours,
+cooled to 55–70, still holding the 20. 🚀 **Breaking Out**: the first candle that closes clear of bunched 20/50/100 (within
+1.5 ATR) with RSI 60+, after at least 15 of the prior 48 hours on the other side (a new trend, not a continuation); "Pressing"
+= testing the cluster with RSI rising. Shorts mirror everything (RSI 30, breakdowns) and follow the Direction switch. Coins 3+
+ATR from the 20 are flagged "Stretched: don't chase", weak-volume breaks are flagged, and wicky coins follow the Wicks setting.
+New breakouts trigger an alert while the app is open. The **Ignition** model (breakout in the last 2 candles, RSI 60+, 1.5×
+volume, not stretched; stop beyond the breakout low and the cluster, target 2R) is in the Model Guide, backtest and bots.
+
+## Money Flow (rotation, measured)
+Reads where money is actually going over the last 30 days instead of assuming the BTC → ETH → large caps → altseason
+story. It compares BTC, ETH (and the ETH/BTC daily trend), and the median 30-day return of large caps (top 20 alts by
+CoinGecko market cap), mid caps (21–100), small caps and memes, plus how many alts are beating BTC. A phase is called only
+when its checks pass (shown with ✓/✗), alongside what would prove it wrong and what would confirm the next step; otherwise
+it says "No clear rotation", or "Risk-off" when everything is falling. Every coin is tagged Leader, Turning, In line,
+Holding up, Fading or Laggard against BTC. Laggards are never treated as "next": long plays on them carry a caution,
+leaders rank higher, and the backtest's Model × Strength vs BTC view tests whether that holds on real history.
+
 ## RSI and momentum
 RSI (14) on 1H, 4H and Daily for every coin, with your zones (70+ momentum, 60–70 pre-momentum, 30–40 pre-weak, 30 or
 below weak), divergence and ignition (a fresh cross of 60 or 40). The Momentum score (0–100) blends RSI alignment, volume

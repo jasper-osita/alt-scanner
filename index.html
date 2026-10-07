@@ -437,6 +437,32 @@ table.btm td{white-space:nowrap}
 .dright .cgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dright .cgrid label:first-child{grid-column:1/-1}
 @media (max-width:1000px){.dgrid{grid-template-columns:1fr}.dleft .chartbox{min-height:0}}
+.rotcard{margin-top:14px}
+.psteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0 4px}
+.pstep{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--mute);background:var(--bg)}
+.pstep b{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:var(--pill);color:var(--text);margin-right:4px;font-size:11px}
+.pstep.past{opacity:.75}
+.pstep.on{border-color:var(--green);color:var(--strong);box-shadow:0 0 0 1px color-mix(in srgb,var(--green) 35%,transparent) inset}
+.pstep.on b{background:var(--green);color:#fff}
+.psteps.none .pstep{opacity:.55}
+.rotgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px}
+@media (max-width:900px){.rotgrid{grid-template-columns:1fr}.psteps{grid-template-columns:1fr 1fr}}
+.rotkv{grid-template-columns:150px 1fr;font-size:13px}
+.rck{list-style:none;margin:4px 0;padding:0;font-size:13px}
+.rck li{display:flex;gap:6px;align-items:baseline;padding:2px 0;flex-wrap:wrap}
+.rck li>span:first-child{width:14px;font-weight:700}
+.rck li.ok>span:first-child{color:var(--green)}.rck li.no>span:first-child{color:var(--red)}.rck li.na>span:first-child{color:var(--mute)}
+.rtxt{font-size:13px;margin:4px 0;line-height:1.5}
+.rotcount{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px}
+.rotlead{display:flex;flex-wrap:wrap;gap:6px}
+.rotnote{margin-top:10px}
+
+#momoBoard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){#momoBoard{grid-template-columns:1fr}}
+.mrsi{font-size:11px;margin-left:6px}
+.momocard .why{font-size:12.5px;color:var(--mute);margin:3px 0 10px}
+.momohead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.momohead h2{margin:0;font-size:16px;font-weight:600;color:var(--strong)}
 </style>
 </head>
 <body>
@@ -491,7 +517,16 @@ table.btm td{white-space:nowrap}
     <div class="mcard"><h2>Top 10 Losers <span class="meta">24h</span></h2><div class="note">Coins with $5M+ volume</div><div id="losers"><div class="empty">No scan yet.</div></div></div>
   </section>
 
+  <section class="card rotcard" id="rotation"><h2>Money Flow</h2><div class="empty">Run a scan to read where money is flowing.</div></section>
+
   <section class="card pbcard" id="playbook" aria-live="polite"><div class="empty">Run a scan to read today's environment.</div></section>
+
+  <section class="card sesscard momocard">
+    <div class="momohead"><h2>Momentum Board</h2><span class="meta">1H RSI (14) and EMA 20/50/100 · 4H as context</span>
+      <label class="tog" style="margin-left:auto"><input type="checkbox" id="momoAlert"> Alert me on new breakouts</label></div>
+    <div class="why">Coins already running, coins pausing after a push, and coins starting a new trend out of bunched moving averages. Each coin is listed in its strongest stage; stretched coins (3+ ATR from the 20) are flagged so you wait for a pullback instead of chasing.</div>
+    <div id="momoBoard"><div class="empty">Run a scan to see the momentum board.</div></div>
+  </section>
 
   <section class="card sesscard">
     <h2>Session Picks</h2>
@@ -1028,7 +1063,7 @@ function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
   };
   for (const dir of ["Long", "Short"]) {
     if (D === dir) { run(nbbLong, dir); run(bounceLong, dir); run(leaderLong, dir); }
-    run(breakerLong, dir); run(fadeLong, dir); run(vtradeLong, dir);
+    run(breakerLong, dir); run(fadeLong, dir); run(vtradeLong, dir); run(igniteLong, dir);
   }
   const T = FULL.includes(s4h.state) ? s4h.dir : null;
   if (T && k4h.c.length > 40) run(pullbackLong, T === "Short" ? "Long" : "Short", k4h);
@@ -1156,6 +1191,71 @@ function rsiCross(rs) {                            // momentum ignition: RSI cro
   for (let i = n - 1; i >= n - 3; i--) { if (i < 1 || rs[i - 1] == null) continue; if (rs[i - 1] < 60 && rs[i] >= 60) return "up60"; if (rs[i - 1] > 40 && rs[i] <= 40) return "down40"; }
   return null;
 }
+/* ---- Momentum board + Ignition: price breaking out of bunched 20/50/100 with RSI (written for longs; shorts run mirrored) ---- */
+function igniteCore(k, a, e20, e50, e100, rs) {
+  const n = k.c.length, i = n - 1, c = k.c;
+  if (n < 120 || !a) return null;
+  const top = j => Math.max(e20[j], e50[j], e100[j]), bot = j => Math.min(e20[j], e50[j], e100[j]), spread = j => (top(j) - bot(j)) / a;
+  // the ignition candle: the first close that is both clear of the cluster (0.25 ATR+) and has RSI 60+, so early pokes in the chop don't count
+  const lit = j => rs[j] != null && rs[j] >= 60 && c[j] - top(j) >= 0.25 * a;
+  let jb = -1;
+  for (let j = n - 6; j < n; j++) if (lit(j) && !lit(j - 1)) jb = j;
+  if (jb > 0 && c[i] - top(i) >= 0.25 * a) {
+    const pre = jb - 1, tight = Math.min(spread(pre), spread(Math.max(0, jb - 6)));
+    let below = 0; for (let j = Math.max(0, jb - 48); j < jb; j++) if (c[j] <= top(j)) below++;
+    let peak = 0; for (let j = jb; j <= i; j++) if (rs[j] != null) peak = Math.max(peak, rs[j]);
+    if (tight <= 1.5 && below >= 15) {                                                            // bunched MAs + a new trend (not a continuation)
+      const vb = k.qv.slice(Math.max(0, jb - 21), jb), avgV = vb.reduce((x, y) => x + y, 0) / (vb.length || 1);
+      return { broke: true, ago: i - jb, jb, volx: avgV > 0 ? k.qv[jb] / avgV : 1, tight, rsiPeak: peak, breakLevel: top(pre), floor: bot(i) };
+    }
+  }
+  const sp = spread(i);                                                                           // pressing: testing the cluster from just below or just above
+  if (sp <= 1.5 && Math.abs(c[i] - top(i)) <= 0.5 * a && c[i] >= bot(i) && rs[i] != null && rs[i - 3] != null && rs[i] >= 55 && rs[i] > rs[i - 3]) {
+    let below = 0; for (let j = n - 48; j < n; j++) if (c[j] <= top(j)) below++;
+    if (below >= 15) return { pressing: true, tight: sp, breakLevel: top(i), floor: bot(i) };
+  }
+  return null;
+}
+function igniteLong(k, a) {                  // the Ignition model: a new trend starting out of bunched MAs, with RSI behind it
+  const c = k.c, n = c.length, i = n - 1, e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), rs = rsiSeries(c);
+  const g = igniteCore(k, a, e20, e50, e100, rs); if (!g) return null;
+  if (g.pressing) return { model: "Ignite", state: "Pressing the MAs", trig: false, zoneHi: g.breakLevel, zoneLo: g.floor,
+    ...levels(g.breakLevel + 0.25 * a, minOf(k.l.slice(n - 6)) - 0.2 * a),
+    note: `20/50/100 bunched within ${g.tight.toFixed(1)} ATR; price is testing them with RSI ${rs[i].toFixed(0)} and rising. The trigger is a clear close above ${fmtNum(g.breakLevel + 0.25 * a)} with RSI 60+.` };
+  const ext = (c[i] - e20[i]) / a, stop = Math.min(minOf(k.l.slice(Math.max(0, g.jb - 2), n)), g.floor) - 0.2 * a;
+  const stretched = ext >= 3, trig = g.ago <= 2 && rs[i] >= 60 && g.volx >= 1.5 && !stretched && c[i] - stop <= 3 * a;
+  return { model: "Ignite", state: stretched ? "Broke out, stretched" : rs[i] >= 70 ? "Broke out, RSI 70+" : g.rsiPeak >= 70 ? "Broke out, RSI cooling" : "Broke out, RSI building",
+    trig, zoneHi: g.breakLevel, zoneLo: g.floor, ...levels(c[i], stop),
+    note: `Closed above the bunched 20/50/100 ${g.ago === 0 ? "this candle" : g.ago + " candle" + (g.ago > 1 ? "s" : "") + " ago"} on ${g.volx.toFixed(1)}× volume; RSI ${rs[i].toFixed(0)}${g.rsiPeak >= 70 ? ` (peaked ${g.rsiPeak.toFixed(0)})` : ""}.${stretched ? ` Already ${ext.toFixed(1)} ATR above the 20: don't chase.` : ""}` };
+}
+const fmtNum = v => v >= 100 ? v.toFixed(2) : v >= 1 ? v.toFixed(4) : v.toPrecision(4);
+function momoLong(k, k4, a) {                // which stage a coin is in, read for longs
+  const c = k.c, n = c.length, i = n - 1; if (n < 120 || !a) return null;
+  const e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), rs = rsiSeries(c), rsi = rs[i]; if (rsi == null) return null;
+  const top = Math.max(e20[i], e50[i], e100[i]), ext = (c[i] - e20[i]) / a;
+  const r4s = k4 && k4.c.length > 30 ? rsiSeries(k4.c) : null, r4 = r4s ? r4s.at(-1) : null, e4 = k4 && k4.c.length > 30 ? ema(k4.c, 20).at(-1) : null;
+  const h4ok = r4 != null && e4 != null && r4 >= 50 && k4.c.at(-1) > e4;
+  const g = igniteCore(k, a, e20, e50, e100, rs);
+  let tapped = -1; for (let j = n - 12; j < n; j++) if (rs[j] != null && rs[j] >= 70) tapped = j;
+  let stage = null;
+  if (g) stage = "breakout";
+  else if (rsi >= 70 && c[i] > top) stage = "momentum";
+  else if (tapped >= 0 && rsi >= 55 && rsi < 70 && c[i] > e20[i]) stage = "awaiting";
+  if (!stage) return null;
+  return { stage, rsi, r4, h4ok, ext: r2(ext), stretched: ext >= 3, tappedAgo: tapped >= 0 ? i - tapped : null, g };
+}
+function momoRead(k1h, k4h) {
+  const a = atr(k1h.h, k1h.l, k1h.c).at(-1); if (!a) return null;
+  let L = null, S = null;
+  try { L = momoLong(k1h, k4h, a); } catch (e) {}
+  try { S = momoLong(mirror(k1h), mirror(k4h), a); } catch (e) {}
+  const pack = (m, dir) => m && { dir, stage: m.stage, h4ok: m.h4ok, ext: dir === "Short" ? -m.ext : m.ext, stretched: m.stretched, tappedAgo: m.tappedAgo,
+    broke: !!(m.g && m.g.broke), pressing: !!(m.g && m.g.pressing), ago: m.g && m.g.broke ? m.g.ago : null, volx: m.g && m.g.volx ? r2(m.g.volx) : null,
+    tight: m.g ? r2(m.g.tight) : null, peak: m.g && m.g.rsiPeak ? r1(dir === "Short" ? 100 - m.g.rsiPeak : m.g.rsiPeak) : null, breakAt: m.g && m.g.broke ? k1h.t[m.g.jb] : null };
+  if (L && S) return L.stage === "breakout" && S.stage !== "breakout" ? pack(L, "Long") : S.stage === "breakout" && L.stage !== "breakout" ? pack(S, "Short") : pack(L, "Long");
+  return pack(L, "Long") || pack(S, "Short");
+}
+
 function rsiPack(k1h, k4h, k1d) {
   const a = rsiSeries(k1h.c), b = rsiSeries(k4h.c), d = rsiSeries(k1d.c);
   return { rsi: { h1: a.at(-1) == null ? null : r1(a.at(-1)), h4: b.at(-1) == null ? null : r1(b.at(-1)), d1: d.at(-1) == null ? null : r1(d.at(-1)) },
@@ -1197,9 +1297,9 @@ async function analyse(c, maFn) {
   return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
-           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, maxLev: null, models: detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...rsiPack(k1h, k4h, k1d), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
+           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, maxLev: null, models: detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
            wick: wick === null ? null : r1(wick), spikes, wicky: (wick !== null && wick > WICK_MAX) || spikes >= SPIKE_MAX,
-           ret90: k1d.c.length > 91 ? k1d.c.at(-1) / k1d.c.at(-91) - 1 : null,
+           ret90: k1d.c.length > 91 ? k1d.c.at(-1) / k1d.c.at(-91) - 1 : null, ret30: k1d.c.length > 31 ? k1d.c.at(-1) / k1d.c.at(-31) - 1 : null,
            ...rate(s1h, s4h, s1d, a4, a1), mp: { "1H": maPack(k1h), "4H": maPack(k4h), "1D": maPack(k1d) },
            trending: Math.abs(c.chg24h) >= TREND_MOVE && rvol >= TREND_RVOL };
 }
@@ -1313,7 +1413,18 @@ async function btcRegime(maFn) {
   const s1 = structure(a, maFn), s4 = structure(b, maFn);
   const regime = (s1.state === "Bull stack" && s4.state === "Bull stack") ? "Risk-on"
                : (s1.state === "Bear stack" && s4.state === "Bear stack") ? "Risk-off" : "Chop";
-  return { regime, h1: s1.state, h4: s4.state, price: a.c.at(-1), ret90: d.c.length > 91 ? d.c.at(-1) / d.c.at(-91) - 1 : null, ret24: ret(a.c, 24), ret7: ret(b.c, 42) };
+  return { regime, h1: s1.state, h4: s4.state, price: a.c.at(-1), ret90: d.c.length > 91 ? d.c.at(-1) / d.c.at(-91) - 1 : null, ret24: ret(a.c, 24), ret7: ret(b.c, 42),
+           ret30: d.c.length > 31 ? d.c.at(-1) / d.c.at(-31) - 1 : null, dt: d.t, dc: d.c };
+}
+/* ETH and the ETH/BTC ratio, for the money-flow read */
+async function ethRead(btc, maFn) {
+  const d = await klines("ETHUSDT", "1d", 130); if (d.c.length < 60) return null;
+  const bx = new Map(btc.dt.map((t, i) => [t, btc.dc[i]])), rt = [], rc = [];
+  d.t.forEach((t, i) => { const b = bx.get(t); if (b) { rt.push(t); rc.push(d.c[i] / b); } });
+  const e20 = maFn(rc, 20), e50 = maFn(rc, 50), n = rc.length - 1;
+  return { ret30: d.c.length > 31 ? d.c.at(-1) / d.c.at(-31) - 1 : null, ret7: d.c.length > 8 ? d.c.at(-1) / d.c.at(-8) - 1 : null,
+           ratio: rc.at(-1), ratio30: rc.length > 31 ? rc.at(-1) / rc.at(-31) - 1 : null,
+           above20: e20[n] != null && rc[n] > e20[n], stacked: e20[n] != null && e50[n] != null && e20[n] > e50[n], rising: e20[n] != null && e20[n - 5] != null && e20[n] > e20[n - 5] };
 }
 function commonFlags(r, dir, btc, ext) {
   const f = [];
@@ -1351,6 +1462,7 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
   const coins = await loadMarkets(market, quote, alts, minVol);
   progress("Reading BTC…", 0.03);
   const btc = await btcRegime(maFn);
+  let eth = null; try { eth = await ethRead(btc, maFn); } catch (e) {}
 
   const t0 = Date.now();
   const results = (await pool(coins, 8, c => analyse(c, maFn), (d, n) => {
@@ -1375,7 +1487,7 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
   const dayPoolSyms = dayPool.map(r => r.symbol);
 
   progress("Done", 1);
-  return { at: new Date().toISOString(), exchange: EXCHANGE, mode: MODE, market, quote, fellBack, canShort, ma, alts, btc,
+  return { at: new Date().toISOString(), eth, exchange: EXCHANGE, mode: MODE, market, quote, fellBack, canShort, ma, alts, btc,
            total: coins.length, analysed: results.length, dayPool: dayPoolSyms, day: [], swing: [], all: results };
 }
 </script>
@@ -1534,7 +1646,7 @@ function renderAots() {
     (e.a.stage === "Fresh AOTS" ? `<span class="tag trade">Fresh AOTS</span>` : `<span class="tag">Breaking out</span>`) + flagTags(e.flags), false)).join("");
   bindRows(el);
 }
-function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAots(); if (typeof renderSessions === "function" && data && data.env) renderSessions(); }
+function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAots(); if (typeof renderSessions === "function" && data && data.env) { renderSessions(); renderMomentum(); } }
 
 /* ---- why it's moving + fundamentals in the coin panel ---- */
 const drvCache = {};
@@ -1611,6 +1723,7 @@ const NUM = {
   rvolNow:{ label: "Relative Volume Now", unit: "×", get: r => r.rvolNow },
   rs24:   { label: "Strength vs BTC (24h)", unit: "%", get: r => r.rs24 },
   rs7:    { label: "Strength vs BTC (7d)", unit: "%", get: r => r.rs7 },
+  rel30:  { label: "Strength vs BTC (30d)", unit: "%", get: r => coinRot(r).rel30 },
   rsi1h:  { label: "RSI 1H", unit: "", get: r => r.rsi ? r.rsi.h1 : null },
   rsi4h:  { label: "RSI 4H", unit: "", get: r => r.rsi ? r.rsi.h4 : null },
   rsi1d:  { label: "RSI Daily", unit: "", get: r => r.rsi ? r.rsi.d1 : null },
@@ -1630,6 +1743,10 @@ const KINDS = [
     make: () => ({ kind: "stack", tf: "4H", cond: "bull_any" }) },
   { kind: "model", title: "Model Setup", sub: "NBB, Bounce (OEZ), Fade, Breaker (Flip), V-Trade, Pullback, ORB, AMD",
     make: () => ({ kind: "model", model: "NBB", stage: "any", dir: "any" }) },
+  { kind: "momo", title: "Momentum Stage", sub: "In momentum (RSI 70+), awaiting momentum (tapped 70, holding), or breaking out of bunched MAs",
+    make: () => ({ kind: "momo", stage: "breakout" }) },
+  { kind: "rot", title: "Money Flow", sub: "Cap tier (large, mid, small) and whether the coin leads or lags BTC over 30 days",
+    make: () => ({ kind: "rot", tier: "any", status: "Leader" }) },
   { kind: "rsi", title: "RSI", sub: "Momentum 70+, pre-momentum 60–70, weak, divergence, or a fresh cross of 60 / 40 on 1H, 4H or Daily",
     make: () => ({ kind: "rsi", tf: "h1", cond: "pre_up" }) },
   { kind: "aots", title: "AOTS (Trend Starting)", sub: "Breaking out or fresh alignment on 4H or 1H",
@@ -1637,7 +1754,7 @@ const KINDS = [
   { kind: "rating", title: "Tech Rating", sub: "Strong buy, Buy, Chop, Sell, Strong sell",
     make: () => ({ kind: "rating", set: ["Strong buy", "Buy"] }) },
   ...Object.entries(NUM).map(([k, m]) => ({ kind: "num:" + k, title: m.label, sub: `Greater than, less than or between${m.unit ? " (" + m.unit + ")" : ""}`,
-    make: () => ({ kind: "num", field: k, op: ">", a: { chg24h: 0, vol24h: 20, rvol: 1.2, rvolNow: 1.5, rsi1h: 60, rsi4h: 60, rsi1d: 60, mom: 70, rs24: 2, rs7: 5, atrPct: 2.5, wick: 60, spikes: 3, funding: 0.05, dayScore: 60, swingScore: 60, aotsScore: 60, price: 1 }[k], b: null }) })),
+    make: () => ({ kind: "num", field: k, op: ">", a: { chg24h: 0, vol24h: 20, rvol: 1.2, rvolNow: 1.5, rsi1h: 60, rsi4h: 60, rsi1d: 60, mom: 70, rs24: 2, rs7: 5, rel30: 5, atrPct: 2.5, wick: 60, spikes: 3, funding: 0.05, dayScore: 60, swingScore: 60, aotsScore: 60, price: 1 }[k], b: null }) })),
   { kind: "flag:notWicky", title: "Clean Candles Only", sub: "Excludes coins flagged wicky", make: () => ({ kind: "flag", name: "notWicky" }) },
   { kind: "flag:spotOk", title: "Tradeable on Spot", sub: "Spot volume of $20M or more", make: () => ({ kind: "flag", name: "spotOk" }) },
   { kind: "flag:trending", title: "Trending Today", sub: "Moved 8%+ on 1.8×+ relative volume", make: () => ({ kind: "flag", name: "trending" }) },
@@ -1693,6 +1810,8 @@ function testFilter(r, f) {
                bull_any: st === "Bull stack" || st === "Pullback in bull", bear_any: st === "Bear stack" || st === "Pullback in bear", tangled: st === "Tangled" }[f.cond];
     }
     case "model": return (r.models || []).some(m => (f.model === "any" || m.model === f.model) && (f.stage === "any" || (f.stage === "trig" ? m.trig : !m.trig)) && (f.dir === "any" || m.dir === f.dir));
+    case "momo": return !!r.momo && (f.stage === "any" || r.momo.stage === f.stage);
+    case "rot": return (f.tier === "any" || tierOf(r) === f.tier) && (f.status === "any" || coinRot(r).status === f.status);
     case "rsi": {
       const v = r.rsi ? r.rsi[f.tf] : null, dv = r.rsiDiv ? r.rsiDiv[f.tf] : null, cx = r.rsiCross ? r.rsiCross[f.tf] : null;
       return { mom_up: v != null && v >= 70, pre_up: v != null && v >= 60, neutral: v != null && v > 40 && v < 60, pre_dn: v != null && v <= 40, mom_dn: v != null && v <= 30,
@@ -1723,6 +1842,8 @@ function describe(f) {
     case "ma_ma": return `${M(f.ma)} ${f.p} ${MA_MA.find(c => c[0] === f.cond)[1].toLowerCase()} ${M(f.ma)} ${f.p2} (${f.tf})`;
     case "stack": return `${f.tf}: ${STACKS.find(c => c[0] === f.cond)[1]}`;
     case "model": return `${f.model === "any" ? "Any model" : f.model} setup${f.stage === "trig" ? ", triggered" : f.stage === "setup" ? ", setting up" : ""}${f.dir !== "any" ? ", " + f.dir.toLowerCase() : ""}`;
+    case "momo": return f.stage === "any" ? "Any momentum stage" : MOMO_STAGE[f.stage].replace(/^\S+ /, "");
+    case "rot": return `${f.tier === "any" ? "Any cap" : f.tier + " caps"}${f.status === "any" ? "" : ", " + f.status.toLowerCase() + "s vs BTC (30d)"}`;
     case "rsi": return `RSI ${{ h1: "1H", h4: "4H", d1: "Daily" }[f.tf]}: ${RSI_CONDS.find(c => c[0] === f.cond)[1].toLowerCase()}`;
     case "aots": return `AOTS ${f.tf === "any" ? "4H or 1H" : f.tf}${f.dir !== "any" ? " " + f.dir.toLowerCase() : ""}${f.stage !== "any" ? ", " + f.stage.toLowerCase() : ""}`;
     case "rating": return `Rating: ${f.set.join(" / ")}`;
@@ -1745,6 +1866,8 @@ function editorHTML(f, i) {
     case "stack": return `<div class="fx">${sel(i, "tf", TFS.map(t => [t, TF_LABEL[t]]), f.tf, "Timeframe")}${sel(i, "cond", STACKS, f.cond, "Stack")}</div>`;
     case "model": return `<div class="fx">${sel(i, "model", [["any", "Any model"], ...MODEL_KEYS.map(k => [k, MODELS[k].icon + " " + k + (MODELS[k].alias ? " (" + MODELS[k].alias + ")" : "")])], f.model, "Model")}</div>
       <div class="fx">${sel(i, "stage", [["any", "Any stage"], ["trig", "Triggered"], ["setup", "Setting up"]], f.stage, "Stage")}${sel(i, "dir", [["any", "Either way"], ["Long", "Long"], ["Short", "Short"]], f.dir, "Direction")}</div>`;
+    case "momo": return `<div class="fx">${sel(i, "stage", [["any", "Any stage"], ["momentum", "In momentum (RSI 70+)"], ["awaiting", "Awaiting momentum"], ["breakout", "Breaking out"]], f.stage, "Stage")}</div>`;
+    case "rot": return `<div class="fx">${sel(i, "tier", [["any", "Any cap"], ["Large", "Large caps (top 20)"], ["Mid", "Mid caps (21–100)"], ["Small", "Small caps"]], f.tier, "Cap tier")}${sel(i, "status", [["any", "Any"], ["Leader", "Leaders"], ["Turning", "Turning"], ["In line", "In line"], ["Fading", "Fading leaders"], ["Holding up", "Holding up (falling less than BTC)"], ["Laggard", "Laggards"]], f.status, "Versus BTC")}</div>`;
     case "rsi": return `<div class="fx">${sel(i, "tf", [["h1", "1 hour"], ["h4", "4 hours"], ["d1", "1 day"]], f.tf, "Timeframe")}${sel(i, "cond", RSI_CONDS, f.cond, "Condition")}</div>`;
     case "aots": return `<div class="fx">${sel(i, "tf", [["any", "4H or 1H"], ["4H", "4H"], ["1H", "1H"]], f.tf, "Timeframe")}${sel(i, "dir", [["Long", "Long"], ["Short", "Short"], ["any", "Either way"]], f.dir, "Direction")}${sel(i, "stage", [["any", "Any stage"], ["Breaking out", "Breaking out"], ["Fresh AOTS", "Fresh AOTS"]], f.stage, "Stage")}</div>`;
     case "rating": return `<div class="fx wrap">${RATINGS.map(rt => `<label class="mini"><input type="checkbox" data-i="${i}" data-set="${rt}" ${f.set.includes(rt) ? "checked" : ""}>${rt}</label>`).join("")}</div>`;
@@ -1848,12 +1971,14 @@ function togglePanel(force) {
 const EXT = { fng: null, global: null };
 async function loadMarketExternal() {
   const safe = p => p.catch(() => null);
-  const [fng, glob] = await Promise.all([
-    safe(getJSON("https://api.alternative.me/fng/?limit=2", 1)), safe(getJSON("https://api.coingecko.com/api/v3/global", 1))]);
+  const [fng, glob, mk] = await Promise.all([
+    safe(getJSON("https://api.alternative.me/fng/?limit=2", 1)), safe(getJSON("https://api.coingecko.com/api/v3/global", 1)),
+    safe(getJSON("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1", 1))]);
+  if (Array.isArray(mk) && mk.length) EXT.caps = capsFrom(mk);
   if (fng && fng.data && fng.data.length) EXT.fng = { v: +fng.data[0].value, cls: fng.data[0].value_classification, prev: fng.data[1] ? +fng.data[1].value : null };
   if (glob && glob.data) EXT.global = { mcap: glob.data.total_market_cap.usd, chg: glob.data.market_cap_change_percentage_24h_usd,
     btcDom: glob.data.market_cap_percentage.btc, ethDom: glob.data.market_cap_percentage.eth };
-  if (data) { renderMarket(); renderPlaybook(); renderGuide(); }
+  if (data) { renderMarket(); renderRotation(); renderPlaybook(); renderGuide(); renderTable(); }
 }
 function altSeason() {                       // % of the top 50 alts (by volume) that beat BTC over 90 days
   if (!data || data.btc.ret90 == null) return null;
@@ -1919,6 +2044,11 @@ const QUICK = [
   { name: "Trending", filters: [{ kind: "flag", name: "trending" }], tab: "overview", key: "chg", dir: -1, boards: false },
   { name: "Outperforming BTC", filters: [{ kind: "num", field: "rs24", op: ">", a: 2 }, { kind: "num", field: "rs7", op: ">", a: 5 }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "swing", key: "rs7", dir: -1, boards: false },
   { name: "Active Now", filters: [{ kind: "num", field: "rvolNow", op: ">", a: 1.8 }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "day", key: "rvn", dir: -1, boards: false },
+  { name: "Rotation Leaders", filters: [{ kind: "rot", tier: "any", status: "Leader" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "rotation", key: "rel30", dir: -1, boards: false },
+  { name: "Large-Cap Leaders", filters: [{ kind: "rot", tier: "Large", status: "Leader" }], tab: "rotation", key: "rel30", dir: -1, boards: false },
+  { name: "Lagging BTC (30d)", filters: [{ kind: "rot", tier: "any", status: "Laggard" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "rotation", key: "rel30", dir: 1, boards: false },
+  { name: "Breaking Out (MA + RSI)", filters: [{ kind: "momo", stage: "breakout" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "momentum", key: "momo", dir: -1, boards: false },
+  { name: "Awaiting Momentum", filters: [{ kind: "momo", stage: "awaiting" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "momentum", key: "rsi1h", dir: -1, boards: false },
   { name: "Strong Momentum", filters: [{ kind: "num", field: "mom", op: ">", a: 70 }, { kind: "num", field: "vol24h", op: ">", a: 10 }, { kind: "flag", name: "notWicky" }], tab: "momentum", key: "mom", dir: -1, boards: false },
   { name: "Momentum Ignition", filters: [{ kind: "rsi", tf: "h1", cond: "cross_up" }, { kind: "stack", tf: "1H", cond: "bull_any" }, { kind: "num", field: "rvolNow", op: ">", a: 1.3 }], tab: "momentum", key: "mom", dir: -1, boards: false },
   { name: "RSI Divergence", filters: [{ kind: "rsi", tf: "h1", cond: "div_bear" }, { kind: "rsi", tf: "h1", cond: "div_bull" }, { kind: "rsi", tf: "h4", cond: "div_bear" }, { kind: "rsi", tf: "h4", cond: "div_bull" }], match: "any", tab: "momentum", key: "rsisig", dir: -1, boards: false },
@@ -2005,6 +2135,12 @@ const MODELS = {
       "At least 2 of those 4H candles closed below the 4H 20 (the reset)", "<b>Resetting at the Daily 20</b> = in the zone, waiting", "<b>Reclaimed the 4H 20</b> = a green 4H candle closes above the 4H 20 and the prior candle's high",
       "Shorts mirror this in a Daily downtrend"],
     trade: "Enter the 4H reclaim close. Stop below the reset low (−0.25 × 4H ATR). Target 3R, time limit 10 days. Spot is fine for longs.", grade: "Swing, Daily with-trend by design. Mine, not yet proven: check the backtest and the bot." },
+  "Ignite": { icon: "🚀", name: "Ignition (MA breakout + RSI)", tf: "1H",
+    what: "A new trend starting: the 20, 50 and 100 bunch up while price chops around them, then price closes clearly beyond all three with volume and RSI pushing to 60–70+. It's the moment a coin like LONGXIA turns from flat to trending. A hypothesis until the backtest and the bot prove it.",
+    rules: ["The 1H 20/50/100 are bunched (within 1.5 ATR of each other) just before the break", "Price spent at least 15 of the 48 hours before the break on the other side of the cluster, so it's a new trend, not a continuation",
+      "<b>Pressing the MAs</b> = within 0.5 ATR of the cluster with RSI 55+ and rising: not a trade yet", "<b>Broke out</b> = a close at least 0.25 ATR clear of all three MAs in the last 6 candles, with RSI reaching 60+",
+      "<b>Triggered</b> = broke out in the last 2 candles, RSI 60+, breakout volume 1.5×+ average, stop within 3 ATR, and not stretched (under 3 ATR from the 20)", "4H RSI 50+ with price above the 4H 20 is shown as \"4H agrees\" and ranks higher; it isn't required", "Shorts mirror this: a breakdown below all three with RSI 40 or below"],
+    trade: "Enter the trigger close or the first retest of the cluster. Stop beyond the breakout low and the cluster (−0.2 ATR). Target 2R. If it's stretched, wait for the first base.", grade: "New-trend entry: strongest when 4H agrees and the Daily isn't against it. Not proven yet: check the backtest and the bot." },
   "AMD": { icon: "💯", name: "AMD (Power of 3)", tf: "15m",
     what: "Accumulation, manipulation, distribution. The pre-open range builds, the open sweeps one side to trap breakout traders, then price expands hard the other way. Trade the distribution leg.",
     rules: ["Accumulation = the 2 hours before the NY open (Pre-NY window)", "<b>Accumulating</b> = before the open, range building", "<b>Swept the high/low</b> = after the open, a wick beyond one side closed back inside",
@@ -2079,11 +2215,11 @@ function environment() {
   if (b === "Risk-on" && bull >= 45) {
     label = "Trend Up: Risk-On Alts"; dirBias = "Long";
     desc = "BTC is stacked up on 1H and 4H and most liquid alts are in 4H bull structure. Continuation setups pay; fighting the trend doesn't.";
-    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Fade", "Pullback");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Fade", "Pullback");
   } else if (b === "Risk-off" && bear >= 45) {
     label = "Trend Down: Risk-Off"; dirBias = "Short";
     desc = "BTC is stacked down and most liquid alts are in 4H bear structure. Sell breakdowns and rallies into the premium OEZ; longs only as a swept, MSS-confirmed Fade.";
-    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Pullback"); set("neutral", "Fade");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Pullback"); set("neutral", "Fade");
   } else if (b === "Risk-on" && bull < 35) {
     label = "BTC-Led: Alts Lagging"; dirBias = "Long";
     desc = `BTC is trending up but only ${bull}% of liquid alts are in 4H bull structure. Most alts aren't following: be selective, take only the strongest coins, and prefer pullbacks over chasing breakouts.`;
@@ -2091,15 +2227,15 @@ function environment() {
   } else if (b !== "Risk-off" && bull >= 55 && bear <= 25) {
     label = "Alts Trending Up: BTC Ranging"; dirBias = "Long";
     desc = `BTC isn't trending cleanly, but ${bull}% of liquid alts are in 4H bull structure (only ${bear}% bearish). Money is rotating into alts: take continuation longs on the strongest coins, not range fades.`;
-    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Fade", "Pullback");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Fade", "Pullback");
   } else if (b !== "Risk-on" && bear >= 55 && bull <= 25) {
     label = "Alts Trending Down: BTC Ranging"; dirBias = "Short";
     desc = `BTC isn't trending cleanly, but ${bear}% of liquid alts are in 4H bear structure (only ${bull}% bullish). Alts are bleeding: sell breakdowns and rallies into the OEZ, and don't bottom-fish.`;
-    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20"); set("avoid", "Pullback"); set("neutral", "Fade");
+    set("primary", "NBB", "Bounce", "Leader"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Pullback"); set("neutral", "Fade");
   } else {
     label = "Chop: Range Day"; dirBias = "Both";
     desc = `BTC isn't trending cleanly (${b}) and alt breadth is split (${bull}% bull / ${bear}% bear). Breakouts tend to fail; the edge is at range extremes after a sweep. Size down or stand aside.`;
-    set("primary", "Fade", "AMD"); set("secondary", "V-Trade", "Breaker"); set("avoid", "NBB", "ORB", "Pullback", "Leader", "Reset20");
+    set("primary", "Fade", "AMD"); set("secondary", "V-Trade", "Breaker"); set("avoid", "NBB", "ORB", "Pullback", "Leader", "Reset20", "Ignite");
   }
   // modifiers
   const demote = k => { fit[k] = fit[k] === "primary" ? "secondary" : fit[k] === "secondary" ? "neutral" : fit[k]; };
@@ -2120,6 +2256,8 @@ function environment() {
   if (mins >= 0 && mins <= 120 && dirBias === "Both") promote("AMD");
   if (mins > 150 || mins < -120) { if (fit.ORB !== "avoid") fit.ORB = "neutral"; if (fit.AMD === "primary") fit.AMD = "secondary"; }
   if (as != null && as >= 75) why.push(`Altcoin season (${as}): alts are outperforming BTC. Momentum setups on alts get extra follow-through.`);
+  const rot = data.rotation || rotationRead();
+  if (rot) why.push(`Money flow: ${rot.label}. ${rot.tradeNote}`);
   btApply(label, fit, why);
   return { label, desc, dirBias, fit, why, facts: { b, bull, bear, f, mf, atrMed, as, mins, weekend } };
 }
@@ -2146,6 +2284,10 @@ function suggestions(env, n = 3) {
       if (r.rsi && r.rsi.h1 != null) { const sg = m.dir === "Long" ? 1 : -1;
         if (sg * (r.rsi.h1 - 50) >= 10 && sg * (r.rsi.h4 ?? 50) >= sg * 55) { s += 3; reasons.push(`RSI momentum (1H ${r.rsi.h1.toFixed(0)})`); }
         if (r.rsiDiv && (r.rsiDiv.h1 === (sg > 0 ? "bear" : "bull"))) { s -= 5; reasons.push("RSI divergence against it"); } }
+      { const cr = coinRot(r);
+        if (m.dir === "Long" && cr.status === "Leader") { s += 4; reasons.push("rotation leader"); }
+        else if (m.dir === "Long" && cr.status === "Laggard") s -= 4;
+        else if (m.dir === "Short" && cr.status === "Laggard") { s += 2; reasons.push("weak vs BTC (30d)"); } }
       if (coinDir(r) === m.dir) { s += 6; reasons.push("with the coin's trend"); } else if (isCounter(r, m)) s -= 8;
       if (r.funding !== null) {
         if (m.dir === "Short" && r.funding > FUNDING_EXTREME) { s += 3; reasons.push("crowded longs as fuel"); }
@@ -2174,7 +2316,7 @@ function renderPlaybook() {
     <div class="pbfacts">
       <span>BTC <b>${F.b}</b></span><span>Breadth <b class="up">${F.bull}%</b>/<b class="dn">${F.bear}%</b></span>
       ${F.f ? `<span>Fear &amp; Greed <b>${F.f.v}</b></span>` : ""}${F.mf !== null ? `<span>Funding <b>${(F.mf * 100).toFixed(3)}%</b></span>` : ""}
-      ${F.atrMed !== null ? `<span>Median ATR <b>${F.atrMed.toFixed(1)}%</b></span>` : ""}${F.as != null ? `<span>Alt Season <b>${F.as}</b></span>` : ""}
+      ${F.atrMed !== null ? `<span>Median ATR <b>${F.atrMed.toFixed(1)}%</b></span>` : ""}${F.as != null ? `<span>Alt Season <b>${F.as}</b></span>` : ""}${data.rotation ? `<span>Money Flow <b>${data.rotation.label.split(" · ")[0]}</b></span>` : ""}
       <span>Bias <b>${env.dirBias === "Both" ? "Both ways, small" : env.dirBias + "s"}</b></span>
     </div>
     ${env.why.length ? `<ul class="pbwhy">${env.why.map(w => `<li>${w}</li>`).join("")}</ul>` : ""}
@@ -2208,6 +2350,7 @@ function setupScore(r, m, env) {
   if (m.withDaily) s += 4; else if (m.withDaily === false) s -= 3;
   if (m.sweep) s += 3; if (m.baseNo === 2) s += 3; else if (m.baseNo >= 3) s -= 2;
   if (m.room === false) s -= 6; if (m.dir === "any") s -= 8;
+  { const cr = coinRot(r); if ((m.dir === "Long" && cr.status === "Leader") || (m.dir === "Short" && cr.status === "Laggard")) s += 2; else if (m.dir === "Long" && cr.status === "Laggard") s -= 2; }
   if (r.rsi && r.rsi.h1 != null && m.dir !== "any") { const sg = m.dir === "Long" ? 1 : -1; if (sg * (r.rsi.h1 - 50) >= 5) s += 3; if (r.rsiDiv && r.rsiDiv.h1 === (sg > 0 ? "bear" : "bull")) s -= 4; }
   if (r.funding !== null && ((m.dir === "Short" && r.funding > FUNDING_EXTREME) || (m.dir === "Long" && r.funding < -FUNDING_EXTREME))) s += 2;
   return s;
@@ -2283,6 +2426,16 @@ function coinPlay(r) {
   }
   // crowding is a risk for the crowded side and fuel for the other side
   const boosts = [];
+  { const cr = coinRot(r);                                  // participation, measured against BTC
+    if (play.dir === "Long") {
+      if (cr.status === "Laggard") cautions.push(`Laggard: ${fmtRS(cr.rel30)} vs BTC over 30 days. Being left behind isn't a reason it will catch up; take it only on its own evidence (structure, volume, strength turning), not on "altseason is coming".`);
+      else if (cr.status === "Turning") cautions.push(`Turning: beating BTC this week (${fmtRS(cr.rel7)}) but still ${fmtRS(cr.rel30)} over 30 days. One week isn't a trend; wait for the Daily structure to confirm.`);
+      else if (cr.status === "Fading") cautions.push(`Fading leader: ${fmtRS(cr.rel30)} vs BTC over 30 days, but lagging BTC this week (${fmtRS(cr.rel7)}).`);
+      else if (cr.status === "Leader") boosts.push(`Leader: ${fmtRS(cr.rel30)} vs BTC over 30 days and still keeping up this week.`);
+    } else if (play.dir === "Short") {
+      if (cr.status === "Laggard") boosts.push(`Weak vs BTC: ${fmtRS(cr.rel30)} over 30 days. Relative weakness supports this short.`);
+      else if (cr.status === "Leader") cautions.push(`Leader: ${fmtRS(cr.rel30)} vs BTC over 30 days. Shorting relative strength needs an A-grade trigger.`);
+    } }
   if (r.rsi && play.dir !== "any") {                         // RSI in the play's favor, or against it
     const sg = play.dir === "Long" ? 1 : -1, against = play.dir === "Long" ? "bear" : "bull";
     const dv = r.rsiDiv ? [r.rsiDiv.h1 === against ? "1H" : null, r.rsiDiv.h4 === against ? "4H" : null].filter(Boolean) : [];
@@ -2708,7 +2861,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.04.0027";
+const APP_VERSION = "2026.10.07.0953";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -2851,6 +3004,7 @@ function focusSymbols() {                 // coins worth re-checking at each can
   (data.day || []).forEach(p => s.add(p.symbol)); (data.swing || []).forEach(p => s.add(p.symbol));
   aotsList().slice(0, 5).forEach(e => s.add(e.symbol)); (data.suggest || []).forEach(x => s.add(x.r.symbol));
   Object.values(data.sessionPicks || {}).flat().forEach(x => s.add(x.r.symbol));
+  (data.momoBoard || []).forEach(x => s.add(x));
   if ($("dlg").open && bySym[$("dlgBody").dataset.sym]) s.add($("dlgBody").dataset.sym);
   return [...s].slice(0, 60);
 }
@@ -2984,7 +3138,7 @@ function scheduleRerender() {
   clearTimeout(LIVE.rerender);
   LIVE.rerender = setTimeout(() => {
     if (!data) return;
-    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); checkSetupAlerts(); liveSync(); botOnScan();
+    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); renderMomentum(); checkSetupAlerts(); liveSync(); botOnScan();
   }, 800);
 }
 /* live chart: the forming candle and the MAs move with each update */
@@ -3114,10 +3268,17 @@ function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
       const out = simulate(k1, i, m, MODEL_HOLD_H[m.model] || 48); if (!out) continue;
       busyUntil[key] = out.j;
       trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir) });
+        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir), rot: rotBand(kd, ctx.btcD, T, m.dir) });
     }
   }
   return trades;
+}
+function rotBand(kd, btcD, T, dir) {                      // coin vs BTC over the 30 days before entry, read for the trade's side
+  if (!btcD) return "n/a";
+  const D = IV_MS["1d"], j = lastClosedIdx(kd, D, T), b = lastClosedIdx(btcD, D, T);
+  if (j < 30 || b < 30) return "n/a";
+  const rel = ((kd.c[j] / kd.c[j - 30]) - (btcD.c[b] / btcD.c[b - 30])) * 100, x = dir === "Short" ? -rel : rel;
+  return x >= 5 ? "With the trade (5+ pts)" : x <= -10 ? "Against the trade (10+ pts)" : "In line";
 }
 function rsiBand(v, dir) {                                 // RSI at entry, read in the trade's direction
   if (v == null) return "n/a";
@@ -3157,6 +3318,7 @@ async function runBacktest() {
   try {
     prog("Downloading BTC history…", 0.01);
     const btc1 = await klinesRange("BTCUSDT", "1h", winStart - 220 * H, now), btc4 = await klinesRange("BTCUSDT", "4h", winStart - 170 * IV_MS["4h"], now);
+    const btcD = await klinesRange("BTCUSDT", "1d", winStart - 40 * IV_MS["1d"], now);
     const b1 = stateSeries(btc1, maFn), b4 = stateSeries(btc4, maFn);
     for (const s of syms) {
       try {
@@ -3176,7 +3338,7 @@ async function runBacktest() {
         const st = x.s4[j]; if (st === "Bull stack" || st === "Pullback in bull") bull++; else if (st === "Bear stack" || st === "Pullback in bear") bear++; });
       return n ? envLabel(regime, Math.round(bull / n * 100), Math.round(bear / n * 100)) : envLabel(regime, 0, 0);
     };
-    const ctx = { fee, envAt }, trades = [];
+    const ctx = { fee, envAt, btcD }, trades = [];
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i], x = series[c];
       trades.push(...replay1h(c, x.k1, x.k4, x.kd, maFn, winStart, ctx), ...replaySession(c, x.k15, Math.max(winStart, now - 30 * 86400e3), ctx));
@@ -3255,7 +3417,7 @@ async function drawEquity(trades) {
 function renderBacktest() {
   const el = $("backtest"); if (!el) return;
   const T = BT && BT.trades ? BT.trades : [], all = btStats(T);
-  const viewTabs = [["model", "By Model"], ["session", "Model × Session"], ["env", "Model × Environment"], ["rsi", "Model × RSI at Entry"], ["dir", "By Direction"], ["coin", "By Coin"], ["trades", "Trades"]];
+  const viewTabs = [["model", "By Model"], ["session", "Model × Session"], ["env", "Model × Environment"], ["rsi", "Model × RSI at Entry"], ["rot", "Model × Strength vs BTC"], ["dir", "By Direction"], ["coin", "By Coin"], ["trades", "Trades"]];
   let body = "";
   if (all) {
     const models = MODEL_KEYS.filter(k => T.some(t => t.model === k));
@@ -3263,6 +3425,7 @@ function renderBacktest() {
       models.map(k => { const s = btStats(T.filter(t => t.model === k)); return `<tr><td class="l">${MODELS[k].icon} ${k}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`; }).join("")}</tbody></table></div>`;
     else if (btView === "session") body = btMatrix(T, "model", "session", models, SESS_LABELS.filter(x => T.some(t => t.session === x)));
     else if (btView === "env") body = btMatrix(T, "model", "env", models, [...new Set(T.map(t => t.env))]);
+    else if (btView === "rot") body = btMatrix(T.filter(t => t.rot && t.rot !== "n/a"), "model", "rot", models, ["With the trade (5+ pts)", "In line", "Against the trade (10+ pts)"].filter(x => T.some(t => t.rot === x)));
     else if (btView === "rsi") body = btMatrix(T.filter(t => t.rsi), "model", "rsi", models, ["70+ momentum", "60–70 pre-momentum", "50–60", "40–50 reset", "below 40"].filter(x => T.some(t => t.rsi === x)));
     else if (btView === "dir") body = btMatrix(T, "model", "dir", models, ["Long", "Short"]);
     else if (btView === "coin") { const g = btGroup(T, t => t.sym), rows = Object.entries(g).map(([k, v]) => ({ k, s: btStats(v) })).sort((a, b) => b.s.tot - a.s.tot);
@@ -3487,6 +3650,219 @@ const divTags = r => [["1H", r.rsiDiv && r.rsiDiv.h1], ["4H", r.rsiDiv && r.rsiD
   + [["1H", r.rsiCross && r.rsiCross.h1], ["4H", r.rsiCross && r.rsiCross.h4]].filter(x => x[1]).map(([tf, c]) => `<span class="tag ${c === "up60" ? "long" : "short"}">${tf} RSI ${c === "up60" ? "↑60" : "↓40"}</span>`).join("");
 const momHTML = r => !r.mom || !r.mom.score ? '<span class="mute">—</span>' : `<b class="${r.mom.label === "Strong" ? (r.mom.dir === "Long" ? "up" : "dn") : ""}">${r.mom.score}</b>${r.mom.label ? ` <span class="mute">${r.mom.label} ${r.mom.dir === "Long" ? "▲" : "▼"}</span>` : ""}`;
 
+/* ===================== Money Flow: measured rotation, not a "your coin is next" story ===================== */
+const WRAPPED = new Set(["WBTC","WETH","STETH","WSTETH","WEETH","CBBTC","WBETH","RETH","METH","SUSDE","USDS","SUSDS","BUIDL","USDT0","LBTC","SOLVBTC","JITOSOL","BNSOL","USDTB","BSC-USD","USDX","FDUSD","PYUSD","USD1","BFUSD","USDF"]);
+function capsFrom(list) {                    // CoinGecko markets → rank among altcoins (BTC, ETH, stables and wrapped tokens left out)
+  const alt = {}; let k = 0;
+  list.slice().sort((a, b) => (a.market_cap_rank || 1e9) - (b.market_cap_rank || 1e9)).forEach(c => {
+    const s = String(c.symbol || "").toUpperCase();
+    if (!s || alt[s] || STABLES.has(s) || WRAPPED.has(s) || s === "BTC" || s === "ETH") return;
+    alt[s] = { rank: ++k, mcap: c.market_cap };
+  });
+  return alt;
+}
+function tierOf(r) {                         // Large = top 20 alts by market cap, Mid = 21–100, Small = the rest
+  const b = baseClean(r.base).toUpperCase();
+  if (EXT.caps) { const c = EXT.caps[b]; return !c ? "Small" : c.rank <= 20 ? "Large" : c.rank <= 100 ? "Mid" : "Small"; }
+  const i = data && data.volRank ? data.volRank.get(r.symbol) : null;      // fallback until CoinGecko answers: 24h volume rank
+  return i == null ? "Small" : i < 20 ? "Large" : i < 100 ? "Mid" : "Small";
+}
+function coinRot(r) {                        // is this coin participating, measured against BTC
+  const b = data && data.btc;
+  if (!b || b.ret30 == null || r.ret30 == null) return { status: "n/a", rel30: null, rel7: r.rs7 ?? null };
+  const rel30 = r2((r.ret30 - b.ret30) * 100), rel7 = r.rs7 ?? null;
+  const status = rel30 >= 5 && r.ret30 <= 0 ? "Holding up"                   // beating BTC only because it fell less
+    : rel30 >= 5 && (rel7 == null || rel7 >= 0) ? "Leader"
+    : rel30 >= 5 ? "Fading"
+    : rel30 <= -10 && (rel7 == null || rel7 < 5) ? "Laggard"
+    : rel30 < 0 && rel7 != null && rel7 >= 5 ? "Turning" : "In line";
+  return { status, rel30, rel7 };
+}
+const ROT_CLS = { Leader: "long", "Holding up": "", Fading: "flag", Laggard: "short", Turning: "", "In line": "", "n/a": "" };
+const rotTag = st => st && st !== "n/a" ? `<span class="tag ${ROT_CLS[st]}">${st}</span>` : '<span class="mute">—</span>';
+const PHASES = {
+  p1: { n: 1, label: "Phase 1 · Bitcoin leading",
+    desc: "Money is going into Bitcoin first. Most alts are trailing BTC.",
+    trade: "Trade only alts that are already keeping up with BTC (Leaders). A laggard here isn't 'next'; it's weak until it proves otherwise.",
+    invalid: "Fails if BTC's 30-day return turns negative: that's money leaving crypto, not rotating.",
+    next: "Phase 2 needs ETH ahead of BTC by 5+ points over 30 days, with ETH/BTC above its daily 20 and the 20 above the 50." },
+  p2: { n: 2, label: "Phase 2 · ETH leading",
+    desc: "ETH is outperforming BTC and the ETH/BTC ratio is trending up. Large caps haven't taken the lead yet.",
+    trade: "ETH-linked alts (L2s, DeFi) tend to have tailwind; still take only coins whose own structure and strength confirm.",
+    invalid: "Fails if ETH/BTC closes back below its daily 50, or ETH's 30-day lead over BTC disappears.",
+    next: "Phase 3 needs the large-cap median ahead of BTC by 5+ points and ahead of ETH, with 60%+ of large caps beating BTC (so a few big winners can't fake it)." },
+  p3: { n: 3, label: "Phase 3 · Large caps leading",
+    desc: "The top altcoins are beating both BTC and ETH. Mid and small caps are still mixed.",
+    trade: "Favor large-cap Leaders with clean structure. Mid and small caps still need individual proof.",
+    invalid: "Fails if the large-cap median drops back behind BTC over 30 days.",
+    next: "Phase 4 needs 70%+ of alts beating BTC, mid/small caps ahead of BTC by 15+ points, and the 90-day altcoin season reading at 75+." },
+  p4: { n: 4, label: "Phase 4 · Broad altseason",
+    desc: "Most alts, including mid and small caps, are beating BTC. This is the 'everything pumps' stage, and also where blow-off tops form.",
+    trade: "Take profits into strength, don't chase vertical candles, and keep size down: late-stage moves reverse fast.",
+    invalid: "Fails if fewer than half the alts are beating BTC over 30 days, or small caps fall behind BTC.",
+    next: "There's no phase after this one; the usual next step is a cool-down back toward Bitcoin." },
+  mixed: { n: 0, label: "No clear rotation",
+    desc: "The data doesn't fit the BTC → ETH → large caps → altseason sequence right now. Returns are uneven: some alts lead while others fall.",
+    trade: "Trade individual Leaders on their own evidence, not a cycle. This is a stock-picker's market.",
+    invalid: "A phase is called only when its checks pass; until then, no phase is assumed.",
+    next: "Watch the early signs below; each phase needs its full set of checks." },
+  riskoff: { n: -1, label: "Risk-off · money leaving",
+    desc: "BTC and the alt baskets are all down over 30 days. That's capital leaving crypto, not rotating inside it.",
+    trade: "Rotation doesn't apply. Favor shorts on weak coins or cash; longs need A-grade evidence and smaller size.",
+    invalid: "Ends when BTC's 30-day return turns positive again.",
+    next: "A recovery usually starts with BTC (Phase 1) before anything else." },
+};
+function rotationRead() {
+  if (!data || !data.btc || data.btc.ret30 == null) return null;
+  const b = data.btc, e = data.eth, P = x => x == null ? null : x * 100;
+  const b30 = P(b.ret30), b7 = P(b.ret7), e30 = e ? P(e.ret30) : null, e7 = e ? P(e.ret7) : null;
+  const pool = data.all.filter(r => r.ret30 != null && r.vol24h >= 5e6 && !MAJORS.has(baseClean(r.base)));
+  if (pool.length < 15) return null;
+  if (!EXT.caps && !data.volRank) data.volRank = new Map(pool.slice().sort((x, y) => y.vol24h - x.vol24h).map((r, i) => [r.symbol, i]));
+  const T = { Large: [], Mid: [], Small: [] }; pool.forEach(r => T[tierOf(r)].push(r));
+  const MSa = [...T.Mid, ...T.Small], memes = pool.filter(r => r.sector === "Memes");
+  const med = a => { const x = a.filter(v => v != null && !Number.isNaN(v)).sort((p, q) => p - q), k = x.length >> 1; return !x.length ? null : x.length % 2 ? x[k] : (x[k - 1] + x[k]) / 2; };   // true median
+  const m30 = a => a.length ? med(a.map(r => P(r.ret30))) : null, m7 = a => a.length ? med(a.map(r => r.rs7)) : null;
+  const L = m30(T.Large), Mi = m30(T.Mid), Sm = m30(T.Small), MS = m30(MSa), Me = m30(memes);
+  const beat = a => a.length ? Math.round(a.filter(r => r.ret30 > b.ret30).length / a.length * 100) : null;
+  const breadth = beat(pool), breadthL = beat(T.Large), L7 = m7(T.Large), MS7 = m7(MSa), as = altSeason();
+  const gap = (x, y) => x == null || y == null ? null : x - y;
+  const pts = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} pts`, pc = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
+  const C = (name, val, pass, need) => ({ name, val, pass, need }), ok = (v, f) => v == null ? null : f(v);
+  const checks = {
+    p1: [C("BTC 30-day return", pc(b30), b30 > 0, "positive"), C("BTC vs ETH", pts(gap(b30, e30)), ok(gap(b30, e30), v => v >= 0), "BTC ahead"),
+         C("BTC vs large caps", pts(gap(b30, L)), ok(gap(b30, L), v => v >= 0), "BTC ahead"), C("Alts beating BTC", breadth + "%", breadth < 40, "under 40%")],
+    p2: [C("ETH vs BTC", pts(gap(e30, b30)), ok(gap(e30, b30), v => v >= 5), "+5 pts or more"),
+         C("ETH/BTC trend (daily)", e ? `${e.above20 ? "above" : "below"} its 20, ${e.stacked ? "20 above 50" : "20 below 50"}` : "—", e ? e.above20 && e.stacked : null, "above the 20, 20 above 50"),
+         C("Large caps vs ETH", pts(gap(L, e30)), ok(gap(L, e30), v => v < 0), "still behind ETH")],
+    p3: [C("Large caps vs BTC", pts(gap(L, b30)), ok(gap(L, b30), v => v >= 5), "+5 pts or more"), C("Large caps vs ETH", pts(gap(L, e30)), ok(gap(L, e30), v => v >= 0), "ahead"),
+         C("Large caps beating BTC", breadthL == null ? "—" : breadthL + "%", ok(breadthL, v => v >= 60), "60% or more")],
+    p4: [C("Alts beating BTC", breadth + "%", breadth >= 70, "70% or more"), C("Mid/small caps vs BTC", pts(gap(MS, b30)), ok(gap(MS, b30), v => v >= 15), "+15 pts or more"),
+         C("Large caps vs BTC", pts(gap(L, b30)), ok(gap(L, b30), v => v >= 10), "+10 pts or more"), C("Altcoin season (90d)", as ?? "—", ok(as, v => v >= 75), "75 or more")],
+  };
+  const n = a => a.filter(c => c.pass).length;
+  const riskOff = b30 <= -5 && L != null && L < 0 && MS != null && MS < 0;
+  const key = riskOff ? "riskoff" : checks.p4[0].pass && n(checks.p4) >= 3 ? "p4" : checks.p3[0].pass && checks.p3[2].pass && checks.p3[1].pass !== false ? "p3"
+    : checks.p2[0].pass && checks.p2[1].pass ? "p2" : checks.p1[0].pass && n(checks.p1) >= 3 ? "p1" : "mixed";
+  const nextKey = { p1: "p2", p2: "p3", p3: "p4", p4: null, mixed: null, riskoff: null }[key];
+  const early = [];
+  if (["p1", "mixed", "riskoff"].includes(key) && gap(e7, b7) >= 3) early.push(`ETH beat BTC this week (${pts(gap(e7, b7))}). It counts once ETH leads over 30 days and ETH/BTC holds above its daily 20.`);
+  if (["p1", "p2", "mixed"].includes(key) && L7 != null && L7 >= 3) early.push(`Large caps beat BTC this week (median ${pts(L7)}). One week isn't a phase.`);
+  if (["p1", "p2", "p3", "mixed"].includes(key) && MS7 != null && MS7 >= 5) early.push(`Mid and small caps beat BTC this week (median ${pts(MS7)}).`);
+  if (Me != null && Me >= 20 && gap(Me, b30) >= 30) early.push(`Memes are ${pts(gap(Me, b30))} ahead of BTC over 30 days: a classic sign of late-stage froth.`);
+  const rots = pool.map(r => ({ r, c: coinRot(r) }));
+  const leaders = rots.filter(x => x.c.status === "Leader").sort((a, b2) => b2.c.rel30 - a.c.rel30);
+  const count = st => rots.filter(x => x.c.status === st).length;
+  const rels = rots.map(x => x.c.rel30).filter(v => v != null).sort((a, b2) => a - b2);
+  const ph = PHASES[key];
+  return { key, ...ph, checks: checks[key] || null, nextKey, nextChecks: nextKey ? checks[nextKey] : null, early, leaders,
+    counts: { Leader: count("Leader"), "Holding up": count("Holding up"), Turning: count("Turning"), "In line": count("In line"), Fading: count("Fading"), Laggard: count("Laggard") },
+    spread: rels.length ? { best: rels.at(-1), worst: rels[0] } : null, pool: pool.length, capsSource: EXT.caps ? "CoinGecko market-cap ranks" : "24h volume (CoinGecko not loaded yet)",
+    m: { b30, e30, ethbtc: e, L, Mi, Sm, MS, Me, breadth, breadthL, as, nL: T.Large.length, nM: T.Mid.length, nS: T.Small.length, nMe: memes.length },
+    tradeNote: ph.trade };
+}
+function renderRotation() {
+  const el = $("rotation"); if (!el) return;
+  const R = data ? rotationRead() : null;
+  if (!R) { el.innerHTML = `<h2>Money Flow</h2><div class="empty">${data ? "Not enough 30-day history to read the rotation yet." : "Run a scan to read where money is flowing."}</div>`; return; }
+  data.rotation = R;
+  const m = R.m, pc = v => v == null ? '<span class="mute">—</span>' : `<span class="${v >= 0 ? "up" : "dn"}">${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%</span>`;
+  const vs = (x, y) => x == null || y == null ? "" : `<span class="mute">(${x - y >= 0 ? "+" : "−"}${Math.abs(x - y).toFixed(1)} vs BTC)</span>`;
+  const ck = c => `<li class="${c.pass === true ? "ok" : c.pass === false ? "no" : "na"}"><span>${c.pass === true ? "✓" : c.pass === false ? "✗" : "–"}</span><b>${c.name}</b> ${c.val} <span class="mute">needs ${c.need}</span></li>`;
+  const steps = ["p1", "p2", "p3", "p4"].map(k => `<div class="pstep ${R.key === k ? "on" : ""} ${PHASES[k].n < PHASES[R.key].n ? "past" : ""}"><b>${PHASES[k].n}</b> ${PHASES[k].label.split(" · ")[1]}</div>`).join("");
+  el.innerHTML = `
+    <div class="pbhead"><h2>Money Flow</h2><span class="pblabel ${R.key === "riskoff" ? "dn" : R.key === "mixed" ? "chopc" : "up"}">${R.label}</span>
+      <span class="meta">30-day returns vs BTC · ${R.pool} liquid alts · caps by ${R.capsSource}</span></div>
+    <div class="psteps ${["mixed", "riskoff"].includes(R.key) ? "none" : ""}">${steps}</div>
+    <p class="pbdesc">${R.desc} <b>${R.trade}</b></p>
+    <div class="rotgrid">
+      <div>
+        <h3 class="pbh3">The Evidence <span class="meta">last 30 days</span></h3>
+        <div class="kv rotkv">
+          <span>Bitcoin</span><span>${pc(m.b30)}</span>
+          <span>Ethereum</span><span>${pc(m.e30)} ${vs(m.e30, m.b30)}</span>
+          <span>ETH/BTC (daily)</span><span>${m.ethbtc ? `${m.ethbtc.above20 ? '<span class="up">above</span>' : '<span class="dn">below</span>'} its 20 · ${m.ethbtc.stacked ? "20 above 50" : "20 below 50"} · ${m.ethbtc.rising ? "rising" : "falling"}` : '<span class="mute">not loaded</span>'}</span>
+          <span>Large caps <span class="mute">(${m.nL})</span></span><span>${pc(m.L)} ${vs(m.L, m.b30)} <span class="mute">median</span></span>
+          <span>Mid caps <span class="mute">(${m.nM})</span></span><span>${pc(m.Mi)} ${vs(m.Mi, m.b30)}</span>
+          <span>Small caps <span class="mute">(${m.nS})</span></span><span>${pc(m.Sm)} ${vs(m.Sm, m.b30)}</span>
+          <span>Memes <span class="mute">(${m.nMe})</span></span><span>${pc(m.Me)} ${vs(m.Me, m.b30)}</span>
+          <span>Alts beating BTC</span><span><b>${m.breadth}%</b> <span class="mute">of liquid alts · large caps ${m.breadthL ?? "—"}%</span></span>
+          <span>Altcoin season</span><span>${m.as ?? "—"} <span class="mute">/ 100 over 90 days</span></span>
+        </div>
+      </div>
+      <div>
+        ${R.checks ? `<h3 class="pbh3">Why This Phase</h3><ul class="rck">${R.checks.map(ck).join("")}</ul>` : ""}
+        <h3 class="pbh3">What Proves It Wrong</h3><p class="rtxt">${R.invalid}</p>
+        <h3 class="pbh3">What Confirms the Next Step</h3>${R.nextChecks ? `<ul class="rck">${R.nextChecks.map(ck).join("")}</ul>` : `<p class="rtxt">${R.next}</p>`}
+        ${R.early.length ? `<h3 class="pbh3">Early Signs <span class="meta">not confirmation</span></h3><ul class="pbwhy">${R.early.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}
+      </div>
+    </div>
+    <h3 class="pbh3">Who's Actually Participating</h3>
+    <div class="rotcount"><span class="tag long">${R.counts.Leader} Leaders</span>${R.counts["Holding up"] ? `<span class="tag">${R.counts["Holding up"]} Holding up</span>` : ""}<span class="tag">${R.counts.Turning} Turning</span><span class="tag">${R.counts["In line"]} In line</span><span class="tag flag">${R.counts.Fading} Fading</span><span class="tag short">${R.counts.Laggard} Laggards</span>
+      ${R.spread ? `<span class="meta">spread: best ${fmtRS(R.spread.best)}, worst ${fmtRS(R.spread.worst)} vs BTC</span>` : ""}</div>
+    <div class="rotlead">${R.leaders.slice(0, 8).map(x => `<button class="qchip" data-s="${x.r.symbol}">${coin(x.r.symbol)} <span>${fmtRS(x.c.rel30)} · ${tierOf(x.r)}</span></button>`).join("") || '<span class="mute">No coin is leading BTC over 30 days right now.</span>'}</div>
+    <p class="meta rotnote">The BTC → ETH → large caps → altseason path is a pattern traders describe, not a schedule: it can stall, skip steps or reverse, and it never says which coin is next. A coin that's been left behind can stay behind. This card reports only what the last 30 days show, the checks behind it, and what would prove it wrong. Leader = up over 30 days, 5+ points ahead of BTC and not lagging this week; Holding up = ahead of BTC only because it fell less; Laggard = 10+ points behind.</p>`;
+  el.querySelectorAll("[data-s]").forEach(b => b.onclick = () => openDetail(b.dataset.s));
+}
+
+/* ===================== Momentum Board: in momentum, awaiting momentum, breaking out (1H, 4H as context) ===================== */
+const MOMO_ALERT_KEY = "altscan-momo-alert", MOMO_SEEN_KEY = "altscan-momo-seen";
+const momoAlertOn = () => { try { return localStorage.getItem(MOMO_ALERT_KEY) !== "off"; } catch (e) { return true; } };
+const MOMO_STAGE = { momentum: "🔥 In momentum", awaiting: "⏳ Awaiting momentum", breakout: "🚀 Breaking out" };
+function momoRows() {
+  const out = { momentum: [], awaiting: [], breakout: [] }, fresh = [];
+  if (!data) return { ...out, fresh };
+  const hw = hideWicky();
+  data.all.forEach(r => {
+    const m = r.momo; if (!m || !dirOK(m.dir) || (hw && r.wicky) || r.vol24h < 10e6 || !passBoards(r) || (!data.canShort && m.dir === "Short")) return;
+    const rsi = r.rsi && r.rsi.h1, x = rsi == null ? 50 : m.dir === "Long" ? rsi : 100 - rsi;     // RSI read in the trade's direction
+    const s = m.stage === "momentum" ? (r.mom ? r.mom.score : 0) + (m.h4ok ? 10 : 0) - (m.stretched ? 15 : 0)
+      : m.stage === "awaiting" ? 80 - Math.abs(65 - x) * 3 + (m.h4ok ? 10 : 0) - (m.tappedAgo || 0)
+      : (m.broke ? 50 : 30) + Math.min(m.volx || 1, 4) * 5 + (x >= 70 ? 15 : x >= 60 ? 8 : 0) + (m.h4ok ? 10 : 0) - (m.stretched ? 20 : 0) + Math.max(0, 1.5 - (m.tight ?? 1.5)) * 5;
+    out[m.stage].push({ r, m, s: r1(s) });
+    if (m.stage === "breakout" && m.broke && m.ago <= 2 && !m.stretched) fresh.push({ r, m });
+  });
+  Object.keys(out).forEach(k => out[k] = capSectors(out[k].sort((a, b) => b.s - a.s), x => x.r.symbol).slice(0, 6));
+  return { ...out, fresh };
+}
+function momoLine(r, m) {
+  const ext = `${Math.abs(m.ext).toFixed(1)} ATR from the 20`;
+  if (m.stage === "breakout") return m.broke ? `${m.dir === "Long" ? "Broke out" : "Broke down"} ${m.ago === 0 ? "this candle" : m.ago + "h ago"}${m.volx ? ` · ${m.volx}× volume` : ""} · ${ext}` : `Pressing the bunched 20/50/100 (within ${m.tight} ATR) · RSI rising`;
+  if (m.stage === "momentum") return `RSI ${m.dir === "Long" ? "70+" : "30 or below"} · ${ext}`;
+  return `Tapped ${m.dir === "Long" ? "70" : "30"} ${m.tappedAgo === 0 ? "this candle" : m.tappedAgo + "h ago"} · holding ${m.dir === "Long" ? "above" : "below"} the 20`;
+}
+function momoRowHTML(x, i) {
+  const r = x.r, m = x.m, ig = (r.models || []).find(mm => mm.model === "Ignite" && mm.dir === m.dir);
+  return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
+    <div><div class="nm">${instHTML(r)}${biasTag(m.dir)}<span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</div>
+      <div class="ln">${momoLine(r, m)}</div>
+      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
+    <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
+}
+function momoAlerts(fresh) {
+  if (!momoAlertOn() || !fresh.length) return;
+  let seen = {}; try { seen = JSON.parse(localStorage.getItem(MOMO_SEEN_KEY) || "{}"); } catch (e) {}
+  const now = Date.now(); Object.keys(seen).forEach(k => { if (now - seen[k] > 3 * 864e5) delete seen[k]; });
+  fresh.forEach(({ r, m }) => {
+    const key = r.symbol + "|" + m.breakAt; if (seen[key]) return; seen[key] = now;
+    notify(`🚀 ${coin(r.symbol)} ${m.dir === "Long" ? "broke out above" : "broke down below"} its 20/50/100`,
+      `RSI ${r.rsi && r.rsi.h1 != null ? r.rsi.h1.toFixed(0) : "—"}${m.volx ? `, ${m.volx}× volume` : ""}${m.h4ok ? ", 4H agrees" : ", 4H not yet"}. Check the chart before acting.`);
+  });
+  try { localStorage.setItem(MOMO_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
+}
+function renderMomentum() {
+  const el = $("momoBoard"); if (!el) return;
+  if (!data) { el.innerHTML = `<div class="empty">Run a scan to see the momentum board.</div>`; return; }
+  const R = momoRows(); data.momoBoard = [...R.momentum, ...R.awaiting, ...R.breakout].map(x => x.r.symbol);
+  const col = (k, title, sub) => `<div class="sess"><div class="sesshead"><h3>${title}</h3></div><div class="sessstat">${sub}</div>
+    ${R[k].length ? R[k].map(momoRowHTML).join("") : `<div class="empty">Nothing here right now.</div>`}</div>`;
+  el.innerHTML = col("momentum", "🔥 In Momentum", "RSI 70+ on 1H (30 or below for shorts), price beyond all three MAs.")
+    + col("awaiting", "⏳ Awaiting Momentum", "Tapped RSI 70 in the last 12 hours, cooled to 55–70, still holding the 20. Watch for a base (NBB) or a reclaim.")
+    + col("breakout", "🚀 Breaking Out", "A clear close beyond bunched 20/50/100 after time on the other side, RSI 60+. Pressing = testing the cluster with RSI rising.");
+  bindRows(el);
+  momoAlerts(R.fresh);
+}
+
 /* ---- tabs + table (TradingView-style column sets) ---- */
 const C = {
   inst:   { t: "Instrument", l: true, v: r => r.symbol, h: r => instHTML(r) },
@@ -3502,11 +3878,15 @@ const C = {
   stage:  { t: "AOTS Score", v: r => Math.max(r.aots4h ? r.aots4h.score : 0, r.aots1h ? r.aots1h.score : 0), h: r => { const a = [r.aots4h, r.aots1h].filter(Boolean).sort((x, y) => y.score - x.score)[0]; return a ? `<b>${a.score}</b> <span class="mute">${a.bars} candles</span>` : "—"; } },
   rvol:   { t: "Rel Volume", v: r => r.rvol, h: r => `${r.rvol.toFixed(2)}×` },
   rvn:    { t: "RVOL Now", v: r => r.rvolNow ?? -1, h: r => r.rvolNow == null ? '<span class="mute">—</span>' : `<span class="${r.rvolNow >= 1.5 ? "up" : ""}">${r.rvolNow.toFixed(2)}×</span>` },
+  rel30:  { t: "vs BTC<br>30d", v: r => coinRot(r).rel30 ?? -999, h: r => { const v = coinRot(r).rel30; return v == null ? '<span class="mute">—</span>' : `<span class="${v >= 0 ? "up" : "dn"}">${fmtRS(v)}</span>`; } },
+  tier:   { t: "Cap", l: true, v: r => ({ Large: 3, Mid: 2, Small: 1 })[tierOf(r)], h: r => `<span class="mute">${tierOf(r)}</span>` },
+  rot:    { t: "Rotation", l: true, v: r => ({ Leader: 6, Fading: 5, "Holding up": 4, Turning: 3, "In line": 2, Laggard: 1 })[coinRot(r).status] || 0, h: r => rotTag(coinRot(r).status) },
   rs:     { t: "vs BTC<br>24h", v: r => r.rs24 ?? -999, h: r => r.rs24 == null ? '<span class="mute">—</span>' : `<span class="${r.rs24 >= 0 ? "up" : "dn"}">${fmtRS(r.rs24)}</span>` },
   rs7:    { t: "vs BTC<br>7d", v: r => r.rs7 ?? -999, h: r => r.rs7 == null ? '<span class="mute">—</span>' : `<span class="${r.rs7 >= 0 ? "up" : "dn"}">${fmtRS(r.rs7)}</span>` },
   rsi1h:  { t: "RSI<br>1H", v: r => r.rsi ? r.rsi.h1 ?? -1 : -1, h: r => rsiChip(r.rsi && r.rsi.h1) },
   rsi4h:  { t: "RSI<br>4H", v: r => r.rsi ? r.rsi.h4 ?? -1 : -1, h: r => rsiChip(r.rsi && r.rsi.h4) },
   rsi1d:  { t: "RSI<br>1D", v: r => r.rsi ? r.rsi.d1 ?? -1 : -1, h: r => rsiChip(r.rsi && r.rsi.d1) },
+  momo:   { t: "Stage", l: true, v: r => r.momo ? ({ breakout: 3, momentum: 2, awaiting: 1 })[r.momo.stage] : 0, h: r => r.momo ? `<span class="tag ${r.momo.dir === "Long" ? "long" : "short"}">${MOMO_STAGE[r.momo.stage]}</span>${r.momo.stretched ? '<span class="tag flag">Stretched</span>' : ""}` : '<span class="mute">—</span>' },
   mom:    { t: "Momentum", v: r => r.mom ? r.mom.score : 0, h: r => momHTML(r) },
   rsisig: { t: "RSI Signals", l: true, v: r => (r.rsiDiv && (r.rsiDiv.h1 || r.rsiDiv.h4) ? 2 : 0) + (r.rsiCross && (r.rsiCross.h1 || r.rsiCross.h4) ? 1 : 0), h: r => divTags(r) || '<span class="mute">—</span>' },
   sector: { t: "Sector", l: true, v: r => r.sector || "", h: r => r.sector ? `<span class="mute">${r.sector}</span>` : '<span class="mute">—</span>' },
@@ -3528,12 +3908,13 @@ const TABS = [
   { id: "overview", label: "Overview", cols: ["inst","price","chg","vol","day","swing","wick","play","rating"], sort: "vol" },
   { id: "day", label: "Day Trade", cols: ["inst","price","chg","day","s1h","rvn","rs","atr","lev","wick","fund","rating"], sort: "day",
     f: r => FULL.includes(r.s1h.state) && r.vol24h >= DAY_MIN_VOL[data.mode] },
-  { id: "swing", label: "Swing", cols: ["inst","price","chg","swing","s4h","s1d","rs7","rvol","atr","sector","rating"], sort: "swing",
+  { id: "swing", label: "Swing", cols: ["inst","price","chg","swing","s4h","s1d","rs7","rel30","rot","rvol","atr","sector","rating"], sort: "swing",
     f: r => !!r.swingDir && r.vol24h >= SWING_MIN_VOL },
   { id: "aots", label: "Trend Starting", cols: ["inst","price","chg","vol","aots","stage","rvol","wick","rating"], sort: "stage",
     f: r => !!(r.aots4h || r.aots1h) && r.vol24h >= AOTS_MIN_VOL },
   { id: "models", label: "Models", cols: ["inst","price","chg","vol","mdl","mplan","play","rating"], sort: "mdl", f: r => (r.models || []).length > 0 },
-  { id: "momentum", label: "Momentum", cols: ["inst","price","chg","mom","rsi1h","rsi4h","rsi1d","rsisig","rvn","rs","aots","play","rating"], sort: "mom" },
+  { id: "rotation", label: "Money Flow", cols: ["inst","price","chg","vol","tier","rel30","rs7","rs","rot","s1d","mom","play","rating"], sort: "rel30" },
+  { id: "momentum", label: "Momentum", cols: ["inst","price","chg","momo","mom","rsi1h","rsi4h","rsi1d","rsisig","rvn","rs","aots","play","rating"], sort: "mom" },
   { id: "tech", label: "Technicals", cols: ["inst","s1h","s4h","s1d","aots","rvol","atr","wick","rating"], sort: "rating" },
   { id: "deriv", label: "Derivatives", cols: ["inst","price","chg","vol","fund","lev","spot","drv","rating"], sort: "vol" },
   { id: "watch", label: "★ Watchlist", cols: ["inst","price","chg","rvn","rs","play","alerts","note","rating"], sort: "chg", f: r => isWatched(r.symbol) },
@@ -3617,6 +3998,8 @@ function openDetail(sym) {
             <span>Swing Score</span><span><b>${r.swingScore}</b> / 100 ${r.swingDir ? biasTag(r.swingDir) : '<span class="mute">4H and Daily not aligned</span>'}</span>
             <span>vs BTC</span><span>24h ${fmtRS(r.rs24)} · 7d ${fmtRS(r.rs7)} · RVOL now ${r.rvolNow != null ? r.rvolNow.toFixed(2) + "×" : "—"}</span>
             <span>RSI (14)</span><span>1H ${rsiChip(r.rsi && r.rsi.h1)} · 4H ${rsiChip(r.rsi && r.rsi.h4)} · D ${rsiChip(r.rsi && r.rsi.d1)} <span class="mute">${rsiZone(r.rsi && r.rsi.h1)}</span> ${divTags(r)}</span>
+            <span>vs BTC (30d)</span><span>${(c => `${c.rel30 == null ? "—" : fmtRS(c.rel30)} · ${tierOf(r)} cap ${rotTag(c.status)}`)(coinRot(r))}</span>
+            <span>Momentum Stage</span><span>${r.momo ? `${MOMO_STAGE[r.momo.stage]} ${biasTag(r.momo.dir)} <span class="mute">${momoLine(r, r.momo)}</span> ${r.momo.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${r.momo.stretched ? '<span class="tag flag">Stretched</span>' : ""}` : '<span class="mute">None</span>'}</span>
             <span>Momentum</span><span>${momHTML(r)} <span class="mute">/ 100</span></span>
             <span>Wickiness</span><span>${wickHTML(r)} ${r.wicky ? '<span class="tag flag">Wicky</span>' : r.wick !== null && r.wick < 50 ? '<span class="tag long">Clean</span>' : ""}</span>
             <span>1H</span><span>${r.s1h.state} · ${r.s1h.crosses} crosses of the 20 · ${r.s1h.ext} ATR from it</span>
@@ -3664,6 +4047,10 @@ function claudeText() {
     t += `Market: ${f ? `Fear & Greed ${f.v} (${f.cls})` : "F&G n/a"} | ${g ? `mcap $${fmtVol(g.mcap)} ${g.chg >= 0 ? "+" : ""}${g.chg.toFixed(2)}%, BTC dom ${g.btcDom.toFixed(1)}%` : "mcap n/a"} | alt season ${as ?? "n/a"} | 4H breadth ${br ? br.bull + "% bull / " + br.bear + "% bear" : "n/a"}\n`;
     const pool = data.all.filter(r => r.vol24h >= 5e6), top = [...pool].sort((x, y) => y.chg24h - x.chg24h).slice(0, 5), bot = [...pool].sort((x, y) => x.chg24h - y.chg24h).slice(0, 5);
     t += `Top gainers: ${top.map(r => `${coin(r.symbol)} ${r.chg24h >= 0 ? "+" : ""}${r.chg24h.toFixed(1)}%`).join(", ")}\nTop losers: ${bot.map(r => `${coin(r.symbol)} ${r.chg24h.toFixed(1)}%`).join(", ")}\n`; }
+  { const M = momoRows(), f = k => M[k].map(x => `${coin(x.r.symbol)} ${x.m.dir}${x.m.stretched ? " (stretched)" : ""}${x.m.h4ok ? " 4H✓" : ""}`).join(", ") || "none";
+    t += `Momentum board (1H): in momentum ${f("momentum")} | awaiting ${f("awaiting")} | breaking out ${f("breakout")}\n`; }
+  if (data.rotation) { const R = data.rotation, m = R.m, f = v => v == null ? "n/a" : (v >= 0 ? "+" : "") + v.toFixed(1) + "%";
+    t += `Money flow (30d vs BTC): ${R.label} | BTC ${f(m.b30)}, ETH ${f(m.e30)}, large caps ${f(m.L)}, mid ${f(m.Mi)}, small ${f(m.Sm)}, memes ${f(m.Me)} | ${m.breadth}% of alts beating BTC | leaders ${R.counts.Leader}, laggards ${R.counts.Laggard} | top leaders: ${R.leaders.slice(0, 5).map(x => `${coin(x.r.symbol)} ${fmtRS(x.c.rel30)}`).join(", ") || "none"}\n`; }
   if (data.env) { const e = data.env, by = l => MODEL_KEYS.filter(k => e.fit[k] === l).join(", ") || "none";
     t += `Playbook: ${e.label} | bias ${e.dirBias} | primary ${by("primary")} | secondary ${by("secondary")} | avoid ${by("avoid")}${e.why.length ? " | " + e.why.join(" ") : ""}\n`;
     t += `Suggested setups: ${(data.suggest || []).map(x => `${x.r.symbol} ${x.m.model} ${x.m.dir} ${x.m.state}${x.m.entry != null ? ` E ${fmtPrice(x.m.entry)}` : ""}${x.m.stop != null ? ` S ${fmtPrice(x.m.stop)}` : ""}`).join("; ") || "none"}\n`; }
@@ -3699,7 +4086,7 @@ async function run() {
     data = await scan(opts(), (msg, f) => { $("status").textContent = msg; $("prog").style.width = (f * 100) + "%"; });
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
-    renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan();
+    renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan(); renderRotation(); renderMomentum();
     { const t = liveTarget(); if (t && (!LIVE.ws || LIVE.url !== t.url)) liveConnect(); else liveSync(); }
     if (BOT && BOT.running) { botReconcile().then(() => botOnScan()); } else renderBot(); renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
@@ -3741,6 +4128,8 @@ $("liveBadge").onclick = () => {
   if (on) { LIVE.retry = 0; liveConnect(); } else liveClose(true);
 };
 liveSetState(liveOn() ? "connecting" : "off");
+$("momoAlert").checked = momoAlertOn();
+$("momoAlert").onchange = () => { try { localStorage.setItem(MOMO_ALERT_KEY, $("momoAlert").checked ? "on" : "off"); } catch (e) {} if ($("momoAlert").checked) askNotify(); };
 $("fToggle").onclick = () => togglePanel(); $("fClose").onclick = () => togglePanel(false);
 try { if (localStorage.getItem("altscan-fopen")) togglePanel(true); } catch (e) {}
 new MutationObserver(() => { $("fBadge2").textContent = $("fBadge").textContent; }).observe($("fBadge"), { childList: true, characterData: true, subtree: true });

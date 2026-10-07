@@ -1,4 +1,4 @@
-# Alt Scanner (Crypto Coins Screener)
+# The Finder (Crypto Coins Screener)
 
 Binance altcoin scanner: day trade, swing and AOTS boards, model setups (NBB, Bounce/OEZ, Fade, Breaker/Flip,
 V-Trade, Pullback, ORB, AMD), a daily playbook, filters with templates, and a suggested play per coin.

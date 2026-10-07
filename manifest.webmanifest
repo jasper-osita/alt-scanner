@@ -1,16 +1,17 @@
 {
-  "name": "Alt Scanner: Crypto Coins Screener",
-  "short_name": "Alt Scanner",
-  "description": "Binance altcoin scanner: day trade, swing and AOTS boards, model setups and a daily playbook.",
+  "name": "The Finder: Crypto Coins Screener",
+  "short_name": "The Finder",
+  "description": "Binance and Bybit altcoin screener: momentum, day trade, swing and trend boards, model setups and a daily playbook.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#111214",
+  "theme_color": "#111214",
   "orientation": "any",
   "icons": [
-    { "src": "/icons/scanner-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/scanner-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icons/scanner-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/icons/finder-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/finder-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/finder-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

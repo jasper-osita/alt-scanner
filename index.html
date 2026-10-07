@@ -1,33 +1,38 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Crypto Coins Screener</title>
-<meta name="description" content="Jas's Binance altcoin scanner: day trade, swing and AOTS boards, model setups and a daily playbook.">
-<meta name="theme-color" content="#000000">
+<title>The Finder</title>
+<meta name="description" content="The Finder: Binance and Bybit altcoin screener with momentum, day trade, swing and trend boards, model setups and a daily playbook.">
+<meta name="theme-color" content="#111214">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Alt Scanner">
+<meta name="apple-mobile-web-app-title" content="The Finder">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/scanner-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="/icons/scanner-192.png" sizes="192x192" type="image/png">
-<link rel="apple-touch-icon" href="/icons/scanner-touch-180.png">
+<link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
 <style>:root{
-  --bg:#000; --panel:#0c0e14; --pill:#1a1d26; --pill-b:#2a2e39; --hover:#141821; --line:#1e222d;
-  --text:#d1d4dc; --strong:#fff; --mute:#787b86; --blue:#2962ff; --green:#22ab94; --green-s:#089981; --red:#f23645; --amber:#f7a600;
-  --badge:#2a2e39;
-  --font:-apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+  --bg:#111214; --panel:#18191c; --pill:#1f2124; --pill-b:#33363b; --hover:#222428; --line:#26282c;
+  --text:#e4e5e7; --strong:#fff; --mute:#9a9ca1; --blue:#5b8cff; --green:#22ab94; --green-s:#089981; --red:#f23645; --amber:#f7a600;
+  --badge:#33363b; --accent:#e8b04a; --on-accent:#141517; --side:#141517; --active:#24262a;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
   --bg:#fff; --panel:#f8f9fd; --pill:#f0f3fa; --pill-b:#e0e3eb; --hover:#f2f4f9; --line:#e0e3eb;
   --text:#131722; --strong:#000; --mute:#6a6d78; --badge:#e0e3eb; --green:#089981; --amber:#c27c00;}}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/space-grotesk-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/space-grotesk-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/space-grotesk-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/space-grotesk-latin-700-normal.woff2) format("woff2")}
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.45 var(--font);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
 a{color:inherit} button,select,input{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wrap{max-width:1500px;margin:0 auto;padding:16px clamp(12px,2.4vw,36px) 48px}
 
 /* top bar */
@@ -37,10 +42,10 @@ a{color:inherit} button,select,input{font:inherit;color:inherit}
 .actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn{background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;padding:6px 12px;cursor:pointer;text-decoration:none;display:inline-block;color:var(--text);white-space:nowrap}
 .btn:hover{border-color:var(--mute)}
-.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
 .btn:disabled{opacity:.45;cursor:default}
 .tog{display:flex;align-items:center;gap:6px;color:var(--mute);cursor:pointer;white-space:nowrap}
-.tog input{accent-color:var(--blue)}
+.tog input{accent-color:var(--accent)}
 h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-spacing:-.005em}
 .clock{color:var(--mute);font-size:13px}
 .clock b{color:var(--text);font-weight:600}
@@ -65,7 +70,7 @@ h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-s
 .seg:last-child{border-right:0}
 .seg.on{background:var(--pill);color:var(--strong);font-weight:600}
 .seg.window{box-shadow:inset 0 -2px 0 var(--blue)}
-.now{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--blue);border-radius:2px;pointer-events:none}
+.now{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--accent);border-radius:2px;pointer-events:none}
 .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-top:3px}
 .ribbon-note{font-size:12.5px;color:var(--mute);margin-top:4px}
 .ribbon-note b{color:var(--text)}
@@ -77,7 +82,7 @@ h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-s
 .status{font-size:12.5px;color:var(--mute);margin-top:6px;min-height:18px}
 .status.err{color:var(--red)}
 .progress{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:6px}
-.progress i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 
 /* boards */
 .boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
@@ -121,7 +126,7 @@ h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-s
 .tabs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin:22px 0 8px}
 .tab{background:transparent;border:0;border-radius:8px;padding:7px 14px;cursor:pointer;color:var(--text);font-size:15px}
 .tab:hover{background:var(--pill)}
-.tab.on{background:var(--pill-b);color:var(--strong);font-weight:600}
+.tab.on{background:var(--active);color:var(--strong);font-weight:600;box-shadow:inset 0 -2px 0 var(--accent)}
 .count{margin-left:auto;color:var(--mute);font-size:12.5px}
 .tablewrap{overflow-x:auto;border-top:1px solid var(--line)}
 table{border-collapse:collapse;width:100%;min-width:1100px;font-size:14px}
@@ -160,7 +165,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .dlg .tag.flag{white-space:normal;display:block;margin:6px 0}
 
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;
-  background:var(--pill);border:1px solid var(--blue);color:var(--text);padding:10px 16px;border-radius:8px;max-width:min(560px,92vw);font-size:14px;transition:opacity .2s,transform .2s;z-index:10}
+  background:var(--pill);border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:8px;max-width:min(560px,92vw);font-size:14px;transition:opacity .2s,transform .2s;z-index:10}
 #toast.show{opacity:1;transform:translate(-50%,0)} #toast b{color:var(--strong)}
 footer{margin-top:22px;color:var(--mute);font-size:12px;max-width:90ch;line-height:1.55}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -175,7 +180,7 @@ body.fopen .fpanel{display:block}
 .fpanel h2{margin:0;font-size:16px;font-weight:600;color:var(--strong)}
 .fphead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .fphead .x{margin-left:auto}
-.badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;align-items:center;justify-content:center;border-radius:9px;background:var(--blue);color:#fff;font-size:11px;font-weight:700}
+.badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;align-items:center;justify-content:center;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:11px;font-weight:700}
 .badge:empty{display:none}
 .frow{display:flex;gap:8px;align-items:center;margin:8px 0}
 .frow select,.frow input{flex:1;min-width:0;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;padding:7px 9px}
@@ -184,7 +189,7 @@ body.fopen .fpanel{display:block}
 .btn.sm{padding:4px 10px;font-size:12.5px;border-radius:6px}
 .fmeta{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 4px;font-size:12.5px}
 .mini{display:inline-flex;align-items:center;gap:5px;color:var(--text);font-size:12.5px;cursor:pointer;white-space:nowrap}
-.mini input{accent-color:var(--blue);margin:0}
+.mini input{accent-color:var(--accent);margin:0}
 .fcount{font-size:13px;color:var(--mute);margin:6px 0 10px}
 .fcount b{color:var(--strong)}
 .fitem{border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin:8px 0;background:var(--bg)}
@@ -247,7 +252,7 @@ body.fopen .fpanel{display:block}
 .qchip{display:inline-flex;align-items:center;gap:6px;background:var(--pill);border:1px solid var(--pill-b);border-radius:16px;padding:4px 12px;font-size:13px;color:var(--text);cursor:pointer}
 .qchip span{color:var(--mute);font-size:11.5px}
 .qchip:hover{border-color:var(--mute)}
-.qchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.qchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .qchip.on span{color:#dbe4ff}
 .qchip.mine{border-style:dashed}
 .quick + .tabs{margin-top:10px}
@@ -259,7 +264,7 @@ body.fopen .fpanel{display:block}
 .gchip{display:inline-flex;align-items:center;gap:6px;background:var(--pill);border:1px solid var(--pill-b);border-radius:16px;padding:5px 12px;font-size:13px;color:var(--text);cursor:pointer}
 .gchip em{font-style:normal;color:var(--mute);font-size:11.5px}
 .gchip span{color:var(--mute);font-size:11.5px}
-.gchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.gchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .gchip.on em,.gchip.on span{color:#dbe4ff}
 .gchip i.tag{font-style:normal;margin:0 0 0 2px;font-size:10.5px;padding:0 6px}
 .gbody{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px}
@@ -396,7 +401,7 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
 .sessstat.soon{color:var(--blue)}
 .sess.done{opacity:.85}
 
-#updBar{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--pill);border:1px solid var(--blue);
+#updBar{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--pill);border:1px solid var(--accent);
   border-radius:10px;padding:8px 10px 8px 14px;font-size:13.5px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .livebadge{font-size:12.5px;padding:4px 10px;border-radius:12px;border:1px solid var(--pill-b);background:var(--pill);cursor:pointer;white-space:nowrap}
 .livebadge.live{color:var(--green);border-color:color-mix(in srgb,var(--green) 50%,transparent)}
@@ -463,12 +468,60 @@ table.btm td{white-space:nowrap}
 .momocard .why{font-size:12.5px;color:var(--mute);margin:3px 0 10px}
 .momohead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .momohead h2{margin:0;font-size:16px;font-weight:600;color:var(--strong)}
+
+/* ===== The Finder: sidebar shell ===== */
+.shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px 10px 14px;display:flex;flex-direction:column;gap:2px;z-index:6}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 12px;text-decoration:none}
+.brand svg{width:32px;height:32px;flex:none}
+.brand b{display:block;font-size:17px;font-weight:700;color:var(--strong);letter-spacing:-.01em;line-height:1.15}
+.brand small{display:block;font-size:11px;color:var(--mute)}
+.ngrp{font-size:10.5px;letter-spacing:.1em;color:var(--mute);font-weight:600;padding:12px 10px 4px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;background:transparent;border:0;border-radius:6px;padding:7px 10px;text-align:left;cursor:pointer;color:var(--text);font-size:13.5px}
+.nav:hover{background:var(--hover)}
+.nav.on{background:var(--active);color:var(--strong);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+.nav .nb{font-size:11.5px;color:var(--mute);font-weight:500}
+.nav.on .nb{color:var(--accent)}
+.sfoot{margin-top:auto;border-top:1px solid var(--line);padding:12px 8px 0;font-size:12px;color:var(--mute);display:flex;flex-direction:column;gap:5px}
+.sfoot .skv{display:flex;justify-content:space-between;gap:8px}.sfoot .skv span:last-child{color:var(--text);text-align:right}
+h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regime,.sc{font-family:var(--display)}
+.row .nm{flex-wrap:wrap;row-gap:4px}.row .nm .inst{flex:none}.rsis{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.sfoot .st{line-height:1.4;max-height:3.6em;overflow:hidden}
+.sfoot .sp{height:3px;background:var(--pill);border-radius:2px;overflow:hidden}.sfoot .sp i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.crumb{color:var(--mute);font-size:12.5px}
+.crumb b{color:var(--text);font-weight:500}
+.subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
+.subline #title{color:var(--text);font-weight:500}
+.pg-off{display:none!important}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+.boards.single{grid-template-columns:minmax(0,1fr)}
+.boards.single .board{max-width:none}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:8px 10px;gap:4px;border-right:0;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .ngrp,.sfoot,.brand small,.brand b,.nav .nb{display:none}
+  .brand{padding:0 6px 0 0}.brand svg{width:28px;height:28px}
+  .nav{width:auto;white-space:nowrap;flex:none}
+  #navList{display:flex;gap:4px}
+}
 </style>
 </head>
 <body>
+<div class="shell">
+<nav class="side" id="side" aria-label="Sections">
+  <a class="brand" href="#overview" data-go="overview"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#e8b04a"/><path d="M10 7.5h16l-2.6 4.6H14.6v3.8h8.6l-2.4 4.2h-6.2V26.5H10z" fill="#141517"/></svg><span><b>The Finder</b><small>Dig out the movers</small></span></a>
+  <div id="navList"></div>
+  <div class="sfoot">
+    <div class="st" id="sideStatus">Ready.</div>
+    <div class="sp"><i id="sideProg"></i></div>
+    <div class="skv"><span>Exchange</span><span id="sideEx">Binance</span></div>
+    <div class="skv"><span>Direction</span><span id="sideDir">Longs + Shorts</span></div>
+    <div class="skv"><span>Stream</span><span id="sideLive">Off</span></div>
+  </div>
+</nav>
 <div class="wrap">
   <div class="topbar">
-    <div class="appname"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 8h14M8 8v9"/></svg>Crypto Coins Screener</div>
+    <div class="crumb" id="crumb">Market › <b>Overview</b></div>
     <div class="actions">
       <button class="livebadge off" id="liveBadge" title="Live data">○ Live</button>
       <label class="tog"><input type="checkbox" id="auto"> Auto-Refresh (15 min)</label>
@@ -478,8 +531,8 @@ table.btm td{white-space:nowrap}
       <button class="btn primary" id="runBtn">Scan Now</button>
     </div>
   </div>
-  <h1 id="title">Binance Perpetuals</h1>
-  <div class="clock" id="clock">Loading time…</div>
+  <h1 id="pageTitle">Overview</h1>
+  <div class="subline"><span id="title">Binance Perpetuals</span><span>·</span><span class="clock" id="clock">Loading time…</span></div>
   <div class="layout"><main>
 
   <div class="pills">
@@ -497,7 +550,7 @@ table.btm td{white-space:nowrap}
     <input id="search" class="search" type="search" placeholder="Search coins" aria-label="Search coin">
   </div>
 
-  <section class="strip">
+  <section class="strip" data-page="overview">
     <div class="card">
       <div class="barwrap"><div class="bar" id="bar"></div><div class="now" id="now"></div></div>
       <div class="ticks"><span>12 AM</span><span>4 AM</span><span>8 AM</span><span>12 NN</span><span>4 PM</span><span>8 PM</span><span>12 AM</span></div>
@@ -511,41 +564,41 @@ table.btm td{white-space:nowrap}
     </div>
   </section>
 
-  <section class="mrow">
+  <section class="mrow" data-page="overview">
     <div class="mcard"><h2>Market Status</h2><div id="mstat"><div class="empty">Loading…</div></div></div>
     <div class="mcard"><h2>Top 10 Gainers <span class="meta">24h</span></h2><div class="note">Coins with $5M+ volume</div><div id="gainers"><div class="empty">No scan yet.</div></div></div>
     <div class="mcard"><h2>Top 10 Losers <span class="meta">24h</span></h2><div class="note">Coins with $5M+ volume</div><div id="losers"><div class="empty">No scan yet.</div></div></div>
   </section>
 
-  <section class="card rotcard" id="rotation"><h2>Money Flow</h2><div class="empty">Run a scan to read where money is flowing.</div></section>
+  <section class="card rotcard" id="rotation" data-page="overview"><h2>Money Flow</h2><div class="empty">Run a scan to read where money is flowing.</div></section>
 
-  <section class="card pbcard" id="playbook" aria-live="polite"><div class="empty">Run a scan to read today's environment.</div></section>
+  <section class="card pbcard" id="playbook" aria-live="polite" data-page="playbook"><div class="empty">Run a scan to read today's environment.</div></section>
 
-  <section class="card sesscard momocard">
+  <section class="card sesscard momocard" data-page="momentum">
     <div class="momohead"><h2>Momentum Board</h2><span class="meta">1H RSI (14) and EMA 20/50/100 · 4H as context</span>
       <label class="tog" style="margin-left:auto"><input type="checkbox" id="momoAlert"> Alert me on new breakouts</label></div>
     <div class="why">Coins already running, coins pausing after a push, and coins starting a new trend out of bunched moving averages. Each coin is listed in its strongest stage; stretched coins (3+ ATR from the 20) are flagged so you wait for a pullback instead of chasing.</div>
     <div id="momoBoard"><div class="empty">Run a scan to see the momentum board.</div></div>
   </section>
 
-  <section class="card sesscard">
+  <section class="card sesscard" data-page="sessions">
     <h2>Session Picks</h2>
     <div class="why">The best 3 coins to day trade in each session: how much each coin really moves in that session (last 14 days), its day score, and any setup. Each coin is listed under its strongest session only.</div>
     <div id="sessionPicks"><div class="empty">Run a scan to see session picks.</div></div>
   </section>
 
-  <section class="boards">
-    <div class="board">
+  <section class="boards single" data-page="day swing aots">
+    <div class="board" data-page="day">
       <div class="board-head"><h2>Day Trade</h2></div>
       <div class="why">Ranked by 1H structure, volume now, strength vs BTC and entry location. $50M+ volume; the top 3 are tradeable tonight.</div>
       <div id="dayBoard"><div class="empty">No scan yet.</div></div>
     </div>
-    <div class="board">
+    <div class="board" data-page="swing">
       <div class="board-head"><h2>Swing</h2></div>
       <div class="why">4H and Daily stacked in the same direction. $20M+ volume.</div>
       <div id="swingBoard"><div class="empty">No scan yet.</div></div>
     </div>
-    <div class="board">
+    <div class="board" data-page="aots">
       <div class="board-head"><h2>Trend Starting</h2>
         <div class="opts"><select id="aotsTf" aria-label="AOTS timeframe"><option value="">4H + 1H</option><option>4H</option><option>1H</option></select>
 </div></div>
@@ -554,14 +607,15 @@ table.btm td{white-space:nowrap}
     </div>
   </section>
 
-  <section class="card mguide"><h2>Model Guide</h2><div id="guide"></div></section>
+  <section class="card mguide" data-page="guide"><h2>Model Guide</h2><div id="guide"></div></section>
 
-  <section class="card scard" id="scorecard"></section>
+  <section class="card scard" id="scorecard" data-page="scorecard"></section>
 
-  <section class="card btcard" id="backtest"></section>
+  <section class="card btcard" id="backtest" data-page="backtest"></section>
 
-  <section class="card btcard" id="botSim"></section>
+  <section class="card btcard" id="botSim" data-page="bots"></section>
 
+  <section class="tblock" data-page="screener watch day swing aots momentum">
   <div class="quick" id="quick" aria-label="One-click views"></div>
   <div class="tabs" id="tabs" role="tablist"></div>
   <div class="tablewrap">
@@ -570,8 +624,9 @@ table.btm td{white-space:nowrap}
       <tbody id="tbody"><tr><td class="l mute" colspan="12">Scan results appear here.</td></tr></tbody>
     </table>
   </div>
+  </section>
 
-  <footer>
+  <footer data-page="guide">
     Rating blends the 20/50/100 stack on 1H (30%), 4H (40%) and Daily (30%), plus a nudge for a fresh AOTS break; two or more tangled timeframes always read Chop.
     Wick % is the share of each candle that is wick, averaged over the last 48 1H and 42 4H candles: under 50% is clean, over 65% (or 3+ spikes larger than 1.5× ATR) is wicky.
     Day score: 1H structure 40, relative volume now (last 6 hours vs the same hours on the previous 7 days) 20, volatility fit 15, strength vs BTC over 24h 15, entry location (distance from the 1H 20) 10. Swing score: 4H and Daily structure 50, daily relative volume 20, volatility fit 15, strength vs BTC over 7 days 15. Boards keep at most 2 coins per sector. Picks are a watchlist, not entries.
@@ -586,6 +641,7 @@ table.btm td{white-space:nowrap}
     <p class="fhint">Filters apply instantly to the table and, if "Apply to Boards" is on, to the three boards. No re-scan needed. Crosses look at the last 3 closed candles.</p>
   </aside>
   </div>
+</div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
@@ -2185,6 +2241,7 @@ function renderGuide() {
   if ($("gShow")) $("gShow").onclick = () => {
     FS.filters = [{ kind: "model", model: guideSel, stage: "any", dir: "any" }]; FS.template = `${guideSel} setups`; FS.boards = false;
     tab = "models"; sortKey = null; sortDir = -1; fsSave(); renderPanel(); renderQuick(); renderTabs(); renderBoards(); renderTable();
+    if (window.goPage) goPage("screener", true);
     document.querySelector("#tabs").scrollIntoView({ behavior: "smooth", block: "start" });
   };
 }
@@ -2335,6 +2392,7 @@ function renderPlaybook() {
     const k = b.dataset.pm; guideSel = k; renderGuide();
     FS.filters = [{ kind: "model", model: k, stage: "any", dir: env.dirBias === "Both" || k === "Fade" ? "any" : env.dirBias }]; FS.template = `${k} setups`; FS.boards = false;
     tab = "models"; sortKey = null; sortDir = -1; fsSave(); renderPanel(); renderQuick(); renderTabs(); renderBoards(); renderTable();
+    if (window.goPage) goPage("screener", true);
     document.querySelector("#tabs").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
@@ -2496,7 +2554,7 @@ async function notify(title, body) {
   try {
     if ("Notification" in window && Notification.permission === "granted") {
       const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-      if (reg) reg.showNotification(title, { body, icon: "icons/scanner-192.png", tag: title }); else new Notification(title, { body });
+      if (reg) reg.showNotification(title, { body, icon: "icons/finder-192.png", tag: title }); else new Notification(title, { body });
     }
   } catch (e) {}
 }
@@ -2782,7 +2840,7 @@ function renderScorecard() {
   $("scCsv").onclick = () => {
     const head = "time_pht,coin,source,model,direction,entry,stop,target,environment,status,r\n";
     const csv = head + HIST.map(h => [fmtPHT(new Date(h.at + PHT_MS)), h.sym, h.src, h.model, h.dir, h.entry, h.stop, h.t2, `"${h.env}"`, h.status, h.r ?? ""].join(",")).join("\n");
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "alt-scanner-scorecard.csv"; a.click();
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "the-finder-scorecard.csv"; a.click();
   };
   if (data) bindRows(el);
 }
@@ -2861,7 +2919,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.07.0953";
+const APP_VERSION = "2026.10.07.1118";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -2878,7 +2936,7 @@ function applyUpdateWhenIdle() {
   if (!busy) { location.reload(); return; }                          // reload quietly when you're not in the middle of something
   if (!$("updBar")) {
     const b = document.createElement("div"); b.id = "updBar"; b.setAttribute("role", "status");
-    b.innerHTML = `A new version of Alt Scanner is ready. <button class="btn sm primary" id="updNow">Reload now</button>`;
+    b.innerHTML = `A new version of The Finder is ready. <button class="btn sm primary" id="updNow">Reload now</button>`;
     document.body.appendChild(b); $("updNow").onclick = () => location.reload();
   }
   setTimeout(applyUpdateWhenIdle, 15000);
@@ -3456,7 +3514,7 @@ function renderBacktest() {
   if ($("btCsv")) $("btCsv").onclick = () => {
     const csv = "time_pht,coin,model,timeframe,side,session,environment,entry,stop,target,exit,r_after_fees,r_before_fees,candles\n" +
       T.map(t => [fmtPHT(new Date(t.t + PHT_MS)), t.sym, t.model, t.tf, t.dir, t.session.replace(/^\S+\s/, ""), `"${t.env}"`, t.entry, t.stop, t.t2, t.reason, t.r, t.gross, t.bars].join(",")).join("\n");
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "alt-scanner-backtest.csv"; a.click();
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "the-finder-backtest.csv"; a.click();
   };
   if (all) drawEquity(T);
 }
@@ -3834,7 +3892,7 @@ function momoLine(r, m) {
 function momoRowHTML(x, i) {
   const r = x.r, m = x.m, ig = (r.models || []).find(mm => mm.model === "Ignite" && mm.dir === m.dir);
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
-    <div><div class="nm">${instHTML(r)}${biasTag(m.dir)}<span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</div>
+    <div><div class="nm">${instHTML(r)}${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln">${momoLine(r, m)}</div>
       <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
@@ -4137,6 +4195,86 @@ loadPrefs(); buildRibbon(); renderTabs(); renderTable(); tickClock(); setInterva
 window.addEventListener("resize", tickClock);
 if ($("auto").checked) autoTimer = setInterval(run, 15 * 60 * 1000);
 run();
+
+/* ===================== The Finder: sidebar pages ===================== */
+const PAGES = [
+  { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"]] },
+  { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
+  { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
+  { g: "MY TRADING", items: [["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
+  { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
+];
+const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
+const PAGE_INFO = {};
+PAGES.forEach(g => g.items.forEach(([id, label]) => PAGE_INFO[id] = { g: g.g, label }));
+let page = "overview";
+function pageGroupName(g) { return g.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
+function renderNav() {
+  $("navList").innerHTML = PAGES.map(g => `<div class="ngrp">${g.g}</div>` + g.items.map(([id, label]) =>
+    `<button class="nav ${id === page ? "on" : ""}" data-go="${id}" ${id === page ? 'aria-current="page"' : ""}><span>${label}</span><span class="nb" id="nb-${id}"></span></button>`).join("")).join("");
+  navBadges();
+}
+function goPage(id, keepTab) {
+  if (id === "filters") { goPage("screener", true); if (!document.body.classList.contains("fopen")) $("fToggle").click(); return; }
+  if (!PAGE_INFO[id]) id = "overview";
+  const changed = id !== page; page = id;
+  try { localStorage.setItem("finder-page", id); } catch (e) {}
+  if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+  document.querySelectorAll("[data-page]").forEach(el => el.classList.toggle("pg-off", !el.dataset.page.split(" ").includes(id)));
+  const info = PAGE_INFO[id];
+  $("pageTitle").textContent = info.label;
+  $("crumb").innerHTML = `${pageGroupName(info.g)} › <b>${info.label}</b>`;
+  document.title = `${info.label} · The Finder`;
+  if (!keepTab && id in PAGE_TAB) {
+    const want = PAGE_TAB[id] || (tab === "watch" || tab === "day" || tab === "swing" || tab === "aots" || tab === "momentum" ? "overview" : tab);
+    if (want !== tab) { tab = want; sortKey = null; sortDir = -1; renderTabs(); renderTable(); }
+  }
+  renderNav();
+  if (changed) window.scrollTo(0, 0);
+  // charts sized while hidden need a nudge once their page shows
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+window.goPage = goPage;
+function navBadges() {
+  const n = sel => document.querySelectorAll(sel).length, set = (id, v) => { const el = $("nb-" + id); if (el) el.textContent = v == null ? "" : v; };
+  const has = !!data;
+  set("playbook", has ? (n("#playbook .row") ? n("#playbook .row") + " picks" : "") : "");
+  set("momentum", has ? n("#momoBoard .row") : "");
+  set("day", has ? n("#dayBoard .row") : "");
+  set("swing", has ? n("#swingBoard .row") : "");
+  set("aots", has ? n("#aotsBoard .row") : "");
+  set("sessions", has ? n("#sessionPicks .row") : "");
+  set("screener", has ? data.all.length : "");
+  const fa = typeof activeFilters === "function" ? activeFilters().length : 0;
+  set("filters", fa ? fa + " on" : "");
+  let w = 0, al = 0;
+  try { w = Object.keys(WL.coins).filter(k => isWatched(k)).length; al = WL.alerts.filter(a => !a.fired).length; } catch (e) {}
+  set("watch", w || al ? `${w}${al ? " · " + al + "🔔" : ""}` : "");
+}
+let nbT = 0;
+new MutationObserver(() => { clearTimeout(nbT); nbT = setTimeout(navBadges, 150); }).observe(document.querySelector("main"), { childList: true, subtree: true });
+setInterval(navBadges, 2000);   // catches renders that finish before the scan result is stored
+function mirrorSide() {
+  $("sideStatus").textContent = $("status").textContent;
+  $("sideProg").style.width = $("prog").style.width || "0";
+  const ex = $("exF"), d = $("dirF"), lb = $("liveBadge");
+  $("sideEx").textContent = `${ex.options[ex.selectedIndex].text} ${$("market").value === "spot" ? "Spot" : "Futures"}`;
+  $("sideDir").textContent = d.options[d.selectedIndex].text;
+  const on = !lb.classList.contains("off");
+  $("sideLive").textContent = on ? "● Live" : "Off"; $("sideLive").style.color = on ? "var(--green)" : "";
+}
+new MutationObserver(mirrorSide).observe($("status"), { childList: true, characterData: true, subtree: true });
+new MutationObserver(mirrorSide).observe($("prog"), { attributes: true });
+new MutationObserver(mirrorSide).observe($("liveBadge"), { attributes: true, childList: true });
+["exF", "dirF", "market"].forEach(id => $(id).addEventListener("change", () => setTimeout(mirrorSide, 0)));
+$("side").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b) return; e.preventDefault(); goPage(b.dataset.go); });
+window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
+(function () {
+  let start = location.hash.slice(1);
+  if (!PAGE_INFO[start] || start === "filters") { try { start = localStorage.getItem("finder-page") || "overview"; } catch (e) { start = "overview"; } }
+  goPage(PAGE_INFO[start] ? start : "overview");
+  mirrorSide();
+})();
 </script>
 <script>
 /* installable app: register the service worker (needs https or localhost) */

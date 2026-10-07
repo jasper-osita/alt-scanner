@@ -92,7 +92,7 @@ URL="http://localhost:$PORT"
 if [ -d "/Applications/Google Chrome.app" ]; then open -a "Google Chrome" "$URL"; else open "$URL"; fi
 cat <<MSG
 
-Alt Scanner is running at $URL
+The Finder is running at $URL
 
 Last step, install it as an app:
   Chrome:  click the install icon at the right of the address bar

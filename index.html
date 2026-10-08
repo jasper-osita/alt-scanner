@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1147">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1453">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -844,7 +844,9 @@ function structure(k, maFn) {
   for (let i = c.length - 30; i < c.length; i++) { const s = c[i] > m20[i] ? 1 : -1; if (prev !== null && s !== prev) crosses++; prev = s; }
   const cleanP = dir ? clamp(1 - (crosses - 1) / 7) * 10 : 0;
   const sepP = dir ? clamp(Math.abs(x20 - x100) / a / 2) * 10 : 0;
-  return { dir, state, pts: r1(stack + slopeP + cleanP + sepP), crosses, ext: r2((p - x20) / a),
+  let age = 0;                                           // candles the 20/50/100 have been stacked in this direction
+  if (dir) for (let i = c.length - 1; i >= 0 && m100[i] != null; i--) { if (up ? (m20[i] > m50[i] && m50[i] > m100[i]) : (m20[i] < m50[i] && m50[i] < m100[i])) age++; else break; }
+  return { dir, state, age, pts: r1(stack + slopeP + cleanP + sepP), crosses, ext: r2((p - x20) / a),
            parts: { stack, slope: r1(slopeP), clean: r1(cleanP), sep: r1(sepP) } };
 }
 
@@ -1072,11 +1074,11 @@ function nbbLong(k, a) {
     const above = pivots(k, 3, Math.max(0, n - 200)).hi.map(i => k.h[i]).filter(h => h > k.c[j]);
     const room = !above.length || (minOf(above) - lv.entry) >= 2 * (lv.entry - lv.stop);
     const baseNo = countBases(k, a, Math.max(0, b.s - 100), b.s) + 1;
-    return { model: "NBB", state: "Breakout", trig: true, bars: 0, zoneHi: b.hi, zoneLo: b.lo, ...lv, sweep, fvg, room, baseNo, baseLen: b.len, tClose: k.t[j] + 3600e3,
+    return { model: "NBB", state: "Breakout", trig: true, bars: 0, zoneHi: b.hi, zoneLo: b.lo, ...lv, t2: lv.t3, t3: null, sweep, fvg, room, baseNo, baseLen: b.len, tClose: k.t[j] + 3600e3,
       note: `Displacing close out of a ${b.len}-candle base${sweep ? ", base swept first" : ""}. Base #${baseNo}${baseNo === 2 ? " (prime)" : ""}.` };
   }
   if (n - 1 >= 40) { const b = baseBack(k, a, n - 1);
-    if (b.len >= 6) return { model: "NBB", state: "Basing", trig: false, bars: b.len, baseLen: b.len, zoneHi: b.hi, zoneLo: b.lo, ...levels(b.hi, b.lo),
+    if (b.len >= 6) return { model: "NBB", state: "Basing", trig: false, bars: b.len, baseLen: b.len, zoneHi: b.hi, zoneLo: b.lo, ...levels(b.hi, b.lo), t2: levels(b.hi, b.lo).t3, t3: null,
       note: `Base of ${b.len} candles, ${((b.hi - b.lo) / a).toFixed(1)} ATR tall. Wait for a displacing close out of it.` }; }
   if (f === "drift") return null;
   for (const off of [2, 3]) {
@@ -1087,22 +1089,23 @@ function nbbLong(k, a) {
   }
   return null;
 }
-/* NBB A-grade (180-day study on 71 Binance perps, fresh breakouts only): all four must pass.
-   A-grade: 44% hit 2R, +0.44R per trade after fees. Failing any one: −0.11R per trade. */
+/* NBB A-grade: the three checks that held on the study coins, 111 other coins and the 6 months before (all fresh breakouts, 3R target, 48h).
+   A-grade: about 40% close in profit, +0.14 to +0.28R per trade after fees. The rest: −0.02 to −0.11R. */
 const NBB_WIN = [8, 19.5];                                 // PHT hours: Asia, London and the London lunch hour
-function nbbGrade(m, btcDir4, T) {
+const NBB_MAX_AGE = 74;                                    // 1H candles the trend has been stacked (about 3 days)
+function nbbGrade(m, btcDir1, btcDir4, T) {
   if (!m || m.model !== "NBB" || m.missed) return null;
   const d = new Date((T ?? Date.now()) + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
   const hh = d.getUTCHours() % 12 || 12, ap = d.getUTCHours() >= 12 ? "PM" : "AM", at = `${hh}:${String(d.getUTCMinutes()).padStart(2, "0")} ${ap}`;
-  const inWin = h >= NBB_WIN[0] && h < NBB_WIN[1], up = m.dir === "Long";
+  const inWin = h >= NBB_WIN[0] && h < NBB_WIN[1], w = x => x === "Long" ? "up" : "down";
+  const btcOk = btcDir1 === m.dir && btcDir4 === m.dir, age = m.trendAge;
   const items = [
-    ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the 8:00 AM – 7:30 PM window`],
-    ["BTC 4H", btcDir4 === m.dir, btcDir4 ? `BTC 4H is stacked ${btcDir4 === "Long" ? "up" : "down"}${btcDir4 === m.dir ? ", with you" : ", against you"}` : "BTC 4H is tangled"],
-    ["Daily", m.withDaily !== true, m.withDaily === true ? `Daily already stacked ${up ? "up" : "down"}: late in the move` : m.withDaily === false ? "Daily stacked the other way: early in the move" : "Daily not stacked yet"],
-    ["Base", m.baseLen != null && m.baseLen <= 11, `${m.baseLen ?? "?"} candles (11 or fewer)`]];
-  return { pass: items.every(x => x[1]), n: items.filter(x => x[1]).length, items };
+    ["BTC", btcOk, `BTC 1H ${btcDir1 ? "stacked " + w(btcDir1) : "tangled"}, 4H ${btcDir4 ? "stacked " + w(btcDir4) : "tangled"}${btcOk ? ": both with you" : ": needs both with you"}`],
+    ["Young trend", age != null && age <= NBB_MAX_AGE, age == null ? "trend age unknown" : `1H stacked for ${age} candle${age === 1 ? "" : "s"} (${NBB_MAX_AGE} or fewer, about 3 days)`],
+    ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the 8:00 AM – 7:30 PM window`]];
+  return { pass: items.every(x => x[1]), n: items.filter(x => x[1]).length, of: items.length, items };
 }
-function gradeModels(r, btc) { (r.models || []).forEach(m => { if (m.model === "NBB") m.grade = nbbGrade(m, btc && btc.dir4, m.trig ? m.tClose : Date.now()); }); }
+function gradeModels(r, btc) { (r.models || []).forEach(m => { if (m.model === "NBB") m.grade = nbbGrade(m, btc && btc.dir1, btc && btc.dir4, m.trig ? m.tClose : Date.now()); }); }
 
 /* OEZ of the last impulse leg (62–79%) */
 function oezZone(k, a) {
@@ -1246,7 +1249,7 @@ function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
     try {
       let m = fn(dir === "Long" ? k1h : mirror(k1h), a, extra && (dir === "Long" ? extra : mirror(extra)));
       if (!m) return; if (dir === "Short") m = unmirror(m);
-      out.push({ ...m, dir, tf: "1H", withDaily: dD ? dD === dir : null });
+      out.push({ ...m, dir, tf: "1H", withDaily: dD ? dD === dir : null, ...(m.model === "NBB" ? { trendAge: s1h.age } : {}) });
     } catch (e) {}
   };
   for (const dir of ["Long", "Short"]) {
@@ -1846,7 +1849,7 @@ async function btcRegime(maFn) {
   const s1 = structure(a, maFn), s4 = structure(b, maFn);
   const regime = (s1.state === "Bull stack" && s4.state === "Bull stack") ? "Risk-on"
                : (s1.state === "Bear stack" && s4.state === "Bear stack") ? "Risk-off" : "Chop";
-  return { regime, h1: s1.state, h4: s4.state, dir4: s4.dir, price: a.c.at(-1), ret90: d.c.length > 91 ? d.c.at(-1) / d.c.at(-91) - 1 : null, ret24: ret(a.c, 24), ret7: ret(b.c, 42),
+  return { regime, h1: s1.state, h4: s4.state, dir1: s1.dir, dir4: s4.dir, price: a.c.at(-1), ret90: d.c.length > 91 ? d.c.at(-1) / d.c.at(-91) - 1 : null, ret24: ret(a.c, 24), ret7: ret(b.c, 42),
            ret30: d.c.length > 31 ? d.c.at(-1) / d.c.at(-31) - 1 : null, dt: d.t, dc: d.c };
 }
 /* ETH and the ETH/BTC ratio, for the money-flow read */
@@ -2547,8 +2550,8 @@ const MODELS = {
       "<b>Basing</b> = price still inside the base; mark its high and low", "<b>Breakout</b> = the candle that just closed broke out beyond the base edge in the trend direction, body ≥ 1.5× the base's average body",
       "<b>Missed breakout</b> = it broke out 1–2 candles ago: no trigger, don't chase. Wait for the next base or a retest of the base edge",
       "Leaked out on small candles = drift, rejected", "Also reports: FVG left, base swept first, base # (2nd is prime), room to the next swing level ≥ 2R",
-      "<b>A-grade</b> needs all four: breakout between 8:00 AM and 7:30 PM PHT · BTC 4H stacked with you · the Daily NOT already stacked with you (late in the move) · base of 11 candles or fewer"],
-    trade: "Enter the breakout close or the retest of the base edge / FVG. Stop: far side of the base. 2–3R, hard close by 11:00 NY.", grade: "A-grade when all four checks pass. 180-day study on 71 Binance perps: A-grade NBB hit 2R 44% of the time for +0.44R per trade after fees; NBB failing any check averaged −0.11R." },
+      "<b>A-grade</b> needs all three: BTC stacked with you on both the 1H and the 4H · the 1H trend stacked for 74 candles or fewer (about 3 days) · the breakout closes between 8:00 AM and 7:30 PM PHT"],
+    trade: "Enter at the breakout close. Stop just beyond the far side of the base (don't tighten it). One target at 3R; if neither the stop nor 3R is hit within 48 hours, close at market.", grade: "A-grade when all three checks pass. Tested on 71 coins, 111 other coins and the 6 months before: A-grade NBB closed in profit about 40% of the time for +0.14 to +0.28R per trade after fees (3R target, 48 hours); NBB failing any check averaged −0.02 to −0.11R. Expect losing streaks of 8–10 trades." },
   "Bounce": { icon: "⤴️", name: "Bounce (OEZ)", tf: "1H", alias: "OEZ",
     what: "With-trend continuation. After an impulse leg, price pulls back into the OEZ (62–79% fib of that leg), taps a fresh POI and continues. Buying the discount inside a trend, not calling a reversal.",
     rules: ["1H trend in force in the trade direction", "Last impulse leg ≥ 3 ATR; OEZ = its 62–79% retracement", "<b>Approaching</b> = within 1 ATR of the 62% line",
@@ -2604,7 +2607,7 @@ const MODELS = {
     trade: "Enter the distribution break. Stop beyond the manipulation extreme. 2–3R into the opposite liquidity, hard close by 11:00 NY.", grade: "Liquidity Sweep is required (the manipulation is the sweep)." },
 };
 const MODEL_KEYS = Object.keys(MODELS);
-const tLabel = m => m.model === "Pullback" ? "Target" : m.model === "Reset20" ? "3R" : "2R";
+const tLabel = m => m.model === "Pullback" ? "Target" : m.model === "Reset20" || m.model === "NBB" ? "3R" : "2R";
 let guideSel = "NBB";
 function modelTag(m, short) {
   const M = MODELS[m.model], cls = m.dir === "Long" ? "long" : m.dir === "Short" ? "short" : "";
@@ -2652,12 +2655,12 @@ function setupsHTML(r) {
     if (e.dirBias !== "Both" && m.dir !== "any" && m.dir !== e.dirBias && m.model !== "Fade") return "avoid";
     return e.fit[m.model];
   };
-  return r.models.map(m => `<div class="setup">${modelTag(m)}${edgeTag(r, m)}${isCounter(r, m) ? `<span class="tag flag">Against the coin's ${r.rating} rating${m.trig ? "" : ", not triggered"}</span>` : ""}${fitOf(m) && fitOf(m) !== "neutral" ? `<span class="tag fit-${fitOf(m)}">${fitOf(m) === "avoid" ? (data.env.fit[m.model] === "avoid" ? "Avoid today" : "Against today's bias") : FIT_LABEL[fitOf(m)] + " today"}</span>` : ""}${m.withDaily === true ? (m.model === "NBB" ? '<span class="tag">Daily with-trend (late for NBB)</span>' : '<span class="tag long">Daily with-trend</span>') : m.withDaily === false ? '<span class="tag flag">Against Daily</span>' : ""}
+  return r.models.map(m => `<div class="setup">${modelTag(m)}${edgeTag(r, m)}${isCounter(r, m) ? `<span class="tag flag">Against the coin's ${r.rating} rating${m.trig ? "" : ", not triggered"}</span>` : ""}${fitOf(m) && fitOf(m) !== "neutral" ? `<span class="tag fit-${fitOf(m)}">${fitOf(m) === "avoid" ? (data.env.fit[m.model] === "avoid" ? "Avoid today" : "Against today's bias") : FIT_LABEL[fitOf(m)] + " today"}</span>` : ""}${m.withDaily === true ? (m.model === "NBB" ? '<span class="tag">Daily with-trend</span>' : '<span class="tag long">Daily with-trend</span>') : m.withDaily === false ? '<span class="tag flag">Against Daily</span>' : ""}
     ${m.sweep ? '<span class="tag">Sweep</span>' : ""}${m.baseNo ? `<span class="tag">Base #${m.baseNo}</span>` : ""}${m.room === false ? '<span class="tag flag">No room</span>' : ""}
     <div class="meta">${m.note || ""}</div>
     ${m.checks ? `<ul class="obchk">${m.checks.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.checks.every(c => c[1]) ? '<span class="up">All checklist items pass: valid trade.</span>' : '<span class="dn">Checklist incomplete: no trade.</span>'}</div>` : ""}
-    ${m.grade ? `<div class="meta"><b>A-grade checks</b></div><ul class="obchk">${m.grade.items.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.grade.pass ? '<span class="up">A-grade: all four pass. In the 180-day study these hit 2R 44% of the time, +0.44R per trade.</span>' : '<span class="dn">Not A-grade. In the study, NBB failing any check averaged −0.11R per trade: skip it or size down.</span>'}</div>` : ""}
-    <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : "2R"} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
+    ${m.grade ? `<div class="meta"><b>A-grade checks</b></div><ul class="obchk">${m.grade.items.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.grade.pass ? '<span class="up">A-grade: all three pass. Plan: 3R target, close after 48 hours. Tested on 3 data sets: about 40% close in profit, +0.14 to +0.28R per trade.</span>' : '<span class="dn">Not A-grade. NBB failing any check averaged −0.02 to −0.11R per trade in testing: skip it.</span>'}</div>` : ""}
+    <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : m.model === "NBB" ? "Target 3R" : tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
 }
 
 /* ===================== Today's playbook: which models fit the environment ===================== */
@@ -2734,7 +2737,7 @@ function suggestions(env, n = 3) {
       if (["Fade", "Pullback"].includes(m.model) && !m.trig) return;      // counter-trend models must have triggered to be suggested
       const reasons = [];
       let s = fw * 10 + (m.trig ? 12 : 4);
-      if (m.grade) { if (m.grade.pass) { s += 8; reasons.push("A-grade NBB (4/4 checks)"); } else s -= 4; }
+      if (m.grade) { if (m.grade.pass) { s += 8; reasons.push("A-grade NBB (3/3 checks)"); } else s -= 4; }
       else if (m.withDaily) { s += 4; reasons.push("with the Daily"); } else if (m.withDaily === false) s -= 3;
       if (m.sweep) { s += 3; reasons.push("sweep first"); }
       if (m.baseNo === 2) { s += 3; reasons.push("2nd base"); } else if (m.baseNo >= 3) s -= 2;
@@ -3324,7 +3327,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.08.1147";
+const APP_VERSION = "2026.10.08.1453";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3794,16 +3797,27 @@ function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
     let ms; try { ms = detectModels(s1, s4, structure(s1, maFn), structure(s4, maFn), structure(sd, maFn), sd); } catch (e) { continue; }
     for (const m of ms) {
       if (!m.trig || !validLevels(m)) continue;
-      if (m.model === "NBB") m.grade = nbbGrade(m, ctx.btc4At ? ctx.btc4At(T) : null, T);
+      if (m.model === "NBB") m.grade = nbbGrade(m, ctx.btc1At ? ctx.btc1At(T) : null, ctx.btc4At ? ctx.btc4At(T) : null, T);
       const key = m.model + m.dir; if ((busyUntil[key] ?? -1) >= i) continue;      // one trade per model and side at a time
       const out = simulate(k1, i, m, MODEL_HOLD_H[m.model] || 48); if (!out) continue;
       busyUntil[key] = out.j;
       trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
         reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir), rot: rotBand(kd, ctx.btcD, T, m.dir),
-        v: btVariants(k1, i, m, MODEL_HOLD_H[m.model] || 48, null, ctx.fee), wd: m.withDaily ?? null, sw: !!m.sweep, ...(m.grade ? { ag: m.grade.pass } : {}) });
+        v: btVariants(k1, i, m, MODEL_HOLD_H[m.model] || 48, null, ctx.fee), wd: m.withDaily ?? null, sw: !!m.sweep,
+        ...(m.grade ? { ag: m.grade.pass, tr: r2(netR(m, trailExit(k1, i, m, 12, 168), ctx.fee)) } : {}) });
     }
   }
   return trades;
+}
+function trailExit(k, i, m, N, maxBars) {                 // exit on a close beyond the last N candles' range (gross R)
+  const long = m.dir === "Long", R = Math.abs(m.entry - m.stop);
+  for (let x = i + 1; x < k.c.length && x <= i + maxBars; x++) {
+    if (long ? k.l[x] <= m.stop : k.h[x] >= m.stop) return -1;
+    if (x <= i + 1) continue;
+    let lo = Infinity, hi = -Infinity; for (let y = Math.max(0, x - N); y < x; y++) { lo = Math.min(lo, k.l[y]); hi = Math.max(hi, k.h[y]); }
+    if (long ? k.c[x] < lo : k.c[x] > hi) return (long ? k.c[x] - m.entry : m.entry - k.c[x]) / R;
+  }
+  const x = Math.min(k.c.length - 1, i + maxBars); return (long ? k.c[x] - m.entry : m.entry - k.c[x]) / R;
 }
 function rotBand(kd, btcD, T, dir) {                      // coin vs BTC over the 30 days before entry, read for the trade's side
   if (!btcD) return "n/a";
@@ -3901,8 +3915,9 @@ async function runBacktest() {
         const st = x.s4[j]; if (st === "Bull stack" || st === "Pullback in bull") bull++; else if (st === "Bear stack" || st === "Pullback in bear") bear++; });
       return n ? envLabel(regime, Math.round(bull / n * 100), Math.round(bear / n * 100)) : envLabel(regime, 0, 0);
     };
+    const btc1At = T => { const st = b1[lastClosedIdx(btc1, H, T)] || ""; return /^Bull/.test(st) ? "Long" : /^Bear/.test(st) ? "Short" : null; };
     const btc4At = T => { const st = b4[lastClosedIdx(btc4, IV_MS["4h"], T)] || ""; return /^Bull/.test(st) ? "Long" : /^Bear/.test(st) ? "Short" : null; };
-    const ctx = { fee, envAt, btcD, btc4At }, trades = [];
+    const ctx = { fee, envAt, btcD, btc1At, btc4At }, trades = [];
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i], x = series[c];
       trades.push(...replay1h(c, x.k1, x.k4, x.kd, maFn, winStart, ctx), ...replaySession(c, x.k15, Math.max(winStart, now - 30 * 86400e3), ctx),
@@ -3923,7 +3938,7 @@ function btStats(trades) {
   const wins = trades.filter(t => t.reason === "Target").length, losses = trades.filter(t => t.reason === "Stop").length;
   const tot = trades.reduce((s, t) => s + t.r, 0), gw = trades.filter(t => t.r > 0).reduce((s, t) => s + t.r, 0), gl = -trades.filter(t => t.r < 0).reduce((s, t) => s + t.r, 0);
   let eq = 0, peak = 0, dd = 0; trades.forEach(t => { eq += t.r; peak = Math.max(peak, eq); dd = Math.max(dd, peak - eq); });
-  return { n, wins, losses, win: n ? wins / n * 100 : 0, avg: tot / n, tot, pf: gl ? gw / gl : (gw ? 99 : 0), dd, bars: trades.reduce((s, t) => s + t.bars, 0) / n };
+  return { n, wins, losses, win: n ? wins / n * 100 : 0, prof: trades.filter(t => t.r > 0).length / n * 100, avg: tot / n, tot, pf: gl ? gw / gl : (gw ? 99 : 0), dd, bars: trades.reduce((s, t) => s + t.bars, 0) / n };
 }
 const btGroup = (trades, f) => { const g = {}; trades.forEach(t => { const k = f(t); (g[k] = g[k] || []).push(t); }); return g; };
 function btFor(model, env) {                               // expectancy for a model in an environment (used by the playbook)
@@ -3987,11 +4002,14 @@ function renderBacktest() {
   let body = "";
   if (all) {
     const models = MODEL_KEYS.filter(k => T.some(t => t.model === k));
-    if (btView === "model") body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Model</th><th>Trades</th><th>Hit target</th><th>Stopped</th><th>Win rate</th><th>Avg R (after fees)</th><th>Total R</th><th>Profit factor</th><th>Max drawdown</th><th>Avg hold</th></tr></thead><tbody>${
-      models.map(k => { const row = (label, s, sub) => `<tr${sub ? ' class="btsub"' : ""}><td class="l">${label}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`;
+    if (btView === "model") body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Model</th><th>Trades</th><th>Hit target</th><th>Stopped</th><th title="Hit the target ÷ trades">Win rate</th><th title="Closed above zero after fees, including time exits">In profit</th><th>Avg R (after fees)</th><th>Total R</th><th>Profit factor</th><th>Max drawdown</th><th>Avg hold</th></tr></thead><tbody>${
+      models.map(k => { const row = (label, s, sub) => `<tr${sub ? ' class="btsub"' : ""}><td class="l">${label}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td>${s.prof.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`;
         const tk = T.filter(t => t.model === k); let out = row(`${MODELS[k].icon} ${k}`, btStats(tk));
         if (k === "NBB" && tk.some(t => t.ag != null)) { const a = btStats(tk.filter(t => t.ag === true)), b = btStats(tk.filter(t => t.ag === false));
-          if (a) out += row("↳ A-grade (4/4 checks)", a, true); if (b) out += row("↳ the rest", b, true); }
+          if (a) out += row("↳ A-grade (all checks)", a, true); if (b) out += row("↳ the rest", b, true);
+          const ag = tk.filter(t => t.ag === true && t.tr != null), TRAIL_ENV = ["BTC-Led: Alts Lagging", "Chop: Range Day"];
+          if (ag.length) { const sw = btStats(ag.map(t => TRAIL_ENV.includes(t.env) ? { ...t, r: t.tr, reason: t.tr > 0 ? "Trail" : "Stop" } : t));
+            out += row(`↳ A-grade, trailing on BTC-Led / Chop days <span class="mute">(test only)</span>`, sw, true); } }
         return out; }).join("")}</tbody></table></div>`;
     else if (btView === "session") body = btMatrix(T, "model", "session", models, SESS_LABELS.filter(x => T.some(t => t.session === x)));
     else if (btView === "env") body = btMatrix(T, "model", "env", models, [...new Set(T.map(t => t.env))]);
@@ -4120,7 +4138,7 @@ function edgeRuleFor(r, m) { return EDGE.rules.find(x => x.model === m.model && 
 const edgeOK = (r, m) => (m.grade && m.grade.pass) || !!edgeRuleFor(r, m);
 function liveModels(r) { const ms = ((r && r.models) || []).filter(m => !m.missed); return aGradeOn() ? ms.filter(m => edgeOK(r, m)) : ms; }
 function edgeTag(r, m) {
-  if (m.grade) return m.grade.pass ? `<span class="tag long" title="All four NBB checks pass">A-grade · 4/4</span>` : `<span class="tag" title="${m.grade.items.filter(x => !x[1]).map(x => x[0]).join(", ")} failed">Not A-grade · ${m.grade.n}/4</span>`;
+  if (m.grade) return m.grade.pass ? `<span class="tag long" title="All four NBB checks pass">A-grade · ${m.grade.of}/${m.grade.of}</span>` : `<span class="tag" title="${m.grade.items.filter(x => !x[1]).map(x => x[0]).join(", ")} failed">Not A-grade · ${m.grade.n}/${m.grade.of}</span>`;
   if (!EDGE.rules.length) return "";
   const rule = edgeRuleFor(r, m);
   if (rule) return `<span class="tag long" title="${edgeCondText(rule.cs)}: newest trades ${rule.test.n}, win ${rule.test.win.toFixed(0)}%, ${fmtR(rule.test.avg)}">A-grade · ${rule.v === "base" ? "model target" : EDGE_VARS[rule.v].toLowerCase()}</span>`;
@@ -4169,7 +4187,7 @@ function renderEdge() {
       <label class="pill"><span>Min trades per rule</span><select id="edgeMin"><option value="30">30</option><option value="50">50</option><option value="80">80</option></select></label>
       ${res && nOk ? `<button class="btn" id="edgeAll">Use all confirmed</button>` : ""}
       ${EDGE.rules.length ? `<button class="btn" id="edgeNone">Clear rules in use</button>` : ""}
-      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays, alerts and bots use only NBB setups that pass all four checks, plus setups matching a rule in use</label>
+      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays, alerts and bots use only NBB setups that pass all three checks, plus setups matching a rule in use</label>
       ${res ? `<button class="btn sm" id="edgeCopy">Copy for Claude</button>` : ""}
     </div>
     ${body}

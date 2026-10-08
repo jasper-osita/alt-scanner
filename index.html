@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1931">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.0005">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -425,7 +425,23 @@ body.pg-charts .wrap{max-width:none;padding:10px 14px 10px}body.pg-charts .layou
 body.pg-charts #fToggle{display:none}body.navcol .wrap{max-width:2200px}.shell>.wrap{width:100%;min-width:0}
 .chpage{display:flex;flex-direction:column;height:calc(100vh - 78px);min-height:520px}
 .chbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:4px 0 8px}
-.chsym{display:flex;align-items:baseline;gap:8px;min-width:150px}.chsym b{font-family:var(--display);font-size:17px;color:var(--strong)}.chsym span{font-size:13px;color:var(--text)}
+.chpickw{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chsym{display:flex;align-items:baseline;gap:8px;min-width:150px;background:transparent;border:1px solid transparent;border-radius:8px;padding:3px 8px;cursor:pointer;color:var(--text)}
+.chsym:hover,.chsym[aria-expanded="true"]{border-color:var(--pill-b);background:var(--pill)}.chsym b{font-family:var(--display);font-size:17px;color:var(--strong)}.chsym span{font-size:13px}.chsym i{font-style:normal;font-size:10px;color:var(--mute)}
+.chcats{display:inline-flex;gap:4px;flex-wrap:wrap}.chcats button{background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);font:12.5px var(--display);padding:5px 9px;cursor:pointer}
+.chcats button i{font-style:normal;font-size:9px;color:var(--mute)}.chcats button:hover{border-color:var(--accent)}
+.chpick{position:absolute;z-index:25;top:calc(100% + 4px);left:0;width:min(520px,92vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);padding:8px;display:flex;flex-direction:column;gap:6px}
+.chptabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:6px}
+.chptabs button{background:transparent;border:0;border-radius:6px;color:var(--mute);font:12.5px var(--display);padding:5px 9px;cursor:pointer}.chptabs button.on{background:var(--active);color:var(--accent)}.chptabs button:hover{color:var(--text)}
+.chpick input{height:32px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:0 10px;font:inherit}
+.chplist{max-height:min(420px,55vh);overflow:auto}
+.chprow{display:grid;grid-template-columns:22px minmax(0,1fr) auto 64px;gap:8px;align-items:center;padding:5px 6px;border-radius:7px;cursor:pointer}
+.chprow:hover,.chprow.sel{background:var(--hover)}.chprow.cur{box-shadow:inset 2px 0 0 var(--accent)}
+.chprow .n{display:flex;flex-direction:column;min-width:0}.chprow .n b{font-weight:600;color:var(--strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chprow .n small{font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chprow .v{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}
+.chprow .st{background:transparent;border:0;color:var(--mute);cursor:pointer;font-size:15px;padding:0}.chprow .st.on{color:var(--accent)}
+.chpnote{padding:10px 6px}
+.chcd{font-size:11.5px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:6px}
 .chseg{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden;background:var(--pill)}
 .chseg button{background:transparent;border:0;border-right:1px solid var(--pill-b);color:var(--mute);padding:5px 10px;font:12.5px var(--display);cursor:pointer}.chseg button:last-child{border-right:0}
 .chseg button.on{color:var(--on-accent);background:var(--accent)}.chseg button:hover:not(.on){color:var(--text)}
@@ -3417,7 +3433,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.08.1931";
+const APP_VERSION = "2026.10.09.0005";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5426,7 +5442,11 @@ function chBuild() {
   const tfOpts = tf => CH_TFS.map(t => `<option value="${t}" ${t === tf ? "selected" : ""}>${CH_TFL[t]}</option>`).join("");
   el.innerHTML = `
     <div class="chbar">
-      <div class="chsym"><b id="chSymName"></b><span id="chSymPx"></span></div>
+      <div class="chpickw">
+        <button class="chsym" id="chSymBtn" aria-haspopup="true" aria-expanded="false" title="Search all markets"><b id="chSymName"></b><span id="chSymPx"></span><i>▾</i></button>
+        <div class="chcats" role="group" aria-label="Markets">${CH_CATS.filter(c => c[0] !== "all").map(([k, l]) => `<button data-cat="${k}">${l} <i>▾</i></button>`).join("")}</div>
+        <div class="chpick" id="chPick" hidden></div>
+      </div>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <div class="chseg"><button class="tg" id="chMA" title="EMA/SMA 20, 50, 100">MA</button><button class="tg" id="chSessB" title="Asia, London, Pre-NY and NY AM boxes (1H and below)">Sessions</button><button class="tg" id="chRSI">RSI</button><button class="tg" id="chSync" title="Scroll one chart and the others follow to the same time">Sync scroll</button></div>
       <button class="btn sm chfocusb" id="chFocus" title="Hide the side bar and top bar (Esc to leave)">⛶ Focus</button>
@@ -5444,13 +5464,16 @@ function chBuild() {
         <button data-act="clear" title="Delete all drawings on this symbol" aria-label="Delete all drawings">${chToolIcon("M4 6h13M8 6V4h5v2M6 6l1 12h7l1-12")}</button>
       </div>
       <div class="chgrid" id="chGrid"></div><div id="chHold" hidden>
-        ${[0, 1, 2, 3].map(i => `<div class="chpane" data-i="${i}" id="chPane${i}"><div class="chph"><select class="chtf" data-i="${i}" aria-label="Timeframe">${tfOpts(CH.tfs[i])}</select><span class="cholc" id="chLeg${i}"></span><span class="chpb"><button data-fit="${i}" title="Reset zoom and price scale" aria-label="Fit chart">⟲</button><button data-max="${i}" title="Maximize this chart (click again to restore)" aria-label="Maximize chart">⤢</button></span></div>
+        ${[0, 1, 2, 3].map(i => `<div class="chpane" data-i="${i}" id="chPane${i}"><div class="chph"><select class="chtf" data-i="${i}" aria-label="Timeframe">${tfOpts(CH.tfs[i])}</select><span class="cholc" id="chLeg${i}"></span><span class="chcd" id="chCd${i}" title="Time left on the current candle"></span><span class="chpb"><button data-fit="${i}" title="Reset zoom and price scale" aria-label="Fit chart">⟲</button><button data-max="${i}" title="Maximize this chart (click again to restore)" aria-label="Maximize chart">⤢</button></span></div>
           <div class="chwrap" id="chWrap${i}"><div class="chcv" id="chCv${i}"></div><canvas class="chov" id="chOv${i}"></canvas><div class="chmsg" id="chMsg${i}"></div></div></div>`).join("")}
       </div>
       <aside class="chwl" id="chWL" aria-label="Chart watchlist"></aside>
     </div>`;
   el.querySelectorAll("[data-tool]").forEach(b => b.onclick = () => chSetTool(b.dataset.tool));
   el.querySelectorAll("[data-act]").forEach(b => b.onclick = () => chAct(b.dataset.act));
+  $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
+  el.querySelectorAll("[data-cat]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpen(b.dataset.cat); });
+  document.addEventListener("click", e => { const p = $("chPick"); if (p && !p.hidden && !e.target.closest(".chpickw")) chPickClose(); });
   $("chLayBtn").onclick = e => { e.stopPropagation(); const p = $("chLayPop"), open = p.hidden; p.hidden = !open; $("chLayBtn").setAttribute("aria-expanded", open); if (open) chLayPop(); };
   document.addEventListener("click", e => { const p = $("chLayPop"); if (p && !p.hidden && !e.target.closest(".chlay")) { p.hidden = true; $("chLayBtn").setAttribute("aria-expanded", "false"); } });
   $("chFocus").onclick = () => chFocus(!document.body.classList.contains("chfocus"));
@@ -5519,7 +5542,7 @@ function chBindGutter(gu, sizes) {
   });
   gu.addEventListener("dblclick", () => { const fr = sizes[path], m = (fr[j - 1] + fr[j]) / 2; fr[j - 1] = fr[j] = m; const cs = cells(); cs[j - 1].style.flex = cs[j].style.flex = `${m} 1 0px`; chSave(); });
 }
-const chVis = () => chLeaves(chTree()).map(i => CHP[i]);
+const chVis = () => chBuilt ? chLeaves(chTree()).map(i => CHP[i]).filter(Boolean) : [];
 function chFit(P) {
   if (!P || !P.chart || !P.t.length) return;
   P.chart.priceScale("right").applyOptions({ autoScale: true }); P.chart.priceScale("rsi").applyOptions({ autoScale: true });
@@ -5545,9 +5568,69 @@ function chSetSym(sym) {
   if (!sym) return;
   const why = chSourceOK(sym); if (why) { toast(why); return; }
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
-  CH.sym = sym; chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = [];
+  CH.sym = sym; CH.recent = [sym, ...(CH.recent || []).filter(x => x !== sym)].slice(0, 12); chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = [];
   chVis().forEach(P => chLoad(P)); chHeader(); chWLRender(); chSelBar();
   if (typeof liveSync === "function") liveSync();
+}
+/* ---- market picklists by category ---- */
+const CH_CATS = [["all", "All"], ["crypto", "Crypto"], ["metals", "Metals & Energy"], ["indices", "US Indices"], ["fx", "Forex & CFDs"], ["recent", "Recent"]];
+let chPickCat = "all", chPickQ = "", chPickSel = 0;
+const CH_POP_CRYPTO = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"];
+function chCatOf(s) {
+  if (s.startsWith("CT:")) { const r = MACRO.by[s]; if (!r || r.group === "Forex") return "fx";
+    return /gold|silver|oil|crude|brent|gas|copper|platinum|palladium|xau|xag/i.test(r.name || s) ? "metals" : "indices"; }
+  if (chIsTF(s)) return ((MACRO_INFO[chBase(s)] || [])[1] === "US Indices") ? "indices" : "metals";
+  return "crypto";
+}
+function chSrc(s) { return s.startsWith("CT:") ? (CT.broker || "cTrader") : chIsTF(s) ? "Binance TradFi perp" : `${exName()} ${MODE === "spot" ? "spot" : "perp"}`; }
+function chCatList(cat) {
+  const out = [], add = s => { if (s && !out.includes(s)) out.push(s); };
+  const ctRows = MACRO.rows.filter(r => r.ct).map(r => r.symbol);
+  if (cat === "recent") [CH.sym, ...(CH.recent || [])].forEach(add);
+  if (cat === "crypto" || cat === "all") { (data ? data.all.filter(r => !r.macro).sort((a, b) => b.vol24h - a.vol24h).map(r => r.symbol) : CH_POP_CRYPTO).forEach(add); CHW.filter(s => chCatOf(s) === "crypto").forEach(add); }
+  if ((cat === "metals" || cat === "all") && EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] !== "US Indices").forEach(([b]) => add(b + "USDT"));
+  if (cat === "metals" || cat === "all") ctRows.filter(s => chCatOf(s) === "metals").forEach(add);
+  if ((cat === "indices" || cat === "all") && EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] === "US Indices").forEach(([b]) => add(b + "USDT"));
+  if (cat === "indices" || cat === "all") ctRows.filter(s => chCatOf(s) === "indices").forEach(add);
+  if (cat === "fx" || cat === "all") ctRows.filter(s => chCatOf(s) === "fx").forEach(add);
+  return out;
+}
+function chPickOpen(cat) {
+  const p = $("chPick"); if (!p) return;
+  if (!p.hidden && chPickCat === cat) { chPickClose(); return; }
+  chPickCat = cat; chPickQ = ""; chPickSel = 0; p.hidden = false; $("chSymBtn").setAttribute("aria-expanded", "true");
+  chPickRender(true);
+  chQuotesFetch(chCatList(cat).slice(0, 24));
+}
+function chPickClose() { const p = $("chPick"); if (p) p.hidden = true; const b = $("chSymBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
+function chPickRender(focus) {
+  const p = $("chPick"); if (!p || p.hidden) return;
+  const had = document.activeElement && document.activeElement.id === "chPickQ", caret = had ? document.activeElement.selectionStart : null, scr = p.querySelector(".chplist") ? p.querySelector(".chplist").scrollTop : 0;
+  const q = chPickQ.trim().toLowerCase();
+  const list = chCatList(chPickCat).filter(s => !q || chName(s).toLowerCase().includes(q) || s.toLowerCase().includes(q)).slice(0, 150);
+  chPickSel = Math.max(0, Math.min(chPickSel, list.length - 1));
+  const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex and broker CFDs come from cTrader. Connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page, then they show here.</div>` : "";
+  const byNote = (chPickCat === "metals" || chPickCat === "indices") && EXCHANGE === "bybit" && !list.length ? `<div class="meta chpnote">Gold, oil and index perps come from Binance: switch the exchange to Binance (or connect cTrader for your broker's prices).</div>` : "";
+  p.innerHTML = `<div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
+    <input id="chPickQ" type="search" placeholder="Search ${CH_CATS.find(c => c[0] === chPickCat)[1].toLowerCase()}…" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets">
+    <div class="chplist" role="listbox">${list.map((s, i) => { const qd = chQuote(s), c = qd && qd.chg;
+      return `<div class="chprow ${i === chPickSel ? "sel" : ""} ${s === CH.sym ? "cur" : ""}" role="option" data-ps="${s}" data-ix="${i}"><button class="st ${CHW.includes(s) ? "on" : ""}" data-star="${s}" title="${CHW.includes(s) ? "Remove from" : "Add to"} the chart watchlist" aria-label="Watchlist">${CHW.includes(s) ? "★" : "☆"}</button>
+        <span class="n"><b>${chName(s)}</b><small>${s.startsWith("CT:") ? s.slice(3) : s} · ${chSrc(s)}</small></span><span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span></div>`; }).join("") || (fxNote || byNote || '<div class="meta chpnote">Nothing here yet.</div>')}</div>`;
+  p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(chCatList(chPickCat).slice(0, 24)); });
+  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]")) return; chPickClose(); chSetSym(r.dataset.ps); });
+  p.querySelectorAll("[data-star]").forEach(b => b.onclick = e => { e.stopPropagation(); const s = b.dataset.star; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (chIsTF(s)) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chPickRender(); });
+  const a = p.querySelector("[data-go2]"); if (a) a.onclick = e => { e.preventDefault(); chPickClose(); goPage("macro"); };
+  const inp = $("chPickQ");
+  inp.oninput = () => { chPickQ = inp.value; chPickSel = 0; const pos = inp.selectionStart; chPickRender(); const n = $("chPickQ"); n.focus(); n.setSelectionRange(pos, pos); };
+  inp.onkeydown = e => {
+    const rows = p.querySelectorAll("[data-ps]");
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); chPickSel = Math.max(0, Math.min(rows.length - 1, chPickSel + (e.key === "ArrowDown" ? 1 : -1)));
+      rows.forEach(r => r.classList.toggle("sel", +r.dataset.ix === chPickSel)); const r = rows[chPickSel]; if (r) r.scrollIntoView({ block: "nearest" }); }
+    else if (e.key === "Enter") { const r = rows[chPickSel]; if (r) { chPickClose(); chSetSym(r.dataset.ps); } }
+    else if (e.key === "Escape") { e.stopPropagation(); chPickClose(); }
+  };
+  if (focus || had) { inp.focus(); if (caret != null) inp.setSelectionRange(caret, caret); }
+  if (!focus && scr) p.querySelector(".chplist").scrollTop = scr;
 }
 window.openInCharts = sym => { if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
 
@@ -5759,6 +5842,7 @@ function chSelBar() {
 function chDelete() { if (!chSel) return; chPush(); CHD[CH.sym] = chList().filter(x => x.id !== chSel); chSel = null; chCommit(); }
 function chKey(e) {
   if (!chOn || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "")) return;
+  if (e.key === "Escape" && $("chPick") && !$("chPick").hidden) { chPickClose(); return; }
   if (e.key === "Escape" && !chDraft && !chMeasure && !chSel && chTool === "cursor" && document.body.classList.contains("chfocus")) { chFocus(false); return; }
   if (e.key === "Escape") { if (chDraft && chDraft.type === "path" && chDraft.pts.length > 2) { chDraft.pts.pop(); chFinish(); } else { chDraft = null; chMeasure = null; chSel = null; chSetTool("cursor"); chSelBar(); } }
   else if (e.key === "Enter" && chDraft && chDraft.type === "path") { chDraft.pts.pop(); chFinish(); }
@@ -5966,12 +6050,16 @@ function chPaint(P) {
   }
   g.restore();
   axis.forEach(([y, txt, col]) => { if (y >= 0 && y <= H) chLabel(g, txt, W + 1, y, col, "#141517"); });
+  { const left = P.t.at(-1) + CH_IV[P.tf] - Date.now(), yl = chY(P, ref), cd = fmtCountdown(left);   // candle countdown under the last-price label
+    if (yl != null && yl > 0 && yl < H - 18) chLabel(g, cd, W + 1, yl + 18, "rgba(40,42,48,.95)", "#c9ccd3");
+    const hd = $("chCd" + P.i); if (hd) hd.textContent = "⏱ " + cd; }
 }
 function chSig(P) {
   if (!P.chart || !P.t.length) return "";
   const r = P.chart.timeScale().getVisibleLogicalRange(), ref = P.c.at(-1);
   return [r && r.from.toFixed(3), r && r.to.toFixed(3), chY(P, ref), chY(P, ref * 1.01), P.cv.clientWidth, P.cv.clientHeight].join("|");
 }
+setInterval(() => { if (chOn) chDirty = true; }, 1000);          // keeps the countdowns ticking
 (function chLoop() {
   requestAnimationFrame(chLoop);
   if (!chOn || !chBuilt) return;
@@ -6021,9 +6109,9 @@ function chWLRender() {
   if ($("chWLQ")) $("chWLQ").oninput = () => { chWLQ = $("chWLQ").value; const pos = $("chWLQ").selectionStart; chWLRender(); const n = $("chWLQ"); n.focus(); n.setSelectionRange(pos, pos); };
   el.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const s = b.dataset.add; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (MACRO_INFO[chBase(s)] && !s.startsWith("CT:")) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chQuotesFetch(); });
 }
-async function chQuotesFetch() {
+async function chQuotesFetch(list) {
   if (!chOn) return;
-  const need = chWLItems().map(x => x.sym).filter(s => !s.startsWith("CT:") && !(bySym[s] && bySym[s].price != null) && !MACRO.by[s]).slice(0, 20);
+  const need = (list || chWLItems().map(x => x.sym)).filter(s => !s.startsWith("CT:") && !(bySym[s] && bySym[s].price != null) && !MACRO.by[s]).slice(0, 20);
   for (const s of need) {
     try {
       const tf = chIsTF(s); if (tf && EXCHANGE === "bybit") continue;
@@ -6034,7 +6122,7 @@ async function chQuotesFetch() {
       if (t) CHQ[s] = { price: +t.lastPrice, chg24h: +t.priceChangePercent };
     } catch (e) {}
   }
-  chWLRender(); chHeader();
+  chWLRender(); chHeader(); if (list) chPickRender();
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);

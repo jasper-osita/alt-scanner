@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1453">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1800">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -1105,7 +1105,24 @@ function nbbGrade(m, btcDir1, btcDir4, T) {
     ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the 8:00 AM – 7:30 PM window`]];
   return { pass: items.every(x => x[1]), n: items.filter(x => x[1]).length, of: items.length, items };
 }
-function gradeModels(r, btc) { (r.models || []).forEach(m => { if (m.model === "NBB") m.grade = nbbGrade(m, btc && btc.dir1, btc && btc.dir4, m.trig ? m.tClose : Date.now()); }); }
+/* V-Trade A-grade: a with-trend V while BTC agrees. Tested on the same three data sets (2R, 48h):
+   A-grade 40–52% closed in profit, +0.12 to +0.39R per trade; everything else −0.15 to −0.17R in 2026 (+0.07R the 6 months before). */
+function vtGrade(m, btcDir1, btcDir4) {
+  if (!m || m.model !== "V-Trade" || m.missed) return null;
+  const w = x => x === "Long" ? "up" : "down", btcOk = btcDir1 === m.dir && btcDir4 === m.dir;
+  const items = [
+    ["BTC", btcOk, `BTC 1H ${btcDir1 ? "stacked " + w(btcDir1) : "tangled"}, 4H ${btcDir4 ? "stacked " + w(btcDir4) : "tangled"}${btcOk ? ": both with you" : ": needs both with you"}`],
+    ["1H trend", m.trend1h === true, m.trend1h ? "the coin's 1H 20/50/100 is stacked with the trade: a with-trend V" : "the coin's 1H trend isn't with the trade: a counter-trend V"]];
+  return { pass: items.every(x => x[1]), n: items.filter(x => x[1]).length, of: items.length, items };
+}
+const GRADE_TEXT = {
+  "NBB": ["A-grade: all three pass. Plan: 3R target, close after 48 hours. Tested on 3 data sets: about 40% close in profit, +0.14 to +0.28R per trade.",
+          "Not A-grade. NBB failing any check averaged −0.02 to −0.11R per trade in testing: skip it."],
+  "V-Trade": ["A-grade: both pass. Plan: 2R target, close after 48 hours. Tested on 3 data sets: 40–52% closed in profit, +0.12 to +0.39R per trade (a rare setup, small samples).",
+              "Not A-grade. V-Trades failing a check averaged −0.15 to −0.17R per trade in 2026 testing: skip it."] };
+function gradeModels(r, btc) { (r.models || []).forEach(m => {
+  if (m.model === "NBB") m.grade = nbbGrade(m, btc && btc.dir1, btc && btc.dir4, m.trig ? m.tClose : Date.now());
+  else if (m.model === "V-Trade") m.grade = vtGrade(m, btc && btc.dir1, btc && btc.dir4); }); }
 
 /* OEZ of the last impulse leg (62–79%) */
 function oezZone(k, a) {
@@ -1167,7 +1184,7 @@ function breakerLong(k, a) {
 /* V-Trade: morning star at a swept low or at the OEZ */
 function vtradeLong(k, a) {
   const n = k.c.length, ab = avgBody(k, n - 30, n - 3) || 1e-12, z = oezZone(k, a);
-  for (const e of [n - 1, n - 2]) {
+  for (const e of [n - 1, n - 2]) {                         // n-1 = the candle that just closed; n-2 = one candle late (missed, don't chase)
     const i1 = e - 2, i2 = e - 1, i3 = e;
     const drive = k.c[i1] < k.o[i1] && body(k, i1) >= ab, indec = body(k, i2) <= 0.5 * ab;
     const rev = k.c[i3] > k.o[i3] && body(k, i3) >= 1.2 * ab && k.c[i3] > (k.o[i1] + k.c[i1]) / 2 && k.c[i3] > k.h[i2];
@@ -1176,7 +1193,9 @@ function vtradeLong(k, a) {
     const atLow = tip <= minOf(k.l.slice(Math.max(0, i1 - 20), i1)) && k.c[Math.max(0, i1 - 10)] > k.c[i1] + 2 * a;   // swept low after a real move down
     const atOEZ = z && tip <= z.hi && tip >= z.lo - 0.5 * a;
     if (!atLow && !atOEZ) continue;                                                         // a random V in a range
-    return { model: "V-Trade", state: atOEZ ? "Star at the OEZ" : "Star at a swept low", trig: true, bars: n - 1 - e, ...levels(k.c[i3], tip - 0.1 * a),
+    if (e === n - 2) return { model: "V-Trade", state: "Missed V", trig: false, missed: true, bars: 1, entry: null, stop: null, t2: null, t3: null,
+      note: "The V finished a candle ago. Don't chase it: wait for the next one." };
+    return { model: "V-Trade", state: atOEZ ? "Star at the OEZ" : "Star at a swept low", trig: true, bars: n - 1 - e, ...levels(k.c[i3], tip - 0.1 * a), t3: null,
       note: atOEZ ? "With-trend re-entry off the OEZ: can reach A." : "Reversal trigger at a swept low: Fade rules apply, caps at B-Silver." };
   }
   return null;
@@ -1249,7 +1268,7 @@ function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
     try {
       let m = fn(dir === "Long" ? k1h : mirror(k1h), a, extra && (dir === "Long" ? extra : mirror(extra)));
       if (!m) return; if (dir === "Short") m = unmirror(m);
-      out.push({ ...m, dir, tf: "1H", withDaily: dD ? dD === dir : null, ...(m.model === "NBB" ? { trendAge: s1h.age } : {}) });
+      out.push({ ...m, dir, tf: "1H", withDaily: dD ? dD === dir : null, ...(m.model === "NBB" ? { trendAge: s1h.age } : {}), ...(m.model === "V-Trade" ? { trend1h: D === dir } : {}) });
     } catch (e) {}
   };
   for (const dir of ["Long", "Short"]) {
@@ -2570,8 +2589,11 @@ const MODELS = {
   "V-Trade": { icon: "🔥", name: "V-Trade", tf: "1H",
     what: "A sharp 3-candle reversal (morning / evening star) that prints a V at a level. It's a trigger: the entry for a Fade at a swept extreme, or a with-trend re-entry off a deep OEZ.",
     rules: ["Drive candle (≥ average body) → small indecision candle (≤ half average) → strong reversal candle (≥ 1.2× average) closing past the drive's midpoint and the middle candle's high",
-      "Must sit at a level: a swept 20-candle low/high after a 2+ ATR move into it, or inside the OEZ", "A V in the middle of a range is rejected"],
-    trade: "Enter the 3rd candle close or the retest of its FVG. Stop beyond the V tip. 2–3R (2R in a Fade context).", grade: "At a swept extreme follows Fade rules (B-Silver max); at the OEZ can reach A." },
+      "Must sit at a level: a swept 20-candle low/high after a 2+ ATR move into it, or inside the OEZ", "A V in the middle of a range is rejected",
+      "Triggers only on the candle that just closed; a V one candle old shows as <b>Missed V</b>: don't chase it",
+      "<b>A-grade</b> needs both: BTC stacked with you on the 1H and 4H · the coin's own 1H trend stacked with the trade (a with-trend V, not a reversal)"],
+    trade: "Enter at the 3rd candle's close. Stop just beyond the V tip. One target at 2R; if neither is hit within 48 hours, close at market.",
+    grade: "A-grade when both checks pass. Tested on 71 coins, 111 other coins and the 6 months before: A-grade closed in profit 40–52% of the time for +0.12 to +0.39R per trade; the rest lost −0.15 to −0.17R in 2026. Rare (about one every 2 days across the top coins) and small samples: secondary to NBB." },
   "Pullback": { icon: "↪️", name: "Pullback", tf: "1H + 4H",
     what: "Counter-HTF retrace. Price is extended to an extreme, sweeps it, shifts structure, and retraces toward the 4H OEZ. Join the confirmed retrace mid-leg and bank at the OEZ, where the HTF trend resumes.",
     rules: ["4H trend in force (that's the trend you're trading against)", "1H swept the extreme (undercut prior swing lows/highs) and then closed beyond the last swing on the other side (CHoCH)",
@@ -2659,7 +2681,7 @@ function setupsHTML(r) {
     ${m.sweep ? '<span class="tag">Sweep</span>' : ""}${m.baseNo ? `<span class="tag">Base #${m.baseNo}</span>` : ""}${m.room === false ? '<span class="tag flag">No room</span>' : ""}
     <div class="meta">${m.note || ""}</div>
     ${m.checks ? `<ul class="obchk">${m.checks.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.checks.every(c => c[1]) ? '<span class="up">All checklist items pass: valid trade.</span>' : '<span class="dn">Checklist incomplete: no trade.</span>'}</div>` : ""}
-    ${m.grade ? `<div class="meta"><b>A-grade checks</b></div><ul class="obchk">${m.grade.items.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.grade.pass ? '<span class="up">A-grade: all three pass. Plan: 3R target, close after 48 hours. Tested on 3 data sets: about 40% close in profit, +0.14 to +0.28R per trade.</span>' : '<span class="dn">Not A-grade. NBB failing any check averaged −0.02 to −0.11R per trade in testing: skip it.</span>'}</div>` : ""}
+    ${m.grade ? `<div class="meta"><b>A-grade checks</b></div><ul class="obchk">${m.grade.items.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.grade.pass ? `<span class="up">${(GRADE_TEXT[m.model] || [])[0] || "A-grade: all checks pass."}</span>` : `<span class="dn">${(GRADE_TEXT[m.model] || [])[1] || "Not A-grade."}</span>`}</div>` : ""}
     <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : m.model === "NBB" ? "Target 3R" : tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
 }
 
@@ -2737,7 +2759,7 @@ function suggestions(env, n = 3) {
       if (["Fade", "Pullback"].includes(m.model) && !m.trig) return;      // counter-trend models must have triggered to be suggested
       const reasons = [];
       let s = fw * 10 + (m.trig ? 12 : 4);
-      if (m.grade) { if (m.grade.pass) { s += 8; reasons.push("A-grade NBB (3/3 checks)"); } else s -= 4; }
+      if (m.grade) { if (m.grade.pass) { s += 8; reasons.push(`A-grade ${m.model} (${m.grade.of}/${m.grade.of} checks)`); } else s -= 4; }
       else if (m.withDaily) { s += 4; reasons.push("with the Daily"); } else if (m.withDaily === false) s -= 3;
       if (m.sweep) { s += 3; reasons.push("sweep first"); }
       if (m.baseNo === 2) { s += 3; reasons.push("2nd base"); } else if (m.baseNo >= 3) s -= 2;
@@ -2774,7 +2796,7 @@ function renderPlaybook() {
   const F = env.facts, groups = ["primary", "secondary", "avoid"].map(lvl => [lvl, MODEL_KEYS.filter(k => env.fit[k] === lvl)]);
   const sug = suggestions(env); data.suggest = sug;
   $("playbook").innerHTML = `
-    <div class="pbhead"><h2>Today's Playbook</h2><span class="pblabel ${env.dirBias === "Long" ? "up" : env.dirBias === "Short" ? "dn" : "chopc"}">${env.label}</span><label class="tog pbag"><input type="checkbox" id="pbAGrade" ${EDGE.aOnly ? "checked" : ""}> A-grade only <span class="mute">(NBB checks${EDGE.rules.length ? ` + ${EDGE.rules.length} rule${EDGE.rules.length === 1 ? "" : "s"}` : ""})</span></label></div>
+    <div class="pbhead"><h2>Today's Playbook</h2><span class="pblabel ${env.dirBias === "Long" ? "up" : env.dirBias === "Short" ? "dn" : "chopc"}">${env.label}</span><label class="tog pbag"><input type="checkbox" id="pbAGrade" ${EDGE.aOnly ? "checked" : ""}> A-grade only <span class="mute">(NBB + V-Trade checks${EDGE.rules.length ? ` + ${EDGE.rules.length} rule${EDGE.rules.length === 1 ? "" : "s"}` : ""})</span></label></div>
     <p class="pbdesc">${env.desc}</p>
     <div class="pbfacts">
       <span>BTC <b>${F.b}</b></span><span>Breadth <b class="up">${F.bull}%</b>/<b class="dn">${F.bear}%</b></span>
@@ -3327,7 +3349,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.08.1453";
+const APP_VERSION = "2026.10.08.1800";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3798,13 +3820,14 @@ function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
     for (const m of ms) {
       if (!m.trig || !validLevels(m)) continue;
       if (m.model === "NBB") m.grade = nbbGrade(m, ctx.btc1At ? ctx.btc1At(T) : null, ctx.btc4At ? ctx.btc4At(T) : null, T);
+      else if (m.model === "V-Trade") m.grade = vtGrade(m, ctx.btc1At ? ctx.btc1At(T) : null, ctx.btc4At ? ctx.btc4At(T) : null);
       const key = m.model + m.dir; if ((busyUntil[key] ?? -1) >= i) continue;      // one trade per model and side at a time
       const out = simulate(k1, i, m, MODEL_HOLD_H[m.model] || 48); if (!out) continue;
       busyUntil[key] = out.j;
       trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
         reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir), rot: rotBand(kd, ctx.btcD, T, m.dir),
         v: btVariants(k1, i, m, MODEL_HOLD_H[m.model] || 48, null, ctx.fee), wd: m.withDaily ?? null, sw: !!m.sweep,
-        ...(m.grade ? { ag: m.grade.pass, tr: r2(netR(m, trailExit(k1, i, m, 12, 168), ctx.fee)) } : {}) });
+        ...(m.grade ? { ag: m.grade.pass } : {}), ...(m.grade && m.model === "NBB" ? { tr: r2(netR(m, trailExit(k1, i, m, 12, 168), ctx.fee)) } : {}) });
     }
   }
   return trades;
@@ -4005,7 +4028,7 @@ function renderBacktest() {
     if (btView === "model") body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Model</th><th>Trades</th><th>Hit target</th><th>Stopped</th><th title="Hit the target ÷ trades">Win rate</th><th title="Closed above zero after fees, including time exits">In profit</th><th>Avg R (after fees)</th><th>Total R</th><th>Profit factor</th><th>Max drawdown</th><th>Avg hold</th></tr></thead><tbody>${
       models.map(k => { const row = (label, s, sub) => `<tr${sub ? ' class="btsub"' : ""}><td class="l">${label}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td>${s.prof.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`;
         const tk = T.filter(t => t.model === k); let out = row(`${MODELS[k].icon} ${k}`, btStats(tk));
-        if (k === "NBB" && tk.some(t => t.ag != null)) { const a = btStats(tk.filter(t => t.ag === true)), b = btStats(tk.filter(t => t.ag === false));
+        if (tk.some(t => t.ag != null)) { const a = btStats(tk.filter(t => t.ag === true)), b = btStats(tk.filter(t => t.ag === false));
           if (a) out += row("↳ A-grade (all checks)", a, true); if (b) out += row("↳ the rest", b, true);
           const ag = tk.filter(t => t.ag === true && t.tr != null), TRAIL_ENV = ["BTC-Led: Alts Lagging", "Chop: Range Day"];
           if (ag.length) { const sw = btStats(ag.map(t => TRAIL_ENV.includes(t.env) ? { ...t, r: t.tr, reason: t.tr > 0 ? "Trail" : "Stop" } : t));
@@ -4138,7 +4161,7 @@ function edgeRuleFor(r, m) { return EDGE.rules.find(x => x.model === m.model && 
 const edgeOK = (r, m) => (m.grade && m.grade.pass) || !!edgeRuleFor(r, m);
 function liveModels(r) { const ms = ((r && r.models) || []).filter(m => !m.missed); return aGradeOn() ? ms.filter(m => edgeOK(r, m)) : ms; }
 function edgeTag(r, m) {
-  if (m.grade) return m.grade.pass ? `<span class="tag long" title="All four NBB checks pass">A-grade · ${m.grade.of}/${m.grade.of}</span>` : `<span class="tag" title="${m.grade.items.filter(x => !x[1]).map(x => x[0]).join(", ")} failed">Not A-grade · ${m.grade.n}/${m.grade.of}</span>`;
+  if (m.grade) return m.grade.pass ? `<span class="tag long" title="All ${m.model} checks pass">A-grade · ${m.grade.of}/${m.grade.of}</span>` : `<span class="tag" title="${m.grade.items.filter(x => !x[1]).map(x => x[0]).join(", ")} failed">Not A-grade · ${m.grade.n}/${m.grade.of}</span>`;
   if (!EDGE.rules.length) return "";
   const rule = edgeRuleFor(r, m);
   if (rule) return `<span class="tag long" title="${edgeCondText(rule.cs)}: newest trades ${rule.test.n}, win ${rule.test.win.toFixed(0)}%, ${fmtR(rule.test.avg)}">A-grade · ${rule.v === "base" ? "model target" : EDGE_VARS[rule.v].toLowerCase()}</span>`;
@@ -4187,7 +4210,7 @@ function renderEdge() {
       <label class="pill"><span>Min trades per rule</span><select id="edgeMin"><option value="30">30</option><option value="50">50</option><option value="80">80</option></select></label>
       ${res && nOk ? `<button class="btn" id="edgeAll">Use all confirmed</button>` : ""}
       ${EDGE.rules.length ? `<button class="btn" id="edgeNone">Clear rules in use</button>` : ""}
-      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays, alerts and bots use only NBB setups that pass all three checks, plus setups matching a rule in use</label>
+      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays, alerts and bots use only NBB and V-Trade setups that pass all their checks, plus setups matching a rule in use</label>
       ${res ? `<button class="btn sm" id="edgeCopy">Copy for Claude</button>` : ""}
     </div>
     ${body}

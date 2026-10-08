@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1104">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1147">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -343,7 +343,7 @@ dialog{width:min(760px,96vw)}
 .schead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .schead h2{margin:0;font-size:16px;font-weight:600;color:var(--strong)}
 .scbtns{margin-left:auto;display:flex;gap:6px}
-.sctabs{display:flex;gap:4px;margin:10px 0 6px}
+.sctabs{display:flex;gap:4px;margin:10px 0 6px;overflow-x:auto;scrollbar-width:none}.sctabs .tab{flex:none}
 .sctabs .tab{font-size:13px;padding:5px 12px}
 table.sct{min-width:640px;font-size:13px}
 .screcent .mv{grid-template-columns:120px minmax(0,1fr) auto 70px}
@@ -418,6 +418,14 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
 .cdlabel{position:absolute;right:0;z-index:3;color:#fff;font-size:11px;line-height:16px;text-align:center;font-variant-numeric:tabular-nums;pointer-events:none;border-radius:2px;opacity:.92}
 .btcard{margin-top:14px}
 .btctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:10px 0 4px}
+.btcard .tog{white-space:normal;align-items:flex-start}.btcard .tog input{margin-top:3px}
+.btpick{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:4px 0 10px;background:var(--panel)}
+.btpbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}.btpbar input[type=search]{flex:1 1 220px;min-width:180px;height:32px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:0 10px;font:inherit}
+.btpchips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}.btpc{background:var(--pill);border:1px solid var(--accent);color:var(--text);border-radius:999px;padding:2px 9px;font-size:12px;cursor:pointer}
+.btplist{max-height:300px;overflow:auto;margin-top:8px;padding-right:4px}.btpg{font-size:12.5px;font-weight:600;margin:8px 0 4px;color:var(--text)}
+.btpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px}
+.btpi{display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:7px;cursor:pointer;font-size:13px;min-width:0}
+.btpi b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.btpi span{margin-left:auto;font-size:11.5px;white-space:nowrap}.btpi.on{border-color:var(--accent)}
 .btctl input[type=number]{width:70px;background:transparent;border:0;color:var(--text);font:inherit}
 table.btm td{white-space:nowrap}
 .bteq{height:220px;position:relative;margin-top:4px}
@@ -3316,7 +3324,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.08.1104";
+const APP_VERSION = "2026.10.08.1147";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3636,6 +3644,52 @@ const BT_KEY = "altscan-backtest";
 let BT = null; try { BT = JSON.parse(localStorage.getItem(BT_KEY) || "null"); } catch (e) { BT = null; }
 let btView = "model", btRunning = false;
 const BT_USE_KEY = "altscan-bt-use";
+/* ---- backtest market picker: top N, or your own pick of coins and Binance TradFi perps ---- */
+const BTP_KEY = "finder-bt-pick";
+let BTP = (() => { try { return { sel: "30", syms: [], ...(JSON.parse(localStorage.getItem(BTP_KEY)) || {}) }; } catch (e) { return { sel: "30", syms: [] }; } })(), btPickOpen = false, btPickQ = "";
+const btpSave = () => { try { localStorage.setItem(BTP_KEY, JSON.stringify(BTP)); } catch (e) {} };
+function btpTradfi() {                                     // gold, oil and US index perps (Binance only)
+  if (EXCHANGE === "bybit") return [];
+  const live = new Map(MACRO.rows.filter(r => !r.ct).map(r => [r.base, r]));
+  return Object.entries(MACRO_INFO).filter(([b]) => !MACRO.rows.length || live.has(b))
+    .map(([b, [name, group]]) => ({ sym: b + "USDT", name, group, vol: live.get(b) ? live.get(b).vol24h : null, tf: true }));
+}
+function btpItems() {
+  const crypto = (data ? data.all : []).filter(r => !r.macro).slice().sort((a, b) => b.vol24h - a.vol24h)
+    .map((r, i) => ({ sym: r.symbol, name: coin(r.symbol), group: "Crypto", vol: r.vol24h, rank: i + 1 }));
+  return [...btpTradfi(), ...crypto];
+}
+function btpTop(n) { return data ? data.all.filter(r => !r.macro && r.vol24h >= 10e6).sort((a, b) => b.vol24h - a.vol24h).slice(0, n).map(r => r.symbol) : []; }
+function renderBtPick() {
+  const el = $("btPick"); if (!el) return;
+  el.hidden = !btPickOpen;
+  if (!btPickOpen) return;
+  const items = btpItems(), sel = new Set(BTP.syms), q = btPickQ.trim().toLowerCase();
+  const nameOf = s => { const it = items.find(x => x.sym === s); return it ? it.name : coin(s); };
+  const shown = items.filter(x => !q || x.name.toLowerCase().includes(q) || x.sym.toLowerCase().includes(q) || x.group.toLowerCase().includes(q));
+  const tf = shown.filter(x => x.tf), cr = shown.filter(x => !x.tf);
+  const row = x => `<label class="btpi${sel.has(x.sym) ? " on" : ""}"><input type="checkbox" data-ps="${x.sym}" ${sel.has(x.sym) ? "checked" : ""}><b title="${x.name}${x.tf ? " · " + x.group : ""}">${x.name}</b>${x.tf ? "" : x.vol != null ? `<span class="mute">${fmtVol(x.vol)}</span>` : ""}</label>`;
+  el.innerHTML = `
+    <div class="btpbar"><input id="btPickQ" type="search" placeholder="Search coins, gold, Nasdaq…" value="${btPickQ.replace(/"/g, "&quot;")}" autocomplete="off">
+      <button class="btn sm" data-pp="20">+ Top 20</button><button class="btn sm" data-pp="50">+ Top 50</button>
+      <button class="btn sm" data-pp="watch">+ Watchlist</button>${btpTradfi().length ? '<button class="btn sm" data-pp="tradfi">+ Gold, oil &amp; indices</button>' : ""}
+      <button class="btn sm" data-pp="clear">Clear</button><span class="meta"><b>${sel.size}</b> picked</span></div>
+    ${sel.size ? `<div class="btpchips">${BTP.syms.map(s => `<button class="btpc" data-px="${s}" title="Remove">${nameOf(s)} ×</button>`).join("")}</div>` : '<div class="meta">Nothing picked yet: tick markets below or add a group.</div>'}
+    <div class="btplist">
+      ${tf.length ? `<div class="btpg">Gold, oil &amp; US indices <span class="mute">(Binance TradFi perps, listed April 2026: shorter history, so fewer trades)</span></div><div class="btpgrid">${tf.map(row).join("")}</div>` : ""}
+      ${cr.length ? `<div class="btpg">Crypto <span class="mute">(by 24h volume)</span></div><div class="btpgrid">${cr.map(row).join("")}</div>` : ""}
+      ${!tf.length && !cr.length ? '<div class="meta">No market matches that search.</div>' : ""}
+    </div>`;
+  const changed = () => { btpSave(); renderBtPick(); const o = $("btCoins") && $("btCoins").querySelector('option[value="pick"]'); if (o) o.textContent = `My pick (${BTP.syms.length})`; };
+  const qi = $("btPickQ");
+  qi.oninput = () => { btPickQ = qi.value; const pos = qi.selectionStart; renderBtPick(); const n = $("btPickQ"); n.focus(); n.setSelectionRange(pos, pos); };
+  el.querySelectorAll("[data-ps]").forEach(c => c.onchange = () => { const s = c.dataset.ps;
+    BTP.syms = c.checked ? [...new Set([...BTP.syms, s])] : BTP.syms.filter(x => x !== s); changed(); });
+  el.querySelectorAll("[data-px]").forEach(b => b.onclick = () => { BTP.syms = BTP.syms.filter(x => x !== b.dataset.px); changed(); });
+  el.querySelectorAll("[data-pp]").forEach(b => b.onclick = () => { const p = b.dataset.pp;
+    const add = p === "clear" ? null : p === "watch" ? Object.keys(WL.coins).filter(s => bySym[s] || TRADFI_SYMS.has(s)) : p === "tradfi" ? btpTradfi().map(x => x.sym) : btpTop(+p);
+    BTP.syms = add ? [...new Set([...BTP.syms, ...add])] : []; changed(); });
+}
 const btUse = () => { try { return localStorage.getItem(BT_USE_KEY) !== "off"; } catch (e) { return true; } };
 const IV_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 const MODEL_HOLD_H = { Reset20: 240, OB: 12 };                     // swing setups can be held up to 10 days
@@ -3817,11 +3871,12 @@ function replaySession(sym, k15, winStart, ctx) {        // ORB and AMD at each 
 async function runBacktest() {
   if (!data || btRunning) return;
   btRunning = true;
-  const days = +$("btDays").value, nCoins = +$("btCoins").value, fee = +$("btFee").value || 0;
+  const days = +$("btDays").value, selV = $("btCoins").value, pick = selV === "pick", nCoins = pick ? 0 : +selV, fee = +$("btFee").value || 0;
+  if (pick && !BTP.syms.length) { btRunning = false; $("btStatus").textContent = "Pick at least one market first (Pick markets…)."; btPickOpen = true; renderBtPick(); return; }
   const maFn = data.ma === "sma" ? sma : ema, now = Date.now(), winStart = now - days * 86400e3, H = IV_MS["1h"];
   const prog = (msg, f) => { $("btStatus").textContent = msg; $("btProg").style.width = (f * 100) + "%"; };
-  const pool0 = data.all.filter(r => r.vol24h >= 10e6).sort((a, b) => b.vol24h - a.vol24h).slice(0, nCoins).map(r => r.symbol);
-  const syms = [...new Set([...pool0, ...Object.keys(WL.coins).filter(s => bySym[s])])];
+  if (pick) btpTradfi().forEach(x => { if (BTP.syms.includes(x.sym)) TRADFI_SYMS.add(x.sym); });      // routes their candles to Binance futures
+  const syms = pick ? BTP.syms.slice() : [...new Set([...btpTop(nCoins), ...Object.keys(WL.coins).filter(s => bySym[s] && !TRADFI_SYMS.has(s))])];
   const series = {}; let done = 0;
   try {
     prog("Downloading BTC history…", 0.01);
@@ -3835,14 +3890,14 @@ async function runBacktest() {
         const k15 = await klinesRange(s, "15m", Math.max(winStart, now - 30 * 86400e3) - 210 * IV_MS["15m"], now);
         series[s] = { k1, k4, kd, k15, s4: stateSeries(k4, maFn), sd: stateSeries(kd, maFn) };
       } catch (e) {}
-      done++; prog(`Downloading history: ${done} of ${syms.length} coins…`, 0.02 + 0.55 * done / syms.length);
+      done++; prog(`Downloading history: ${done} of ${syms.length} markets…`, 0.02 + 0.55 * done / syms.length);
     }
     const coins = Object.keys(series);
     const envAt = T => {
       const i1 = lastClosedIdx(btc1, H, T), i4 = lastClosedIdx(btc4, IV_MS["4h"], T);
       const s1 = b1[i1], s4 = b4[i4], regime = s1 === "Bull stack" && s4 === "Bull stack" ? "Risk-on" : s1 === "Bear stack" && s4 === "Bear stack" ? "Risk-off" : "Chop";
       let bull = 0, bear = 0, n = 0;
-      coins.forEach(c => { const x = series[c], j = lastClosedIdx(x.k4, IV_MS["4h"], T); if (j < 100) return; n++;
+      coins.forEach(c => { if (TRADFI_SYMS.has(c)) return; const x = series[c], j = lastClosedIdx(x.k4, IV_MS["4h"], T); if (j < 100) return; n++;
         const st = x.s4[j]; if (st === "Bull stack" || st === "Pullback in bull") bull++; else if (st === "Bear stack" || st === "Pullback in bear") bear++; });
       return n ? envLabel(regime, Math.round(bull / n * 100), Math.round(bear / n * 100)) : envLabel(regime, 0, 0);
     };
@@ -3856,7 +3911,7 @@ async function runBacktest() {
       await sleep(0);                                       // keep the app responsive
     }
     trades.sort((a, b) => a.t - b.t);
-    BT = { at: now, exchange: exName(), mode: data.mode, days, coins: coins.length, fee, ma: data.ma, trades };
+    BT = { at: now, exchange: exName(), mode: data.mode, days, coins: coins.length, fee, ma: data.ma, trades, pick: pick ? coins.map(s => TRADFI_SYMS.has(s) && MACRO_INFO[s.replace(/USDT$/, "")] ? MACRO_INFO[s.replace(/USDT$/, "")][0] : coin(s)) : null };
     try { localStorage.setItem(BT_KEY, JSON.stringify(BT)); } catch (e) {}
     prog(`Done: ${trades.length} trades across ${coins.length} coins.`, 1);
     renderBacktest(); renderPlaybook(); renderGuide();
@@ -3911,6 +3966,7 @@ async function drawEquity(trades) {
     btChart = LightweightCharts.createChart(el, { width: el.clientWidth, height: 220, layout: { background: { type: "solid", color: "transparent" }, textColor: cssVar("--mute"), fontFamily: cssVar("--font") },
       grid: { vertLines: { color: line }, horzLines: { color: line } }, rightPriceScale: { borderColor: line }, timeScale: { borderColor: line, timeVisible: true },
       localization: { locale: "en-US", priceFormatter: v => v.toFixed(1) + "R", timeFormatter: phtTime } });
+    if (window.ResizeObserver) { const ch = btChart; new ResizeObserver(() => { if (btChart === ch && el.clientWidth) ch.applyOptions({ width: el.clientWidth }); }).observe(el); }
     const colors = ["#2962ff", "#22ab94", "#f7a600", "#f23645", "#9c27b0", "#00bcd4", "#e91e63", "#8bc34a"];
     const byModel = btGroup(trades, t => t.model), addLine = (list, color, width) => {
       const s = btChart.addLineSeries({ color, lineWidth: width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
@@ -3949,21 +4005,26 @@ function renderBacktest() {
   }
   el.innerHTML = `
     <div class="schead"><h2>Model Backtest</h2>
-      <span class="meta">${all ? `${BT.exchange} · last ${BT.days} days · ${BT.coins} coins · run ${fmtPHT(new Date(BT.at + PHT_MS))} · <b>${all.n}</b> trades · avg <b class="${rCls(all.avg)}">${fmtR(all.avg)}</b> · total <b class="${rCls(all.tot)}">${fmtR(all.tot)}</b>` : "Replays every model on real history to show which ones actually pay, and where."}</span></div>
+      <span class="meta">${all ? `${BT.exchange} · last ${BT.days} days · ${BT.pick ? `your pick of ${BT.coins} market${BT.coins === 1 ? "" : "s"}${BT.coins <= 6 ? ` (${BT.pick.join(", ")})` : ""}` : `${BT.coins} coins`} · run ${fmtPHT(new Date(BT.at + PHT_MS))} · <b>${all.n}</b> trades · avg <b class="${rCls(all.avg)}">${fmtR(all.avg)}</b> · total <b class="${rCls(all.tot)}">${fmtR(all.tot)}</b>` : "Replays every model on real history to show which ones actually pay, and where."}</span></div>
     <div class="btctl">
       <label class="pill"><span>Period</span><select id="btDays"><option value="30">30 days</option><option value="60" selected>60 days</option><option value="90">90 days</option></select></label>
-      <label class="pill"><span>Coins</span><select id="btCoins"><option value="20">Top 20</option><option value="30" selected>Top 30</option><option value="50">Top 50</option></select></label>
+      <label class="pill"><span>Markets</span><select id="btCoins"><option value="20">Top 20</option><option value="30" selected>Top 30</option><option value="50">Top 50</option><option value="100">Top 100</option><option value="pick">My pick (${BTP.syms.length})</option></select></label>
+      <button class="btn sm" id="btPickBtn" aria-expanded="${btPickOpen}">${btPickOpen ? "Hide picklist" : "Pick markets…"}</button>
       <label class="pill"><span>Fees (round trip %)</span><input id="btFee" type="number" step="0.01" value="${BT ? BT.fee : 0.1}"></label>
       <button class="btn primary" id="btRun" ${data && !btRunning ? "" : "disabled"}>${btRunning ? "Running…" : all ? "Run Again" : "Run Backtest"}</button>
       <label class="tog"><input type="checkbox" id="btUse" ${btUse() ? "checked" : ""}> Use results in the playbook</label>
       ${all ? `<button class="btn sm" id="btCsv">Export CSV</button>` : ""}
     </div>
+    <div class="btpick" id="btPick" hidden></div>
     <div class="status" id="btStatus">${data ? (all ? "Results below. Run it again any time, for example weekly, to keep the numbers fresh." : "Takes about a minute: it downloads the history, then replays each model candle by candle.") : "Run a scan first."}</div>
     <div class="progress"><i id="btProg"></i></div>
     ${all ? `<div class="sctabs">${viewTabs.map(([v, l]) => `<button class="tab ${btView === v ? "on" : ""}" data-bv="${v}">${l}</button>`).join("")}</div>${body}
       <h3 class="pbh3">Equity Curve <span class="meta">cumulative R after fees</span></h3><div id="btEq" class="bteq"></div><div class="clegend bteql" id="btEqLegend"></div>` : ""}
     <p class="meta">How it works: at every historical candle the detectors only see candles that had already closed (your 1H, plus the 4H and Daily closed by then), exactly as the live scanner would. A triggered setup is entered at that candle's close and walked forward until the stop, the target (2R, or the 4H OEZ for Pullback) or 48 hours. ORB and AMD are replayed on 15m candles for the last 30 days with your 11:00 NY hard close. If the stop and target land in the same candle it counts as a stop, and fees come off every trade. The environment uses the playbook's rules (BTC regime plus 4H breadth of the tested coins). Limits: today's top coins (coins that died aren't in the list), no slippage beyond fees, and the gray cells have fewer than 10 trades, too few to trust.</p>`;
-  if ($("btDays") && BT) { $("btDays").value = BT.days; $("btCoins").value = Math.min(50, Math.max(20, BT.coins <= 20 ? 20 : BT.coins <= 30 ? 30 : 50)); }
+  if ($("btDays") && BT) $("btDays").value = BT.days;
+  if ($("btCoins")) { $("btCoins").value = BTP.sel || "30"; $("btCoins").onchange = () => { BTP.sel = $("btCoins").value; if (BTP.sel === "pick") btPickOpen = true; btpSave(); renderBacktest(); }; }
+  if ($("btPickBtn")) $("btPickBtn").onclick = () => { btPickOpen = !btPickOpen; if (btPickOpen && BTP.sel !== "pick") { BTP.sel = "pick"; btpSave(); } renderBacktest(); };
+  renderBtPick();
   if ($("btRun")) $("btRun").onclick = () => { runBacktest(); renderBacktestControls(); };
   if ($("btUse")) $("btUse").onchange = () => { try { localStorage.setItem(BT_USE_KEY, $("btUse").checked ? "on" : "off"); } catch (e) {} if (data) { renderPlaybook(); renderGuide(); } };
   el.querySelectorAll("[data-bv]").forEach(b => b.onclick = () => { btView = b.dataset.bv; renderBacktest(); });

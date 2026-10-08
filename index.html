@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1842">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.08.1931">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -421,6 +421,8 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
 .btcard .tog{white-space:normal;align-items:flex-start}.btcard .tog input{margin-top:3px}
 /* ===== Charts page ===== */
 body.pg-charts .pills,body.pg-charts #pageTitle,body.pg-charts .subline{display:none}
+body.pg-charts .wrap{max-width:none;padding:10px 14px 10px}body.pg-charts .layout{grid-template-columns:minmax(0,1fr)!important}body.pg-charts #fPanel{display:none!important}
+body.pg-charts #fToggle{display:none}body.navcol .wrap{max-width:2200px}.shell>.wrap{width:100%;min-width:0}
 .chpage{display:flex;flex-direction:column;height:calc(100vh - 78px);min-height:520px}
 .chbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:4px 0 8px}
 .chsym{display:flex;align-items:baseline;gap:8px;min-width:150px}.chsym b{font-family:var(--display);font-size:17px;color:var(--strong)}.chsym span{font-size:13px;color:var(--text)}
@@ -434,8 +436,28 @@ body.pg-charts .pills,body.pg-charts #pageTitle,body.pg-charts .subline{display:
 .chtools button{width:32px;height:30px;flex:none;display:grid;place-items:center;background:transparent;border:0;border-radius:6px;color:var(--mute);cursor:pointer}
 .chtools button:hover{background:var(--hover);color:var(--text)}.chtools button.on{background:var(--active);color:var(--accent)}
 .chtsep{width:22px;height:1px;background:var(--line);margin:4px 0;flex:none}
-.chgrid{display:grid;gap:6px;min-height:0;min-width:0;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-.chgrid.l2{grid-template-columns:1fr 1fr;grid-template-rows:1fr}.chgrid.l1{grid-template-columns:1fr;grid-template-rows:1fr}
+.chgrid{display:flex;min-height:0;min-width:0}
+.chroot{flex:1 1 auto;min-width:0;min-height:0}
+.chsp{display:flex;min-width:0;min-height:0}.chsp.chh{flex-direction:row}.chsp.chv{flex-direction:column}
+.chleaf{display:flex;min-width:80px;min-height:80px}.chleaf>.chpane{flex:1}
+.chgut{flex:none;width:6px;cursor:col-resize;border-radius:3px;touch-action:none}.chsp.chv>.chgut{width:auto;height:6px;cursor:row-resize}
+.chgut:hover,.chgut.on{background:var(--accent);opacity:.6}
+.chpb{margin-left:auto;display:inline-flex;gap:2px}.chpb button{background:transparent;border:0;color:var(--mute);cursor:pointer;font-size:14px;padding:0 4px;border-radius:4px;line-height:20px}
+.chpb button:hover,.chpb button.on{color:var(--accent);background:var(--hover)}
+.chlay{position:relative}.chlaybtn{display:inline-flex;align-items:center;gap:4px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:3px 8px;cursor:pointer;height:30px}
+.chlaybtn span{font-size:10px;color:var(--mute)}
+.chlaypop{position:absolute;z-index:20;top:36px;left:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.45);min-width:360px}
+.chlr{display:flex;align-items:center;gap:4px;padding:5px 0;border-bottom:1px solid var(--line)}.chlr:last-of-type{border-bottom:0}.chlr>span{width:16px;font-size:12px}
+.chlr button{background:transparent;border:1px solid transparent;border-radius:6px;color:var(--text);padding:3px 4px;cursor:pointer;display:grid;place-items:center}
+.chlr button:hover{background:var(--hover)}.chlr button.on{border-color:var(--accent);color:var(--accent)}
+.chlaypop .meta{margin-top:6px}
+.chfocusb.on{border-color:var(--accent);color:var(--accent)}
+.chbody.nowl{grid-template-columns:40px minmax(0,1fr) 30px}
+.chwlopen{width:100%;height:100%;background:transparent;border:0;color:var(--mute);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:10px;font:12.5px var(--display)}
+.chwlopen span{writing-mode:vertical-rl}.chwlopen:hover{color:var(--accent)}
+.navtog{background:transparent;border:1px solid var(--pill-b);border-radius:7px;color:var(--mute);width:32px;height:30px;display:grid;place-items:center;cursor:pointer;flex:none}.navtog:hover{color:var(--accent)}
+body.navcol .side{display:none}body.navcol .shell{grid-template-columns:minmax(0,1fr)}body.navcol .navtog{color:var(--accent);border-color:var(--accent)}
+body.chfocus .side,body.chfocus .topbar{display:none}body.chfocus .shell{grid-template-columns:minmax(0,1fr)}body.chfocus .chpage{height:calc(100vh - 20px)}
 .chpane{position:relative;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:0;min-width:0;overflow:hidden}
 .chpane.off{display:none}
 .chph{display:flex;align-items:center;gap:8px;padding:4px 8px;font-size:12px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden}
@@ -457,10 +479,11 @@ body.pg-charts .pills,body.pg-charts #pageTitle,body.pg-charts .subline{display:
 .chwadd input{height:30px;background:var(--pill);border:1px solid var(--pill-b);border-radius:7px;color:var(--text);padding:0 8px;font:inherit;margin-bottom:4px}
 .chwa{display:flex;justify-content:space-between;gap:6px;background:transparent;border:1px solid transparent;border-radius:6px;color:var(--text);padding:4px 6px;cursor:pointer;font:inherit;text-align:left}
 .chwa:hover{background:var(--hover)}.chwa.on{border-color:var(--accent)}.chwa .mute{font-size:11px}
-@media (max-width:1100px){.chbody{grid-template-columns:40px minmax(0,1fr)}.chwl{grid-column:1/-1;max-height:340px}}
+@media (max-width:1100px){.chbody,.chbody.nowl{grid-template-columns:40px minmax(0,1fr)}.chwl{grid-column:1/-1;max-height:340px}.chbody.nowl .chwl{height:36px}.chwlopen{flex-direction:row;justify-content:center;padding:0}.chwlopen span{writing-mode:horizontal-tb}}
 @media (max-width:760px){.chpage{height:auto}.chbody{grid-template-columns:minmax(0,1fr)}
   .chtools{flex-direction:row;overflow-x:auto;padding:3px}.chtsep{width:1px;height:22px;margin:0 4px}
-  .chgrid,.chgrid.l2,.chgrid.l4{grid-template-columns:minmax(0,1fr);grid-template-rows:none}.chpane{height:360px}.chhint{margin-left:0;width:100%}}
+  .chsp{flex-direction:column!important}.chgut{display:none}.chleaf{flex:none!important;height:360px}.chhint{margin-left:0;width:100%}
+  .chlaypop{min-width:0;left:-60px}.chbody.nowl{grid-template-columns:minmax(0,1fr)}.chbody.nowl .chwl{height:40px}.chwlopen{flex-direction:row;justify-content:center;padding:0}.chwlopen span{writing-mode:horizontal-tb}}
 .btpick{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:4px 0 10px;background:var(--panel)}
 .btpbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}.btpbar input[type=search]{flex:1 1 220px;min-width:180px;height:32px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:0 10px;font:inherit}
 .btpchips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}.btpc{background:var(--pill);border:1px solid var(--accent);color:var(--text);border-radius:999px;padding:2px 9px;font-size:12px;cursor:pointer}
@@ -633,6 +656,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 </nav>
 <div class="wrap">
   <div class="topbar">
+    <button class="navtog" id="navTog" title="Hide the sidebar" aria-label="Hide the sidebar" aria-expanded="true"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M7.5 3.5v13"/></svg></button>
     <div class="crumb" id="crumb">Market › <b>Overview</b></div>
     <div class="actions">
       <button class="livebadge off" id="liveBadge" title="Live data">○ Live</button>
@@ -3393,7 +3417,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.08.1842";
+const APP_VERSION = "2026.10.08.1931";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5148,6 +5172,14 @@ new MutationObserver(mirrorSide).observe($("liveBadge"), { attributes: true, chi
 ["exF", "dirF", "market"].forEach(id => $(id).addEventListener("change", () => setTimeout(mirrorSide, 0)));
 document.addEventListener("click", e => { const b = e.target.closest("[data-openchart]"); if (b && window.openInCharts) { e.preventDefault(); openInCharts(b.dataset.openchart); } });
 $("side").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b) return; e.preventDefault(); goPage(b.dataset.go); });
+function navCollapse(on) {
+  document.body.classList.toggle("navcol", on);
+  const b = $("navTog"); if (b) { b.title = on ? "Show the sidebar" : "Hide the sidebar"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-expanded", String(!on)); }
+  try { localStorage.setItem("finder-navcol", on ? "1" : ""); } catch (e) {}
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+$("navTog").onclick = () => navCollapse(!document.body.classList.contains("navcol"));
+try { if (localStorage.getItem("finder-navcol") === "1") navCollapse(true); } catch (e) {}
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
 
 /* ===================== Gold, Oil & Indices page ===================== */
@@ -5319,10 +5351,21 @@ Object.assign(CT_PERIOD, { "1m": 1, "3m": 3, "5m": 5, "30m": 8, "1w": 13 });
 Object.assign(CT_MS, { "1m": 60e3, "3m": 180e3, "5m": 300e3, "30m": 1800e3, "1w": 6048e5 });
 Object.assign(CT_SPAN, { "1m": 86400e3, "3m": 2 * 86400e3, "5m": 3 * 86400e3, "30m": 14 * 86400e3, "1w": 1500 * 86400e3 });
 
+/* layouts: a tree of splits; numbers are panes. Sizes are fractions per split, dragged with the gutters. */
+const CH_LAYOUTS = {
+  "1": 0,
+  "2c": ["row", [0, 1]], "2r": ["col", [0, 1]],
+  "3c": ["row", [0, 1, 2]], "3r": ["col", [0, 1, 2]], "3L": ["row", [0, ["col", [1, 2]]]], "3R": ["row", [["col", [0, 1]], 2]], "3T": ["col", [0, ["row", [1, 2]]]], "3B": ["col", [["row", [0, 1]], 2]],
+  "4g": ["col", [["row", [0, 1]], ["row", [2, 3]]]], "4c": ["row", [0, 1, 2, 3]], "4r": ["col", [0, 1, 2, 3]], "4L": ["row", [0, ["col", [1, 2, 3]]]], "4R": ["row", [["col", [0, 1, 2]], 3]],
+  "4T": ["col", [0, ["row", [1, 2, 3]]]], "4B": ["col", [["row", [0, 1, 2]], 3]], "4G": ["row", [["col", [0, 1]], ["col", [2, 3]]]],
+};
+const chLeaves = n => typeof n === "number" ? [n] : n[1].flatMap(chLeaves);
 const CH_KEY = "finder-charts", CHD_KEY = "finder-drawings", CHW_KEY = "finder-chart-wl";
 const chLoadJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
 const chSaveJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-let CH = { sym: "BTCUSDT", tfs: ["4h", "1h", "15m", "5m"], layout: 4, ma: true, sess: true, rsi: true, sync: true, magnet: false, ...chLoadJSON(CH_KEY, {}) };
+let CH = { sym: "BTCUSDT", tfs: ["4h", "1h", "15m", "5m"], layout: "4g", ma: true, sess: true, rsi: true, sync: true, magnet: false, wl: true, sizes: {}, max: null, ...chLoadJSON(CH_KEY, {}) };
+if (typeof CH.layout === "number" || !CH_LAYOUTS[CH.layout]) CH.layout = { 1: "1", 2: "2c", 4: "4g" }[CH.layout] || "4g";
+CH.sizes = CH.sizes || {};
 let CHD = chLoadJSON(CHD_KEY, {});                          // symbol → drawings, stored in time (ms) and price so every timeframe can draw them
 let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSDT", "XAGUSDT", "CLUSDT", "QQQUSDT", "SPYUSDT"];
 const chSave = () => chSaveJSON(CH_KEY, CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
@@ -5384,8 +5427,9 @@ function chBuild() {
   el.innerHTML = `
     <div class="chbar">
       <div class="chsym"><b id="chSymName"></b><span id="chSymPx"></span></div>
-      <div class="chseg" id="chLayout" role="group" aria-label="Layout">${[1, 2, 4].map(n => `<button data-l="${n}" title="${n} chart${n > 1 ? "s" : ""}">${n === 1 ? "▣" : n === 2 ? "◫" : "⊞"} ${n}</button>`).join("")}</div>
+      <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <div class="chseg"><button class="tg" id="chMA" title="EMA/SMA 20, 50, 100">MA</button><button class="tg" id="chSessB" title="Asia, London, Pre-NY and NY AM boxes (1H and below)">Sessions</button><button class="tg" id="chRSI">RSI</button><button class="tg" id="chSync" title="Scroll one chart and the others follow to the same time">Sync scroll</button></div>
+      <button class="btn sm chfocusb" id="chFocus" title="Hide the side bar and top bar (Esc to leave)">⛶ Focus</button>
       <div class="chselbar" id="chSelBar" hidden></div>
       <span class="chhint" id="chHint"></span>
     </div>
@@ -5399,34 +5443,89 @@ function chBuild() {
         <button data-act="lock" title="Lock drawings" aria-label="Lock drawings">${chToolIcon("M5 10h11v8H5zM7.5 10V7a3 3 0 0 1 6 0v3")}</button>
         <button data-act="clear" title="Delete all drawings on this symbol" aria-label="Delete all drawings">${chToolIcon("M4 6h13M8 6V4h5v2M6 6l1 12h7l1-12")}</button>
       </div>
-      <div class="chgrid" id="chGrid">
-        ${[0, 1, 2, 3].map(i => `<div class="chpane" data-i="${i}"><div class="chph"><select class="chtf" data-i="${i}" aria-label="Timeframe">${tfOpts(CH.tfs[i])}</select><span class="cholc" id="chLeg${i}"></span></div>
+      <div class="chgrid" id="chGrid"></div><div id="chHold" hidden>
+        ${[0, 1, 2, 3].map(i => `<div class="chpane" data-i="${i}" id="chPane${i}"><div class="chph"><select class="chtf" data-i="${i}" aria-label="Timeframe">${tfOpts(CH.tfs[i])}</select><span class="cholc" id="chLeg${i}"></span><span class="chpb"><button data-fit="${i}" title="Reset zoom and price scale" aria-label="Fit chart">⟲</button><button data-max="${i}" title="Maximize this chart (click again to restore)" aria-label="Maximize chart">⤢</button></span></div>
           <div class="chwrap" id="chWrap${i}"><div class="chcv" id="chCv${i}"></div><canvas class="chov" id="chOv${i}"></canvas><div class="chmsg" id="chMsg${i}"></div></div></div>`).join("")}
       </div>
       <aside class="chwl" id="chWL" aria-label="Chart watchlist"></aside>
     </div>`;
   el.querySelectorAll("[data-tool]").forEach(b => b.onclick = () => chSetTool(b.dataset.tool));
   el.querySelectorAll("[data-act]").forEach(b => b.onclick = () => chAct(b.dataset.act));
-  el.querySelectorAll("#chLayout [data-l]").forEach(b => b.onclick = () => { CH.layout = +b.dataset.l; chSave(); chApplyLayout(); });
+  $("chLayBtn").onclick = e => { e.stopPropagation(); const p = $("chLayPop"), open = p.hidden; p.hidden = !open; $("chLayBtn").setAttribute("aria-expanded", open); if (open) chLayPop(); };
+  document.addEventListener("click", e => { const p = $("chLayPop"); if (p && !p.hidden && !e.target.closest(".chlay")) { p.hidden = true; $("chLayBtn").setAttribute("aria-expanded", "false"); } });
+  $("chFocus").onclick = () => chFocus(!document.body.classList.contains("chfocus"));
+  el.querySelectorAll("[data-fit]").forEach(b => b.onclick = () => chFit(CHP[+b.dataset.fit]));
+  el.querySelectorAll("[data-max]").forEach(b => b.onclick = () => { const i = +b.dataset.max; CH.max = CH.max === i ? null : i; chSave(); chApplyLayout(); });
   el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
   $("chMA").onclick = () => { CH.ma = !CH.ma; chSave(); chIndicators(); };
   $("chSessB").onclick = () => { CH.sess = !CH.sess; chSave(); chIndicators(); };
   $("chRSI").onclick = () => { CH.rsi = !CH.rsi; chSave(); chIndicators(); };
   $("chSync").onclick = () => { CH.sync = !CH.sync; chSave(); chIndicators(); };
-  for (let i = 0; i < 4; i++) CHP.push({ i, tf: CH.tfs[i], t: [], o: [], h: [], l: [], c: [], tok: 0, chart: null, wrap: $("chWrap" + i), cv: $("chCv" + i), ov: $("chOv" + i), msg: $("chMsg" + i), sym: null, lastPoll: 0, sig: "", progUntil: 0 });
+  for (let i = 0; i < 4; i++) CHP.push({ i, pane: $("chPane" + i), tf: CH.tfs[i], t: [], o: [], h: [], l: [], c: [], tok: 0, chart: null, wrap: $("chWrap" + i), cv: $("chCv" + i), ov: $("chOv" + i), msg: $("chMsg" + i), sym: null, lastPoll: 0, sig: "", progUntil: 0 });
   CHP.forEach(P => chBindPane(P));
   document.addEventListener("keydown", chKey);
 }
+function chLayIcon(id, w = 26, hgt = 18) {                   // small picture of a layout
+  const rects = [], walk = (n, x, y, W, H) => { if (typeof n === "number") { rects.push([x, y, W, H]); return; }
+    const [dir, kids] = n, k = kids.length; kids.forEach((c, j) => dir === "row" ? walk(c, x + W * j / k, y, W / k, H) : walk(c, x, y + H * j / k, W, H / k)); };
+  walk(CH_LAYOUTS[id] ?? 0, 1, 1, w - 2, hgt - 2);
+  return `<svg viewBox="0 0 ${w} ${hgt}" width="${w}" height="${hgt}" aria-hidden="true">${rects.map(([x, y, W, H]) => `<rect x="${x + .5}" y="${y + .5}" width="${W - 1}" height="${H - 1}" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>`).join("")}</svg>`;
+}
+function chLayPop() {
+  const p = $("chLayPop"), ids = Object.keys(CH_LAYOUTS);
+  p.innerHTML = [1, 2, 3, 4].map(n => `<div class="chlr"><span class="mute">${n}</span>${ids.filter(id => chLeaves(CH_LAYOUTS[id]).length === n).map(id =>
+    `<button data-lay="${id}" class="${id === CH.layout ? "on" : ""}" aria-label="${n} chart layout ${id}">${chLayIcon(id)}</button>`).join("")}</div>`).join("") +
+    `<div class="meta">Drag the gaps between charts to resize; double-click a gap to even it out.</div>`;
+  p.querySelectorAll("[data-lay]").forEach(b => b.onclick = () => { CH.layout = b.dataset.lay; CH.max = null; chSave(); p.hidden = true; $("chLayBtn").setAttribute("aria-expanded", "false"); chApplyLayout(); });
+}
+function chDefSizes(id, path, k) {
+  const big = /^[34][LT]$/.test(id) ? [0.62, 0.38] : /^[34][RB]$/.test(id) ? [0.38, 0.62] : null;
+  return path === "r" && big && k === 2 ? big.slice() : Array(k).fill(1 / k);
+}
+function chTree() { return CH.max != null ? CH.max : CH_LAYOUTS[CH.layout]; }
 function chApplyLayout() {
-  const g = $("chGrid"); if (!g) return;
-  g.className = "chgrid l" + CH.layout;
-  CHP.forEach(P => P.wrap.parentElement.classList.toggle("off", P.i >= CH.layout));
-  document.querySelectorAll("#chLayout [data-l]").forEach(b => b.classList.toggle("on", +b.dataset.l === CH.layout));
+  const g = $("chGrid"), hold = $("chHold"); if (!g) return;
+  CHP.forEach(P => hold.appendChild(P.pane));
+  g.innerHTML = "";
+  const id = CH.max != null ? "max" : CH.layout, sizes = CH.max != null ? {} : (CH.sizes[id] = CH.sizes[id] || {});
+  const build = (node, path) => {
+    if (typeof node === "number") { const c = document.createElement("div"); c.className = "chleaf"; c.appendChild(CHP[node].pane); return c; }
+    const [dir, kids] = node, el = document.createElement("div"); el.className = "chsp " + (dir === "row" ? "chh" : "chv");
+    let fr = sizes[path]; if (!fr || fr.length !== kids.length) fr = sizes[path] = chDefSizes(id, path, kids.length);
+    kids.forEach((k, j) => {
+      if (j) { const gu = document.createElement("div"); gu.className = "chgut"; gu.dataset.path = path; gu.dataset.j = j; gu.setAttribute("role", "separator"); gu.title = "Drag to resize · double-click to even out"; el.appendChild(gu); }
+      const cell = build(k, path + "." + j); cell.style.flex = `${fr[j]} 1 0px`; el.appendChild(cell);
+    });
+    return el;
+  };
+  const root = build(chTree(), "r"); root.classList.add("chroot"); g.appendChild(root);
+  g.querySelectorAll(".chgut").forEach(gu => chBindGutter(gu, sizes));
+  CHP.forEach(P => { const b = P.pane.querySelector("[data-max]"); if (b) { b.classList.toggle("on", CH.max === P.i); b.textContent = CH.max === P.i ? "⤡" : "⤢"; } });
+  const lb = $("chLayBtn"); if (lb) lb.innerHTML = `${chLayIcon(CH.layout)}<span>▾</span>`;
   chVis().forEach(P => { if (P.sym !== CH.sym || !P.chart) chLoad(P); });
   if (typeof liveSync === "function") liveSync();
   requestAnimationFrame(() => { chResizeAll(); chDirty = true; });
 }
-const chVis = () => CHP.filter(P => P.i < CH.layout);
+function chBindGutter(gu, sizes) {
+  const path = gu.dataset.path, j = +gu.dataset.j, box = gu.parentElement, horiz = box.classList.contains("chh");
+  const cells = () => [...box.children].filter(c => !c.classList.contains("chgut"));
+  gu.addEventListener("pointerdown", e => {
+    e.preventDefault(); gu.setPointerCapture(e.pointerId); gu.classList.add("on");
+    const fr = sizes[path], sum = fr.reduce((a, b) => a + b, 0), total = horiz ? box.clientWidth : box.clientHeight, start = horiz ? e.clientX : e.clientY, a0 = fr[j - 1], b0 = fr[j], minF = sum * 0.1;
+    const mv = ev => { const d = ((horiz ? ev.clientX : ev.clientY) - start) / Math.max(1, total) * sum; const na = Math.max(minF, Math.min(a0 + b0 - minF, a0 + d));
+      fr[j - 1] = na; fr[j] = a0 + b0 - na; const cs = cells(); cs[j - 1].style.flex = `${fr[j - 1]} 1 0px`; cs[j].style.flex = `${fr[j]} 1 0px`; chDirty = true; };
+    const up = () => { gu.removeEventListener("pointermove", mv); gu.removeEventListener("pointerup", up); gu.classList.remove("on"); chSave(); };
+    gu.addEventListener("pointermove", mv); gu.addEventListener("pointerup", up);
+  });
+  gu.addEventListener("dblclick", () => { const fr = sizes[path], m = (fr[j - 1] + fr[j]) / 2; fr[j - 1] = fr[j] = m; const cs = cells(); cs[j - 1].style.flex = cs[j].style.flex = `${m} 1 0px`; chSave(); });
+}
+const chVis = () => chLeaves(chTree()).map(i => CHP[i]);
+function chFit(P) {
+  if (!P || !P.chart || !P.t.length) return;
+  P.chart.priceScale("right").applyOptions({ autoScale: true }); P.chart.priceScale("rsi").applyOptions({ autoScale: true });
+  const n = P.t.length; P.progUntil = Date.now() + 400; P.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 140), to: n + 8 }); chDirty = true;
+}
+function chFocus(on) { document.body.classList.toggle("chfocus", on); const b = $("chFocus"); if (b) { b.classList.toggle("on", on); b.textContent = on ? "⛶ Exit focus" : "⛶ Focus"; } requestAnimationFrame(() => { chResizeAll(); chDirty = true; }); }
 function chIndicators() {
   [["chMA", CH.ma], ["chSessB", CH.sess], ["chRSI", CH.rsi], ["chSync", CH.sync]].forEach(([id, on]) => $(id) && $(id).classList.toggle("on", on));
   CHP.forEach(P => { if (!P.chart) return;
@@ -5438,7 +5537,7 @@ function chIndicators() {
 async function chPageShown(on) {
   document.body.classList.toggle("pg-charts", on);
   chOn = on;
-  if (!on) { if (typeof liveSync === "function") liveSync(); return; }
+  if (!on) { if (document.body.classList.contains("chfocus")) chFocus(false); if (typeof liveSync === "function") liveSync(); return; }
   try { await ensureLWC(); } catch (e) { return; }
   chBuild(); chIndicators(); chApplyLayout(); chHeader(); chWLRender(); chQuotesFetch();
 }
@@ -5491,9 +5590,7 @@ async function chLoad(P) {
     ["t", "o", "h", "l", "c"].forEach(f => P[f] = k[f].slice());
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f]));
     if (!P.t.length) throw new Error("no candles");
-    P.sym = sym; chSetData(P);
-    const n = P.t.length; P.progUntil = Date.now() + 400;
-    P.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 140), to: n + 8 });
+    P.sym = sym; chSetData(P); chFit(P);
     P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader();
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
 }
@@ -5570,14 +5667,14 @@ function chOnCross(P, prm) {
 let chRangeT = 0;
 function chOnRange(P) {
   chDirty = true;
-  if (!CH.sync || chSyncing || Date.now() < P.progUntil || !P.t.length) return;
+  if (!CH.sync || chSyncing || Date.now() < P.progUntil || !P.t.length || !(Date.now() - (P.userAt || 0) < 1500)) return;   // only follow your own scrolling
   clearTimeout(chRangeT);
   chRangeT = setTimeout(() => {
     const r = P.chart.timeScale().getVisibleLogicalRange(); if (!r) return;
-    const tEnd = chTimeAt(P, r.to);
+    const tEnd = Math.min(chTimeAt(P, r.to), P.t.at(-1) + CH_IV[P.tf] - 1), pad = Math.max(0, r.to - (P.t.length - 1));     // align on the last real candle in view
     chVis().forEach(Q => { if (Q === P || !Q.chart || !Q.t.length) return;
       const q = Q.chart.timeScale().getVisibleLogicalRange(); if (!q) return;
-      const w = q.to - q.from, to = chLogical(Q, tEnd); Q.progUntil = Date.now() + 400;
+      const w = q.to - q.from, to = Math.min(chLogical(Q, tEnd), Q.t.length - 1) + (pad > 0 ? 8 : 0); Q.progUntil = Date.now() + 400;
       Q.chart.timeScale().setVisibleLogicalRange({ from: to - w, to }); });
   }, 120);
 }
@@ -5662,6 +5759,7 @@ function chSelBar() {
 function chDelete() { if (!chSel) return; chPush(); CHD[CH.sym] = chList().filter(x => x.id !== chSel); chSel = null; chCommit(); }
 function chKey(e) {
   if (!chOn || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "")) return;
+  if (e.key === "Escape" && !chDraft && !chMeasure && !chSel && chTool === "cursor" && document.body.classList.contains("chfocus")) { chFocus(false); return; }
   if (e.key === "Escape") { if (chDraft && chDraft.type === "path" && chDraft.pts.length > 2) { chDraft.pts.pop(); chFinish(); } else { chDraft = null; chMeasure = null; chSel = null; chSetTool("cursor"); chSelBar(); } }
   else if (e.key === "Enter" && chDraft && chDraft.type === "path") { chDraft.pts.pop(); chFinish(); }
   else if ((e.key === "Delete" || e.key === "Backspace") && chSel) { e.preventDefault(); chDelete(); }
@@ -5764,6 +5862,8 @@ function chBindPane(P) {
   }, true);
   ["touchstart", "touchmove"].forEach(ev => w.addEventListener(ev, e => { if (chTool !== "cursor" || chDrag) { e.stopPropagation(); if (e.cancelable) e.preventDefault(); } }, { capture: true, passive: false }));
   w.addEventListener("pointerleave", () => { P.mouse = null; });
+  ["pointerdown", "wheel", "touchstart"].forEach(ev => w.addEventListener(ev, () => { P.userAt = Date.now(); }, { capture: true, passive: true }));
+  w.addEventListener("pointermove", e => { if (e.buttons) P.userAt = Date.now(); }, { capture: true, passive: true });
 }
 function chSegDist(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy; let u = L ? ((px - ax) * dx + (py - ay) * dy) / L : 0; u = Math.max(0, Math.min(1, u)); return Math.hypot(px - (ax + u * dx), py - (ay + u * dy)); }
 function chHitTest(P, x, y) {
@@ -5898,7 +5998,9 @@ function chWLRender() {
   const items = chWLItems(), groups = ["Starred", "Crypto", "Metals & Energy", "US Indices", "Forex & CFDs"];
   const row = x => { const q = chQuote(x.sym), p = q && q.price, c = q && q.chg, abs = p != null && c != null ? p - p / (1 + c / 100) : null;
     return `<div class="chwr ${x.sym === CH.sym ? "on" : ""}" data-s="${x.sym}" role="button" tabindex="0"><span class="n">${chName(x.sym)}</span><span class="v">${chFmt(p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${abs == null ? "" : (abs >= 0 ? "+" : "") + chFmt(abs, p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "—" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>${x.user ? `<button class="x" data-rm="${x.sym}" aria-label="Remove ${chName(x.sym)}">×</button>` : ""}</div>`; };
-  let html = `<div class="chwh"><b>Watchlist</b><button class="btn sm" id="chWLAddB">${chWLAdd ? "Done" : "+ Add"}</button></div>`;
+  document.querySelector(".chbody").classList.toggle("nowl", !CH.wl);
+  if (!CH.wl) { el.innerHTML = `<button class="chwlopen" id="chWLOpen" title="Show the watchlist" aria-label="Show the watchlist">‹ <span>Watchlist</span></button>`; $("chWLOpen").onclick = () => { CH.wl = true; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); }; return; }
+  let html = `<div class="chwh"><b>Watchlist</b><span><button class="btn sm" id="chWLAddB">${chWLAdd ? "Done" : "+ Add"}</button> <button class="btn sm" id="chWLHide" title="Hide the watchlist" aria-label="Hide the watchlist">›</button></span></div>`;
   if (chWLAdd) {
     const q = chWLQ.trim().toLowerCase(), pool = [];
     (data ? data.all : []).slice().sort((a, b) => b.vol24h - a.vol24h).forEach(r => pool.push(r.symbol));
@@ -5914,6 +6016,7 @@ function chWLRender() {
   el.innerHTML = html;
   el.querySelectorAll("[data-s]").forEach(r => { r.onclick = e => { if (e.target.closest("[data-rm]")) return; chSetSym(r.dataset.s); }; r.onkeydown = e => { if (e.key === "Enter") chSetSym(r.dataset.s); }; });
   el.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { CHW = CHW.filter(s => s !== b.dataset.rm); chSaveWL(); chWLRender(); });
+  $("chWLHide").onclick = () => { CH.wl = false; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); };
   $("chWLAddB").onclick = () => { chWLAdd = !chWLAdd; chWLQ = ""; chWLRender(); if (chWLAdd && $("chWLQ")) $("chWLQ").focus(); };
   if ($("chWLQ")) $("chWLQ").oninput = () => { chWLQ = $("chWLQ").value; const pos = $("chWLQ").selectionStart; chWLRender(); const n = $("chWLQ"); n.focus(); n.setSelectionRange(pos, pos); };
   el.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const s = b.dataset.add; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (MACRO_INFO[chBase(s)] && !s.startsWith("CT:")) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chQuotesFetch(); });

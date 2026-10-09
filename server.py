@@ -5,7 +5,7 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8787
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
        "img-src 'self' data: https://s3-symbol-logo.tradingview.com; "
-       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://api.coingecko.com https://api.alternative.me wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
+       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://contract.mexc.com https://api.mexc.com https://api.coingecko.com https://api.alternative.me wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://contract.mexc.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
        "manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'")
 # Relay for Bybit's public market data, used when Bybit refuses requests made directly from a web page.
 # Only /v5/market/* paths are forwarded: read-only prices, candles, funding and open interest. No account endpoints.
@@ -22,6 +22,17 @@ def relay_bybit(rest):
         except Exception as e:
             last = e
     return 502, json.dumps({"retCode": -1, "retMsg": f"relay could not reach Bybit: {last}"}).encode()
+# Relay for MEXC's public market data (futures contract API and spot v3), for when MEXC refuses requests from a web page.
+# Only read-only market paths are forwarded.
+MEXC_UPSTREAMS = {"/proxy/mexc-fut": ("https://contract.mexc.com", "/api/v1/contract/"), "/proxy/mexc-spot": ("https://api.mexc.com", "/api/v3/")}
+def relay_mexc(prefix, rest):
+    up, allowed = MEXC_UPSTREAMS[prefix]
+    if not rest.startswith(allowed) or any(x in rest for x in ("/private", "/account", "/order", "..", "%2e", "%2E")): return 403, b'{"success":false,"message":"not allowed"}'
+    try:
+        req = urllib.request.Request(up + rest, headers={"User-Agent": "Mozilla/5.0 (TheFinder)", "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=15) as r: return r.status, r.read()
+    except urllib.error.HTTPError as e: return e.code, e.read()
+    except Exception as e: return 502, json.dumps({"success": False, "message": f"relay could not reach MEXC: {e}"}).encode()
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".webmanifest": "application/manifest+json", ".js": "text/javascript"}
     def __init__(self, *a, **k): super().__init__(*a, directory=ROOT, **k)
@@ -42,6 +53,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
             return
+        for prefix in MEXC_UPSTREAMS:
+            if self.path.startswith(prefix + "/"):
+                code, body = relay_mexc(prefix, self.path[len(prefix):])
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
+                self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+                return
         return super().do_GET()
     def log_message(self, *a): pass
 

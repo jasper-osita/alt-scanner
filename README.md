@@ -64,10 +64,15 @@ coins that matter (watchlist, board picks, session picks, playbook setups) are r
 shows "Live off: polling" and alerts fall back to checking every 30 seconds.
 
 ## Exchanges
-Switch between **Binance** and **Bybit** with the Exchange pill. Every board, filter, model, chart, alert and scorecard
+Switch between **Binance**, **Bybit** and **MEXC** with the Exchange pill. Every board, filter, model, chart, alert and scorecard
 works on either. Bybit's positioning data has open interest, funding and the accounts long/short ratio (Bybit doesn't
 publish taker flow or a top-trader ratio). If Bybit refuses requests made directly from the page, the Mac app's local
 server relays Bybit's public market data (read-only `/v5/market/*` paths only), so open the scanner from the Mac app.
+
+**MEXC** is the third choice. Futures use MEXC's contract API (with a live stream for prices, funding and candles); spot
+uses MEXC's v3 API and has no live stream here, so spot prices refresh on each scan and alerts check every 30 seconds.
+MEXC publishes funding but not open interest or long/short ratios, and has no 3m or 2h candles. If MEXC refuses requests
+made directly from the page, the Mac app relays its public market data (read-only contract and v3 market paths only).
 
 ## How it works
 - The page is served by your host (Vercel, Netlify, Cloudflare Pages).

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.0005">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.0056">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -689,7 +689,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
   <div class="layout"><main>
 
   <div class="pills">
-    <label class="pill"><span>Exchange</span><select id="exF"><option value="binance" selected>Binance</option><option value="bybit">Bybit</option></select></label>
+    <label class="pill"><span>Exchange</span><select id="exF"><option value="binance" selected>Binance</option><option value="bybit">Bybit</option><option value="mexc">MEXC</option></select></label>
     <label class="pill"><span>Market</span><select id="market"><option value="futures" selected>Futures</option><option value="spot">Spot</option></select></label>
     <label class="pill"><span>Direction</span><select id="dirF"><option value="Both" selected>Longs + Shorts</option><option value="Long">Longs Only</option><option value="Short">Shorts Only</option></select></label>
     <label class="pill"><span>Quote</span><select id="quote"><option selected>USDT</option><option>USDC</option><option value="ALL">USDT + USDC</option></select></label>
@@ -863,6 +863,32 @@ async function pingBybit() {
   return false;
 }
 const byCat = () => MODE === "futures" ? "linear" : "spot";
+/* ---- MEXC adapter: futures = contract API (symbols like BTC_USDT), spot = v3 (Binance-style). Internal symbols stay BTCUSDT. ---- */
+let MXF = "https://contract.mexc.com", MXS = "https://api.mexc.com";
+const MXF_HOSTS = ["https://contract.mexc.com", "/proxy/mexc-fut"], MXS_HOSTS = ["https://api.mexc.com", "/proxy/mexc-spot"];   // the /proxy ones: the Mac app's relay (and Vercel)
+const MXF_IV = { "1m": "Min1", "5m": "Min5", "15m": "Min15", "30m": "Min30", "1h": "Min60", "4h": "Hour4", "1d": "Day1", "1w": "Week1" };
+const MXF_IV_BACK = Object.fromEntries(Object.entries(MXF_IV).map(([k, v]) => [v, k]));
+const MXS_IV = { "1m": "1m", "5m": "5m", "15m": "15m", "30m": "30m", "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" };
+const MX_IVMS = { "1m": 60e3, "5m": 300e3, "15m": 900e3, "30m": 1800e3, "1h": 3600e3, "4h": 14400e3, "1d": 864e5, "1w": 6048e5 };
+const mxF = s => s.includes("_") ? s : s.replace(/(USDT|USDC)$/, "_$1"), mxBack = s => s.replace("_", "");
+async function mxGet(path, params = {}, tries = 2) {
+  const q = Object.keys(params).length ? "?" + qs(params) : "", j = await getJSON(`${MXF}${path}${q}`, tries);
+  if (!j || j.success === false || (j.code != null && j.code !== 0)) throw new Error((j && (j.message || j.msg)) || "MEXC error");
+  return j.data;
+}
+async function pingMexc(spot) {
+  for (const h of spot ? MXS_HOSTS : MXF_HOSTS) {
+    try { const j = await getJSON(`${h}${spot ? "/api/v3/ping" : "/api/v1/contract/ping"}`, 1); if (j && j.success !== false) { if (spot) MXS = h; else MXF = h; return true; } } catch (e) {}
+  }
+  return false;
+}
+async function mxKlinesF(sym, iv, startMs, endMs) {          // ascending rows [t, o, h, l, c, quote volume]
+  const p = MXF_IV[iv]; if (!p) throw new Error(`MEXC has no ${iv} candles`);
+  const d = await mxGet(`/api/v1/contract/kline/${mxF(sym)}`, { interval: p, start: Math.floor(startMs / 1000), end: Math.floor(endMs / 1000) });
+  return (d.time || []).map((t, i) => [t * 1000, +d.open[i], +d.high[i], +d.low[i], +d.close[i], +((d.amount || [])[i] ?? 0)]);
+}
+const mxSpotRow = k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]];
+const mxRowsToK = rows => ({ t: rows.map(r => r[0]), o: rows.map(r => r[1]), h: rows.map(r => r[2]), l: rows.map(r => r[3]), c: rows.map(r => r[4]), qv: rows.map(r => r[5]) });
 const baseClean = b => b.replace(/^1000+|1000$/g, "").replace(/^1M(?=[A-Z])/, "");
 
 const clamp = (x, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, x));
@@ -1007,6 +1033,14 @@ async function spend(w) {
 const klineWeight = limit => MODE === "spot" ? 2 : limit < 100 ? 1 : limit < 500 ? 2 : limit <= 1000 ? 5 : 10;
 async function klines(sym, interval, limit) {
   if (CT_SYMS.has(sym)) return ctKlines(sym, interval, limit);
+  if (EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) {
+    const iv = MX_IVMS[interval]; if (!iv) throw new Error(`MEXC has no ${interval} candles`);
+    await spend(1);
+    const now = Date.now();
+    const rows = MODE === "futures" ? await mxKlinesF(sym, interval, now - (limit + 2) * iv, now)
+      : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], limit: Math.min(1000, limit + 1) })}`)).map(mxSpotRow);
+    return mxRowsToK(rows.filter(r => r[0] + iv <= now).slice(-limit));       // closed candles only
+  }
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
     await spend(1);
     const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[interval], limit: Math.min(1000, limit) });
@@ -1025,7 +1059,20 @@ async function pingSpot() { for (const h of SPOT_HOSTS) { try { await getJSON(`$
 async function loadMarkets(market, quote, alts, minVol) {
   const quotes = quote === "ALL" ? ["USDT", "USDC"] : [quote];
   const coins = [];
-  if (EXCHANGE === "bybit") {
+  if (EXCHANGE === "mexc") {
+    let spotTick = null; try { spotTick = await getJSON(`${MXS}/api/v3/ticker/24hr`, 1); } catch (e) { if (MODE === "spot") throw e; }
+    if (MODE === "futures") {
+      const [det, tick] = await Promise.all([mxGet("/api/v1/contract/detail"), mxGet("/api/v1/contract/ticker")]);
+      const meta = {}; [].concat(det || []).forEach(c => { if (c.state === 0 && (c.futureType == null || c.futureType === 1) && quotes.includes(c.quoteCoin) && (!c.settleCoin || c.settleCoin === c.quoteCoin)) meta[c.symbol] = { base: c.baseCoin, quote: c.quoteCoin }; });
+      const spotVol = spotTick ? Object.fromEntries(spotTick.map(r => [r.symbol, +r.quoteVolume])) : null;
+      [].concat(tick || []).forEach(t => { const m = meta[t.symbol]; if (!m) return; const sym = m.base + m.quote;
+        coins.push({ symbol: sym, base: m.base, quote: m.quote, vol24h: +t.amount24 || 0, chg24h: +t.riseFallRate * 100 || 0, funding: +(t.fundingRate || 0), spotVol: spotVol ? (spotVol[sym] ?? 0) : null }); });
+    } else {
+      spotTick.forEach(t => { const q = quotes.find(q => t.symbol.endsWith(q)); if (!q) return; const qv = +t.quoteVolume; if (!(qv > 0)) return;
+        const last = +t.lastPrice, open = +t.openPrice, chg = open > 0 ? (last - open) / open * 100 : (+t.priceChangePercent || 0) * 100;
+        coins.push({ symbol: t.symbol, base: t.symbol.slice(0, -q.length), quote: q, vol24h: qv, chg24h: chg, funding: null, spotVol: qv }); });
+    }
+  } else if (EXCHANGE === "bybit") {
     const cat = byCat(), meta = {}; let cursor = "";
     for (let i = 0; i < 6; i++) {
       const res = await byGet("/v5/market/instruments-info", { category: cat, limit: 1000, ...(cursor ? { cursor } : {}) });
@@ -1859,6 +1906,10 @@ async function drivers(r) {
     if (oi && oi.list.length > 1) { const nw = +oi.list[0].openInterest, od = +oi.list.at(-1).openInterest; d.oiChg = od > 0 ? (nw / od - 1) * 100 : null; d.oiUsd = nw * r.price; }
     if (ratio && ratio.list.length) { const x = ratio.list[0]; d.globLS = +x.sellRatio > 0 ? +x.buyRatio / +x.sellRatio : null; }
     if (fr && fr.list.length) { d.fundNow = +fr.list[0].fundingRate; d.fundAvg = fr.list.reduce((s, x) => s + +x.fundingRate, 0) / fr.list.length; }
+  } else if (EXq === "mexc") {
+    if (MDq === "futures") { d.fundNow = r.funding;
+      try { const h = await mxGet("/api/v1/contract/funding_rate/history", { symbol: mxF(r.symbol), page_num: 1, page_size: 21 }, 1);
+        const L = (h && (h.resultList || h)) || []; if (L.length) d.fundAvg = L.reduce((s, x) => s + +x.fundingRate, 0) / L.length; } catch (e) {} }
   } else if (EXq === "bybit") {
     // spot on Bybit: no positioning data
   } else if (MDq === "futures") {
@@ -1981,10 +2032,14 @@ function commonFlags(r, dir, btc, ext) {
 async function scan({ exchange = "binance", market = "futures", quote = "USDT", alts = true, ma = "ema", minVol = 0 }, progress = () => {}) {
   const maFn = ma === "sma" ? sma : ema;
   EXCHANGE = exchange;
-  const EXN = exchange === "bybit" ? "Bybit" : "Binance";
+  const EXN = exchange === "bybit" ? "Bybit" : exchange === "mexc" ? "MEXC" : "Binance";
   progress(`Connecting to ${EXN}…`, 0.01);
   let fellBack = false;
-  if (exchange === "bybit") {
+  if (exchange === "mexc") {
+    MODE = market === "spot" ? "spot" : "futures";
+    if (MODE === "futures" && !(await pingMexc(false))) throw new Error("MEXC's futures API is unreachable from this network, or it refuses requests from a web page");
+    if (!(await pingMexc(true)) && MODE === "spot") throw new Error("MEXC's spot API is unreachable from this network, or it refuses requests from a web page");
+  } else if (exchange === "bybit") {
     if (!(await pingBybit())) throw new Error("Bybit's API is unreachable from this network, or it refuses requests from a web page");
     MODE = market === "spot" ? "spot" : "futures";
   } else if (market === "futures") {
@@ -1995,7 +2050,7 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
     if (!(await pingSpot())) throw new Error("Binance market data is unreachable from this network");
     MODE = "spot";
   }
-  bucket.cap = EXCHANGE === "bybit" ? 2400 : RATE[MODE]; bucket.tokens = Math.min(bucket.tokens, bucket.cap);
+  bucket.cap = EXCHANGE === "bybit" ? 2400 : EXCHANGE === "mexc" ? 480 : RATE[MODE]; bucket.tokens = Math.min(bucket.tokens, bucket.cap);
   const canShort = market === "futures";                       // spot market: longs only
   progress(`Loading every ${EXN} market…`, 0.02);
   const coins = await loadMarkets(market, quote, alts, minVol);
@@ -2100,9 +2155,10 @@ const hideWicky = () => $("wickF").value === "hide";
 
 /* ---- TradingView app ---- */
 function toast(msg) { const t = $("toast"); t.innerHTML = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 6000); }
-const exName = () => data && data.exchange === "bybit" ? "Bybit" : "Binance";
-const tvLink = sym => MACRO.by[sym] ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(MACRO.by[sym].tv)}` : `https://www.tradingview.com/chart/?symbol=${data && data.exchange === "bybit" ? "BYBIT" : "BINANCE"}:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
-const tvSymbol = sym => MACRO.by[sym] ? MACRO.by[sym].tv : `BINANCE:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
+const exName = () => data && data.exchange === "bybit" ? "Bybit" : data && data.exchange === "mexc" ? "MEXC" : "Binance";
+const tvEx = () => data && data.exchange === "bybit" ? "BYBIT" : data && data.exchange === "mexc" ? "MEXC" : "BINANCE";
+const tvLink = sym => MACRO.by[sym] ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(MACRO.by[sym].tv)}` : `https://www.tradingview.com/chart/?symbol=${tvEx()}:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
+const tvSymbol = sym => MACRO.by[sym] ? MACRO.by[sym].tv : `${tvEx()}:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
 async function openTV(sym) {
   const url = tvLink(sym), mode = $("chartMode").value;
   if (mode === "tab") { window.open(url, "_blank", "noopener"); return; }   // default: TradingView chart in a new tab
@@ -3076,7 +3132,10 @@ function startPricePoll() { clearInterval(pollTimer); if (WL.alerts.some(a => !a
 async function checkPrices() {
   const live = WL.alerts.filter(a => !a.fired); if (!live.length || !data) return;
   try {
-    const px = EXCHANGE === "bybit"
+    const px = EXCHANGE === "mexc"
+      ? (MODE === "futures" ? Object.fromEntries([].concat(await mxGet("/api/v1/contract/ticker", {}, 1)).map(x => [mxBack(x.symbol), +x.lastPrice]))
+                            : Object.fromEntries((await getJSON(`${MXS}/api/v3/ticker/price`, 1)).map(x => [x.symbol, +x.price])))
+      : EXCHANGE === "bybit"
       ? Object.fromEntries((await byGet("/v5/market/tickers", { category: byCat() }, 1)).list.map(x => [x.symbol, +x.lastPrice]))
       : Object.fromEntries((await getJSON(MODE === "futures" ? `${FAPI}/fapi/v1/ticker/price` : `${SPOT_BASE}/api/v3/ticker/price`, 1)).map(x => [x.symbol, +x.price]));
     let fired = false;
@@ -3289,6 +3348,13 @@ function recordScan() {
   histSave();
 }
 async function klinesSince(sym, startMs, interval = "1h", limit = 200, ex = "Binance", mode = MODE) {
+  if (ex === "MEXC") {
+    if (EXCHANGE !== "mexc") { await pingMexc(false); await pingMexc(true); }
+    await spend(1); const iv = MX_IVMS[interval];
+    const rows = mode === "futures" ? await mxKlinesF(sym, interval, startMs, Math.min(Date.now(), startMs + limit * iv))
+      : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], startTime: startMs, limit })}`, 2)).map(mxSpotRow);
+    return rows.map(r => ({ t: r[0], h: r[2], l: r[3], c: r[4] }));
+  }
   if (ex === "Bybit") {
     if (BYBIT_HOSTS.indexOf(BYBIT) < 0 || EXCHANGE !== "bybit") await pingBybit();
     await spend(1);
@@ -3433,7 +3499,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.0005";
+const APP_VERSION = "2026.10.09.0056";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3517,6 +3583,11 @@ const TF_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 async function formingBar(sym, tf) {                 // the candle that's still forming (the scanner's normal candles skip it)
   if (CT_SYMS.has(sym)) { const k = await ctKlines(sym, tf, 1, true), i = k.t.length - 1; return i >= 0 ? { t: k.t[i], o: k.o[i], h: k.h[i], l: k.l[i], c: k.c[i] } : null; }
   await spend(1);
+  if (EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) {
+    const iv = MX_IVMS[tf]; if (!iv) return null; const now = Date.now();
+    const rows = MODE === "futures" ? await mxKlinesF(sym, tf, now - 3 * iv, now + iv) : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[tf], limit: 1 })}`, 1)).map(mxSpotRow);
+    const k = rows.at(-1); return k ? { t: k[0], o: k[1], h: k[2], l: k[3], c: k[4] } : null;
+  }
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
     const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[tf], limit: 1 }, 1);
     const k = res.list[0]; return k ? { t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4] } : null;
@@ -3569,6 +3640,7 @@ function liveSetState(st, note) {
 function liveTarget() {
   if (!data) return null;
   if (data.exchange === "bybit") return { kind: "bybit", url: `wss://stream.bybit.com/v5/public/${data.mode === "futures" ? "linear" : "spot"}` };
+  if (data.exchange === "mexc") return data.mode === "futures" ? { kind: "mexc", url: "wss://contract.mexc.com/edge" } : null;
   if (data.mode === "futures") return { kind: "binance", url: "wss://fstream.binance.com/stream" };
   return { kind: "binance", url: data.fellBack ? "wss://data-stream.binance.vision/stream" : "wss://stream.binance.com:9443/stream" };
 }
@@ -3589,6 +3661,11 @@ function desiredStreams() {
     focus.forEach(s => want.add(s.toLowerCase() + "@kline_1h"));
     pool.forEach(s => want.add(s.toLowerCase() + "@kline_15m"));
     if (LIVE.chart && !CT_SYMS.has(LIVE.chart.sym) && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
+  } else if (T === "mexc") {
+    want.add("tickers");
+    focus.forEach(s => want.add("kline.Min60." + mxF(s))); pool.forEach(s => want.add("kline.Min15." + mxF(s)));
+    want.add("kline.Min60.BTC_USDT");
+    if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym) && MXF_IV[LIVE.chart.tf]) want.add(`kline.${MXF_IV[LIVE.chart.tf]}.${mxF(LIVE.chart.sym)}`);
   } else {
     data.all.forEach(r => want.add("tickers." + r.symbol));
     want.add("kline.60.BTCUSDT");
@@ -3601,6 +3678,15 @@ function desiredStreams() {
 let subId = 1;
 function liveSend(op, list) {
   if (!LIVE.ws || LIVE.ws.readyState !== 1 || !list.length) return;
+  if (LIVE.kind === "mexc") {                                // one subscription per message, paced
+    list.forEach((s, i) => setTimeout(() => {
+      if (!LIVE.ws || LIVE.ws.readyState !== 1) return;
+      const sub = op === "subscribe" ? "sub" : "unsub";
+      if (s === "tickers") LIVE.ws.send(JSON.stringify({ method: `${sub}.tickers`, param: {} }));
+      else { const [, interval, symbol] = s.split("."); LIVE.ws.send(JSON.stringify({ method: `${sub}.kline`, param: { symbol, interval } })); }
+    }, i * 60));
+    return;
+  }
   const batch = LIVE.kind === "bybit" ? 10 : 100;
   for (let i = 0; i < list.length; i += batch) {
     const part = list.slice(i, i + batch);
@@ -3620,7 +3706,7 @@ function liveSync() {
 function liveConnect() {
   liveClose(false);
   if (!liveOn()) { liveSetState("off"); return; }
-  const t = liveTarget(); if (!t) return;
+  const t = liveTarget(); if (!t) { liveSetState("down", "MEXC spot has no live stream here: prices refresh on each scan and alerts check every 30 seconds."); startPricePoll(); return; }
   LIVE.kind = t.kind; LIVE.url = t.url; LIVE.subs = new Set(); liveSetState("connecting");
   let ws;
   try { ws = new WebSocket(t.url); } catch (e) { liveRetry(); return; }
@@ -3628,6 +3714,7 @@ function liveConnect() {
   ws.onopen = () => {
     LIVE.retry = 0; liveSetState("live"); liveSync();
     if (LIVE.kind === "bybit") LIVE.ping = setInterval(() => { try { ws.send(JSON.stringify({ op: "ping" })); } catch (e) {} }, 20000);
+    if (LIVE.kind === "mexc") LIVE.ping = setInterval(() => { try { ws.send(JSON.stringify({ method: "ping" })); } catch (e) {} }, 15000);
   };
   ws.onmessage = ev => { LIVE.lastMsg = Date.now(); try { liveMessage(JSON.parse(ev.data)); } catch (e) {} };
   ws.onclose = () => { if (LIVE.ws === ws) { clearInterval(LIVE.ping); LIVE.ws = null; liveRetry(); } };
@@ -3653,7 +3740,19 @@ function liveTick(sym, fields) {
   if (fields.funding != null && isFinite(fields.funding)) r.funding = fields.funding;
   LIVE.dirty.add(sym);
 }
+const MX_LASTBAR = {};
 function liveMessage(m) {
+  if (LIVE.kind === "mexc") {
+    const ch = m.channel || "", d = m.data; if (!d) return;
+    if (ch === "push.tickers") [].concat(d).forEach(t => liveTick(mxBack(t.symbol), { price: +t.lastPrice, chg: t.riseFallRate != null ? +t.riseFallRate * 100 : null, vol: t.amount24 != null ? +t.amount24 : null, funding: t.fundingRate != null ? +t.fundingRate : null }));
+    else if (ch === "push.kline") {
+      const sym = mxBack(d.symbol || m.symbol || ""), iv = MXF_IV_BACK[d.interval]; if (!sym || !iv) return;
+      const bar = { t: +d.t * 1000, o: +d.o, h: +d.h, l: +d.l, c: +d.c }, key = sym + "|" + iv, prev = MX_LASTBAR[key];
+      if (prev && bar.t > prev.t) onLiveKline(sym, iv, prev, true);        // MEXC doesn't flag closes: a new candle means the last one closed
+      MX_LASTBAR[key] = bar; onLiveKline(sym, iv, bar, false);
+    }
+    return;
+  }
   if (LIVE.kind === "binance") {
     const st = m.stream || "", d = m.data; if (!d) return;
     if (st === "!miniTicker@arr") d.forEach(t => { const o = +t.o, c = +t.c; liveTick(t.s, { price: c, chg: o ? (c - o) / o * 100 : null, vol: +t.q }); });
@@ -3820,7 +3919,23 @@ function envLabel(b, bull, bear) {                      // the same environment 
 }
 async function klinesRange(sym, interval, startMs, endMs) {
   const step = IV_MS[interval], rows = new Map();
-  if (EXCHANGE === "bybit") {
+  if (EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) {
+    if (MODE === "futures") {
+      for (let cur = startMs, n = 0; cur < endMs && n < 20; n++) {             // up to 2,000 candles per request
+        await spend(1);
+        const to = Math.min(endMs, cur + 1990 * step), list = await mxKlinesF(sym, interval, cur, to);
+        list.forEach(r => rows.set(r[0], r)); cur = to + 1;
+      }
+    } else {
+      let cur = startMs;
+      for (let n = 0; n < 12 && cur < endMs; n++) {
+        await spend(1);
+        const list = await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], startTime: cur, endTime: endMs, limit: 1000 })}`, 2);
+        if (!list.length) break; list.forEach(k => rows.set(+k[0], mxSpotRow(k)));
+        const next = +list.at(-1)[0] + step; if (list.length < 1000 || next <= cur) break; cur = next;
+      }
+    }
+  } else if (EXCHANGE === "bybit") {
     let end = endMs;
     for (let n = 0; n < 12 && end > startMs; n++) {
       await spend(1);
@@ -4897,7 +5012,7 @@ $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").cl
 /* ---- export ---- */
 function claudeText() {
   const b = data.btc, d = new Date(Date.now() + PHT_MS);
-  const src = data.exchange === "bybit" ? `Bybit ${data.mode === "futures" ? "Perpetuals" : "Spot"}` : data.mode === "futures" ? "Binance Futures" : data.fellBack ? "Binance spot data fallback, funding not checked" : "Binance Spot";
+  const src = data.exchange === "bybit" || data.exchange === "mexc" ? `${exName()} ${data.mode === "futures" ? "Perpetuals" : "Spot"}` : data.mode === "futures" ? "Binance Futures" : data.fellBack ? "Binance spot data fallback, funding not checked" : "Binance Spot";
   const dr = r => r.drv ? ` | driver: ${r.drv.head}${r.drv.health ? " (" + r.drv.health + ")" : ""}` : "";
   let t = `CRYPTO SCREENER (web app, ${src}) ${fmtPHT(d)} | ${data.analysed} ${data.quote} coins | MAs ${data.ma.toUpperCase()} 20/50/100${data.alts ? " | alts only" : ""}${dirSel() !== "Both" ? " | " + dirSel().toLowerCase() + "s only" : ""}${hideWicky() ? " | wicky coins hidden" : ""}\n`;
   if (activeFilters().length) t += `Filters${FS.template ? " (" + FS.template + ")" : ""}, match ${FS.match}${FS.boards ? ", applied to boards" : ", table only"}: ${activeFilters().map(describe).join("; ")}\n`;
@@ -4946,7 +5061,7 @@ async function run() {
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
     renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan(); renderRotation(); renderMomentum();
-    { const t = liveTarget(); if (t && (!LIVE.ws || LIVE.url !== t.url)) liveConnect(); else liveSync(); }
+    { const t = liveTarget(); if (!t || !LIVE.ws || LIVE.url !== t.url) liveConnect(); else liveSync(); }   // no target (MEXC spot): close any old stream, fall back to polling
     if (BOT && BOT.running) { botReconcile().then(() => botOnScan()); } else renderBot(); renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
     $("status").textContent = `${data.analysed} coins analysed.`;
@@ -4960,6 +5075,7 @@ async function run() {
     if (!net) { $("status").textContent = `Something went wrong after the scan (${e.message}). Please send this message to Claude.`; console.error(e); $("prog").style.width = "0"; $("runBtn").disabled = false; return; }
     $("status").textContent = $("exF").value === "bybit"
       ? `Couldn't reach Bybit: ${e.message}. Try secure DNS or a VPN. If Bybit loads in your browser but not here, open the scanner from the Mac app (localhost), which relays Bybit's data.`
+      : $("exF").value === "mexc" ? `Couldn't reach MEXC: ${e.message}. If MEXC loads in your browser but not here, open the scanner from the Mac app (localhost), which relays MEXC's data.`
       : `Couldn't reach Binance: ${e.message}. Your internet provider may be blocking Binance. Try DNS 1.1.1.1 or 8.8.8.8, or a VPN, then press Scan Now.`;
     $("prog").style.width = "0";
   }
@@ -5709,6 +5825,7 @@ function chStreams() {
   chVis().forEach(P => {
     if (s.startsWith("CT:")) return;
     if (LIVE.kind === "binance") { if (!TRADFI_SYMS.has(s) || (data && data.mode === "futures")) out.push(s.toLowerCase() + "@kline_" + P.tf); }
+    else if (LIVE.kind === "mexc") { if (!TRADFI_SYMS.has(s) && MXF_IV[P.tf]) out.push(`kline.${MXF_IV[P.tf]}.${mxF(s)}`); }
     else if (!TRADFI_SYMS.has(s) && BY_IV[P.tf]) out.push(`kline.${BY_IV[P.tf]}.${s}`);
   });
   return out;
@@ -6116,7 +6233,11 @@ async function chQuotesFetch(list) {
     try {
       const tf = chIsTF(s); if (tf && EXCHANGE === "bybit") continue;
       let t;
-      if (tf || (EXCHANGE !== "bybit" && MODE === "futures")) t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${s}`, 1);
+      if (!tf && EXCHANGE === "mexc") {
+        if (MODE === "futures") { const x = await mxGet("/api/v1/contract/ticker", { symbol: mxF(s) }, 1); if (x) t = { lastPrice: x.lastPrice, priceChangePercent: +x.riseFallRate * 100 }; }
+        else { const x = await getJSON(`${MXS}/api/v3/ticker/24hr?symbol=${s}`, 1); if (x) t = { lastPrice: x.lastPrice, priceChangePercent: +x.openPrice > 0 ? (x.lastPrice - x.openPrice) / x.openPrice * 100 : 0 }; }
+      }
+      else if (tf || (EXCHANGE !== "bybit" && MODE === "futures")) t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${s}`, 1);
       else if (EXCHANGE !== "bybit") t = await getJSON(`${SPOT_BASE}/api/v3/ticker/24hr?symbol=${s}`, 1);
       else { const r = await byGet("/v5/market/tickers", { category: byCat(), symbol: s }, 1); const x = r.list && r.list[0]; if (x) t = { lastPrice: x.lastPrice, priceChangePercent: +x.price24hPcnt * 100 }; }
       if (t) CHQ[s] = { price: +t.lastPrice, chg24h: +t.priceChangePercent };

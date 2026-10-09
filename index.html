@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.1439">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.2247">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -749,6 +749,58 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 @media (max-width:760px){.chidb{grid-template-columns:1fr}.chinav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.chinav .chinh{display:none}.chinav button{white-space:nowrap}
   .chilh,.chirow{grid-template-columns:30px minmax(0,1fr)}.chilh span:last-child,.chirow .ty{display:none}.chvis{grid-template-columns:repeat(3,minmax(0,1fr))}.chlvs{grid-template-columns:1fr}
   .chtools .chtarr{opacity:1;position:static;transform:none;width:12px}.chfavbar{display:none}.chemogrid.big{grid-template-columns:repeat(5,36px)}}
+
+/* ---- phones ---- */
+.mbrand,.mmore,.pillsum,.mtab,.mscrim{display:none}
+@media (max-width:760px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .shell{display:block}
+  .side{position:fixed;left:0;right:0;top:auto;bottom:0;z-index:70;display:none;flex-direction:column;align-items:stretch;height:auto;max-height:78vh;overflow:auto;padding:10px 12px calc(76px + env(safe-area-inset-bottom,0px));border:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;background:var(--side,var(--panel));box-shadow:0 -12px 40px rgba(0,0,0,.5)}
+  body.mnavopen .side{display:flex}
+  .side .brand{display:none}
+  .side .ngrp{display:block!important;padding:12px 8px 4px}.side .nav .nb{display:inline!important}
+  #navList{display:block!important}.side .nav{width:100%;white-space:normal;min-height:44px}
+  .mscrim{display:block;position:fixed;inset:0;z-index:65;background:rgba(0,0,0,.45)}.mscrim[hidden]{display:none}
+  .mtab{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--panel);border-top:1px solid var(--line);padding:4px 4px env(safe-area-inset-bottom,0px)}
+  .mtab button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center;background:transparent;border:0;color:var(--mute);font:11px var(--display);cursor:pointer;border-radius:10px}
+  .mtab button.on{color:var(--accent)}
+  .wrap{padding:10px 12px 16px!important}
+  .topbar{flex-wrap:nowrap;gap:8px;position:sticky;top:0;z-index:40;background:var(--bg);margin:-10px -12px 0;padding:8px 12px;border-bottom:1px solid var(--line)}
+  .mbrand{display:grid;flex:none}.mbrand svg{width:30px;height:30px}
+  .crumb,.navtog,.actions .tog,#copyBtn,#jsonBtn,#fToggle{display:none!important}
+  .actions{gap:6px;flex-wrap:nowrap}
+  .mmore{display:grid;place-items:center;width:40px;padding:0}
+  .actions .btn,.livebadge,.bell{min-height:40px}
+  h1{font-size:21px;margin:12px 0 2px}
+  .subline{font-size:12px}
+  .pills{gap:6px;margin:10px 0 4px}
+  .pills>.pill,.pills>.sep{display:none}
+  body.pillsopen .pills>.pill{display:flex;flex:1 1 calc(50% - 6px);min-width:0}
+  body.pillsopen .pills>.pill select{min-width:0;flex:1}
+  .pillsum{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:42px;background:var(--pill);border:1px solid var(--pill-b);border-radius:10px;color:var(--text);font:13px var(--display);padding:0 12px;cursor:pointer;text-align:left}
+  .pillsum span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body.pillsopen .pillsum svg{transform:rotate(180deg)}
+  .pills .search{width:100%;min-height:42px}
+  #ncToasts{left:10px;right:10px;width:auto;bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  #ncDrawer{z-index:90;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nctoast{padding:9px 10px}.nctoast .ncd{display:none}.nctoast .ncacts{margin-top:6px}.nctoast .ncacts button{min-height:34px}
+  /* charts */
+  .chpage{min-height:0}
+  .chbar{gap:6px 8px}.chcats,.chhint,.chfavbar{display:none!important}
+  .chgrid .chleaf{width:100%;min-width:0}.chgrid .chleaf:only-child,.chgrid>.chpane:only-child{height:min(68vh,620px)!important}
+  .card,main>*,.layout>*{min-width:0;max-width:100%}
+  .chtools{gap:2px;padding:4px}.chtools .chtb{width:40px;height:40px}.chtools .chtarr{width:14px;height:40px}
+  .chia{display:inline-flex}.chir{gap:4px}.chia button{width:30px;height:28px}
+  .chfloat{max-width:calc(100vw - 16px);overflow-x:auto;scrollbar-width:none}.chfloat button{min-width:38px;height:38px}.chfn{display:none}
+  .chmenu{left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom,0px));max-height:62vh;min-width:0!important;border-radius:14px}
+  .chmenu button{min-height:44px}
+  .chcolpop{left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto}.chpal button{min-height:26px}
+  .chmodbg{padding:0;place-items:stretch}.chmod,.chmod.chmind{width:100%;height:100%;max-height:none;border-radius:0}
+  .chmb{padding:12px}.chsr{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}.chsr.sty{grid-template-columns:22px minmax(0,1fr) auto}
+  .chpick{position:fixed!important;left:8px!important;right:8px!important;top:64px!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;width:auto!important;max-height:none!important;z-index:90}
+  .chlaypop{position:fixed!important;left:8px!important;right:8px!important;top:110px!important;z-index:90}
+}
+@media (hover:none){.chia{display:inline-flex}.chtools .chtarr{opacity:1}}
 </style>
 </head>
 <body>
@@ -767,6 +819,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 <div class="wrap">
   <div class="topbar">
     <button class="navtog" id="navTog" title="Hide the sidebar" aria-label="Hide the sidebar" aria-expanded="true"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M7.5 3.5v13"/></svg></button>
+    <a class="mbrand" href="#overview" id="mBrand" aria-label="The Finder, overview"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#e8b04a"/><path d="M10 7.5h16l-2.6 4.6H14.6v3.8h8.6l-2.4 4.2h-6.2V26.5H10z" fill="#141517"/></svg></a>
     <div class="crumb" id="crumb">Market › <b>Overview</b></div>
     <div class="actions">
       <button class="livebadge off" id="liveBadge" title="Live data">○ Live</button>
@@ -775,6 +828,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <button class="btn" id="copyBtn" disabled>Copy for Claude</button>
       <button class="btn" id="jsonBtn" disabled>Export JSON</button>
       <button class="btn" id="fToggle" aria-expanded="false" aria-controls="fPanel">Filters <span class="badge" id="fBadge"></span></button>
+      <button class="btn mmore" id="mMore" aria-label="More actions" aria-haspopup="true"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4" cy="10" r="1.7" fill="currentColor"/><circle cx="10" cy="10" r="1.7" fill="currentColor"/><circle cx="16" cy="10" r="1.7" fill="currentColor"/></svg></button>
       <button class="btn primary" id="runBtn">Scan Now</button>
     </div>
   </div>
@@ -783,6 +837,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <div class="layout"><main>
 
   <div class="pills">
+    <button class="pillsum" id="pillSum" aria-expanded="false" aria-controls="exF"><span id="pillSumT">Scan settings</span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
     <label class="pill"><span>Exchange</span><select id="exF"><option value="binance" selected>Binance</option><option value="bybit">Bybit</option><option value="mexc">MEXC</option></select></label>
     <label class="pill"><span>Market</span><select id="market"><option value="futures" selected>Futures</option><option value="spot">Spot</option></select></label>
     <label class="pill"><span>Direction</span><select id="dirF"><option value="Both" selected>Longs + Shorts</option><option value="Long">Longs Only</option><option value="Short">Shorts Only</option></select></label>
@@ -914,6 +969,8 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <label class="tog"><input type="checkbox" id="ncMacro"> Forex &amp; gold triggers</label><button class="nclink" id="ncClear">Clear all</button></div>
 </aside>
 <div id="ncToasts" aria-live="polite"></div>
+<nav class="mtab" id="mTab" aria-label="Main sections"><button data-mgo="overview"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Overview</span></button><button data-mgo="playbook"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM9 9h7M9 13h7M9 17h4"/></svg><span>Playbook</span></button><button data-mgo="charts"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M9 20V4M14 20v-7M19 20V8M3 20h18"/></svg><span>Charts</span></button><button data-mgo="watch"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Watchlist</span></button><button data-mgo="more"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>More</span></button></nav>
+<div class="mscrim" id="mScrim" hidden></div>
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 
 <script id="core">/* ===================== scanner core (mirrors crypto_screener.py rules) ===================== */
@@ -3693,7 +3750,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.1439";
+const APP_VERSION = "2026.10.09.2247";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5392,15 +5449,15 @@ function ncToast(n) {
     <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
   const go = el.querySelector(".go"); if (go) go.onclick = () => ncGo(n.id);
   el.querySelector(".no").onclick = () => ncDropToast(n.id);
-  let timer = null; const arm = () => { clearTimeout(timer); timer = setTimeout(() => ncDropToast(n.id), 8000); };
+  let timer = null; const arm = () => { clearTimeout(timer); timer = setTimeout(() => ncDropToast(n.id), matchMedia("(max-width:760px)").matches ? 5000 : 8000); };
   el.onmouseenter = () => clearTimeout(timer); el.onmouseleave = arm; arm();
   box.prepend(el); NC_STATE.toasts.unshift(n.id);
   ncTrimToasts();
 }
-function ncTrimToasts() {                              // at most 3 cards; the rest wait in the bell
-  const box = $("ncToasts"), cards = [...box.querySelectorAll(".nctoast")];
-  cards.slice(3).forEach(c => c.remove());
-  let more = box.querySelector(".ncmore"); const extra = NC_STATE.toasts.length - Math.min(3, cards.length);
+function ncTrimToasts() {                              // at most 3 cards (1 on a phone); the rest wait in the bell
+  const box = $("ncToasts"), cards = [...box.querySelectorAll(".nctoast")], MAX = matchMedia("(max-width:760px)").matches ? 1 : 3;
+  cards.slice(MAX).forEach(c => c.remove());
+  let more = box.querySelector(".ncmore"); const extra = NC_STATE.toasts.length - Math.min(MAX, cards.length);
   if (extra > 0) { if (!more) { more = document.createElement("button"); more.className = "ncmore"; more.onclick = () => { ncClearToasts(); ncShow(true); }; box.appendChild(more); }
     more.textContent = `+${extra} more in the bell`; }
   else if (more) more.remove();
@@ -5464,7 +5521,7 @@ function goPage(id, keepTab) {
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
   document.querySelectorAll("[data-page]").forEach(el => el.classList.toggle("pg-off", !el.dataset.page.split(" ").includes(id)));
   const info = PAGE_INFO[id];
-  $("pageTitle").textContent = info.label;
+  $("pageTitle").textContent = info.label; mTabSync(id);
   $("crumb").innerHTML = `${pageGroupName(info.g)} › <b>${info.label}</b>`;
   document.title = `${info.label} · The Finder`;
   if (!keepTab && id in PAGE_TAB) {
@@ -5513,7 +5570,27 @@ new MutationObserver(mirrorSide).observe($("prog"), { attributes: true });
 new MutationObserver(mirrorSide).observe($("liveBadge"), { attributes: true, childList: true });
 ["exF", "dirF", "market"].forEach(id => $(id).addEventListener("change", () => setTimeout(mirrorSide, 0)));
 document.addEventListener("click", e => { const b = e.target.closest("[data-openchart]"); if (b && window.openInCharts) { e.preventDefault(); openInCharts(b.dataset.openchart); } });
-$("side").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b) return; e.preventDefault(); goPage(b.dataset.go); });
+$("side").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b) return; e.preventDefault(); goPage(b.dataset.go); mNav(false); });
+/* ---- phones: bottom tab bar, "More" sheet (the sidebar), ⋯ actions, folded scan settings ---- */
+const isPhone = () => matchMedia("(max-width:760px)").matches;
+function mTabSync(id) { document.querySelectorAll("#mTab [data-mgo]").forEach(b => { const on = b.dataset.mgo === id || (b.dataset.mgo === "more" && !["overview", "playbook", "charts", "watch"].includes(id)); b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
+function mNav(open) { document.body.classList.toggle("mnavopen", open); $("mScrim").hidden = !open; const b = document.querySelector('#mTab [data-mgo="more"]'); if (b) b.setAttribute("aria-expanded", open); }
+$("mTab").addEventListener("click", e => { const b = e.target.closest("[data-mgo]"); if (!b) return; if (b.dataset.mgo === "more") { mNav(!document.body.classList.contains("mnavopen")); return; } mNav(false); goPage(b.dataset.mgo); window.scrollTo(0, 0); });
+$("mScrim").onclick = () => mNav(false);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.body.classList.contains("mnavopen")) mNav(false); });
+$("mBrand").onclick = e => { e.preventDefault(); goPage("overview"); };
+$("mMore").onclick = () => {
+  if (typeof chMenu !== "function") return;
+  chMenu($("mMore"), [{ k: "auto", l: "Auto-refresh every 15 min", on: $("auto").checked }, { k: "copy", l: "Copy for Claude" }, { k: "json", l: "Export JSON" }, { k: "filters", l: "Filters & templates" }, { sep: 1 }, { k: "settings", l: "Scan settings" }],
+    { onPick: k => { if (k === "auto") $("auto").click(); else if (k === "copy") $("copyBtn").click(); else if (k === "json") $("jsonBtn").click(); else if (k === "filters") $("fToggle").click(); else pillsOpen(true); } });
+};
+function pillsOpen(open) { document.body.classList.toggle("pillsopen", open); $("pillSum").setAttribute("aria-expanded", open); if (open) $("pillSum").scrollIntoView({ block: "nearest" }); }
+$("pillSum").onclick = () => pillsOpen(!document.body.classList.contains("pillsopen"));
+function pillSumUpdate() {
+  const t = id => { const el = $(id); return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].text : ""; };
+  $("pillSumT").textContent = [t("exF"), t("market"), t("quote"), t("dirF"), $("minVol").value !== "0" ? "Vol " + t("minVol") : null, $("rateF").value ? t("rateF") : null].filter(Boolean).join(" · ");
+}
+["exF", "market", "quote", "dirF", "minVol", "rateF", "maType", "wickF"].forEach(id => $(id).addEventListener("change", pillSumUpdate)); pillSumUpdate();
 function navCollapse(on) {
   document.body.classList.toggle("navcol", on);
   const b = $("navTog"); if (b) { b.title = on ? "Show the sidebar" : "Hide the sidebar"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-expanded", String(!on)); }
@@ -5713,6 +5790,7 @@ const chLeaves = n => typeof n === "number" ? [n] : n[1].flatMap(chLeaves);
 const CH_KEY = "finder-charts", CHD_KEY = "finder-drawings", CHW_KEY = "finder-chart-wl";
 const chLoadJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
 const chSaveJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const CH_FRESH = (() => { try { return localStorage.getItem("finder-charts") == null; } catch (e) { return true; } })();
 let CH = { sym: "BTCUSDT", tfs: ["4h", "1h", "15m", "5m"], layout: "4g", ma: true, sess: true, rsi: true, sync: true, magnet: false, wl: true, sizes: {}, max: null, ...chLoadJSON(CH_KEY, {}) };
 if (typeof CH.layout === "number" || !CH_LAYOUTS[CH.layout]) CH.layout = { 1: "1", 2: "2c", 4: "4g" }[CH.layout] || "4g";
 CH.sizes = CH.sizes || {};
@@ -6669,6 +6747,7 @@ const chTick = (time, type) => { const d = new Date(time * 1000 + PHT_MS), p = n
 function chToolIcon(d) { return `<svg viewBox="0 0 21 21" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`; }
 function chBuild() {
   const el = $("chPage"); if (!el || chBuilt) return; chBuilt = true;
+  if (CH_FRESH && matchMedia("(max-width:760px)").matches) { CH.layout = "1"; CH.wl = false; CH.tfs[0] = "1h"; }      // phone: one big chart to start with
   indMigrate(); chNormDrawings(); if (!Array.isArray(CH.toolFav)) CH.toolFav = CH_TOOL_DEFAULT_FAV.slice(); if (!CH.cur) CH.cur = "cross";
   const tfOpts = tf => CH_TFS.map(t => `<option value="${t}" ${t === tf ? "selected" : ""}>${CH_TFL[t]}</option>`).join("");
   el.innerHTML = `
@@ -7210,6 +7289,7 @@ function chBindPane(P) {
   let lastDown = 0, lastPt = null, downAt = null, moved = false;
   w.addEventListener("pointerdown", e => {
     if (!P.chart || !P.t.length || e.button > 0 || e.target.closest(".chind,.chtxt,.chfloat")) return;
+    chTouch = e.pointerType === "touch" || e.pointerType === "pen";
     const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P)) return;          // price/time scales keep their own drag
     const tool = chTool === "cursor" && e.shiftKey && !chHidden && !chHitTest(P, m.x, m.y) ? "measure" : chTool;
     if (tool === "cursor" || tool === "eraser") {
@@ -7292,17 +7372,19 @@ function chBindPane(P) {
 }
 function chSegDist(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy; let u = L ? ((px - ax) * dx + (py - ay) * dy) / L : 0; u = Math.max(0, Math.min(1, u)); return Math.hypot(px - (ax + u * dx), py - (ay + u * dy)); }
 function chInPoly(x, y, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / ((yj - yi) || 1e-9) + xi) c = !c; } return c; }
+let chTouch = false;                                       // fingers get bigger hit areas
 function chHitShape(s, x, y) {
-  if (s.seg) return chSegDist(x, y, ...s.seg) <= 6;
+  const tol = chTouch ? 12 : 6;
+  if (s.seg) return chSegDist(x, y, ...s.seg) <= tol;
   if (s.rect) return x >= s.rect[0] - 3 && x <= s.rect[2] + 3 && y >= s.rect[1] - 3 && y <= s.rect[3] + 3;
   if (s.poly) return chInPoly(x, y, s.poly);
-  if (s.ell) { const [cx, cy, rx, ry, f] = s.ell, v = Math.hypot((x - cx) / Math.max(1, rx), (y - cy) / Math.max(1, ry)); return f ? v <= 1.05 : Math.abs(v - 1) * Math.min(rx, ry) <= 6; }
+  if (s.ell) { const [cx, cy, rx, ry, f] = s.ell, v = Math.hypot((x - cx) / Math.max(1, rx), (y - cy) / Math.max(1, ry)); return f ? v <= 1.05 : Math.abs(v - 1) * Math.min(rx, ry) <= tol; }
   return false;
 }
 function chHitTest(P, x, y) {
   const L = P.hits || [];
   const sel = L.find(h => h.id === chSel);
-  if (sel && !sel.nh) for (let j = 0; j < sel.hp.length; j++) { const [hx, hy] = sel.hp[j]; if (hx != null && hy != null && Math.hypot(hx - x, hy - y) <= 8) return { id: sel.id, h: j }; }
+  if (sel && !sel.nh) for (let j = 0; j < sel.hp.length; j++) { const [hx, hy] = sel.hp[j]; if (hx != null && hy != null && Math.hypot(hx - x, hy - y) <= (chTouch ? 18 : 8)) return { id: sel.id, h: j }; }
   for (let k = L.length - 1; k >= 0; k--) { const h = L[k]; if (h.hits.some(s => chHitShape(s, x, y))) return { id: h.id, h: null }; }
   return null;
 }

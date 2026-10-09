@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.1221">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.1327">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -3658,7 +3658,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.1221";
+const APP_VERSION = "2026.10.09.1327";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7069,7 +7069,7 @@ function chSetTool(t) {
   chTool = t; chDraft = null; if (t !== "measure") chMeasure = null;
   if (t !== "cursor") { chSel = null; chSelBar(); }
   const T = CH_T[t], hint = t === "cursor" ? "" : t === "eraser" ? "Click a drawing to delete it." : T ? T.hint || ({ 1: "Click a point.", 2: "Click two points (or press, drag and release).", 3: "Click three points.", 4: "Click four points.", 5: "Click five points.", 6: "Click six points.", 7: "Click seven points.", free: "Hold and draw.", multi: "Click points; double-click or press Enter to finish." }[T.n] || "") : "";
-  $("chHint") && ($("chHint").textContent = hint);
+  $("chHint") && ($("chHint").textContent = hint && T && T.n !== 1 && T.n !== "free" && !["long", "short"].includes(t) ? hint + (CH_SQUARE.has(t) ? " Hold Shift for a perfect square or circle." : " Hold Shift to snap to flat, 45° or vertical.") : hint);
   CHP.forEach(P => { if (P.wrap) P.wrap.classList.toggle("chdrawing", t !== "cursor"); });
   chToolbarState(); chDirty = true;
 }
@@ -7148,6 +7148,24 @@ function chTextInput(P, d, isNew) {
   inp.onblur = () => end(true);
   inp.addEventListener("pointerdown", e => e.stopPropagation(), true);
 }
+/* ---- Shift: lines snap to 0°/45°/90°, boxes and ellipses become squares and circles ---- */
+const CH_SQUARE = new Set(["rect", "ellipse", "gbox", "circle", "dprange"]);
+const CH_FREEPT = { pchan: [2], fibchan: [2], flat: [2], rrect: [2], arc: [2], curve: [2], dcurve: [2, 3], long: [0, 1, 2], short: [0, 1, 2] };   // offsets and bends: no snapping
+function chConstrain(P, a, b, tool) {
+  const ax = chX(P, a.t), ay = chY(P, a.p), bx = chX(P, b.t), by = chY(P, b.p); if ([ax, ay, bx, by].some(v => v == null)) return b;
+  const dx = bx - ax, dy = by - ay, toT = x => { const lg = chXLg(P, x); return lg == null ? b.t : chTimeAt(P, Math.round(lg)); }, toP = y => { const p = P.cs.coordinateToPrice(y); return p == null ? b.p : p; };
+  let kind;
+  if (CH_SQUARE.has(tool)) kind = "diag";
+  else { const s = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) & 3; kind = s === 0 ? "flat" : s === 2 ? "vert" : "diag"; }
+  if (kind === "flat") return { t: b.t, p: a.p };
+  if (kind === "vert") return { t: a.t, p: b.p };
+  const m = Math.max(Math.abs(dx), Math.abs(dy)), t = toT(ax + Math.sign(dx || 1) * m), x2 = chX(P, t) ?? ax + Math.sign(dx || 1) * m;
+  return { t, p: toP(ay + Math.sign(dy || 1) * Math.abs(x2 - ax)) };      // exact 45° / square on screen, after snapping to the candle
+}
+function chShiftPt(P, d, idx, pt, other) {
+  const T = CH_T[d.type]; if (!T || T.n === "free" || T.n === 1 || (CH_FREEPT[d.type] || []).includes(idx)) return pt;
+  const a = other != null ? other : d.pts[idx - 1]; return a ? chConstrain(P, a, pt, d.type) : pt;
+}
 /* ---- pointer handling ---- */
 function chBindPane(P) {
   const w = P.wrap, local = e => { const r = P.cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
@@ -7156,7 +7174,7 @@ function chBindPane(P) {
   w.addEventListener("pointerdown", e => {
     if (!P.chart || !P.t.length || e.button > 0 || e.target.closest(".chind,.chtxt,.chfloat")) return;
     const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P)) return;          // price/time scales keep their own drag
-    const tool = chTool === "cursor" && e.shiftKey ? "measure" : chTool;
+    const tool = chTool === "cursor" && e.shiftKey && !chHidden && !chHitTest(P, m.x, m.y) ? "measure" : chTool;
     if (tool === "cursor" || tool === "eraser") {
       chMeasure = null; chDirty = true;
       if (chHidden) return;
@@ -7172,12 +7190,13 @@ function chBindPane(P) {
       w.setPointerCapture(e.pointerId);
       if ((e.metaKey || e.ctrlKey) && hit.h == null) { d = chPaste(d, false); }                  // Ctrl/⌘-drag clones
       else chPush();
-      chDrag = { P, d, h: hit.h, start: chPt(P, m.x, m.y, false), orig: JSON.parse(JSON.stringify(d.pts)) };
+      chDrag = { P, d, h: hit.h, start: chPt(P, m.x, m.y, false), orig: JSON.parse(JSON.stringify(d.pts)), sm: m };
       return;
     }
     block(e); w.setPointerCapture(e.pointerId);
     const T = CH_T[tool]; if (!T) return;
-    const pt = chPt(P, m.x, m.y, T.n !== "free"); if (!pt) return;
+    let pt = chPt(P, m.x, m.y, T.n !== "free"); if (!pt) return;
+    if (e.shiftKey && chDraft && chDraft.pane === P.i && chDraft.pts.length >= 2) pt = chShiftPt(P, chDraft, chDraft.pts.length - 1, pt);
     downAt = m; moved = false;
     if (T.n === 1) { if (T.txt) { chTextInput(P, { id: "new", type: tool, pane: P.i, pts: [pt] }, true); return; } chDraft = { type: tool, pane: P.i, pts: [pt] }; chFinish(); return; }
     if (T.n === "free") { chDraft = { type: tool, pane: P.i, pts: [pt] }; return; }
@@ -7197,17 +7216,21 @@ function chBindPane(P) {
     const m = local(e);
     if (chDrag && chDrag.P === P) {
       block(e); const cur = chPt(P, m.x, m.y, false), snap = chPt(P, m.x, m.y, true); if (!cur || !snap) return;
-      const { d, h, start, orig } = chDrag, T = CH_T[d.type], dt = cur.t - start.t, dp = cur.p - start.p;
-      if (h == null) d.pts = orig.map(p => ({ t: p.t + dt, p: p.p + dp }));
-      else if (T && T.drag) T.drag(d, h, { t: snap.t, p: snap.p }, P);
-      else if (h < d.pts.length) d.pts[h] = { t: snap.t, p: snap.p };
+      const { d, h, start, orig, sm } = chDrag, T = CH_T[d.type]; let dt = cur.t - start.t, dp = cur.p - start.p;
+      if (h == null) { if (e.shiftKey) { if (Math.abs(m.x - sm.x) >= Math.abs(m.y - sm.y)) dp = 0; else dt = 0; } d.pts = orig.map(p => ({ t: p.t + dt, p: p.p + dp })); }
+      else {
+        let np = { t: snap.t, p: snap.p };
+        if (e.shiftKey && h < orig.length) np = chShiftPt(P, d, h, np, orig.length === 2 ? orig[1 - h] : h > 0 ? orig[h - 1] : orig[1]);
+        if (T && T.drag) T.drag(d, h, np, P); else if (h < d.pts.length) d.pts[h] = np;
+      }
       chDirty = true; chFloatPos(); return;
     }
     if (!e.buttons && chTool === "cursor" && !chDraft) { const hit = !chHidden && chHitTest(P, m.x, m.y); w.classList.toggle("chhover", !!hit); w.classList.toggle("chhandle", !!(hit && hit.h != null)); }
     if (!chDraft || chDraft.pane !== P.i) return;
     block(e);
     if (CH_T[chDraft.type] && CH_T[chDraft.type].n === "free") { const pt = chPt(P, m.x, m.y, false), lp = chDraft.pts.at(-1); if (pt && Math.hypot(chX(P, lp.t) - m.x, chY(P, lp.p) - m.y) > 2.5) chDraft.pts.push(pt); }
-    else { const pt = chPt(P, m.x, m.y, true); if (pt) chDraft.pts[chDraft.pts.length - 1] = pt; if (downAt && Math.hypot(downAt.x - m.x, downAt.y - m.y) > 6) moved = true; }
+    else { let pt = chPt(P, m.x, m.y, true); if (pt && e.shiftKey && chDraft.pts.length >= 2) pt = chShiftPt(P, chDraft, chDraft.pts.length - 1, pt);
+      if (pt) chDraft.pts[chDraft.pts.length - 1] = pt; if (downAt && Math.hypot(downAt.x - m.x, downAt.y - m.y) > 6) moved = true; }
     chDirty = true;
   }, true);
   w.addEventListener("pointerup", e => {

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.0056">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.1058">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -765,7 +765,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
   <section class="card macrocard" id="macro" data-page="macro">
     <div class="momohead"><h2>Forex, Gold &amp; Indices</h2><span class="meta" id="macroMeta">Binance TradFi perpetuals</span>
       <button class="btn" id="macroRun" style="margin-left:auto">Refresh</button></div>
-    <div class="why">Read with the same 20/50/100 structure, RSI, momentum and setups as your coins. Forex and your broker's gold and index prices come from your cTrader account. Gold, oil and the US index ETFs (S&amp;P 500 via SPY, Nasdaq 100 via QQQ) also come from Binance's 24/7 TradFi perpetuals, which track the real market while it's open but trade thin and can drift on weekends and after hours. Chart opens the real market on TradingView.</div>
+    <div class="why">Read with the same 20/50/100 structure, RSI, momentum and setups as your coins. Forex and your broker's gold and index prices come from your cTrader account. With the exchange set to MEXC, forex, metals, oil and the indices (Nasdaq 100, S&amp;P 500, Dow, Nikkei, Hang Seng, KOSPI) come from MEXC's 24/7 perpetuals, no cTrader needed. Otherwise gold, oil and the US index ETFs (S&amp;P 500 via SPY, Nasdaq 100 via QQQ) come from Binance's 24/7 TradFi perpetuals, which track the real market while it's open but trade thin and can drift on weekends and after hours. Chart opens the real market on TradingView.</div>
     <div id="ctBar" class="ctbar"></div>
     <div id="macroRead" class="macroread"></div>
     <div id="macroBody"><div class="empty">Open this page or press Refresh to load gold, oil and the indices.</div></div>
@@ -839,6 +839,7 @@ const STABLES = new Set(["USDC","USDT","FDUSD","TUSD","USDP","DAI","BUSD","USDE"
 const MAJORS = new Set(["BTC","ETH","SOL"]);
 const FULL = ["Bull stack", "Bear stack", "Pullback in bull", "Pullback in bear"];
 const TREND_MOVE = 8, TREND_RVOL = 1.8, FUNDING_EXTREME = 0.0005, SPOT_MIN_VOL = 20e6;
+const MX_MIN_VOL = 1e6;
 const DAY_MIN_VOL = { futures: 50e6, spot: 20e6 }, SWING_MIN_VOL = 20e6, AOTS_MIN_VOL = 10e6;
 const RATE = { futures: 1500, spot: 4000 };          // request weight per minute we allow ourselves (Binance caps 2400 / 6000)
 const SESS = {"Asia":[8,9,10,11], "London":[12,13,14,15,16,17], "NY AM":[21,22,23]};
@@ -870,17 +871,63 @@ const MXF_IV = { "1m": "Min1", "5m": "Min5", "15m": "Min15", "30m": "Min30", "1h
 const MXF_IV_BACK = Object.fromEntries(Object.entries(MXF_IV).map(([k, v]) => [v, k]));
 const MXS_IV = { "1m": "1m", "5m": "5m", "15m": "15m", "30m": "30m", "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" };
 const MX_IVMS = { "1m": 60e3, "5m": 300e3, "15m": 900e3, "30m": 1800e3, "1h": 3600e3, "4h": 14400e3, "1d": 864e5, "1w": 6048e5 };
-const mxF = s => s.includes("_") ? s : s.replace(/(USDT|USDC)$/, "_$1"), mxBack = s => s.replace("_", "");
+const mxF = s => s.startsWith("MX:") ? s.slice(3) : s.includes("_") ? s : s.replace(/(USDT|USDC)$/, "_$1"), mxBack = s => s.replace("_", "");
+const isMX = s => typeof s === "string" && s.startsWith("MX:");
+/* MEXC's contract API refuses bursts ("Requests are too frequent", code 510). Measured on the live API (Oct 2026):
+   back-to-back bursts trip it after ~5 requests; one request every 0.28–0.5 s never did. Every contract call goes
+   through this pacer, and a refusal backs off and retries. */
+const MX_GAP = 300; let mxNext = 0, MX_PINGED = { f: false, s: false };
+async function mxPace() { const now = Date.now(), at = Math.max(now, mxNext); mxNext = at + MX_GAP; if (at > now) await sleep(at - now); }
 async function mxGet(path, params = {}, tries = 2) {
-  const q = Object.keys(params).length ? "?" + qs(params) : "", j = await getJSON(`${MXF}${path}${q}`, tries);
+  if (!MX_PINGED.f) await pingMexc(false);
+  const q = Object.keys(params).length ? "?" + qs(params) : ""; let j;
+  for (let i = 0; i < 4; i++) {
+    await mxPace(); j = await getJSON(`${MXF}${path}${q}`, tries);
+    if (j && j.code === 510) { mxNext = Math.max(mxNext, Date.now() + 1500 * (i + 1)); continue; }     // too fast: back off and retry
+    break;
+  }
   if (!j || j.success === false || (j.code != null && j.code !== 0)) throw new Error((j && (j.message || j.msg)) || "MEXC error");
   return j.data;
 }
 async function pingMexc(spot) {
   for (const h of spot ? MXS_HOSTS : MXF_HOSTS) {
-    try { const j = await getJSON(`${h}${spot ? "/api/v3/ping" : "/api/v1/contract/ping"}`, 1); if (j && j.success !== false) { if (spot) MXS = h; else MXF = h; return true; } } catch (e) {}
+    try { const j = await getJSON(`${h}${spot ? "/api/v3/ping" : "/api/v1/contract/ping"}`, 1); if (j && j.success !== false) { if (spot) MXS = h; else MXF = h; MX_PINGED[spot ? "s" : "f"] = true; return true; } } catch (e) {}
   }
   return false;
+}
+/* MEXC's own gold, oil, index, forex and stock perpetuals ("MX:XAU_USDT"): read from MEXC whatever exchange the crypto scan uses */
+const MX_SYMS = new Set();
+const MX_INFO = {      // contract → [name, group, the real market on TradingView, forex pair code]
+  XAU_USDT: ["Gold", "Metals", "OANDA:XAUUSD"], SILVER_USDT: ["Silver", "Metals", "OANDA:XAGUSD"], XPT_USDT: ["Platinum", "Metals", "OANDA:XPTUSD"],
+  XPD_USDT: ["Palladium", "Metals", "OANDA:XPDUSD"], COPPER_USDT: ["Copper", "Metals", "OANDA:XCUUSD"],
+  ALUMINUM_USDT: ["Aluminium", "Metals", "MEXC:ALUMINUMUSDT.P"], NICKEL_USDT: ["Nickel", "Metals", "MEXC:NICKELUSDT.P"], ZINC_USDT: ["Zinc", "Metals", "MEXC:ZINCUSDT.P"], LEAD_USDT: ["Lead", "Metals", "MEXC:LEADUSDT.P"],
+  USOIL_USDT: ["WTI Crude Oil", "Energy", "TVC:USOIL"], UKOIL_USDT: ["Brent Crude Oil", "Energy", "TVC:UKOIL"], NGAS_USDT: ["Natural Gas", "Energy", "OANDA:NATGASUSD"],
+  NAS100_USDT: ["Nasdaq 100", "Indices", "OANDA:NAS100USD"], SPX500_USDT: ["S&P 500", "Indices", "OANDA:SPX500USD"], US30_USDT: ["Dow Jones", "Indices", "OANDA:US30USD"],
+  JP225_USDT: ["Nikkei 225", "Indices", "OANDA:JP225USD"], HK50_USDT: ["Hang Seng", "Indices", "TVC:HSI"], KOSPI_USDT: ["KOSPI", "Indices", "KRX:KOSPI"],
+  EUR_USDT: ["EUR/USD", "Forex", "FX:EURUSD", "EURUSD"], GBP_USDT: ["GBP/USD", "Forex", "FX:GBPUSD", "GBPUSD"], AUD_USDT: ["AUD/USD", "Forex", "FX:AUDUSD", "AUDUSD"],
+  JPY_USDT: ["JPY/USD (USD/JPY flipped)", "Forex", "FX:USDJPY", "JPYUSD"], CAD_USDT: ["CAD/USD (USD/CAD flipped)", "Forex", "FX:USDCAD", "CADUSD"],
+  CHF_USDT: ["CHF/USD (USD/CHF flipped)", "Forex", "FX:USDCHF", "CHFUSD"], TRY_USDT: ["TRY/USD (USD/TRY flipped)", "Forex", "FX:USDTRY", "TRYUSD"], BRL_USDT: ["BRL/USD (USD/BRL flipped)", "Forex", "FX:USDBRL", "BRLUSD"],
+};
+const MX_ALIAS = { XAU: "XAU", SILVER: "XAG", USOIL: "CL", SPX500: "SPY", NAS100: "QQQ" };      // so the macro read-out finds gold, silver, oil and the indices
+Object.keys(MX_INFO).forEach(k => MX_SYMS.add("MX:" + k));
+let MX_DETAIL = { at: 0, list: null }, MX_TICK = { at: 0, by: null }, MX_STOCKS = [];
+const MX_NAME = {};                                   // stock perps: "MX:AAPLSTOCK_USDT" → "AAPL"
+const mxIsTradfi = c => c.type === 2 || (c.conceptPlate || []).includes("mc-trade-zone-tradfi");
+async function mxDetail(maxAge = 10 * 60e3) {
+  if (MX_DETAIL.list && Date.now() - MX_DETAIL.at < maxAge) return MX_DETAIL.list;
+  const L = [].concat(await mxGet("/api/v1/contract/detail") || []); MX_DETAIL = { at: Date.now(), list: L };
+  MX_STOCKS = L.filter(c => c.state === 0 && c.quoteCoin === "USDT" && mxIsTradfi(c) && !MX_INFO[c.symbol]).map(c => {
+    const k = "MX:" + c.symbol; MX_SYMS.add(k); MX_NAME[k] = String(c.displayNameEn || c.symbol).replace(/ PERPETUAL$/i, "").replace(/_USDT$/, ""); return k; });
+  return L;
+}
+async function mxTickers(maxAge = 5000) {              // every contract's ticker in one request (cached briefly)
+  if (MX_TICK.by && Date.now() - MX_TICK.at < maxAge) return MX_TICK.by;
+  const L = [].concat(await mxGet("/api/v1/contract/ticker", {}, 1) || []); MX_TICK = { at: Date.now(), by: Object.fromEntries(L.map(x => [x.symbol, x])) };
+  return MX_TICK.by;
+}
+async function mxStockList() {                         // MEXC stock and ETF perps, most traded first
+  await mxDetail(); let by = {}; try { by = await mxTickers(60e3); } catch (e) {}
+  return MX_STOCKS.slice().sort((a, b) => (+((by[b.slice(3)] || {}).amount24) || 0) - (+((by[a.slice(3)] || {}).amount24) || 0));
 }
 async function mxKlinesF(sym, iv, startMs, endMs) {          // ascending rows [t, o, h, l, c, quote volume]
   const p = MXF_IV[iv]; if (!p) throw new Error(`MEXC has no ${iv} candles`);
@@ -1033,11 +1080,11 @@ async function spend(w) {
 const klineWeight = limit => MODE === "spot" ? 2 : limit < 100 ? 1 : limit < 500 ? 2 : limit <= 1000 ? 5 : 10;
 async function klines(sym, interval, limit) {
   if (CT_SYMS.has(sym)) return ctKlines(sym, interval, limit);
-  if (EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) {
+  if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
     const iv = MX_IVMS[interval]; if (!iv) throw new Error(`MEXC has no ${interval} candles`);
-    await spend(1);
+    if (!isMX(sym)) await spend(1);
     const now = Date.now();
-    const rows = MODE === "futures" ? await mxKlinesF(sym, interval, now - (limit + 2) * iv, now)
+    const rows = MODE === "futures" || isMX(sym) ? await mxKlinesF(sym, interval, now - (limit + 2) * iv, now)
       : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], limit: Math.min(1000, limit + 1) })}`)).map(mxSpotRow);
     return mxRowsToK(rows.filter(r => r[0] + iv <= now).slice(-limit));       // closed candles only
   }
@@ -1062,8 +1109,8 @@ async function loadMarkets(market, quote, alts, minVol) {
   if (EXCHANGE === "mexc") {
     let spotTick = null; try { spotTick = await getJSON(`${MXS}/api/v3/ticker/24hr`, 1); } catch (e) { if (MODE === "spot") throw e; }
     if (MODE === "futures") {
-      const [det, tick] = await Promise.all([mxGet("/api/v1/contract/detail"), mxGet("/api/v1/contract/ticker")]);
-      const meta = {}; [].concat(det || []).forEach(c => { if (c.state === 0 && (c.futureType == null || c.futureType === 1) && quotes.includes(c.quoteCoin) && (!c.settleCoin || c.settleCoin === c.quoteCoin)) meta[c.symbol] = { base: c.baseCoin, quote: c.quoteCoin }; });
+      const det = await mxDetail(0), tick = Object.values(await mxTickers(0));
+      const meta = {}; det.forEach(c => { if (c.state === 0 && (c.futureType == null || c.futureType === 1) && !mxIsTradfi(c) && quotes.includes(c.quoteCoin) && (!c.settleCoin || c.settleCoin === c.quoteCoin)) meta[c.symbol] = { base: c.baseCoin, quote: c.quoteCoin }; });   // stocks, gold, forex: Forex, Gold & Indices page
       const spotVol = spotTick ? Object.fromEntries(spotTick.map(r => [r.symbol, +r.quoteVolume])) : null;
       [].concat(tick || []).forEach(t => { const m = meta[t.symbol]; if (!m) return; const sym = m.base + m.quote;
         coins.push({ symbol: sym, base: m.base, quote: m.quote, vol24h: +t.amount24 || 0, chg24h: +t.riseFallRate * 100 || 0, funding: +(t.fundingRate || 0), spotVol: spotVol ? (spotVol[sym] ?? 0) : null }); });
@@ -1107,6 +1154,7 @@ async function loadMarkets(market, quote, alts, minVol) {
                    funding: null, spotVol: +t.quoteVolume });
     });
   }
+  if (EXCHANGE === "mexc") minVol = Math.max(minVol, MX_MIN_VOL);     // MEXC lists hundreds of near-dead contracts, and its rate limit makes each one slow to read
   return coins.filter(c => !STABLES.has(c.base) && !(alts && MAJORS.has(baseClean(c.base))) && c.vol24h >= minVol)
               .sort((a, b) => b.vol24h - a.vol24h);
 }
@@ -1887,6 +1935,20 @@ async function scanMacro(maFn, progress = () => {}) {
     Object.assign(r, { macro: true, name, group, tv, rs24: null, rs7: null, sector: null }); r.mom = momentum(r); return r;
   }).sort((a, b) => rank(a.base) - rank(b.base));
 }
+async function mxScanMacro(maFn, progress = () => {}) {
+  if (!(await pingMexc(false))) throw new Error("MEXC's futures API is unreachable from this network");
+  const det = await mxDetail(0), tick = await mxTickers(0), live = new Set(det.filter(c => c.state === 0).map(c => c.symbol));
+  const coins = Object.keys(MX_INFO).filter(k => live.has(k)).map(k => { const t = tick[k] || {};
+    return { symbol: "MX:" + k, base: k.replace(/_USDT$/, ""), quote: "USDT", vol24h: +t.amount24 || 0, chg24h: 0, funding: +(t.fundingRate || 0), spotVol: null }; });
+  if (!coins.length) throw new Error("MEXC lists none of its gold, index or forex contracts right now");
+  const out = await pool(coins, 3, c => analyse(c, maFn), progress), order = Object.keys(MX_INFO);
+  return out.filter(Boolean).map(r => {
+    const [name, group, tv, pair] = MX_INFO[r.symbol.slice(3)];
+    Object.assign(r, { macro: true, mx: true, src: "MEXC", name, group: group === "Forex" ? "MEXC Forex" : group, tv, pair: pair || null, alias: MX_ALIAS[r.base] || null,
+      chg24h: r.ret24 != null ? r.ret24 * 100 : 0, ref24: r.ret24 != null ? r.price / (1 + r.ret24) : null, rs24: null, rs7: null, sector: null });
+    r.mom = momentum(r); return r;
+  }).sort((a, b) => order.indexOf(a.symbol.slice(3)) - order.indexOf(b.symbol.slice(3)));
+}
 async function maxLeverage(sym, levMax = 20) {
   const k = await klines(sym, "15m", 100);
   const a = atr(k.h, k.l, k.c).at(-1) || 0, stop = 1.5 * a / k.c.at(-1);
@@ -1896,7 +1958,7 @@ async function maxLeverage(sym, levMax = 20) {
 /* ---- why it's moving: derivatives read (Binance) ---- */
 async function drivers(r) {
   const d = { priceChg: r.chg24h, oiChg: null, oiUsd: null, topLS: null, globLS: null, takerRatio: null, fundNow: null, fundAvg: null };
-  const EXq = r.macro ? "binance" : EXCHANGE, MDq = r.macro ? "futures" : MODE;
+  const EXq = r.mx ? "mexc" : r.macro ? "binance" : EXCHANGE, MDq = r.macro ? "futures" : MODE;
   if (EXq === "bybit" && MDq === "futures") {
     const safe = p => p.catch(() => null);
     const [oi, ratio, fr] = await Promise.all([
@@ -2064,6 +2126,7 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
     progress(`Scanning ${d} of ${n} coins${d > 10 && left > 5 ? ` · about ${left > 90 ? Math.round(left / 60) + " min" : left + " s"} left` : ""}`, 0.03 + 0.9 * d / n);
   })).filter(Boolean);
 
+  if (EXCHANGE === "mexc") results.forEach(r => { if (r.ret24 != null) { r.chg24h = r.ret24 * 100; r.ref24 = r.price / (1 + r.ret24); } });   // MEXC's own change runs from midnight UTC+8, not 24h
   // relative strength vs BTC (percentage points), folded into the scores
   results.forEach(r => applyRS(r, btc));
 
@@ -2114,7 +2177,7 @@ function tickClock() {
 }
 
 /* ---- formatting ---- */
-const coin = s => s.startsWith("CT:") ? s.slice(3) : s.replace(/(USDT|USDC)$/, "");
+const coin = s => s.startsWith("CT:") ? s.slice(3) : s.startsWith("MX:") ? (MX_NAME[s] || s.slice(3).replace(/_(USDT|USDC)$/, "")) : s.replace(/(USDT|USDC)$/, "");
 const fmtPrice = p => p >= 100 ? p.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : p >= 10 ? p.toFixed(3) : p >= 1 ? p.toFixed(4) : p >= 0.01 ? p.toFixed(5) : p.toPrecision(4);
 const fmtVol = v => v >= 1e12 ? (v / 1e12).toFixed(2) + " T" : v >= 1e9 ? (v / 1e9).toFixed(2) + " B" : v >= 1e6 ? (v / 1e6).toFixed(2) + " M" : (v / 1e3).toFixed(1) + " K";
 const fmtRS = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
@@ -3138,6 +3201,7 @@ async function checkPrices() {
       : EXCHANGE === "bybit"
       ? Object.fromEntries((await byGet("/v5/market/tickers", { category: byCat() }, 1)).list.map(x => [x.symbol, +x.lastPrice]))
       : Object.fromEntries((await getJSON(MODE === "futures" ? `${FAPI}/fapi/v1/ticker/price` : `${SPOT_BASE}/api/v3/ticker/price`, 1)).map(x => [x.symbol, +x.price]));
+    if (live.some(a => isMX(a.sym))) { try { const by = await mxTickers(); Object.entries(by).forEach(([k, x]) => px["MX:" + k] = +x.lastPrice); } catch (e) {} }
     let fired = false;
     live.forEach(a => { const p = px[a.sym]; if (p == null) return;
       if ((a.dir === "above" && p >= a.price) || (a.dir === "below" && p <= a.price)) { a.fired = Date.now(); fired = true;
@@ -3302,7 +3366,7 @@ async function drawChart(r, tf) {
     const sym0 = r.symbol, pull = async () => { try { const b = await formingBar(sym0, tf); if (b && LIVE.chart && LIVE.chart.sym === sym0 && LIVE.chart.tf === tf) chartLiveBar(b); } catch (e) {} };
     pull();                                                         // show the forming candle immediately
     clearInterval(LIVE.chartTimer); let tick = 0;
-    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && (LIVE.state !== "live" || TRADFI_SYMS.has(sym0) || CT_SYMS.has(sym0))) pull(); }, 1000);
+    LIVE.chartTimer = setInterval(() => { chartDecor(); if (++tick % 3 === 0 && (LIVE.state !== "live" || TRADFI_SYMS.has(sym0) || CT_SYMS.has(sym0) || (isMX(sym0) && LIVE.kind !== "mexc"))) pull(); }, 1000);
     if (window.ResizeObserver) { if (mRO) mRO.disconnect(); mRO = new ResizeObserver(() => { if (mChart && el.isConnected) { mChart.applyOptions({ width: el.clientWidth, height: Math.max(160, el.clientHeight) }); if (chartFit && LIVE.chart && LIVE.chart.times.length <= 120) chartFit(); } }); mRO.observe(el); }
   } catch (e) { el.innerHTML = `<div class="meta cload">Couldn't load the chart (${e.message}).</div>`; }
 }
@@ -3348,8 +3412,9 @@ function recordScan() {
   histSave();
 }
 async function klinesSince(sym, startMs, interval = "1h", limit = 200, ex = "Binance", mode = MODE) {
+  if (isMX(sym)) { ex = "MEXC"; mode = "futures"; }
   if (ex === "MEXC") {
-    if (EXCHANGE !== "mexc") { await pingMexc(false); await pingMexc(true); }
+    if (EXCHANGE !== "mexc") { if (!MX_PINGED.f) await pingMexc(false); if (mode !== "futures" && !MX_PINGED.s) await pingMexc(true); }
     await spend(1); const iv = MX_IVMS[interval];
     const rows = mode === "futures" ? await mxKlinesF(sym, interval, startMs, Math.min(Date.now(), startMs + limit * iv))
       : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], startTime: startMs, limit })}`, 2)).map(mxSpotRow);
@@ -3499,7 +3564,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.0056";
+const APP_VERSION = "2026.10.09.1058";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3583,9 +3648,9 @@ const TF_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 async function formingBar(sym, tf) {                 // the candle that's still forming (the scanner's normal candles skip it)
   if (CT_SYMS.has(sym)) { const k = await ctKlines(sym, tf, 1, true), i = k.t.length - 1; return i >= 0 ? { t: k.t[i], o: k.o[i], h: k.h[i], l: k.l[i], c: k.c[i] } : null; }
   await spend(1);
-  if (EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) {
+  if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
     const iv = MX_IVMS[tf]; if (!iv) return null; const now = Date.now();
-    const rows = MODE === "futures" ? await mxKlinesF(sym, tf, now - 3 * iv, now + iv) : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[tf], limit: 1 })}`, 1)).map(mxSpotRow);
+    const rows = MODE === "futures" || isMX(sym) ? await mxKlinesF(sym, tf, now - 3 * iv, now + iv) : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[tf], limit: 1 })}`, 1)).map(mxSpotRow);
     const k = rows.at(-1); return k ? { t: k[0], o: k[1], h: k[2], l: k[3], c: k[4] } : null;
   }
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
@@ -3660,17 +3725,18 @@ function desiredStreams() {
     want.add("btcusdt@kline_1h");
     focus.forEach(s => want.add(s.toLowerCase() + "@kline_1h"));
     pool.forEach(s => want.add(s.toLowerCase() + "@kline_15m"));
-    if (LIVE.chart && !CT_SYMS.has(LIVE.chart.sym) && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
+    if (LIVE.chart && !CT_SYMS.has(LIVE.chart.sym) && !isMX(LIVE.chart.sym) && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
   } else if (T === "mexc") {
     want.add("tickers");
     focus.forEach(s => want.add("kline.Min60." + mxF(s))); pool.forEach(s => want.add("kline.Min15." + mxF(s)));
     want.add("kline.Min60.BTC_USDT");
+    if (MACRO.rows.some(r => r.mx)) MACRO.rows.filter(r => r.mx).forEach(r => want.add("kline.Min60." + mxF(r.symbol)));
     if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym) && MXF_IV[LIVE.chart.tf]) want.add(`kline.${MXF_IV[LIVE.chart.tf]}.${mxF(LIVE.chart.sym)}`);
   } else {
     data.all.forEach(r => want.add("tickers." + r.symbol));
     want.add("kline.60.BTCUSDT");
     focus.forEach(s => want.add("kline.60." + s)); pool.forEach(s => want.add("kline.15." + s));
-    if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym)) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
+    if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym) && !isMX(LIVE.chart.sym)) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
   }
   if (typeof chStreams === "function") chStreams().forEach(s => want.add(s));
   return want;
@@ -3741,12 +3807,25 @@ function liveTick(sym, fields) {
   LIVE.dirty.add(sym);
 }
 const MX_LASTBAR = {};
+function mxLiveQuote(mk, price) {                      // live price for a MEXC gold / index / forex / stock row
+  if (!isFinite(price)) return;
+  const r = MACRO.by[mk];
+  if (r) { r.price = price; if (r.ref24) r.chg24h = (price / r.ref24 - 1) * 100;
+    const pe = document.querySelector(`[data-mp="${mk}"]`), ce = document.querySelector(`[data-mc="${mk}"]`);
+    if (pe) pe.textContent = fmtPrice(r.price); if (ce) ce.innerHTML = pctCell(r.chg24h); }
+  if (typeof CHQ !== "undefined" && CHQ[mk]) CHQ[mk].price = price;
+}
 function liveMessage(m) {
   if (LIVE.kind === "mexc") {
     const ch = m.channel || "", d = m.data; if (!d) return;
-    if (ch === "push.tickers") [].concat(d).forEach(t => liveTick(mxBack(t.symbol), { price: +t.lastPrice, chg: t.riseFallRate != null ? +t.riseFallRate * 100 : null, vol: t.amount24 != null ? +t.amount24 : null, funding: t.fundingRate != null ? +t.fundingRate : null }));
+    if (ch === "push.tickers") [].concat(d).forEach(t => {
+      const mk = "MX:" + t.symbol, price = +t.lastPrice;
+      if (MX_SYMS.has(mk)) { mxLiveQuote(mk, price); return; }
+      const sym = mxBack(t.symbol), r = bySym[sym];             // 24h change from the scan's reference (MEXC's own change runs from midnight UTC+8)
+      liveTick(sym, { price, chg: r && r.ref24 && isFinite(price) ? (price / r.ref24 - 1) * 100 : null, vol: t.amount24 != null ? +t.amount24 : null, funding: t.fundingRate != null ? +t.fundingRate : null });
+    });
     else if (ch === "push.kline") {
-      const sym = mxBack(d.symbol || m.symbol || ""), iv = MXF_IV_BACK[d.interval]; if (!sym || !iv) return;
+      const raw = d.symbol || m.symbol || "", sym = MX_SYMS.has("MX:" + raw) ? "MX:" + raw : mxBack(raw), iv = MXF_IV_BACK[d.interval]; if (!raw || !iv) return;
       const bar = { t: +d.t * 1000, o: +d.o, h: +d.h, l: +d.l, c: +d.c }, key = sym + "|" + iv, prev = MX_LASTBAR[key];
       if (prev && bar.t > prev.t) onLiveKline(sym, iv, prev, true);        // MEXC doesn't flag closes: a new candle means the last one closed
       MX_LASTBAR[key] = bar; onLiveKline(sym, iv, bar, false);
@@ -3858,7 +3937,9 @@ const BT_USE_KEY = "altscan-bt-use";
 const BTP_KEY = "finder-bt-pick";
 let BTP = (() => { try { return { sel: "30", syms: [], ...(JSON.parse(localStorage.getItem(BTP_KEY)) || {}) }; } catch (e) { return { sel: "30", syms: [] }; } })(), btPickOpen = false, btPickQ = "";
 const btpSave = () => { try { localStorage.setItem(BTP_KEY, JSON.stringify(BTP)); } catch (e) {} };
-function btpTradfi() {                                     // gold, oil and US index perps (Binance only)
+function btpTradfi() {                                     // gold, oil and index perps: MEXC's own when the exchange is MEXC, else Binance's
+  if (EXCHANGE === "mexc" || $("exF").value === "mexc") { const live = new Map(MACRO.rows.filter(r => r.mx).map(r => [r.symbol, r]));
+    return Object.entries(MX_INFO).map(([k, [name, group]]) => ({ sym: "MX:" + k, name, group: group === "Indices" ? "US Indices" : group, vol: live.get("MX:" + k) ? live.get("MX:" + k).vol24h : null, tf: true })); }
   if (EXCHANGE === "bybit") return [];
   const live = new Map(MACRO.rows.filter(r => !r.ct).map(r => [r.base, r]));
   return Object.entries(MACRO_INFO).filter(([b]) => !MACRO.rows.length || live.has(b))
@@ -3919,8 +4000,8 @@ function envLabel(b, bull, bear) {                      // the same environment 
 }
 async function klinesRange(sym, interval, startMs, endMs) {
   const step = IV_MS[interval], rows = new Map();
-  if (EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) {
-    if (MODE === "futures") {
+  if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
+    if (MODE === "futures" || isMX(sym)) {
       for (let cur = startMs, n = 0; cur < endMs && n < 20; n++) {             // up to 2,000 candles per request
         await spend(1);
         const to = Math.min(endMs, cur + 1990 * step), list = await mxKlinesF(sym, interval, cur, to);
@@ -4113,7 +4194,7 @@ async function runBacktest() {
   if (pick && !BTP.syms.length) { btRunning = false; $("btStatus").textContent = "Pick at least one market first (Pick markets…)."; btPickOpen = true; renderBtPick(); return; }
   const maFn = data.ma === "sma" ? sma : ema, now = Date.now(), winStart = now - days * 86400e3, H = IV_MS["1h"];
   const prog = (msg, f) => { $("btStatus").textContent = msg; $("btProg").style.width = (f * 100) + "%"; };
-  if (pick) btpTradfi().forEach(x => { if (BTP.syms.includes(x.sym)) TRADFI_SYMS.add(x.sym); });      // routes their candles to Binance futures
+  if (pick) btpTradfi().forEach(x => { if (BTP.syms.includes(x.sym) && !isMX(x.sym)) TRADFI_SYMS.add(x.sym); });      // routes their candles to Binance futures
   const syms = pick ? BTP.syms.slice() : [...new Set([...btpTop(nCoins), ...Object.keys(WL.coins).filter(s => bySym[s] && !TRADFI_SYMS.has(s))])];
   const series = {}; let done = 0;
   try {
@@ -5172,7 +5253,7 @@ function ncGo(id) {                                  // open the market behind a
   if (n.action === "ctrader") { goPage("macro"); openCTSettings(); return; }
   if (!n.sym) return;
   if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
-  if (n.sym.startsWith("CT:") || TRADFI_SYMS.has(n.sym)) { goPage("macro"); toast(`<b>${coin(n.sym)}</b> loads with the Forex, Gold &amp; Indices page; open it there.`); return; }
+  if (n.sym.startsWith("CT:") || isMX(n.sym) || TRADFI_SYMS.has(n.sym)) { goPage("macro"); toast(`<b>${coin(n.sym)}</b> loads with the Forex, Gold &amp; Indices page; open it there.`); return; }
   openTV(n.sym);                                       // no longer in the current scan: fall back to its TradingView chart
 }
 function ncToast(n) {
@@ -5315,8 +5396,9 @@ try { if (localStorage.getItem("finder-navcol") === "1") navCollapse(true); } ca
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
 
 /* ===================== Gold, Oil & Indices page ===================== */
-const MACRO_GROUPS = ["Forex", "Broker CFDs", "Metals", "Energy", "Commodities", "US Indices"];
-const MACRO_TITLE = g => g === "Broker CFDs" ? `${CT.broker || "Broker"} Gold &amp; Indices` : g === "Metals" || g === "Energy" || g === "US Indices" ? `${g} <span class="meta">Binance</span>` : g;
+const MACRO_GROUPS = ["Forex", "MEXC Forex", "Broker CFDs", "Metals", "Energy", "Commodities", "US Indices", "Indices"];
+const MACRO_TITLE = g => g === "Broker CFDs" ? `${CT.broker || "Broker"} Gold &amp; Indices` : g === "MEXC Forex" ? `Forex <span class="meta">MEXC</span>`
+  : ["Metals", "Energy", "US Indices", "Indices", "Commodities"].includes(g) ? `${g} <span class="meta">${MACRO.src === "mexc" ? "MEXC" : "Binance"}</span>` : g;
 function fxSession(ms) {                              // forex: Sunday 5 PM to Friday 5 PM New York time
   const { wd, m } = etClock(ms), tip = "Forex trades around the clock from Sunday 5 PM to Friday 5 PM New York time. Prices freeze over the weekend.";
   if (wd === "Sat" || (wd === "Sun" && m < 1020) || (wd === "Fri" && m >= 1020)) return { label: "Forex market closed", cls: "closed", tip };
@@ -5324,7 +5406,8 @@ function fxSession(ms) {                              // forex: Sunday 5 PM to F
 }
 function ccyStrength(rows) {                          // 24h change of each currency against the others, averaged over its pairs
   const acc = {};
-  rows.filter(r => r.group === "Forex").forEach(r => { const p = coin(r.symbol), b = p.slice(0, 3), q = p.slice(3, 6);
+  const fxg = rows.some(r => r.group === "Forex") ? "Forex" : "MEXC Forex";          // cTrader's 28 pairs when connected, else MEXC's
+  rows.filter(r => r.group === fxg).forEach(r => { const p = r.pair || coin(r.symbol), b = p.slice(0, 3), q = p.slice(3, 6);
     (acc[b] = acc[b] || []).push(r.chg24h); (acc[q] = acc[q] || []).push(-r.chg24h); });
   return Object.entries(acc).map(([c, v]) => [c, v.reduce((a, x) => a + x, 0) / v.length]).sort((a, b) => b[1] - a[1]);
 }
@@ -5360,7 +5443,7 @@ function macroTrend(r) {
   return up(r.s4h) && up(r.s1d) ? "Uptrend" : dn(r.s4h) && dn(r.s1d) ? "Downtrend" : "Mixed";
 }
 function macroReadHTML() {
-  const by = b => MACRO.rows.find(r => r.base === b), cls = v => v === "Uptrend" || v === "Risk-on" ? "up" : v === "Downtrend" || v === "Risk-off" ? "dn" : "";
+  const by = b => MACRO.rows.find(r => (r.alias || r.base) === b), cls = v => v === "Uptrend" || v === "Risk-on" ? "up" : v === "Downtrend" || v === "Risk-off" ? "dn" : "";
   const spy = macroTrend(by("SPY")), qqq = macroTrend(by("QQQ")), vix = by("UVXY"), chips = [];
   if (spy && qqq) { const tone = spy === "Uptrend" && qqq === "Uptrend" ? "Risk-on" : spy === "Downtrend" && qqq === "Downtrend" ? "Risk-off" : "Mixed";
     chips.push(`<span class="mchip">US risk tone <b class="${cls(tone)}">${tone}</b>${vix && vix.chg24h >= 5 ? " · volatility rising" : ""}</span>`); }
@@ -5380,35 +5463,38 @@ function macroRowHTML(r, i) {
 }
 function renderMacro() {
   const body = $("macroBody"); if (!body) return;
-  if (!MACRO.rows.length) body.innerHTML = `<div class="empty">${MACRO.err ? `Couldn't load Binance's gold, oil and index data (${MACRO.err}). If Binance is blocked on your network, try DNS 1.1.1.1 or a VPN, then press Refresh.`
+  if (!MACRO.rows.length) body.innerHTML = `<div class="empty">${MACRO.err ? (MACRO.src === "mexc" ? `Couldn't load MEXC's gold, index and forex data (${MACRO.err}). If MEXC loads in your browser but not here, open the scanner from the Mac app (localhost), which relays MEXC's data.` : `Couldn't load Binance's gold, oil and index data (${MACRO.err}). If Binance is blocked on your network, try DNS 1.1.1.1 or a VPN, then press Refresh.`)
     : MACRO.running ? "Reading gold, oil and the index ETFs…" : "Open this page or press Refresh to load gold, oil and the indices."}</div>`;
   else {
     const now = Date.now(), groups = MACRO_GROUPS.map(g => [g, MACRO.rows.filter(r => r.group === g)]).filter(([, rs]) => rs.length);
-    body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" ? usSession(now) : g === "Forex" ? fxSession(now) : cmeSession(now);
+    body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" || g === "Indices" ? usSession(now) : g === "Forex" || g === "MEXC Forex" ? fxSession(now) : cmeSession(now);
       return `<div class="board${g === "Forex" ? " wide" : ""}"><div class="board-head"><h2>${MACRO_TITLE(g)}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div><div class="${g === "Forex" ? "rows3" : ""}">${rs.map(macroRowHTML).join("")}</div></div>`; }).join("")}</div>`;
     bindRows(body);
   }
   $("macroRead").innerHTML = MACRO.rows.length ? macroReadHTML() : "";
   $("ctBar").innerHTML = ctBarHTML(); if ($("ctOpen")) $("ctOpen").onclick = openCTSettings;
-  if (!MACRO.running) $("macroMeta").textContent = MACRO.at ? `${MACRO.rows.some(r => r.ct) ? CT.broker + " via cTrader + " : ""}Binance TradFi perpetuals · updated ${fmtPHT(new Date(MACRO.at + PHT_MS)).split(", ")[1]}${MACRO.err ? " · last refresh failed" : ""}` : "Binance TradFi perpetuals";
+  const srcName = MACRO.src === "mexc" ? "MEXC perpetuals (forex, metals, energy, indices)" : "Binance TradFi perpetuals";
+  if (!MACRO.running) $("macroMeta").textContent = MACRO.at ? `${MACRO.rows.some(r => r.ct) ? CT.broker + " via cTrader + " : ""}${srcName} · updated ${fmtPHT(new Date(MACRO.at + PHT_MS)).split(", ")[1]}${MACRO.err ? " · last refresh failed" : ""}` : srcName;
   $("macroRun").disabled = MACRO.running; $("macroRun").textContent = MACRO.running ? "Loading…" : "Refresh";
 }
+const macroSrc = () => $("exF").value === "mexc" ? "mexc" : "binance";     // gold, indices (and MEXC's forex) follow the exchange picker
 async function macroScan(force) {
+  if (MACRO.src && MACRO.src !== macroSrc()) force = true;
   if (MACRO.running || (!force && MACRO.at && Date.now() - MACRO.at < 10 * 60e3)) return;
-  MACRO.running = true; MACRO.err = null; renderMacro();
+  MACRO.running = true; MACRO.err = null; MACRO.src = macroSrc(); renderMacro();
   try {
     const maFn = $("maType").value === "sma" ? sma : ema;
     const [bin, ct] = await Promise.allSettled([
-      scanMacro(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; }),
+      (MACRO.src === "mexc" ? mxScanMacro : scanMacro)(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; }),
       ctConfigured() ? ctScan(maFn) : Promise.resolve([])]);
     if (ct.status === "rejected") { CT.state = "error"; CT.err = ct.reason && ct.reason.message || "couldn't load forex";
       if (NC_STATE.ctErr !== CT.err) { NC_STATE.ctErr = CT.err; ncAdd({ kind: "System", icon: "⚠️", tone: "warn", sym: null, action: "ctrader", title: "cTrader didn't connect", detail: CT.err.charAt(0).toUpperCase() + CT.err.slice(1) + "." }); } }
     else if (ct.status === "fulfilled" && ct.value.length) NC_STATE.ctErr = null;
     const rows = [...(ct.status === "fulfilled" ? ct.value : []), ...(bin.status === "fulfilled" ? bin.value : [])];
-    if (bin.status === "rejected") MACRO.err = bin.reason && bin.reason.message || "Binance didn't answer";
+    if (bin.status === "rejected") MACRO.err = bin.reason && bin.reason.message || (MACRO.src === "mexc" ? "MEXC didn't answer" : "Binance didn't answer");
     if (!rows.length) throw new Error(MACRO.err || "no instruments found");
     MACRO.rows = rows; MACRO.by = Object.fromEntries(rows.map(r => [r.symbol, r])); MACRO.at = Date.now();
-    ctSubscribe(rows.filter(r => r.ct)); macroAlerts(rows);
+    ctSubscribe(rows.filter(r => r.ct)); macroAlerts(rows); if (LIVE.kind === "mexc") liveSync();
   } catch (e) { MACRO.err = e.message || String(e); }
   MACRO.running = false; renderMacro(); navBadges();
 }
@@ -5463,7 +5549,8 @@ function openCTSettings() {
 setInterval(async () => {                             // live prices while the page is open; full re-read every 15 minutes
   if (page !== "macro" || document.hidden || MACRO.running || !MACRO.rows.length) return;
   if (Date.now() - MACRO.at > 15 * 60e3) { macroScan(true); return; }
-  await Promise.all(MACRO.rows.filter(r => !r.ct).map(async r => { try { await spend(1); const t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${r.symbol}`, 1); r.price = +t.lastPrice; r.chg24h = +t.priceChangePercent; } catch (e) {} }));
+  if (MACRO.rows.some(r => r.mx)) { try { const by = await mxTickers(8000); MACRO.rows.filter(r => r.mx).forEach(r => { const x = by[r.symbol.slice(3)]; if (x) { r.price = +x.lastPrice; if (r.ref24) r.chg24h = (r.price / r.ref24 - 1) * 100; } }); } catch (e) {} }
+  await Promise.all(MACRO.rows.filter(r => !r.ct && !r.mx).map(async r => { try { await spend(1); const t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${r.symbol}`, 1); r.price = +t.lastPrice; r.chg24h = +t.priceChangePercent; } catch (e) {} }));
   MACRO.rows.forEach(r => { const p = document.querySelector(`[data-mp="${r.symbol}"]`), c = document.querySelector(`[data-mc="${r.symbol}"]`);
     if (p) p.textContent = fmtPrice(r.price); if (c) c.innerHTML = pctCell(r.chg24h); });
 }, 10000);
@@ -5526,15 +5613,18 @@ const CH_FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
 
 /* ---- symbols: crypto (scan exchange), gold/oil/index perps (Binance TradFi), forex (cTrader) ---- */
 const chBase = s => s.replace(/USDT$/, "");
-const chIsTF = s => !s.startsWith("CT:") && (TRADFI_SYMS.has(s) || (!!MACRO_INFO[chBase(s)] && !bySym[s]));
-const chKind = s => s.startsWith("CT:") ? "ct" : chIsTF(s) ? "tradfi" : "crypto";
+const chIsTF = s => !s.startsWith("CT:") && !isMX(s) && (TRADFI_SYMS.has(s) || (!!MACRO_INFO[chBase(s)] && !bySym[s]));
+const chKind = s => s.startsWith("CT:") ? "ct" : isMX(s) ? "mx" : chIsTF(s) ? "tradfi" : "crypto";
+const mxGroup = s => { const i = MX_INFO[s.slice(3)]; return !i ? "Stocks" : i[1] === "Forex" ? "Forex & CFDs" : i[1] === "Indices" ? "Indices" : "Metals & Energy"; };
 function chName(s) {
   if (s.startsWith("CT:")) { const r = MACRO.by[s]; return r && r.name ? r.name : s.slice(3); }
+  if (isMX(s)) { const i = MX_INFO[s.slice(3)]; return i ? i[0] : coin(s); }
   if (chIsTF(s) && MACRO_INFO[chBase(s)]) return MACRO_INFO[chBase(s)][0];
   return coin(s);
 }
 function chGroup(s) {
   if (s.startsWith("CT:")) return "Forex & CFDs";
+  if (isMX(s)) return mxGroup(s);
   if (chIsTF(s)) { const g = (MACRO_INFO[chBase(s)] || [])[1]; return g === "US Indices" ? "US Indices" : "Metals & Energy"; }
   return "Crypto";
 }
@@ -5542,6 +5632,7 @@ function chQuote(s) { const r = bySym[s] || MACRO.by[s] || CHQ[s]; return r && r
 const chFmt = (p, ref) => { if (p == null || !isFinite(p)) return "—"; const d = pricePrec(Math.abs(ref || p)); return (+p).toLocaleString("en-US", { minimumFractionDigits: Math.min(d, 2), maximumFractionDigits: d }); };
 function chSourceOK(s) {
   if (s.startsWith("CT:")) return CT_SYMS.has(s) || CT.state === "ready" ? "" : "Connect cTrader (Forex, Gold & Indices page) to chart forex.";
+  if (isMX(s)) return "";
   if (chIsTF(s) && EXCHANGE === "bybit") return "Gold, oil and index perps come from Binance: switch the exchange to Binance.";
   return "";
 }
@@ -5689,27 +5780,36 @@ function chSetSym(sym) {
   if (typeof liveSync === "function") liveSync();
 }
 /* ---- market picklists by category ---- */
-const CH_CATS = [["all", "All"], ["crypto", "Crypto"], ["metals", "Metals & Energy"], ["indices", "US Indices"], ["fx", "Forex & CFDs"], ["recent", "Recent"]];
+const CH_CATS = [["all", "All"], ["crypto", "Crypto"], ["metals", "Metals & Energy"], ["indices", "Indices"], ["fx", "Forex & CFDs"], ["stocks", "Stocks"], ["recent", "Recent"]];
+const chMexc = () => EXCHANGE === "mexc" || $("exF").value === "mexc";
 let chPickCat = "all", chPickQ = "", chPickSel = 0;
 const CH_POP_CRYPTO = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"];
 function chCatOf(s) {
+  if (isMX(s)) return { "Forex & CFDs": "fx", "Indices": "indices", "Stocks": "stocks" }[mxGroup(s)] || "metals";
   if (s.startsWith("CT:")) { const r = MACRO.by[s]; if (!r || r.group === "Forex") return "fx";
     return /gold|silver|oil|crude|brent|gas|copper|platinum|palladium|xau|xag/i.test(r.name || s) ? "metals" : "indices"; }
   if (chIsTF(s)) return ((MACRO_INFO[chBase(s)] || [])[1] === "US Indices") ? "indices" : "metals";
   return "crypto";
 }
-function chSrc(s) { return s.startsWith("CT:") ? (CT.broker || "cTrader") : chIsTF(s) ? "Binance TradFi perp" : `${exName()} ${MODE === "spot" ? "spot" : "perp"}`; }
+function chSrc(s) { return s.startsWith("CT:") ? (CT.broker || "cTrader") : isMX(s) ? "MEXC perp" : chIsTF(s) ? "Binance TradFi perp" : `${exName()} ${MODE === "spot" ? "spot" : "perp"}`; }
 function chCatList(cat) {
   const out = [], add = s => { if (s && !out.includes(s)) out.push(s); };
   const ctRows = MACRO.rows.filter(r => r.ct).map(r => r.symbol);
   if (cat === "recent") [CH.sym, ...(CH.recent || [])].forEach(add);
   if (cat === "crypto" || cat === "all") { (data ? data.all.filter(r => !r.macro).sort((a, b) => b.vol24h - a.vol24h).map(r => r.symbol) : CH_POP_CRYPTO).forEach(add); CHW.filter(s => chCatOf(s) === "crypto").forEach(add); }
-  if ((cat === "metals" || cat === "all") && EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] !== "US Indices").forEach(([b]) => add(b + "USDT"));
+  const mx = chMexc(), mxOf = c => Object.keys(MX_INFO).map(k => "MX:" + k).filter(k => chCatOf(k) === c);
+  if (cat === "metals" || cat === "all") { if (mx) mxOf("metals").forEach(add); else if (EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] !== "US Indices").forEach(([b]) => add(b + "USDT")); }
   if (cat === "metals" || cat === "all") ctRows.filter(s => chCatOf(s) === "metals").forEach(add);
-  if ((cat === "indices" || cat === "all") && EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] === "US Indices").forEach(([b]) => add(b + "USDT"));
+  if (cat === "indices" || cat === "all") { if (mx) mxOf("indices").forEach(add); else if (EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] === "US Indices").forEach(([b]) => add(b + "USDT")); }
   if (cat === "indices" || cat === "all") ctRows.filter(s => chCatOf(s) === "indices").forEach(add);
-  if (cat === "fx" || cat === "all") ctRows.filter(s => chCatOf(s) === "fx").forEach(add);
+  if (cat === "fx" || cat === "all") { ctRows.filter(s => chCatOf(s) === "fx").forEach(add); if (mx) mxOf("fx").forEach(add); }
+  if ((cat === "stocks" || cat === "all") && mx) MX_STOCK_ORDER.forEach(add);
   return out;
+}
+let MX_STOCK_ORDER = [];
+async function chMxLists() {                           // MEXC's stock perps for the picker, most traded first
+  if (!chMexc()) return; try { MX_STOCK_ORDER = await mxStockList(); } catch (e) {} chPickRender();
+  const p = $("chPick"); if (p && !p.hidden) chQuotesFetch(chCatList(chPickCat).slice(0, 24));
 }
 function chPickOpen(cat) {
   const p = $("chPick"); if (!p) return;
@@ -5717,6 +5817,7 @@ function chPickOpen(cat) {
   chPickCat = cat; chPickQ = ""; chPickSel = 0; p.hidden = false; $("chSymBtn").setAttribute("aria-expanded", "true");
   chPickRender(true);
   chQuotesFetch(chCatList(cat).slice(0, 24));
+  if (chMexc() && (cat === "stocks" || cat === "all") && (!MX_STOCK_ORDER.length || Date.now() - MX_DETAIL.at > 10 * 60e3)) chMxLists();
 }
 function chPickClose() { const p = $("chPick"); if (p) p.hidden = true; const b = $("chSymBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
 function chPickRender(focus) {
@@ -5725,13 +5826,14 @@ function chPickRender(focus) {
   const q = chPickQ.trim().toLowerCase();
   const list = chCatList(chPickCat).filter(s => !q || chName(s).toLowerCase().includes(q) || s.toLowerCase().includes(q)).slice(0, 150);
   chPickSel = Math.max(0, Math.min(chPickSel, list.length - 1));
-  const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex and broker CFDs come from cTrader. Connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page, then they show here.</div>` : "";
+  const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex and broker CFDs come from cTrader. Connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page, then they show here, or switch the exchange to MEXC for its forex perpetuals.</div>` : "";
+  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">${chMexc() ? "Loading MEXC's stock perpetuals…" : "Stock perpetuals (Apple, Nvidia, Tesla and 400+ more) come from MEXC: switch the exchange to MEXC."}</div>` : "";
   const byNote = (chPickCat === "metals" || chPickCat === "indices") && EXCHANGE === "bybit" && !list.length ? `<div class="meta chpnote">Gold, oil and index perps come from Binance: switch the exchange to Binance (or connect cTrader for your broker's prices).</div>` : "";
   p.innerHTML = `<div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
     <input id="chPickQ" type="search" placeholder="Search ${CH_CATS.find(c => c[0] === chPickCat)[1].toLowerCase()}…" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets">
     <div class="chplist" role="listbox">${list.map((s, i) => { const qd = chQuote(s), c = qd && qd.chg;
       return `<div class="chprow ${i === chPickSel ? "sel" : ""} ${s === CH.sym ? "cur" : ""}" role="option" data-ps="${s}" data-ix="${i}"><button class="st ${CHW.includes(s) ? "on" : ""}" data-star="${s}" title="${CHW.includes(s) ? "Remove from" : "Add to"} the chart watchlist" aria-label="Watchlist">${CHW.includes(s) ? "★" : "☆"}</button>
-        <span class="n"><b>${chName(s)}</b><small>${s.startsWith("CT:") ? s.slice(3) : s} · ${chSrc(s)}</small></span><span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span></div>`; }).join("") || (fxNote || byNote || '<div class="meta chpnote">Nothing here yet.</div>')}</div>`;
+        <span class="n"><b>${chName(s)}</b><small>${s.startsWith("CT:") || isMX(s) ? s.slice(3) : s} · ${chSrc(s)}</small></span><span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span></div>`; }).join("") || (fxNote || stNote || byNote || '<div class="meta chpnote">Nothing here yet.</div>')}</div>`;
   p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(chCatList(chPickCat).slice(0, 24)); });
   p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]")) return; chPickClose(); chSetSym(r.dataset.ps); });
   p.querySelectorAll("[data-star]").forEach(b => b.onclick = e => { e.stopPropagation(); const s = b.dataset.star; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (chIsTF(s)) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chPickRender(); });
@@ -5823,7 +5925,7 @@ function chStreams() {
   if (!chOn || !chBuilt) return [];
   const s = CH.sym, out = [];
   chVis().forEach(P => {
-    if (s.startsWith("CT:")) return;
+    if (s.startsWith("CT:") || (isMX(s) && LIVE.kind !== "mexc")) return;          // MEXC TradFi on another exchange's stream: the chart polls instead
     if (LIVE.kind === "binance") { if (!TRADFI_SYMS.has(s) || (data && data.mode === "futures")) out.push(s.toLowerCase() + "@kline_" + P.tf); }
     else if (LIVE.kind === "mexc") { if (!TRADFI_SYMS.has(s) && MXF_IV[P.tf]) out.push(`kline.${MXF_IV[P.tf]}.${mxF(s)}`); }
     else if (!TRADFI_SYMS.has(s) && BY_IV[P.tf]) out.push(`kline.${BY_IV[P.tf]}.${s}`);
@@ -6200,7 +6302,7 @@ function chWLItems() {
 }
 function chWLRender() {
   const el = $("chWL"); if (!el || !chOn) return;
-  const items = chWLItems(), groups = ["Starred", "Crypto", "Metals & Energy", "US Indices", "Forex & CFDs"];
+  const items = chWLItems(), groups = ["Starred", "Crypto", "Metals & Energy", "US Indices", "Indices", "Forex & CFDs", "Stocks"];
   const row = x => { const q = chQuote(x.sym), p = q && q.price, c = q && q.chg, abs = p != null && c != null ? p - p / (1 + c / 100) : null;
     return `<div class="chwr ${x.sym === CH.sym ? "on" : ""}" data-s="${x.sym}" role="button" tabindex="0"><span class="n">${chName(x.sym)}</span><span class="v">${chFmt(p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${abs == null ? "" : (abs >= 0 ? "+" : "") + chFmt(abs, p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "—" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>${x.user ? `<button class="x" data-rm="${x.sym}" aria-label="Remove ${chName(x.sym)}">×</button>` : ""}</div>`; };
   document.querySelector(".chbody").classList.toggle("nowl", !CH.wl);
@@ -6228,14 +6330,17 @@ function chWLRender() {
 }
 async function chQuotesFetch(list) {
   if (!chOn) return;
-  const need = (list || chWLItems().map(x => x.sym)).filter(s => !s.startsWith("CT:") && !(bySym[s] && bySym[s].price != null) && !MACRO.by[s]).slice(0, 20);
-  for (const s of need) {
+  const need = (list || chWLItems().map(x => x.sym)).filter(s => !s.startsWith("CT:") && !(bySym[s] && bySym[s].price != null) && !MACRO.by[s]).slice(0, 40);
+  if (need.some(s => isMX(s) || (EXCHANGE === "mexc" && MODE === "futures" && !chIsTF(s)))) {     // MEXC: every ticker in one request
+    try { const by = await mxTickers(8000);
+      need.forEach(s => { if (!isMX(s) && !(EXCHANGE === "mexc" && MODE === "futures" && !chIsTF(s))) return; const x = by[mxF(s)]; if (x) CHQ[s] = { price: +x.lastPrice, chg24h: +x.riseFallRate * 100 }; }); } catch (e) {}
+  }
+  for (const s of need.filter(s => !isMX(s) && !(EXCHANGE === "mexc" && MODE === "futures" && !chIsTF(s))).slice(0, 20)) {
     try {
       const tf = chIsTF(s); if (tf && EXCHANGE === "bybit") continue;
       let t;
       if (!tf && EXCHANGE === "mexc") {
-        if (MODE === "futures") { const x = await mxGet("/api/v1/contract/ticker", { symbol: mxF(s) }, 1); if (x) t = { lastPrice: x.lastPrice, priceChangePercent: +x.riseFallRate * 100 }; }
-        else { const x = await getJSON(`${MXS}/api/v3/ticker/24hr?symbol=${s}`, 1); if (x) t = { lastPrice: x.lastPrice, priceChangePercent: +x.openPrice > 0 ? (x.lastPrice - x.openPrice) / x.openPrice * 100 : 0 }; }
+        { const x = await getJSON(`${MXS}/api/v3/ticker/24hr?symbol=${s}`, 1); if (x) t = { lastPrice: x.lastPrice, priceChangePercent: +x.openPrice > 0 ? (x.lastPrice - x.openPrice) / x.openPrice * 100 : 0 }; }
       }
       else if (tf || (EXCHANGE !== "bybit" && MODE === "futures")) t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${s}`, 1);
       else if (EXCHANGE !== "bybit") t = await getJSON(`${SPOT_BASE}/api/v3/ticker/24hr?symbol=${s}`, 1);

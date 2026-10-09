@@ -74,6 +74,13 @@ uses MEXC's v3 API and has no live stream here, so spot prices refresh on each s
 MEXC publishes funding but not open interest or long/short ratios, and has no 3m or 2h candles. If MEXC refuses requests
 made directly from the page, the Mac app relays its public market data (read-only contract and v3 market paths only).
 
+MEXC also lists its own 24/7 perpetuals on forex (EUR, GBP, AUD, JPY, CAD, CHF, TRY, BRL against USDT), metals (gold, silver,
+platinum, palladium, copper and industrial metals), energy (WTI, Brent, natural gas), indices (Nasdaq 100, S&P 500, Dow, Nikkei,
+Hang Seng, KOSPI) and 400+ stocks. With the exchange set to MEXC, the Forex, Gold & Indices page reads these instead of Binance's
+TradFi perps (no cTrader needed), the Charts page lists them (stocks under Stocks), and the backtest picker offers them. The crypto
+scan skips them. MEXC refuses bursts of requests, so the app paces its MEXC calls (about 2–3 a second): a MEXC scan takes a few
+minutes, and contracts under $1M of 24h volume are skipped.
+
 ## How it works
 - The page is served by your host (Vercel, Netlify, Cloudflare Pages).
 - **Market data is fetched by your browser**, straight from Binance, CoinGecko and alternative.me.

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.1327">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.1439">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -945,7 +945,7 @@ const qs = o => Object.entries(o).map(([k, v]) => `${k}=${encodeURIComponent(v)}
 /* ---- Bybit adapter (public v5 market API) ---- */
 let EXCHANGE = "binance", BYBIT = "https://api.bybit.com";
 const BYBIT_HOSTS = ["https://api.bybit.com", "https://api.bytick.com", "/proxy/bybit"];   // last one: the Mac app's local relay
-const BY_IV = { "15m": "15", "1h": "60", "4h": "240", "1d": "D" };
+const BY_IV = { "1m": "1", "3m": "3", "5m": "5", "15m": "15", "30m": "30", "1h": "60", "2h": "120", "4h": "240", "1d": "D", "1w": "W" };
 async function byGet(path, params, tries = 2) {
   const j = await getJSON(`${BYBIT}${path}?${qs(params)}`, tries);
   if (!j || j.retCode !== 0) throw new Error((j && j.retMsg) || "Bybit error");
@@ -964,20 +964,28 @@ const MXF_HOSTS = ["https://contract.mexc.com", "/proxy/mexc-fut"], MXS_HOSTS = 
 const MXF_IV = { "1m": "Min1", "5m": "Min5", "15m": "Min15", "30m": "Min30", "1h": "Min60", "4h": "Hour4", "1d": "Day1", "1w": "Week1" };
 const MXF_IV_BACK = Object.fromEntries(Object.entries(MXF_IV).map(([k, v]) => [v, k]));
 const MXS_IV = { "1m": "1m", "5m": "5m", "15m": "15m", "30m": "30m", "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" };
-const MX_IVMS = { "1m": 60e3, "5m": 300e3, "15m": 900e3, "30m": 1800e3, "1h": 3600e3, "4h": 14400e3, "1d": 864e5, "1w": 6048e5 };
+const MX_IVMS = { "1m": 60e3, "3m": 180e3, "5m": 300e3, "15m": 900e3, "30m": 1800e3, "1h": 3600e3, "2h": 7200e3, "4h": 14400e3, "1d": 864e5, "1w": 6048e5 };
+const MX_AGG = { "3m": ["1m", 3], "2h": ["1h", 2] };        // MEXC has no 3m or 2h candles: build them from 1m and 1h
+function mxAgg(rows, ms) {                                 // rows [t, o, h, l, c, qv] → bigger candles (UTC-aligned, like the exchange's own)
+  const out = []; let cur = null;
+  rows.forEach(r => { const b = Math.floor(r[0] / ms) * ms;
+    if (!cur || cur[0] !== b) { if (cur) out.push(cur); cur = [b, r[1], r[2], r[3], r[4], r[5]]; } else { cur[2] = Math.max(cur[2], r[2]); cur[3] = Math.min(cur[3], r[3]); cur[4] = r[4]; cur[5] += r[5]; } });
+  if (cur) out.push(cur); return out;
+}
 const mxF = s => s.startsWith("MX:") ? s.slice(3) : s.includes("_") ? s : s.replace(/(USDT|USDC)$/, "_$1"), mxBack = s => s.replace("_", "");
 const isMX = s => typeof s === "string" && s.startsWith("MX:");
 /* MEXC's contract API refuses bursts ("Requests are too frequent", code 510). Measured on the live API (Oct 2026):
    back-to-back bursts trip it after ~5 requests; one request every 0.28–0.5 s never did. Every contract call goes
    through this pacer, and a refusal backs off and retries. */
-const MX_GAP = 300; let mxNext = 0, MX_PINGED = { f: false, s: false };
+let MX_GAP = 120, mxNext = 0, mxOk = 0, MX_PINGED = { f: false, s: false };   // ~20 calls per 2 s is MEXC's limit, shared with anything else on your connection: start fast, ease off when refused
 async function mxPace() { const now = Date.now(), at = Math.max(now, mxNext); mxNext = at + MX_GAP; if (at > now) await sleep(at - now); }
 async function mxGet(path, params = {}, tries = 2) {
   if (!MX_PINGED.f) await pingMexc(false);
   const q = Object.keys(params).length ? "?" + qs(params) : ""; let j;
   for (let i = 0; i < 4; i++) {
     await mxPace(); j = await getJSON(`${MXF}${path}${q}`, tries);
-    if (j && j.code === 510) { mxNext = Math.max(mxNext, Date.now() + 1500 * (i + 1)); continue; }     // too fast: back off and retry
+    if (j && j.code === 510) { MX_GAP = Math.min(900, Math.round(MX_GAP * 1.6)); mxNext = Math.max(mxNext, Date.now() + 1000 * (i + 1)); continue; }     // too fast: slow down, back off and retry
+    if (j && j.success !== false && ++mxOk % 25 === 0) MX_GAP = Math.max(110, Math.round(MX_GAP * 0.9));
     break;
   }
   if (!j || j.success === false || (j.code != null && j.code !== 0)) throw new Error((j && (j.message || j.msg)) || "MEXC error");
@@ -1024,11 +1032,21 @@ async function mxStockList() {                         // MEXC stock and ETF per
   return MX_STOCKS.slice().sort((a, b) => (+((by[b.slice(3)] || {}).amount24) || 0) - (+((by[a.slice(3)] || {}).amount24) || 0));
 }
 async function mxKlinesF(sym, iv, startMs, endMs) {          // ascending rows [t, o, h, l, c, quote volume]
+  if (MX_AGG[iv]) { const [b, k] = MX_AGG[iv], ms = MX_IVMS[iv]; return mxAgg(await mxKlinesF(sym, b, Math.floor(startMs / ms) * ms, endMs), ms); }
   const p = MXF_IV[iv]; if (!p) throw new Error(`MEXC has no ${iv} candles`);
   const d = await mxGet(`/api/v1/contract/kline/${mxF(sym)}`, { interval: p, start: Math.floor(startMs / 1000), end: Math.floor(endMs / 1000) });
   return (d.time || []).map((t, i) => [t * 1000, +d.open[i], +d.high[i], +d.low[i], +d.close[i], +((d.amount || [])[i] ?? 0)]);
 }
 const mxSpotRow = k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]];
+async function mxSpotKl(sym, iv, limit) {                    // latest spot candles, forming one included
+  if (MX_AGG[iv]) { const [b, k] = MX_AGG[iv]; return mxAgg(await mxSpotKl(sym, b, Math.min(1000, (limit + 1) * k)), MX_IVMS[iv]).slice(-limit); }
+  return (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[iv], limit: Math.min(1000, limit) })}`)).map(mxSpotRow);
+}
+const MX_H1 = {};
+function mxH1(sym) {                                       // one 1h download serves both the 1h and the 4h read of a coin during a scan
+  const c = MX_H1[sym]; if (c && Date.now() - c.at < 30e3) return c.p;
+  const now = Date.now(), p = mxKlinesF(sym, "1h", now - 682 * 3600e3, now); MX_H1[sym] = { at: now, p }; p.catch(() => delete MX_H1[sym]); return p;
+}
 const mxRowsToK = rows => ({ t: rows.map(r => r[0]), o: rows.map(r => r[1]), h: rows.map(r => r[2]), l: rows.map(r => r[3]), c: rows.map(r => r[4]), qv: rows.map(r => r[5]) });
 const baseClean = b => b.replace(/^1000+|1000$/g, "").replace(/^1M(?=[A-Z])/, "");
 
@@ -1177,9 +1195,9 @@ async function klines(sym, interval, limit) {
   if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
     const iv = MX_IVMS[interval]; if (!iv) throw new Error(`MEXC has no ${interval} candles`);
     if (!isMX(sym)) await spend(1);
-    const now = Date.now();
-    const rows = MODE === "futures" || isMX(sym) ? await mxKlinesF(sym, interval, now - (limit + 2) * iv, now)
-      : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], limit: Math.min(1000, limit + 1) })}`)).map(mxSpotRow);
+    const now = Date.now(), fut = MODE === "futures" || isMX(sym);
+    const rows = fut && ((interval === "1h" && limit <= 670) || (interval === "4h" && limit <= 165)) ? (interval === "1h" ? await mxH1(sym) : mxAgg(await mxH1(sym), iv))
+      : fut ? await mxKlinesF(sym, interval, now - (limit + 2) * iv, now) : await mxSpotKl(sym, interval, limit + 1);
     return mxRowsToK(rows.filter(r => r[0] + iv <= now).slice(-limit));       // closed candles only
   }
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
@@ -2050,41 +2068,53 @@ async function maxLeverage(sym, levMax = 20) {
 }
 
 /* ---- why it's moving: derivatives read (Binance) ---- */
+/* positioning from Binance futures: the full set (open interest, top traders, all accounts, taker flow, funding) */
+async function bnPositioning(sym) {
+  const q = qs({ symbol: sym, period: "1h", limit: 25 }), safe = p => p.catch(() => null);
+  const oi = await safe(getJSON(`${FAPI}/futures/data/openInterestHist?${q}`, 1)); if (!oi || !oi.length) return null;     // not listed on Binance futures
+  const [top, glob, taker, fr] = await Promise.all([safe(getJSON(`${FAPI}/futures/data/topLongShortPositionRatio?${q}`, 2)), safe(getJSON(`${FAPI}/futures/data/globalLongShortAccountRatio?${q}`, 2)),
+    safe(getJSON(`${FAPI}/futures/data/takerlongshortRatio?${q}`, 2)), safe(getJSON(`${FAPI}/fapi/v1/fundingRate?${qs({ symbol: sym, limit: 21 })}`, 2))]);
+  const o = { oiChg: null, oiUsd: null, topLS: null, globLS: null, takerRatio: null, fundNow: null, fundAvg: null };
+  if (oi.length > 1) { const a = +oi[0].sumOpenInterestValue, b = +oi.at(-1).sumOpenInterestValue; o.oiChg = a > 0 ? (b / a - 1) * 100 : null; o.oiUsd = b; }
+  if (top && top.length) o.topLS = +top.at(-1).longShortRatio;
+  if (glob && glob.length) o.globLS = +glob.at(-1).longShortRatio;
+  if (taker && taker.length) { const bv = taker.reduce((s, x) => s + +x.buyVol, 0), sv = taker.reduce((s, x) => s + +x.sellVol, 0); o.takerRatio = sv > 0 ? bv / sv : null; }
+  if (fr && fr.length) { o.fundNow = +fr.at(-1).fundingRate; o.fundAvg = fr.reduce((s, x) => s + +x.fundingRate, 0) / fr.length; }
+  return o;
+}
+const DRV_FIELDS = ["oiChg", "oiUsd", "topLS", "globLS", "takerRatio", "fundNow", "fundAvg"];
 async function drivers(r) {
-  const d = { priceChg: r.chg24h, oiChg: null, oiUsd: null, topLS: null, globLS: null, takerRatio: null, fundNow: null, fundAvg: null };
-  const EXq = r.mx ? "mexc" : r.macro ? "binance" : EXCHANGE, MDq = r.macro ? "futures" : MODE;
-  if (EXq === "bybit" && MDq === "futures") {
-    const safe = p => p.catch(() => null);
+  const d = { priceChg: r.chg24h, oiChg: null, oiUsd: null, topLS: null, globLS: null, takerRatio: null, fundNow: null, fundAvg: null, src: {} };
+  const EXq = r.mx ? "mexc" : r.macro ? "binance" : EXCHANGE, MDq = r.macro ? "futures" : MODE, safe = p => p.catch(() => null);
+  const take = (o, name) => { if (!o) return; DRV_FIELDS.forEach(k => { if (d[k] == null && o[k] != null && isFinite(o[k])) { d[k] = o[k]; d.src[k] = name; } }); };
+  // 1) the exchange's own numbers (its perpetual for this coin, also when you scan spot)
+  if (EXq === "bybit") {
     const [oi, ratio, fr] = await Promise.all([
-      safe(byGet("/v5/market/open-interest", { category: "linear", symbol: r.symbol, intervalTime: "1h", limit: 25 })),
-      safe(byGet("/v5/market/account-ratio", { category: "linear", symbol: r.symbol, period: "1h", limit: 2 })),
-      safe(byGet("/v5/market/funding/history", { category: "linear", symbol: r.symbol, limit: 21 }))]);
-    if (oi && oi.list.length > 1) { const nw = +oi.list[0].openInterest, od = +oi.list.at(-1).openInterest; d.oiChg = od > 0 ? (nw / od - 1) * 100 : null; d.oiUsd = nw * r.price; }
-    if (ratio && ratio.list.length) { const x = ratio.list[0]; d.globLS = +x.sellRatio > 0 ? +x.buyRatio / +x.sellRatio : null; }
-    if (fr && fr.list.length) { d.fundNow = +fr.list[0].fundingRate; d.fundAvg = fr.list.reduce((s, x) => s + +x.fundingRate, 0) / fr.list.length; }
+      safe(byGet("/v5/market/open-interest", { category: "linear", symbol: r.symbol, intervalTime: "1h", limit: 25 }, 1)),
+      safe(byGet("/v5/market/account-ratio", { category: "linear", symbol: r.symbol, period: "1h", limit: 2 }, 1)),
+      safe(byGet("/v5/market/funding/history", { category: "linear", symbol: r.symbol, limit: 21 }, 1))]);
+    const o = {};
+    if (oi && oi.list.length > 1) { const nw = +oi.list[0].openInterest, od = +oi.list.at(-1).openInterest; o.oiChg = od > 0 ? (nw / od - 1) * 100 : null; o.oiUsd = nw * r.price; }
+    if (ratio && ratio.list.length) { const x = ratio.list[0]; o.globLS = +x.sellRatio > 0 ? +x.buyRatio / +x.sellRatio : null; }
+    if (fr && fr.list.length) { o.fundNow = +fr.list[0].fundingRate; o.fundAvg = fr.list.reduce((s, x) => s + +x.fundingRate, 0) / fr.list.length; }
+    take(o, "Bybit");
   } else if (EXq === "mexc") {
-    if (MDq === "futures") { d.fundNow = r.funding;
-      try { const h = await mxGet("/api/v1/contract/funding_rate/history", { symbol: mxF(r.symbol), page_num: 1, page_size: 21 }, 1);
-        const L = (h && (h.resultList || h)) || []; if (L.length) d.fundAvg = L.reduce((s, x) => s + +x.fundingRate, 0) / L.length; } catch (e) {} }
-  } else if (EXq === "bybit") {
-    // spot on Bybit: no positioning data
-  } else if (MDq === "futures") {
-    const q = qs({ symbol: r.symbol, period: "1h", limit: 25 });
-    const safe = p => p.catch(() => null);
-    const [oi, top, glob, taker, fr] = await Promise.all([
-      safe(getJSON(`${FAPI}/futures/data/openInterestHist?${q}`, 2)), safe(getJSON(`${FAPI}/futures/data/topLongShortPositionRatio?${q}`, 2)),
-      safe(getJSON(`${FAPI}/futures/data/globalLongShortAccountRatio?${q}`, 2)), safe(getJSON(`${FAPI}/futures/data/takerlongshortRatio?${q}`, 2)),
-      safe(getJSON(`${FAPI}/fapi/v1/fundingRate?${qs({ symbol: r.symbol, limit: 21 })}`, 2))]);
-    if (oi && oi.length > 1) { const a = +oi[0].sumOpenInterestValue, b = +oi.at(-1).sumOpenInterestValue; d.oiChg = a > 0 ? (b / a - 1) * 100 : null; d.oiUsd = b; }
-    if (top && top.length) d.topLS = +top.at(-1).longShortRatio;
-    if (glob && glob.length) d.globLS = +glob.at(-1).longShortRatio;
-    if (taker && taker.length) { const bv = taker.reduce((s, x) => s + +x.buyVol, 0), sv = taker.reduce((s, x) => s + +x.sellVol, 0); d.takerRatio = sv > 0 ? bv / sv : null; }
-    if (fr && fr.length) { d.fundNow = +fr.at(-1).fundingRate; d.fundAvg = fr.reduce((s, x) => s + +x.fundingRate, 0) / fr.length; }
-  } else {
-    await spend(2);
-    const k = await getJSON(`${SPOT_BASE}/api/v3/klines?${qs({ symbol: r.symbol, interval: "1h", limit: 24 })}`);
-    const qv = k.reduce((s, x) => s + +x[7], 0), tb = k.reduce((s, x) => s + +x[10], 0);
-    d.takerRatio = qv - tb > 0 ? tb / (qv - tb) : null;
+    const o = {}, cs = mxF(r.symbol);
+    try { const [tk, det] = await Promise.all([mxTickers(30e3), mxDetail()]), t = tk[cs], c = det.find(x => x.symbol === cs);
+      if (t) { if (t.fundingRate != null) o.fundNow = +t.fundingRate; if (t.holdVol != null && c) o.oiUsd = +t.holdVol * (+c.contractSize || 1) * (+t.lastPrice || r.price); } } catch (e) {}
+    try { const h = await mxGet("/api/v1/contract/funding_rate/history", { symbol: cs, page_num: 1, page_size: 21 }, 1);
+      const L = (h && (h.resultList || h)) || []; if (L.length) o.fundAvg = L.reduce((s, x) => s + +x.fundingRate, 0) / L.length; } catch (e) {}
+    take(o, "MEXC");
+  } else take(await bnPositioning(r.symbol), "Binance");
+  // 2) spot scans: taker flow from spot trades (Binance spot)
+  if (MDq === "spot" && d.takerRatio == null) {
+    try { await spend(2); const k = await getJSON(`${SPOT_HOSTS[0]}/api/v3/klines?${qs({ symbol: r.symbol.replace(/USDC$/, "USDT"), interval: "1h", limit: 24 })}`, 1);
+      const qv = k.reduce((s, x) => s + +x[7], 0), tb = k.reduce((s, x) => s + +x[10], 0); if (qv - tb > 0) { d.takerRatio = tb / (qv - tb); d.src.takerRatio = "Binance spot"; } } catch (e) {}
+  }
+  // 3) whatever the exchange doesn't publish: fill from Binance futures for the same coin
+  if (DRV_FIELDS.some(k => d[k] == null) && EXq !== "binance" || (EXq === "binance" && d.oiChg == null && r.base)) {
+    const b = String(r.base || coin(r.symbol)).toUpperCase(), cands = [...new Set([b + "USDT", "1000" + b + "USDT", b.replace(/^1000+/, "") + "USDT"])].filter(x => x !== r.symbol || EXq !== "binance");
+    for (const sym of cands) { const o = await bnPositioning(sym); if (o) { if (d.oiUsd != null) o.oiUsd = null; take(o, "Binance"); break; } }
   }
   d.spotShare = MDq === "futures" && r.spotVol !== null ? r.spotVol / (r.spotVol + r.vol24h) : null;
   return Object.assign(d, readDrivers(d));
@@ -2407,13 +2437,18 @@ const drvCache = {};
 async function getDrivers(r) {
   if (r.ct) return { head: "No positioning data for broker prices", tag: null, health: null, oiUsd: null, spotShare: null, takerRatio: null, globLS: null, topLS: null,
     lines: ["Forex and CFD prices from your broker don't come with open interest or funding. Use Ask Claude Why for the news and macro behind the move."] };
-  return drvCache[r.symbol] || (drvCache[r.symbol] = await drivers(r)); }
+  const k = `${r.mx || r.macro ? "x" : EXCHANGE}|${MODE}|${r.symbol}`, c = drvCache[k];       // per exchange and market, fresh for 5 minutes
+  if (c && Date.now() - c.at < 5 * 60e3) return c.d;
+  const d = await drivers(r); drvCache[k] = { at: Date.now(), d }; return d; }
 function driversHTML(d) {
   const h = d.health ? `<span class="tag ${d.health === "Looks healthy" ? "long" : d.health === "Looks fragile" ? "short" : ""}">${d.health}</span>` : "";
   const facts = [d.oiUsd ? `Open interest $${fmtVol(d.oiUsd)}` : null, d.spotShare !== null ? `Spot ${(d.spotShare * 100).toFixed(0)}% of volume` : null,
     d.takerRatio !== null ? `Taker buy/sell ${d.takerRatio.toFixed(2)}` : null, d.globLS !== null ? `Accounts L/S ${d.globLS.toFixed(2)}` : null,
     d.topLS !== null ? `Top traders L/S ${d.topLS.toFixed(2)}` : null].filter(Boolean).join(" · ");
-  return `<div class="drv-head">${d.head} ${h}</div><ul class="why-list">${d.lines.map(l => `<li>${l}</li>`).join("")}</ul>${facts ? `<div class="meta">${facts}</div>` : ""}`;
+  const NM = { oiChg: "open interest change", oiUsd: "open interest", topLS: "top traders", globLS: "accounts long/short", takerRatio: "taker flow", fundNow: "funding", fundAvg: "funding average" }, by = {};
+  Object.entries(d.src || {}).forEach(([k, v]) => { if (k !== "fundAvg" && k !== "oiUsd") (by[v] = by[v] || []).push(NM[k]); });
+  const srcs = Object.keys(by).length > 1 || (Object.keys(by)[0] && Object.keys(by)[0] !== exName()) ? `<div class="meta drv-src">Sources: ${Object.entries(by).map(([v, ks]) => `${ks.join(", ")} from ${v}`).join("; ")}.</div>` : "";
+  return `<div class="drv-head">${d.head} ${h}</div><ul class="why-list">${d.lines.map(l => `<li>${l}</li>`).join("")}</ul>${facts ? `<div class="meta">${facts}</div>` : ""}${srcs}`;
 }
 function fundHTML(f) {
   if (f.missing) return `<div class="meta">Not found on CoinGecko under this ticker.</div>`;
@@ -3658,7 +3693,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.1327";
+const APP_VERSION = "2026.10.09.1439";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3744,7 +3779,7 @@ async function formingBar(sym, tf) {                 // the candle that's still 
   await spend(1);
   if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
     const iv = MX_IVMS[tf]; if (!iv) return null; const now = Date.now();
-    const rows = MODE === "futures" || isMX(sym) ? await mxKlinesF(sym, tf, now - 3 * iv, now + iv) : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[tf], limit: 1 })}`, 1)).map(mxSpotRow);
+    const rows = MODE === "futures" || isMX(sym) ? await mxKlinesF(sym, tf, now - 3 * iv, now + iv) : await mxSpotKl(sym, tf, 1);
     const k = rows.at(-1); return k ? { t: k[0], o: k[1], h: k[2], l: k[3], c: k[4], v: k[5] } : null;
   }
   if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
@@ -3786,7 +3821,7 @@ const LIVE = { ws: null, state: "off", url: "", kind: "", subs: new Set(), dirty
                queue: [], busy: false, lastMsg: 0, rerender: null, moversAt: 0 };
 const LIVE_KEY = "altscan-live";
 const liveOn = () => { try { return localStorage.getItem(LIVE_KEY) !== "off"; } catch (e) { return true; } };
-const BY_IV_BACK = { "15": "15m", "60": "1h", "240": "4h", "D": "1d" };
+const BY_IV_BACK = Object.fromEntries(Object.entries(BY_IV).map(([k, v]) => [v, k]));
 function liveSetState(st, note) {
   LIVE.state = st;
   const b = $("liveBadge"); if (!b) return;
@@ -5574,7 +5609,8 @@ function renderMacro() {
 const macroSrc = () => $("exF").value === "mexc" ? "mexc" : "binance";     // gold, indices (and MEXC's forex) follow the exchange picker
 async function macroScan(force) {
   if (MACRO.src && MACRO.src !== macroSrc()) force = true;
-  if (MACRO.running || (!force && MACRO.at && Date.now() - MACRO.at < 10 * 60e3)) return;
+  if (MACRO.running) { if (MACRO.src !== macroSrc()) MACRO.again = true; return; }          // switched exchange mid-refresh: run again when this one ends
+  if (!force && MACRO.at && Date.now() - MACRO.at < 10 * 60e3) return;
   MACRO.running = true; MACRO.err = null; MACRO.src = macroSrc(); renderMacro();
   try {
     const maFn = $("maType").value === "sma" ? sma : ema;
@@ -5591,6 +5627,7 @@ async function macroScan(force) {
     ctSubscribe(rows.filter(r => r.ct)); macroAlerts(rows); if (LIVE.kind === "mexc") liveSync();
   } catch (e) { MACRO.err = e.message || String(e); }
   MACRO.running = false; renderMacro(); navBadges();
+  if (MACRO.again || MACRO.src !== macroSrc()) { MACRO.again = false; if (MACRO.src !== macroSrc()) macroScan(true); }
 }
 $("macroRun").onclick = () => macroScan(true);
 CT.onSpot = p => {                                    // live bid from cTrader for the forex and broker rows

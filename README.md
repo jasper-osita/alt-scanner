@@ -71,15 +71,22 @@ server relays Bybit's public market data (read-only `/v5/market/*` paths only), 
 
 **MEXC** is the third choice. Futures use MEXC's contract API (with a live stream for prices, funding and candles); spot
 uses MEXC's v3 API and has no live stream here, so spot prices refresh on each scan and alerts check every 30 seconds.
-MEXC publishes funding but not open interest or long/short ratios, and has no 3m or 2h candles. If MEXC refuses requests
+MEXC publishes funding and current open interest; the app builds its missing 3m and 2h candles from 1m and 1h. If MEXC refuses requests
 made directly from the page, the Mac app relays its public market data (read-only contract and v3 market paths only).
 
 MEXC also lists its own 24/7 perpetuals on forex (EUR, GBP, AUD, JPY, CAD, CHF, TRY, BRL against USDT), metals (gold, silver,
 platinum, palladium, copper and industrial metals), energy (WTI, Brent, natural gas), indices (Nasdaq 100, S&P 500, Dow, Nikkei,
 Hang Seng, KOSPI) and 400+ stocks. With the exchange set to MEXC, the Forex, Gold & Indices page reads these instead of Binance's
 TradFi perps (no cTrader needed), the Charts page lists them (stocks under Stocks), and the backtest picker offers them. The crypto
-scan skips them. MEXC refuses bursts of requests, so the app paces its MEXC calls (about 2–3 a second): a MEXC scan takes a few
-minutes, and contracts under $1M of 24h volume are skipped.
+scan skips them. MEXC allows about 20 requests per 2 seconds, so the app paces its MEXC calls (starting fast and easing off
+when MEXC refuses) and reads each coin's 1H and 4H from one download: a MEXC scan takes about a minute and a half, and contracts
+under $1M of 24h volume are skipped.
+
+**"Why it's moving" is complete on every exchange.** Open interest and its change, top-trader and all-account long/short, taker
+buy/sell flow and funding: each exchange's own numbers come first (Binance has all of them; Bybit has open interest, accounts
+long/short and funding; MEXC has open interest and funding), and anything missing is filled from Binance futures for the same coin
+(spot scans take taker flow from Binance spot). The panel says which numbers came from where. Every chart timeframe works on every
+exchange.
 
 **Charts page: indicators and drawing tools, TradingView-style.** The **Indicators** button (or `/`) opens a searchable list:
 moving averages (EMA, SMA, WMA, RMA, Hull, VWMA, DEMA, TEMA, and the scanner's 20/50/100 stack), Bollinger, Keltner, Donchian,

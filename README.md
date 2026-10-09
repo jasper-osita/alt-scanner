@@ -81,6 +81,19 @@ TradFi perps (no cTrader needed), the Charts page lists them (stocks under Stock
 scan skips them. MEXC refuses bursts of requests, so the app paces its MEXC calls (about 2–3 a second): a MEXC scan takes a few
 minutes, and contracts under $1M of 24h volume are skipped.
 
+**Charts page: indicators and drawing tools, TradingView-style.** The **Indicators** button (or `/`) opens a searchable list:
+moving averages (EMA, SMA, WMA, RMA, Hull, VWMA, DEMA, TEMA, and the scanner's 20/50/100 stack), Bollinger, Keltner, Donchian,
+VWAP, Ichimoku, Parabolic SAR, Supertrend, Volume, RSI, MACD, Stochastic, Stochastic RSI, ATR, ADX/DMI, CCI, OBV, Williams %R,
+MFI, Rate of Change, Sessions, time-of-day lines, previous day/week/month highs and lows, pivot points and multi-timeframe fair value
+gaps. Star the ones you use for a Favorites list. Each one has a legend on the chart (hide, ⚙ settings, remove); settings have
+Inputs, Style (colours, widths, line styles, levels, fills) and Visibility (which timeframes) tabs, previewed live, with Defaults
+and Cancel. Oscillators stack in their own panes under the price. The drawing toolbar follows TradingView's groups (lines,
+channels and pitchforks; Fibonacci and Gann; patterns and Elliott waves; positions, anchored VWAP, volume profile and measurers;
+brushes, arrows and shapes; text and notes; icons) with a flyout per group, stars for a favorites bar, and ⌥T, ⌥H, ⌥J, ⌥V, ⌥C,
+⌥F and ⌥⇧R shortcuts. Select a drawing for its floating toolbar (colour, fill, text colour, width, style, settings, lock, delete,
+clone, order) or double-click it for settings: Style, Text, Coordinates and Visibility, with "save as default". Also: magnet
+(weak or strong), stay in drawing mode, lock, hide, remove, undo and redo, ⌘-drag to clone, and ⌘C / ⌘V.
+
 ## How it works
 - The page is served by your host (Vercel, Netlify, Cloudflare Pages).
 - **Market data is fetched by your browser**, straight from Binance, CoinGecko and alternative.me.

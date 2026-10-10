@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.2344">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.10.1506">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -1115,9 +1115,25 @@ const MX_INFO = {      // contract → [name, group, the real market on TradingV
   NAS100_USDT: ["Nasdaq 100", "Indices", "OANDA:NAS100USD"], SPX500_USDT: ["S&P 500", "Indices", "OANDA:SPX500USD"], US30_USDT: ["Dow Jones", "Indices", "OANDA:US30USD"],
   JP225_USDT: ["Nikkei 225", "Indices", "OANDA:JP225USD"], HK50_USDT: ["Hang Seng", "Indices", "TVC:HSI"], KOSPI_USDT: ["KOSPI", "Indices", "KRX:KOSPI"],
   EUR_USDT: ["EUR/USD", "Forex", "FX:EURUSD", "EURUSD"], GBP_USDT: ["GBP/USD", "Forex", "FX:GBPUSD", "GBPUSD"], AUD_USDT: ["AUD/USD", "Forex", "FX:AUDUSD", "AUDUSD"],
-  JPY_USDT: ["JPY/USD (USD/JPY flipped)", "Forex", "FX:USDJPY", "JPYUSD"], CAD_USDT: ["CAD/USD (USD/CAD flipped)", "Forex", "FX:USDCAD", "CADUSD"],
-  CHF_USDT: ["CHF/USD (USD/CHF flipped)", "Forex", "FX:USDCHF", "CHFUSD"], TRY_USDT: ["TRY/USD (USD/TRY flipped)", "Forex", "FX:USDTRY", "TRYUSD"], BRL_USDT: ["BRL/USD (USD/BRL flipped)", "Forex", "FX:USDBRL", "BRLUSD"],
+  JPY_USDT: ["USD/JPY", "Forex", "FX:USDJPY", "USDJPY"], CAD_USDT: ["USD/CAD", "Forex", "FX:USDCAD", "USDCAD"],
+  CHF_USDT: ["USD/CHF", "Forex", "FX:USDCHF", "USDCHF"], TRY_USDT: ["USD/TRY", "Forex", "FX:USDTRY", "USDTRY"], BRL_USDT: ["USD/BRL", "Forex", "FX:USDBRL", "USDBRL"],
 };
+/* MEXC quotes every currency in dollars (JPY_USDT = the yen's price in USD, about 0.0063). For the five that the market quotes
+   the other way round, everything read from MEXC (candles, tickers, live pushes, funding) is flipped into the usual USD/JPY,
+   USD/CAD, USD/CHF, USD/TRY and USD/BRL, so 158.20 reads like every other chart. A long here is a short on MEXC's contract. */
+const MX_INV = new Set(["JPY_USDT", "CAD_USDT", "CHF_USDT", "TRY_USDT", "BRL_USDT"]);
+const mxInv = s => MX_INV.has(String(s).replace(/^MX:/, ""));
+const inv = v => { const x = +v; return x > 0 ? 1 / x : v; };
+const mxInvRow = r => [r[0], inv(r[1]), inv(r[3]), inv(r[2]), inv(r[4]), r[5]];        // high and low swap places
+function mxInvTick(x) {
+  const o = { ...x, rawLast: x.lastPrice, lastPrice: inv(x.lastPrice) };
+  ["fairPrice", "indexPrice"].forEach(k => { if (x[k] != null) o[k] = inv(x[k]); });
+  if (x.bid1 != null && x.ask1 != null) { o.bid1 = inv(x.ask1); o.ask1 = inv(x.bid1); }
+  if (x.high24Price != null && x.lower24Price != null) { o.high24Price = inv(x.lower24Price); o.lower24Price = inv(x.high24Price); }
+  if (x.riseFallRate != null && +x.riseFallRate > -1) o.riseFallRate = 1 / (1 + +x.riseFallRate) - 1;
+  if (x.fundingRate != null) o.fundingRate = -x.fundingRate;            // longs of USD/JPY are the shorts of JPY_USDT
+  return o;
+}
 const MX_ALIAS = { XAU: "XAU", SILVER: "XAG", USOIL: "CL", SPX500: "SPY", NAS100: "QQQ" };      // so the macro read-out finds gold, silver, oil and the indices
 Object.keys(MX_INFO).forEach(k => MX_SYMS.add("MX:" + k));
 let MX_DETAIL = { at: 0, list: null }, MX_TICK = { at: 0, by: null }, MX_STOCKS = [];
@@ -1132,7 +1148,7 @@ async function mxDetail(maxAge = 10 * 60e3) {
 }
 async function mxTickers(maxAge = 5000) {              // every contract's ticker in one request (cached briefly)
   if (MX_TICK.by && Date.now() - MX_TICK.at < maxAge) return MX_TICK.by;
-  const L = [].concat(await mxGet("/api/v1/contract/ticker", {}, 1) || []); MX_TICK = { at: Date.now(), by: Object.fromEntries(L.map(x => [x.symbol, x])) };
+  const L = [].concat(await mxGet("/api/v1/contract/ticker", {}, 1) || []); MX_TICK = { at: Date.now(), by: Object.fromEntries(L.map(x => [x.symbol, MX_INV.has(x.symbol) ? mxInvTick(x) : x])) };
   return MX_TICK.by;
 }
 async function mxStockList() {                         // MEXC stock and ETF perps, most traded first
@@ -1143,7 +1159,8 @@ async function mxKlinesF(sym, iv, startMs, endMs) {          // ascending rows [
   if (MX_AGG[iv]) { const [b, k] = MX_AGG[iv], ms = MX_IVMS[iv]; return mxAgg(await mxKlinesF(sym, b, Math.floor(startMs / ms) * ms, endMs), ms); }
   const p = MXF_IV[iv]; if (!p) throw new Error(`MEXC has no ${iv} candles`);
   const d = await mxGet(`/api/v1/contract/kline/${mxF(sym)}`, { interval: p, start: Math.floor(startMs / 1000), end: Math.floor(endMs / 1000) });
-  return (d.time || []).map((t, i) => [t * 1000, +d.open[i], +d.high[i], +d.low[i], +d.close[i], +((d.amount || [])[i] ?? 0)]);
+  const rows = (d.time || []).map((t, i) => [t * 1000, +d.open[i], +d.high[i], +d.low[i], +d.close[i], +((d.amount || [])[i] ?? 0)]);
+  return mxInv(sym) ? rows.map(mxInvRow) : rows;
 }
 const mxSpotRow = k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]];
 async function mxSpotKl(sym, iv, limit) {                    // latest spot candles, forming one included
@@ -2209,9 +2226,9 @@ async function drivers(r) {
   } else if (EXq === "mexc") {
     const o = {}, cs = mxF(r.symbol);
     try { const [tk, det] = await Promise.all([mxTickers(30e3), mxDetail()]), t = tk[cs], c = det.find(x => x.symbol === cs);
-      if (t) { if (t.fundingRate != null) o.fundNow = +t.fundingRate; if (t.holdVol != null && c) o.oiUsd = +t.holdVol * (+c.contractSize || 1) * (+t.lastPrice || r.price); } } catch (e) {}
+      if (t) { if (t.fundingRate != null) o.fundNow = +t.fundingRate; if (t.holdVol != null && c) o.oiUsd = +t.holdVol * (+c.contractSize || 1) * (+(t.rawLast ?? t.lastPrice) || r.price); } } catch (e) {}
     try { const h = await mxGet("/api/v1/contract/funding_rate/history", { symbol: cs, page_num: 1, page_size: 21 }, 1);
-      const L = (h && (h.resultList || h)) || []; if (L.length) o.fundAvg = L.reduce((s, x) => s + +x.fundingRate, 0) / L.length; } catch (e) {}
+      const L = (h && (h.resultList || h)) || []; if (L.length) o.fundAvg = (MX_INV.has(cs) ? -1 : 1) * L.reduce((s, x) => s + +x.fundingRate, 0) / L.length; } catch (e) {}
     take(o, "MEXC");
   } else take(await bnPositioning(r.symbol), "Binance");
   // 2) spot scans: taker flow from spot trades (Binance spot)
@@ -2409,7 +2426,8 @@ function tickClock() {
 }
 
 /* ---- formatting ---- */
-const coin = s => s.startsWith("CT:") ? s.slice(3) : s.startsWith("MX:") ? (MX_NAME[s] || s.slice(3).replace(/_(USDT|USDC)$/, "")) : s.replace(/(USDT|USDC)$/, "");
+const coin = s => s.startsWith("CT:") ? s.slice(3) : s.startsWith("MX:") ? (MX_NAME[s] || (MX_INFO[s.slice(3)] || [])[3] || s.slice(3).replace(/_(USDT|USDC)$/, "")) : s.replace(/(USDT|USDC)$/, "");
+const mxInvTag = r => r && r.mx && mxInv(r.symbol) ? `<span class="tag" title="MEXC lists this as ${r.symbol.slice(3)}: the ${r.symbol.slice(3, 6)} priced in dollars. The Finder flips it to the usual ${r.name}, so a long here is a short on MEXC's contract (and the other way round).">⇄ ${r.symbol.slice(3)} on MEXC</span>` : "";
 const fmtPrice = p => p >= 100 ? p.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : p >= 10 ? p.toFixed(3) : p >= 1 ? p.toFixed(4) : p >= 0.01 ? p.toFixed(5) : p.toPrecision(4);
 const fmtVol = v => v >= 1e12 ? (v / 1e12).toFixed(2) + " T" : v >= 1e9 ? (v / 1e9).toFixed(2) + " B" : v >= 1e6 ? (v / 1e6).toFixed(2) + " M" : (v / 1e3).toFixed(1) + " K";
 const fmtRS = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
@@ -3801,7 +3819,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.2344";
+const APP_VERSION = "2026.10.10.1506";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4055,14 +4073,15 @@ function liveMessage(m) {
   if (LIVE.kind === "mexc") {
     const ch = m.channel || "", d = m.data; if (!d) return;
     if (ch === "push.tickers") [].concat(d).forEach(t => {
-      const mk = "MX:" + t.symbol, price = +t.lastPrice;
+      const mk = "MX:" + t.symbol, price = MX_INV.has(t.symbol) ? inv(t.lastPrice) : +t.lastPrice;
       if (MX_SYMS.has(mk)) { mxLiveQuote(mk, price); return; }
       const sym = mxBack(t.symbol), r = bySym[sym];             // 24h change from the scan's reference (MEXC's own change runs from midnight UTC+8)
       liveTick(sym, { price, chg: r && r.ref24 && isFinite(price) ? (price / r.ref24 - 1) * 100 : null, vol: t.amount24 != null ? +t.amount24 : null, funding: t.fundingRate != null ? +t.fundingRate : null });
     });
     else if (ch === "push.kline") {
       const raw = d.symbol || m.symbol || "", sym = MX_SYMS.has("MX:" + raw) ? "MX:" + raw : mxBack(raw), iv = MXF_IV_BACK[d.interval]; if (!raw || !iv) return;
-      const bar = { t: +d.t * 1000, o: +d.o, h: +d.h, l: +d.l, c: +d.c, v: d.a != null ? +d.a : undefined }, key = sym + "|" + iv, prev = MX_LASTBAR[key];
+      const bar = MX_INV.has(raw) ? { t: +d.t * 1000, o: inv(d.o), h: inv(d.l), l: inv(d.h), c: inv(d.c), v: d.a != null ? +d.a : undefined }
+        : { t: +d.t * 1000, o: +d.o, h: +d.h, l: +d.l, c: +d.c, v: d.a != null ? +d.a : undefined }, key = sym + "|" + iv, prev = MX_LASTBAR[key];
       if (prev && bar.t > prev.t) onLiveKline(sym, iv, prev, true);        // MEXC doesn't flag closes: a new candle means the last one closed
       MX_LASTBAR[key] = bar; onLiveKline(sym, iv, bar, false);
     }
@@ -5261,7 +5280,7 @@ function openDetail(sym) {
   const nSet = (r.models || []).length, X = r.base.replace(/^1000+/, "");
   $("dlgBody").innerHTML = `
     <div class="dhead">
-      <h3>${M ? `<b class="mname">${r.name}</b>` : starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${M ? `<span class="tag">${r.group}</span>` : r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
+      <h3>${M ? `<b class="mname">${r.name}</b>` : starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${M ? `<span class="tag">${r.group}</span>${mxInvTag(r)}` : r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
       <span class="meta"><span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span> ${r.quote} · <span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span> ${r.ct ? "" : `· $${fmtVol(r.vol24h)} volume `}· Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
       <div class="dacts"><button class="btn" data-openchart="${r.symbol}">Charts</button><button class="btn primary" data-tv="${r.symbol}">Open in TradingView</button><button class="btn" id="dlgClose" aria-label="Close">Close</button></div>
     </div>
@@ -5713,7 +5732,7 @@ function macroReadHTML() {
 function macroRowHTML(r, i) {
   const p = coinPlay(r), m = r.momo;
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
-    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${ratingHTML(r.rating)}</div>
+    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${mxInvTag(r)}${ratingHTML(r.rating)}</div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span>${m ? ` <span class="tag ${m.dir === "Long" ? "long" : "short"}">${MOMO_STAGE[m.stage]}</span>` : ""}</div>
       <div class="ln mstk"><span>1H ${chip(r.s1h)} 4H ${chip(r.s4h)} D ${chip(r.s1d)}</span><span class="rsis">RSI 1H ${rsiChip(r.rsi && r.rsi.h1)} 4H ${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""}</div></div>
@@ -5726,7 +5745,7 @@ function renderMacro() {
   else {
     const now = Date.now(), groups = MACRO_GROUPS.map(g => [g, MACRO.rows.filter(r => r.group === g)]).filter(([, rs]) => rs.length);
     body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" || g === "Indices" ? usSession(now) : g === "Forex" || g === "MEXC Forex" ? fxSession(now) : cmeSession(now);
-      return `<div class="board${g === "Forex" ? " wide" : ""}"><div class="board-head"><h2>${MACRO_TITLE(g)}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div><div class="${g === "Forex" ? "rows3" : ""}">${rs.map(macroRowHTML).join("")}</div></div>`; }).join("")}</div>`;
+      return `<div class="board${g === "Forex" ? " wide" : ""}"><div class="board-head"><h2>${MACRO_TITLE(g)}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div>${g === "MEXC Forex" ? `<div class="why mxfxnote">These are all the currencies MEXC lists, each against the dollar. NZD and crosses like EUR/JPY or GBP/JPY aren't on MEXC; connect cTrader for all 28 pairs. USD/JPY, USD/CAD, USD/CHF, USD/TRY and USD/BRL are flipped from MEXC's JPY_USDT-style contracts so they read like every other chart: a long here is a short on MEXC.</div>` : ""}<div class="${g === "Forex" ? "rows3" : ""}">${rs.map(macroRowHTML).join("")}</div></div>`; }).join("")}</div>`;
     bindRows(body);
   }
   $("macroRead").innerHTML = MACRO.rows.length ? macroReadHTML() : "";
@@ -5940,7 +5959,7 @@ function xMomoRows(rows) {
 function xMomoRowHTML(x, i) {
   const r = x.r, m = x.m, ig = (r.models || []).find(mm => mm.model === "Ignite" && mm.dir === m.dir);
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
-    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${(r.group || "").replace(/^MEXC /, "")}</span>${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
+    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${(r.group || "").replace(/^MEXC /, "")}</span>${mxInvTag(r)}${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span> · ${momoLine(r, m)}</div>
       <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
@@ -7149,7 +7168,7 @@ function chCatOf(s) {
   if (chIsTF(s)) return ((MACRO_INFO[chBase(s)] || [])[1] === "US Indices") ? "indices" : "metals";
   return "crypto";
 }
-function chSrc(s) { return s.startsWith("CT:") ? (CT.broker || "cTrader") : isMX(s) ? "MEXC perp" : chIsTF(s) ? "Binance TradFi perp" : `${exName()} ${MODE === "spot" ? "spot" : "perp"}`; }
+function chSrc(s) { return s.startsWith("CT:") ? (CT.broker || "cTrader") : isMX(s) ? (mxInv(s) ? "MEXC perp, flipped to USD/xxx" : "MEXC perp") : chIsTF(s) ? "Binance TradFi perp" : `${exName()} ${MODE === "spot" ? "spot" : "perp"}`; }
 function chCatList(cat) {
   const out = [], add = s => { if (s && !out.includes(s)) out.push(s); };
   const ctRows = MACRO.rows.filter(r => r.ct).map(r => r.symbol);

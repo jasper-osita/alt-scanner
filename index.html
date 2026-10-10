@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.2247">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.09.2344">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -631,6 +631,30 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .mchip{background:var(--pill);border:1px solid var(--pill-b);border-radius:999px;padding:4px 11px;font-size:12.5px;color:var(--mute)}
 .mchip b{color:var(--text);font-weight:600}.mchip b.up{color:var(--green)}.mchip b.dn{color:var(--red)}
 .mstat{margin-left:auto;font-size:11.5px;color:var(--mute);white-space:nowrap}.mstat.open{color:var(--green)}.mstat.closed{color:var(--amber)}
+/* forex, metals & indices: overview + momentum */
+.xovhead{padding-bottom:10px}.xovhead .ctbar:empty{display:none}
+#xHours h2,#xFlow>h2{margin:0 0 10px;font-size:16px;font-weight:600;color:var(--strong)}
+.xhours{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:8px}
+.xinst{display:flex;flex-direction:column;min-width:0;line-height:1.25}.xinst b{color:var(--strong);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.xinst .meta{font-size:11px}
+.xhr{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);min-width:0}
+.xhr.open{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
+.xhn{display:flex;align-items:center;gap:6px}.xhn b{color:var(--strong);font-size:13.5px}
+.xhr .dot{color:var(--amber);font-size:10px}.xhr.open .dot{color:var(--green)}
+.xst{margin-left:auto;font-size:11.5px;color:var(--amber)}.xhr.open .xst{color:var(--green)}
+.xhr .meta{font-size:11.5px;margin-top:2px}.xwhen{font-size:12px;color:var(--text);margin-top:4px}
+.xstat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.xstat{grid-template-columns:1fr 1fr}}
+.xstat .tv{font-size:16px}
+.xkv{grid-template-columns:minmax(110px,1.4fr) repeat(3,minmax(0,1fr));font-size:13px}.xkv>span:not(:first-child){text-align:right}
+.xkv>span:nth-child(4n+1){text-align:left}
+.xbars{display:flex;flex-direction:column;gap:5px;margin:6px 0 10px}
+.xbar{display:grid;grid-template-columns:40px minmax(0,1fr) 70px;gap:8px;align-items:center;font-size:12.5px}
+.xbar .xc{font-weight:600;color:var(--strong)}.xbar .xv{text-align:right}
+.xtrack{position:relative;height:8px;border-radius:4px;background:var(--pill)}
+.xtrack::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--line)}
+.xtrack i{position:absolute;top:0;bottom:0;border-radius:4px}.xtrack i.up{background:var(--green)}.xtrack i.dn{background:var(--red)}
+.momogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.momogrid{grid-template-columns:1fr}}
 .mname{color:var(--strong);font-weight:600}
 .mpx{color:var(--text);font-weight:600}
 .board.wide{grid-column:1/-1}
@@ -911,6 +935,29 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     </div>
   </section>
 
+  <section class="card macrocard xovhead" data-page="macroov macromomo">
+    <div class="momohead"><h2 id="xovTitle">Forex, Metals &amp; Indices</h2><span class="meta xmeta">Binance TradFi perpetuals</span>
+      <button class="btn xrun" style="margin-left:auto">Refresh</button></div>
+    <div class="ctbar xctbar"></div>
+  </section>
+
+  <section class="card" id="xHours" data-page="macroov"><h2>Market Hours <span class="meta">your time (PHT) · holidays not included</span></h2><div class="xhours"></div></section>
+
+  <section class="mrow" data-page="macroov">
+    <div class="mcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
+    <div class="mcard"><h2>Top Gainers <span class="meta">24h</span></h2><div class="note">Forex, metals, energy and indices</div><div id="xGainers"><div class="empty">Loading…</div></div></div>
+    <div class="mcard"><h2>Top Losers <span class="meta">24h</span></h2><div class="note">Forex, metals, energy and indices</div><div id="xLosers"><div class="empty">Loading…</div></div></div>
+  </section>
+
+  <section class="card rotcard" id="xFlow" data-page="macroov"><h2>Money Flow</h2><div class="empty">Loading…</div></section>
+
+  <section class="card sesscard momocard" data-page="macromomo">
+    <div class="momohead"><h2>Momentum Board</h2><span class="meta">Forex, metals, energy and indices · 1H RSI (14) and EMA 20/50/100 · 4H as context</span>
+      <label class="tog" style="margin-left:auto"><input type="checkbox" id="xmomoAlert"> Alert me on new breakouts</label></div>
+    <div class="why">The same three stages as the coin board: already running, pausing after a push, and starting a new trend out of bunched moving averages. Each instrument is listed in its strongest stage; stretched ones (3+ ATR from the 20) are flagged so you wait for a pullback instead of chasing. When your cTrader account is connected, its prices are used for anything it also lists.</div>
+    <div id="xMomo" class="momogrid"><div class="empty">Loading…</div></div>
+  </section>
+
   <section class="card macrocard" id="macro" data-page="macro">
     <div class="momohead"><h2>Forex, Gold &amp; Indices</h2><span class="meta" id="macroMeta">Binance TradFi perpetuals</span>
       <button class="btn" id="macroRun" style="margin-left:auto">Refresh</button></div>
@@ -978,6 +1025,10 @@ const FAPI = "https://fapi.binance.com";
 /* Binance TradFi perpetuals (gold, oil, index ETFs): always read from Binance futures, whatever exchange the crypto scan uses */
 const TRADFI_SYMS = new Set();
 const MACRO = { rows: [], by: {}, at: null, running: false, err: null };
+function macroPaint(r) {                             // a live price lands on every board showing this instrument
+  document.querySelectorAll(`[data-mp="${r.symbol}"]`).forEach(e => e.textContent = fmtPrice(r.price));
+  document.querySelectorAll(`[data-mc="${r.symbol}"]`).forEach(e => e.innerHTML = pctCell(r.chg24h));
+}
 const MACRO_INFO = {      // base → [name, group, the real market on TradingView]
   XAU: ["Gold", "Metals", "OANDA:XAUUSD"], XAG: ["Silver", "Metals", "OANDA:XAGUSD"], XPT: ["Platinum", "Metals", "OANDA:XPTUSD"],
   XPD: ["Palladium", "Metals", "OANDA:XPDUSD"], COPPER: ["Copper", "Metals", "OANDA:XCUUSD"],
@@ -3750,7 +3801,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.09.2247";
+const APP_VERSION = "2026.10.09.2344";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -3997,8 +4048,7 @@ function mxLiveQuote(mk, price) {                      // live price for a MEXC 
   if (!isFinite(price)) return;
   const r = MACRO.by[mk];
   if (r) { r.price = price; if (r.ref24) r.chg24h = (price / r.ref24 - 1) * 100;
-    const pe = document.querySelector(`[data-mp="${mk}"]`), ce = document.querySelector(`[data-mc="${mk}"]`);
-    if (pe) pe.textContent = fmtPrice(r.price); if (ce) ce.innerHTML = pctCell(r.chg24h); }
+    macroPaint(r); }
   if (typeof CHQ !== "undefined" && CHQ[mk]) CHQ[mk].price = price;
 }
 function liveMessage(m) {
@@ -5083,7 +5133,7 @@ function momoAlerts(fresh) {
   const now = Date.now(); Object.keys(seen).forEach(k => { if (now - seen[k] > 3 * 864e5) delete seen[k]; });
   fresh.forEach(({ r, m }) => {
     const key = r.symbol + "|" + m.breakAt; if (seen[key]) return; seen[key] = now;
-    notify(`🚀 ${coin(r.symbol)} ${m.dir === "Long" ? "broke out above" : "broke down below"} its 20/50/100`,
+    notify(`🚀 ${r.macro ? r.name : coin(r.symbol)} ${m.dir === "Long" ? "broke out above" : "broke down below"} its 20/50/100`,
       `RSI ${r.rsi && r.rsi.h1 != null ? r.rsi.h1.toFixed(0) : "—"}${m.volx ? `, ${m.volx}× volume` : ""}${m.h4ok ? ", 4H agrees" : ", 4H not yet"}. Check the chart before acting.`,
       { sym: r.symbol, kind: "Breakouts", icon: "🚀", tone: m.dir === "Long" ? "up" : "down", title: `${m.dir === "Long" ? "Broke out above" : "Broke down below"} its 20/50/100` });
   });
@@ -5372,7 +5422,7 @@ $("liveBadge").onclick = () => {
 };
 liveSetState(liveOn() ? "connecting" : "off");
 $("momoAlert").checked = momoAlertOn();
-$("momoAlert").onchange = () => { try { localStorage.setItem(MOMO_ALERT_KEY, $("momoAlert").checked ? "on" : "off"); } catch (e) {} if ($("momoAlert").checked) askNotify(); };
+$("momoAlert").onchange = () => { try { localStorage.setItem(MOMO_ALERT_KEY, $("momoAlert").checked ? "on" : "off"); } catch (e) {} if ($("momoAlert").checked) askNotify(); if ($("xmomoAlert")) $("xmomoAlert").checked = $("momoAlert").checked; };
 $("fToggle").onclick = () => togglePanel(); $("fClose").onclick = () => togglePanel(false);
 try { if (localStorage.getItem("altscan-fopen")) togglePanel(true); } catch (e) {}
 new MutationObserver(() => { $("fBadge2").textContent = $("fBadge").textContent; }).observe($("fBadge"), { childList: true, characterData: true, subtree: true });
@@ -5498,14 +5548,15 @@ ncPrune(); ncSave(); ncRenderBell();
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
-  { g: "MACRO", items: [["macro", "Forex, Gold & Indices"]] },
+  { g: "FOREX · METALS · INDICES", items: [["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
   { g: "MY TRADING", items: [["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
 ];
 const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
 const PAGE_INFO = {};
-PAGES.forEach(g => g.items.forEach(([id, label]) => PAGE_INFO[id] = { g: g.g, label }));
+PAGES.forEach(g => g.items.forEach(([id, label, title]) => PAGE_INFO[id] = { g: g.g, label, title: title || label }));
+const MACRO_PAGES = ["macro", "macroov", "macromomo"];
 let page = "overview";
 function pageGroupName(g) { return g.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
 function renderNav() {
@@ -5521,15 +5572,15 @@ function goPage(id, keepTab) {
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
   document.querySelectorAll("[data-page]").forEach(el => el.classList.toggle("pg-off", !el.dataset.page.split(" ").includes(id)));
   const info = PAGE_INFO[id];
-  $("pageTitle").textContent = info.label; mTabSync(id);
+  $("pageTitle").textContent = info.title; mTabSync(id);
   $("crumb").innerHTML = `${pageGroupName(info.g)} › <b>${info.label}</b>`;
-  document.title = `${info.label} · The Finder`;
+  document.title = `${info.title} · The Finder`;
   if (!keepTab && id in PAGE_TAB) {
     const want = PAGE_TAB[id] || (tab === "watch" || tab === "day" || tab === "swing" || tab === "aots" || tab === "momentum" ? "overview" : tab);
     if (want !== tab) { tab = want; sortKey = null; sortDir = -1; renderTabs(); renderTable(); }
   }
   renderNav();
-  if (id === "macro") macroScan(false).catch(() => {});
+  if (MACRO_PAGES.includes(id)) { if (id !== "macro") renderMacroBoards(); macroScan(false).catch(() => {}); }
   if (typeof chPageShown === "function") chPageShown(id === "charts");
   if (changed) window.scrollTo(0, 0);
   // charts sized while hidden need a nudge once their page shows
@@ -5547,6 +5598,7 @@ function navBadges() {
   set("sessions", has ? n("#sessionPicks .row") : "");
   set("screener", has ? data.all.length : "");
   { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n || MACRO.rows.length) : ""); }
+  if (MACRO.rows.length) { const R = xMomoRows(xRows()); set("macromomo", R.momentum.length + R.awaiting.length + R.breakout.length); } else set("macromomo", "");
   const fa = typeof activeFilters === "function" ? activeFilters().length : 0;
   set("filters", fa ? fa + " on" : "");
   let w = 0, al = 0;
@@ -5682,6 +5734,7 @@ function renderMacro() {
   const srcName = MACRO.src === "mexc" ? "MEXC perpetuals (forex, metals, energy, indices)" : "Binance TradFi perpetuals";
   if (!MACRO.running) $("macroMeta").textContent = MACRO.at ? `${MACRO.rows.some(r => r.ct) ? CT.broker + " via cTrader + " : ""}${srcName} · updated ${fmtPHT(new Date(MACRO.at + PHT_MS)).split(", ")[1]}${MACRO.err ? " · last refresh failed" : ""}` : srcName;
   $("macroRun").disabled = MACRO.running; $("macroRun").textContent = MACRO.running ? "Loading…" : "Refresh";
+  if (typeof renderMacroBoards === "function") renderMacroBoards();
 }
 const macroSrc = () => $("exF").value === "mexc" ? "mexc" : "binance";     // gold, indices (and MEXC's forex) follow the exchange picker
 async function macroScan(force) {
@@ -5692,7 +5745,7 @@ async function macroScan(force) {
   try {
     const maFn = $("maType").value === "sma" ? sma : ema;
     const [bin, ct] = await Promise.allSettled([
-      (MACRO.src === "mexc" ? mxScanMacro : scanMacro)(maFn, (d, n) => { $("macroMeta").textContent = `Reading ${d} of ${n}…`; }),
+      (MACRO.src === "mexc" ? mxScanMacro : scanMacro)(maFn, (d, n) => { const t = `Reading ${d} of ${n}…`; $("macroMeta").textContent = t; document.querySelectorAll(".xmeta").forEach(e => e.textContent = t); }),
       ctConfigured() ? ctScan(maFn) : Promise.resolve([])]);
     if (ct.status === "rejected") { CT.state = "error"; CT.err = ct.reason && ct.reason.message || "couldn't load forex";
       if (NC_STATE.ctErr !== CT.err) { NC_STATE.ctErr = CT.err; ncAdd({ kind: "System", icon: "⚠️", tone: "warn", sym: null, action: "ctrader", title: "cTrader didn't connect", detail: CT.err.charAt(0).toUpperCase() + CT.err.slice(1) + "." }); } }
@@ -5707,12 +5760,226 @@ async function macroScan(force) {
   if (MACRO.again || MACRO.src !== macroSrc()) { MACRO.again = false; if (MACRO.src !== macroSrc()) macroScan(true); }
 }
 $("macroRun").onclick = () => macroScan(true);
+/* ===================== Forex, metals & indices: Overview and Momentum boards (same reads as the coin boards) ===================== */
+const ZFMT = {};
+function zClock(ms, tz) {                             // weekday and minutes after midnight in any market's own time zone
+  const f = ZFMT[tz] || (ZFMT[tz] = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }));
+  const p = {}; f.formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value);
+  return { wd: p.weekday, m: (+p.hour % 24) * 60 + +p.minute };
+}
+const WKDAY = d => d !== "Sat" && d !== "Sun";
+const inAny = (m, spans) => spans.some(([a, b]) => m >= a && m < b);
+const MKT_HOURS = [   // [name, what it moves, zone, open?(weekday, minutes)]
+  ["Forex", "All currency pairs", "America/New_York", (d, m) => !(d === "Sat" || (d === "Sun" && m < 1020) || (d === "Fri" && m >= 1020))],
+  ["Tokyo", "Nikkei 225 · busiest JPY hours", "Asia/Tokyo", (d, m) => WKDAY(d) && inAny(m, [[540, 690], [750, 930]])],
+  ["Hong Kong", "Hang Seng", "Asia/Hong_Kong", (d, m) => WKDAY(d) && inAny(m, [[570, 720], [780, 960]])],
+  ["Seoul", "KOSPI", "Asia/Seoul", (d, m) => WKDAY(d) && inAny(m, [[540, 930]])],
+  ["London", "Busiest forex hours · EUR, GBP, CHF", "Europe/London", (d, m) => WKDAY(d) && inAny(m, [[480, 990]])],
+  ["New York", "S&P 500, Nasdaq, Dow · USD", "America/New_York", (d, m) => WKDAY(d) && inAny(m, [[570, 960]])],
+  ["CME futures", "Gold, silver, oil, gas", "America/New_York", (d, m) => !(d === "Sat" || (d === "Sun" && m < 1080) || (d === "Fri" && m >= 1020)) && !(m >= 1020 && m < 1080)],
+];
+function mktHour([name, what, tz, fn], now) {
+  const isOpen = t => { const c = zClock(t, tz); return fn(c.wd, c.m); }, open = isOpen(now);
+  let t = Math.ceil((now + 1) / 900e3) * 900e3, at = null;                // every session edge sits on a quarter hour
+  for (let i = 0; i < 8 * 96; i++, t += 900e3) if (isOpen(t) !== open) { at = t; break; }
+  return { name, what, open, at };
+}
+const durTxt = ms => { const m = Math.max(1, Math.round(ms / 60e3)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mm = m % 60;
+  return d ? `${d}d ${h}h` : h ? `${h}h ${mm}m` : `${mm}m`; };
+const phtClock = t => { const p = fmtPHT(new Date(t + PHT_MS)).split(", "); return p[1] || p[0]; };
+function renderXHours() {
+  const el = document.querySelector("#xHours .xhours"); if (!el) return;
+  const now = Date.now(), wd = new Date(now + PHT_MS).getUTCDay();
+  el.innerHTML = MKT_HOURS.map(x => mktHour(x, now)).map(h => {
+    const day = h.at != null && new Date(h.at + PHT_MS).getUTCDay() !== wd ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(h.at + PHT_MS).getUTCDay()] + " " : "";
+    return `<div class="xhr ${h.open ? "open" : ""}"><div class="xhn"><span class="dot">●</span> <b>${h.name}</b><span class="xst">${h.open ? "Open" : "Closed"}</span></div>
+      <div class="meta">${h.what}</div>
+      <div class="xwhen">${h.at == null ? "" : `${h.open ? "Closes" : "Opens"} ${day}${phtClock(h.at).replace(/ PHT$/, "")} · <span class="mute">in ${durTxt(h.at - now)}</span>`}</div></div>`; }).join("");
+}
+
+// one row per instrument: your cTrader broker's price wins when it lists the same market as the exchange
+function xRows() {
+  const by = new Map();
+  MACRO.rows.forEach(r => { const k = r.name || r.symbol, o = by.get(k); if (!o || (r.ct && !o.ct)) by.set(k, r); });
+  return [...by.values()];
+}
+const X_CLASS = {
+  "Precious metals": ["Gold", "Silver", "Platinum", "Palladium"],
+  "Industrial metals": ["Copper", "Aluminium", "Nickel", "Zinc", "Lead"],
+  "Energy": ["WTI Crude Oil", "Brent Crude Oil", "Natural Gas"],
+  "US stocks": ["S&P 500", "Nasdaq 100", "Dow Jones", "Russell 2000", "Semiconductors"],
+  "Asian stocks": ["Nikkei 225", "Hang Seng", "KOSPI"],
+};
+const xRet = (r, w) => w === "24h" ? r.chg24h : w === "7d" ? (r.ret7 == null ? null : r.ret7 * 100) : (r.ret30 == null ? null : r.ret30 * 100);
+const avg = a => { const v = a.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((p, x) => p + x, 0) / v.length : null; };
+function xClassRet(rows, cls, w) { const ns = X_CLASS[cls]; return avg(rows.filter(r => ns.includes(r.name)).map(r => xRet(r, w))); }
+function xCcy(rows, w) {                               // each currency's change against the others it's quoted with, averaged
+  const acc = {}, fxg = rows.some(r => r.group === "Forex") ? "Forex" : "MEXC Forex";
+  rows.filter(r => r.group === fxg).forEach(r => { const v = xRet(r, w); if (v == null) return; const p = r.pair || coin(r.symbol), b = p.slice(0, 3), q = p.slice(3, 6);
+    (acc[b] = acc[b] || []).push(v); (acc[q] = acc[q] || []).push(-v); });
+  return Object.fromEntries(Object.entries(acc).map(([c, v]) => [c, avg(v)]));
+}
+const xFind = (rows, name) => rows.find(r => r.name === name);
+const sgn = v => v == null ? '<span class="mute">—</span>' : `<span class="${v >= 0 ? "up" : "dn"}">${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}%</span>`;
+
+function renderXStat(rows) {
+  const tr = n => { const r = xFind(rows, n); return r ? macroTrend(r) : null; }, cls = v => v === "Uptrend" || v === "Risk-on" ? "up" : v === "Downtrend" || v === "Risk-off" ? "dn" : "";
+  const spx = tr("S&P 500"), ndx = tr("Nasdaq 100"), tone = spx && ndx ? (spx === "Uptrend" && ndx === "Uptrend" ? "Risk-on" : spx === "Downtrend" && ndx === "Downtrend" ? "Risk-off" : "Mixed") : null;
+  const c24 = xCcy(rows, "24h"), c7 = xCcy(rows, "7d"), ccy = Object.entries(c24).filter(([, v]) => v != null).sort((a, b) => b[1] - a[1]);
+  const pool = rows.filter(r => r.name !== "Volatility (VIX)"), bull = pool.filter(r => ["Bull stack", "Pullback in bull"].includes(r.s4h.state)).length,
+    bear = pool.filter(r => ["Bear stack", "Pullback in bear"].includes(r.s4h.state)).length;
+  const asset = (n, label) => { const r = xFind(rows, n), t = r && macroTrend(r);
+    return `<div class="tile"><div class="tl">${label}</div><div class="tv">${r ? `<span data-mp="${r.symbol}">${fmtPrice(r.price)}</span> <span class="mchg" data-mc="${r.symbol}">${pctCell(r.chg24h)}</span>` : "—"}</div>
+      <div class="meta" title="4H and Daily stacks">${t ? `<b class="${cls(t)}">${t}</b>` : r ? "" : "Not listed here"}</div></div>`; };
+  const vix = xFind(rows, "Volatility (VIX)");
+  $("xStat").innerHTML = `
+    <div class="tile"><div class="tl">US Risk Tone</div><div class="tv ${cls(tone)}">${tone || "—"}</div>
+      <div class="meta">${tone ? `S&amp;P ${spx.toLowerCase()} · Nasdaq ${ndx.toLowerCase()}` : "Needs the S&amp;P 500 and Nasdaq"}</div></div>
+    <div class="tile"><div class="tl">US Dollar</div><div class="tv">${c24.USD != null ? sgn(c24.USD) : "—"}</div>
+      <div class="meta">${c24.USD != null ? `24h vs the others · 7d ${c7.USD != null ? sgn(c7.USD) : "—"}` : "Needs forex pairs"}</div></div>
+    ${asset("Gold", "Gold")}${asset("WTI Crude Oil", "Oil (WTI)")}
+    <div class="tile"><div class="tl">Breadth (4H)</div><div class="tv">${pool.length ? `<span class="up">${Math.round(bull / pool.length * 100)}%</span> <span class="mute">/</span> <span class="dn">${Math.round(bear / pool.length * 100)}%</span>` : "—"}</div>
+      <div class="meta">bull / bear stacks · ${pool.length} instruments</div></div>
+    <div class="tile"><div class="tl">Strongest / Weakest <span class="mute">24h</span></div><div class="tv">${ccy.length >= 2 ? `<span class="up">${ccy[0][0]}</span> <span class="mute">/</span> <span class="dn">${ccy.at(-1)[0]}</span>` : "—"}</div>
+      <div class="meta">${ccy.length >= 2 ? `${sgn(ccy[0][1])} · ${sgn(ccy.at(-1)[1])}` : "Needs forex pairs"}</div></div>
+    ${vix ? `<div class="tile wide"><div class="tl">Volatility (VIX via UVXY)</div><div class="tv"><span class="mchg" data-mc="${vix.symbol}">${pctCell(vix.chg24h)}</span></div>
+      <div class="meta">${vix.chg24h >= 5 ? "Fear rising: stocks usually struggle while this climbs" : vix.chg24h <= -5 ? "Fear easing" : "Calm"} · 24h</div></div>` : ""}`;
+}
+function xMoverRow(r, i) {
+  return `<div class="mv" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span><div class="xinst"><b>${r.name.replace(/ \(.*\)$/, "")}</b><span class="meta">${(r.group || "").replace(/^MEXC /, "")}</span></div>
+    <span class="mvp" data-mp="${r.symbol}">${fmtPrice(r.price)}</span><span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span></div>`;
+}
+function renderXMovers(rows) {
+  const pool = rows.filter(r => r.name !== "Volatility (VIX)" && isFinite(r.chg24h));
+  const g = [...pool].filter(r => r.chg24h > 0).sort((a, b) => b.chg24h - a.chg24h).slice(0, 8), l = [...pool].filter(r => r.chg24h < 0).sort((a, b) => a.chg24h - b.chg24h).slice(0, 8);
+  $("xGainers").innerHTML = g.map(xMoverRow).join("") || `<div class="empty">Nothing is up over 24h.</div>`;
+  $("xLosers").innerHTML = l.map(xMoverRow).join("") || `<div class="empty">Nothing is down over 24h.</div>`;
+  bindRows($("xGainers")); bindRows($("xLosers"));
+}
+
+function xFlowRead(rows) {                            // risk-on / risk-off, the dollar, havens and commodities over the last 7 days
+  const W = ["24h", "7d", "30d"], cc = Object.fromEntries(W.map(w => [w, xCcy(rows, w)]));
+  const cl = Object.fromEntries(Object.keys(X_CLASS).map(k => [k, Object.fromEntries(W.map(w => [w, xClassRet(rows, k, w)]))]));
+  const haven = w => avg([cc[w].JPY, cc[w].CHF]), gold = w => { const r = xFind(rows, "Gold"); return r ? xRet(r, w) : null; };
+  const eq7 = cl["US stocks"]["7d"] ?? cl["Asian stocks"]["7d"], eqName = cl["US stocks"]["7d"] != null ? "US stocks" : "Asian stocks";
+  const h7 = haven("7d"), g7 = gold("7d"), usd7 = cc["7d"].USD, vix = xFind(rows, "Volatility (VIX)"), vix7 = vix ? xRet(vix, "7d") : null;
+  const ck = (name, val, need, pass) => ({ name, val, need, pass });
+  const on = [ck(`${eqName} up`, sgn(eq7), "above +0.5%", eq7 == null ? null : eq7 > 0.5),
+    ck("Safe-haven currencies (JPY, CHF) weaker", sgn(h7), "below 0", h7 == null ? null : h7 < 0),
+    ...(vix ? [ck("Volatility falling", sgn(vix7), "below 0", vix7 == null ? null : vix7 < 0)] : [])];
+  const off = [ck(`${eqName} down`, sgn(eq7), "below −0.5%", eq7 == null ? null : eq7 < -0.5),
+    ck("Havens bid (JPY, CHF stronger or gold up)", `${sgn(h7)} · gold ${sgn(g7)}`, "either above 0", h7 == null && g7 == null ? null : (h7 ?? -1) > 0 || (g7 ?? -1) > 0)];
+  const all = cs => cs.every(c => c.pass !== false) && cs.some(c => c.pass === true) && cs[0].pass === true;
+  const key = all(on) ? "on" : all(off) ? "off" : "mixed";
+  const themes = [];
+  if (usd7 != null && usd7 >= 0.5) themes.push(["Dollar bid", "dn", `USD ${sgn(usd7)} vs the others over 7 days: a strong dollar usually weighs on gold, EUR and GBP.`]);
+  if (usd7 != null && usd7 <= -0.5) themes.push(["Dollar offered", "up", `USD ${sgn(usd7)} over 7 days: a weak dollar usually helps gold and the other majors.`]);
+  const en = cl.Energy["7d"], ind = cl["Industrial metals"]["7d"];
+  if (en != null && en >= 2 && (ind == null || ind >= 1)) themes.push(["Commodities bid", "up", `Energy ${sgn(en)}${ind != null ? `, industrial metals ${sgn(ind)}` : ""} over 7 days: growth or inflation demand.`]);
+  if (g7 != null && g7 >= 1.5 && (h7 ?? 1) > 0) themes.push(["Safe havens bid", "dn", `Gold ${sgn(g7)} and JPY/CHF ${sgn(h7)} over 7 days: money is hiding.`]);
+  const pm = cl["Precious metals"]["7d"];
+  if (eq7 != null && eq7 <= -2 && pm != null && pm <= -2 && ((en ?? 0) <= -2 || (ind ?? 0) <= -2)) themes.push(["Broad selling", "dn", `Stocks ${sgn(eq7)}, precious metals ${sgn(pm)} and commodities all down on the week: usually a dollar squeeze or forced deleveraging, where even the havens get sold.`]);
+  if (g7 != null && g7 >= 1.5 && eq7 != null && eq7 >= 0.5) themes.push(["Gold and stocks both up", "", "Usually a liquidity tailwind (falling dollar or yields) rather than fear."]);
+  const lead = rows.filter(r => r.name !== "Volatility (VIX)" && r.ret7 != null).sort((a, b) => b.ret7 - a.ret7);
+  const L = { on: ["Risk-on", "up", "Stocks are rising and the safe-haven currencies are being sold: money is going into risk. Favour longs on indices and the risk currencies (AUD, NZD, GBP) and be careful shorting them.",
+                   `${eqName} turning down on the week while JPY or CHF firm up.`],
+              off: ["Risk-off", "dn", "Stocks are falling while money hides in the yen, franc or gold. Shorts on indices and longs on the havens have the wind behind them; longs on the risk currencies fight it.",
+                   `${eqName} reclaiming positive on the week with JPY and CHF softening.`],
+              mixed: ["Mixed", "chopc", "Stocks, the havens and gold aren't telling the same story this week. Trade each chart on its own structure and keep size modest.",
+                   "Stocks and the havens lining up in opposite directions for a full week."] }[key];
+  return { key, label: L[0], cls: L[1], desc: L[2], invalid: L[3], checks: key === "off" ? off : on, other: key === "off" ? on : off, themes, cc, cl, W,
+    lead: lead.slice(0, 6), lag: lead.slice(-6).reverse(), eqName };
+}
+function renderXFlow(rows) {
+  const el = $("xFlow"), R = xFlowRead(rows);
+  const ck = c => `<li class="${c.pass === true ? "ok" : c.pass === false ? "no" : "na"}"><span>${c.pass === true ? "✓" : c.pass === false ? "✗" : "–"}</span><b>${c.name}</b> ${c.val} <span class="mute">needs ${c.need}</span></li>`;
+  const line = (name, by) => `<span>${name}</span>${R.W.map(w => `<span>${sgn(by[w])}</span>`).join("")}`;
+  const ccys = Object.keys(R.cc["7d"]).sort((a, b) => (R.cc["7d"][b] ?? -99) - (R.cc["7d"][a] ?? -99));
+  const bar = (c, v) => { const w = v == null ? 0 : Math.min(50, Math.abs(v) / 3 * 50);
+    return `<div class="xbar"><span class="xc">${c}</span><span class="xtrack"><i class="${v >= 0 ? "up" : "dn"}" style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></i></span><span class="xv">${sgn(v)}</span></div>`; };
+  const chipR = r => `<button class="qchip" data-s="${r.symbol}">${r.name} <span>${sgn(r.ret7 * 100)}</span></button>`;
+  el.innerHTML = `
+    <div class="pbhead"><h2>Money Flow</h2><span class="pblabel ${R.cls}">${R.label}</span><span class="meta">last 7 days · ${rows.length} instruments</span></div>
+    <p class="pbdesc">${R.desc}</p>
+    ${R.themes.length ? `<div class="macroread">${R.themes.map(([t, c, why]) => `<span class="mchip" title="${why.replace(/<[^>]+>/g, "")}"><b class="${c}">${t}</b></span>`).join("")}</div><ul class="pbwhy">${R.themes.map(t => `<li>${t[2]}</li>`).join("")}</ul>` : ""}
+    <div class="rotgrid">
+      <div>
+        <h3 class="pbh3">The Evidence <span class="meta">average change</span></h3>
+        <div class="kv xkv"><span></span>${R.W.map(w => `<span class="mute">${w}</span>`).join("")}
+          ${Object.keys(X_CLASS).filter(k => R.W.some(w => R.cl[k][w] != null)).map(k => line(k, R.cl[k])).join("")}
+          ${["USD", "JPY", "CHF"].filter(c => R.cc["7d"][c] != null).map(c => line(c === "USD" ? "US dollar" : c === "JPY" ? "Japanese yen" : "Swiss franc", Object.fromEntries(R.W.map(w => [w, R.cc[w][c]])))).join("")}
+        </div>
+        ${ccys.length >= 3 ? `<h3 class="pbh3">Currency Strength <span class="meta">7 days, vs the others</span></h3><div class="xbars">${ccys.map(c => bar(c, R.cc["7d"][c])).join("")}</div>` : ""}
+      </div>
+      <div>
+        <h3 class="pbh3">${R.key === "mixed" ? "Risk-on Needs" : "Why " + R.label}</h3><ul class="rck">${R.checks.map(ck).join("")}</ul>
+        ${R.key === "mixed" ? `<h3 class="pbh3">Risk-off Needs</h3><ul class="rck">${R.other.map(ck).join("")}</ul>` : ""}
+        <h3 class="pbh3">What Changes It</h3><p class="rtxt">${R.invalid}</p>
+        <h3 class="pbh3">Leading <span class="meta">7 days</span></h3><div class="rotlead">${R.lead.filter(r => r.ret7 > 0).map(chipR).join("") || '<span class="mute">Nothing is up on the week.</span>'}</div>
+        <h3 class="pbh3">Lagging <span class="meta">7 days</span></h3><div class="rotlead">${R.lag.filter(r => r.ret7 < 0).map(chipR).join("") || '<span class="mute">Nothing is down on the week.</span>'}</div>
+      </div>
+    </div>
+    <p class="meta rotnote">Stocks up with the yen and franc sold is the classic risk-on pattern, and the reverse is risk-off, but these links break often (gold and stocks can rise together when the dollar falls). This card reports only what the last 7 days show and what would change the read; it doesn't say what comes next. Forex on MEXC is quoted against USD only, so the currency strengths there lean on one pair each.</p>`;
+  el.querySelectorAll("[data-s]").forEach(b => b.onclick = () => openDetail(b.dataset.s));
+}
+
+function xMomoRows(rows) {
+  const out = { momentum: [], awaiting: [], breakout: [] }, fresh = [];
+  rows.forEach(r => {
+    const m = r.momo; if (!m || !dirOK(m.dir) || r.name === "Volatility (VIX)") return;
+    const rsi = r.rsi && r.rsi.h1, x = rsi == null ? 50 : m.dir === "Long" ? rsi : 100 - rsi;
+    const s = m.stage === "momentum" ? (r.mom ? r.mom.score : 0) + (m.h4ok ? 10 : 0) - (m.stretched ? 15 : 0)
+      : m.stage === "awaiting" ? 80 - Math.abs(65 - x) * 3 + (m.h4ok ? 10 : 0) - (m.tappedAgo || 0)
+      : (m.broke ? 50 : 30) + Math.min(m.volx || 1, 4) * 5 + (x >= 70 ? 15 : x >= 60 ? 8 : 0) + (m.h4ok ? 10 : 0) - (m.stretched ? 20 : 0) + Math.max(0, 1.5 - (m.tight ?? 1.5)) * 5;
+    out[m.stage].push({ r, m, s: r1(s) });
+    if (m.stage === "breakout" && m.broke && m.ago <= 2 && !m.stretched) fresh.push({ r, m });
+  });
+  Object.keys(out).forEach(k => out[k] = out[k].sort((a, b) => b.s - a.s).slice(0, 8));
+  return { ...out, fresh };
+}
+function xMomoRowHTML(x, i) {
+  const r = x.r, m = x.m, ig = (r.models || []).find(mm => mm.model === "Ignite" && mm.dir === m.dir);
+  return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
+    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${(r.group || "").replace(/^MEXC /, "")}</span>${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
+      <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span> · ${momoLine(r, m)}</div>
+      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
+    <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
+}
+function renderXMomo(rows) {
+  const el = $("xMomo"), R = xMomoRows(rows);
+  const col = (k, title, sub) => `<div class="sess"><div class="sesshead"><h3>${title}</h3></div><div class="sessstat">${sub}</div>
+    ${R[k].length ? R[k].map(xMomoRowHTML).join("") : `<div class="empty">Nothing here right now.</div>`}</div>`;
+  el.innerHTML = col("momentum", "🔥 In Momentum", "RSI 70+ on 1H (30 or below for shorts), price beyond all three MAs.")
+    + col("awaiting", "⏳ Awaiting Momentum", "Tapped RSI 70 in the last 12 hours, cooled to 55–70, still holding the 20. Watch for a base (NBB) or a reclaim.")
+    + col("breakout", "🚀 Breaking Out", "A clear close beyond bunched 20/50/100 after time on the other side, RSI 60+. Pressing = testing the cluster with RSI rising.");
+  bindRows(el);
+  momoAlerts(R.fresh);
+}
+function renderMacroBoards() {
+  if (page !== "macroov" && page !== "macromomo") { if (MACRO.rows.length && !MACRO.running) momoAlerts(xMomoRows(xRows()).fresh); return; }   // off-screen: just the breakout alerts
+  const meta = $("macroMeta") ? $("macroMeta").textContent : "";
+  document.querySelectorAll(".xmeta").forEach(e => e.textContent = meta);
+  document.querySelectorAll(".xrun").forEach(b => { b.disabled = MACRO.running; b.textContent = MACRO.running ? "Loading…" : "Refresh"; });
+  document.querySelectorAll(".xctbar").forEach(e => { e.innerHTML = ctBarHTML(); const o = e.querySelector("#ctOpen"); if (o) { o.removeAttribute("id"); o.onclick = openCTSettings; } });
+  if ($("xovTitle")) $("xovTitle").textContent = page === "macromomo" ? "Forex, Metals & Indices · Momentum" : "Forex, Metals & Indices · Overview";
+  renderXHours();
+  const rows = xRows();
+  if (!rows.length) {
+    const msg = MACRO.err ? `Couldn't load the data (${MACRO.err}). Press Refresh to try again.` : MACRO.running ? "Reading forex, metals and the indices…" : "Press Refresh to load forex, metals and the indices.";
+    ["xStat", "xGainers", "xLosers", "xMomo"].forEach(id => $(id).innerHTML = `<div class="empty">${msg}</div>`);
+    $("xFlow").innerHTML = `<h2>Money Flow</h2><div class="empty">${msg}</div>`; return;
+  }
+  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows);
+}
+document.querySelectorAll(".xrun").forEach(b => b.onclick = () => macroScan(true));
+$("xmomoAlert").checked = momoAlertOn();
+$("xmomoAlert").onchange = () => { try { localStorage.setItem(MOMO_ALERT_KEY, $("xmomoAlert").checked ? "on" : "off"); } catch (e) {} $("momoAlert").checked = $("xmomoAlert").checked; if ($("xmomoAlert").checked) askNotify(); };
+setInterval(() => { if (page === "macroov" && !document.hidden) renderXHours(); }, 60e3);
 CT.onSpot = p => {                                    // live bid from cTrader for the forex and broker rows
   const x = CT.byId[p.symbolId]; if (!x || p.bid == null) return;
   const r = MACRO.by["CT:" + x.symbolName]; if (!r) return;
   r.price = +p.bid / 1e5; if (r.ref24) r.chg24h = (r.price / r.ref24 - 1) * 100;
-  const pe = document.querySelector(`[data-mp="${r.symbol}"]`), ce = document.querySelector(`[data-mc="${r.symbol}"]`);
-  if (pe) pe.textContent = fmtPrice(r.price); if (ce) ce.innerHTML = pctCell(r.chg24h);
+  macroPaint(r);
 };
 function openCTSettings() {
   killChart();
@@ -5755,12 +6022,11 @@ function openCTSettings() {
   if (!$("dlg").open) $("dlg").showModal();
 }
 setInterval(async () => {                             // live prices while the page is open; full re-read every 15 minutes
-  if (page !== "macro" || document.hidden || MACRO.running || !MACRO.rows.length) return;
+  if (!MACRO_PAGES.includes(page) || document.hidden || MACRO.running || !MACRO.rows.length) return;
   if (Date.now() - MACRO.at > 15 * 60e3) { macroScan(true); return; }
   if (MACRO.rows.some(r => r.mx)) { try { const by = await mxTickers(8000); MACRO.rows.filter(r => r.mx).forEach(r => { const x = by[r.symbol.slice(3)]; if (x) { r.price = +x.lastPrice; if (r.ref24) r.chg24h = (r.price / r.ref24 - 1) * 100; } }); } catch (e) {} }
   await Promise.all(MACRO.rows.filter(r => !r.ct && !r.mx).map(async r => { try { await spend(1); const t = await getJSON(`${FAPI}/fapi/v1/ticker/24hr?symbol=${r.symbol}`, 1); r.price = +t.lastPrice; r.chg24h = +t.priceChangePercent; } catch (e) {} }));
-  MACRO.rows.forEach(r => { const p = document.querySelector(`[data-mp="${r.symbol}"]`), c = document.querySelector(`[data-mc="${r.symbol}"]`);
-    if (p) p.textContent = fmtPrice(r.price); if (c) c.innerHTML = pctCell(r.chg24h); });
+  MACRO.rows.forEach(macroPaint);
 }, 10000);
 (function () {
   let start = location.hash.slice(1);

@@ -28,6 +28,19 @@ it says "No clear rotation", or "Risk-off" when everything is falling. Every coi
 Holding up, Fading or Laggard against BTC. Laggards are never treated as "next": long plays on them carry a caution,
 leaders rank higher, and the backtest's Model × Strength vs BTC view tests whether that holds on real history.
 
+## Forex, metals & indices: Overview and Momentum Board
+The sidebar's Forex · Metals · Indices group has its own Overview, Momentum Board and All Instruments pages, read from
+the same instruments as the Forex, Gold & Indices page (MEXC's perps when the exchange is MEXC, otherwise Binance TradFi,
+plus your cTrader pairs when connected; where both list the same market, the cTrader price is used).
+- **Overview**: market hours in your time (forex, Tokyo, Hong Kong, Seoul, London, New York, CME futures; holidays not
+  included), market status (US risk tone from the S&P 500 and Nasdaq 4H + Daily stacks, the dollar against the other
+  currencies, gold, oil, 4H breadth, strongest and weakest currency, VIX via UVXY on Binance), top gainers and losers,
+  and a Money Flow card: risk-on / risk-off / mixed over the last 7 days with the checks behind it (stocks, the yen and
+  franc, gold, volatility), themes such as dollar bid or commodities bid, 24h / 7d / 30d averages per asset class,
+  currency strength, and the week's leaders and laggards.
+- **Momentum Board**: the coin board's three stages (in momentum, awaiting momentum, breaking out) on 1H with 4H as
+  context, with the same breakout alerts.
+
 ## RSI and momentum
 RSI (14) on 1H, 4H and Daily for every coin, with your zones (70+ momentum, 60–70 pre-momentum, 30–40 pre-weak, 30 or
 below weak), divergence and ignition (a fresh cross of 60 or 40). The Momentum score (0–100) blends RSI alignment, volume

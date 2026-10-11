@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.11.1645">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.11.2207">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -825,6 +825,30 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   .chlaypop{position:fixed!important;left:8px!important;right:8px!important;top:110px!important;z-index:90}
 }
 @media (hover:none){.chia{display:inline-flex}.chtools .chtarr{opacity:1}}
+/* chart settings + templates + data feed */
+.chsrcb{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--mute);margin-left:6px;white-space:nowrap;font-weight:500}
+.chfeed{color:var(--mute);border-bottom:1px dotted var(--line);cursor:help}
+.chph.slbg .cholc{background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:6px;padding:1px 6px}
+.chind.slhide{display:none}.chind.slnovals .vv{display:none}
+.chsetbtn span{margin-left:4px}
+.chmod.chmcs{width:min(720px,96vw);height:min(600px,90vh);display:flex;flex-direction:column}
+.chcsw{flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr)}
+.chcsn{display:flex;flex-direction:column;gap:2px;padding:8px;border-right:1px solid var(--line);overflow:auto}
+.chcsn button{display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:8px;background:none;color:var(--text);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+.chcsn button:hover{background:var(--hover)}.chcsn button.on{background:var(--pill);color:var(--strong);box-shadow:inset 0 0 0 1px var(--accent)}
+.chcsb{overflow:auto}.chcsb .chsr .ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.chcsb input[type=number]{width:70px}
+.chfeedp{margin:4px 0 0;line-height:1.5}
+.chtplw{position:relative}.chtplw .btn span{opacity:.7}
+.chtplpop{position:absolute;left:0;bottom:calc(100% + 6px);min-width:260px;max-height:340px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:6px;z-index:5}
+.chtpli{display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:6px;background:none;color:var(--text);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.chtpli:hover{background:var(--hover)}.chtpli small{margin-left:auto;font-size:11px}
+.chtplr{display:flex;align-items:center}.chtplr .chtpli{flex:1;min-width:0}.chtplr .chtpli span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chtpldel{border:0;background:none;color:var(--mute);padding:6px;border-radius:6px;cursor:pointer}.chtpldel:hover{color:var(--red);background:var(--hover)}
+.chtplsave{display:flex;flex-direction:column;gap:8px;padding:6px}.chtplsave input[type=text]{width:100%;box-sizing:border-box}
+.chtplind{display:flex;gap:6px;align-items:center;font-size:13px}.chtplacts{display:flex;gap:6px;justify-content:flex-end}
+@media (max-width:760px){.chcsw{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.chcsn{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .chcsn button{flex:none;padding:8px}.chcsn button span{white-space:nowrap}.chsetbtn span{display:none}.chtplpop{position:fixed;left:8px;right:8px;bottom:70px;min-width:0}}
+/* the Charts engine inside the coin dialog */
 /* the Charts engine inside the coin dialog */
 .dchbox{padding:6px 8px 8px}
 #dChartHost{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -3831,7 +3855,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.11.1645";
+const APP_VERSION = "2026.10.11.2207";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6101,6 +6125,171 @@ const CHQ = {};                                              // quotes fetched f
 const CH_COLORS = ["#2962ff", "#e8b04a", "#22ab94", "#f23645", "#9c27b0", "#00bcd4", "#ff9800", "#e0e3eb"];
 const CH_SESS = [["Asia", 8, 12, "242,54,69"], ["London", 12, 18, "154,156,161"], ["Pre-NY", 19.5, 21.5, "247,166,0"], ["NY AM", 21.5, 24, "41,98,255"]];
 const CH_FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+/* ---- chart settings (TradingView's Settings: Symbol, Status line, Scales and lines, Canvas, Alerts, Events) and templates ---- */
+const CS_DEF = {
+  upC: "#22ab94", dnC: "#f23645", body: true, border: false, upB: "#22ab94", dnB: "#f23645", wick: true, upW: "#22ab94", dnW: "#f23645", prevClose: false, prec: "auto", tz: "Asia/Manila",
+  slTitle: true, slSrc: true, slOHLC: true, slChg: true, slVol: false, slInd: true, slInputs: true, slVals: true, slBg: false,
+  cd: true, lastLbl: true, lastLine: true, prevDay: false, prevDayC: "#9598a1", hiLo: false, hiLoC: "#9598a1", dow: true, dateFmt: "dmy", h12: false,
+  bgType: "solid", bg: "", bg2: "#1e222d", vGrid: true, vGridC: "", hGrid: true, hGridC: "", xhC: "#9598a1", xhStyle: 3, wm: "off", wmC: "rgba(255,255,255,0.06)",
+  textC: "", fontSize: 11, scaleC: "", mTop: 6, mBot: 6, rightBars: 8,
+  alertLines: true, alertC: "#f7a600", sessBreaks: false, sbC: "#4c525e",
+};
+const chCS = () => ({ ...CS_DEF, ...(CH.cs || {}) });
+const CS_TZ = [["Asia/Manila", "(UTC+8) Manila"], ["Asia/Singapore", "(UTC+8) Singapore"], ["Asia/Hong_Kong", "(UTC+8) Hong Kong"], ["Asia/Tokyo", "(UTC+9) Tokyo"], ["Australia/Sydney", "Sydney"],
+  ["Asia/Dubai", "(UTC+4) Dubai"], ["Europe/London", "London"], ["Europe/Berlin", "Berlin"], ["UTC", "UTC"], ["America/New_York", "New York"], ["America/Chicago", "Chicago"], ["America/Los_Angeles", "Los Angeles"]];
+const CS_DATE = [["dmy", "Mon 29 Sep '97"], ["mdy", "Mon Sep 29, 1997"], ["iso", "1997-09-29"], ["dmyn", "29/09/1997"], ["mdyn", "09/29/1997"]];
+const CS_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], CS_WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const CH_OFF = new Map(), CH_TZF = {};
+function chTzOff(ms) {                                       // the chosen time zone's offset from UTC at this moment (cached per hour)
+  const tz = chCS().tz; if (tz === "Asia/Manila") return PHT_MS; if (tz === "UTC") return 0;
+  const key = tz + "|" + Math.floor(ms / 3600e3); let v = CH_OFF.get(key);
+  if (v == null) {
+    const f = CH_TZF[tz] || (CH_TZF[tz] = new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" }));
+    const p = {}; f.formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value);
+    v = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - Math.floor(ms / 60000) * 60000;
+    if (CH_OFF.size > 4000) CH_OFF.clear(); CH_OFF.set(key, v);
+  }
+  return v;
+}
+const chDay = ms => Math.floor((ms + chTzOff(ms)) / 864e5);
+const p2 = n => String(n).padStart(2, "0");
+const chHM = (d, h12) => { const h = d.getUTCHours(), m = p2(d.getUTCMinutes()); return h12 ? `${(h % 12) || 12}:${m} ${h < 12 ? "AM" : "PM"}` : `${p2(h)}:${m}`; };
+function chDateTxt(d, fmt) {
+  const y = d.getUTCFullYear(), mo = d.getUTCMonth(), dd = d.getUTCDate();
+  return fmt === "mdy" ? `${CS_MON[mo]} ${dd}, ${y}` : fmt === "iso" ? `${y}-${p2(mo + 1)}-${p2(dd)}` : fmt === "dmyn" ? `${p2(dd)}/${p2(mo + 1)}/${y}` : fmt === "mdyn" ? `${p2(mo + 1)}/${p2(dd)}/${y}` : `${dd} ${CS_MON[mo]} '${String(y).slice(2)}`;
+}
+function chTimeFmt(time) { const ms = time * 1000, d = new Date(ms + chTzOff(ms)), S = chCS(); return `${S.dow ? CS_WD[d.getUTCDay()] + " " : ""}${chDateTxt(d, S.dateFmt)}  ${chHM(d, S.h12)}`; }
+const chTick = (time, type) => { const ms = time * 1000, d = new Date(ms + chTzOff(ms));
+  return type === 0 ? String(d.getUTCFullYear()) : type === 1 ? CS_MON[d.getUTCMonth()] : type === 2 ? String(d.getUTCDate()) : chHM(d, chCS().h12); };
+function chPxFmt(P) { const S = chCS(); return S.prec === "auto" ? v => chFmt(v, P.c.at(-1)) : v => (v == null || !isFinite(v) ? "—" : (+v).toLocaleString("en-US", { minimumFractionDigits: +S.prec, maximumFractionDigits: +S.prec })); }
+function chFeed(s) {                                         // where a chart's candles come from
+  if (!s) return { s: "", l: "" };
+  if (s.startsWith("CT:")) return { s: `${CT.broker || "Broker"} · cTrader`, l: `Your ${CT.broker || "broker"} ${CT.live ? "live" : "demo"} account through the cTrader Open API (bid prices). Symbol ${s.slice(3)}.` };
+  if (isMX(s)) { const c = s.slice(3); return { s: "MEXC", l: `MEXC USDT-M perpetual ${c}${mxInv(s) ? `, flipped from MEXC's ${c} quote to the usual one` : ""}. Live from MEXC's stream when the exchange is MEXC, polled every few seconds otherwise.` }; }
+  if (chIsTF(s)) return { s: "Binance TradFi", l: `Binance USDT-M TradFi perpetual ${s}. Tracks the real market while it's open; thin and can drift on weekends and after hours.` };
+  const ex = typeof exName === "function" ? exName() : "Binance", spot = MODE === "spot";
+  return { s: `${ex}${spot ? " spot" : ""}`, l: `${ex} ${spot ? "spot" : "USDT-M perpetual"} ${s}, the exchange picked in the scan settings.` };
+}
+const chBarCol = (S, up) => ({ color: S.body ? (up ? S.upC : S.dnC) : "rgba(0,0,0,0)", borderColor: up ? S.upB : S.dnB, wickColor: up ? S.upW : S.dnW });
+function chApplyCS(P) {
+  if (!P || !P.chart) return;
+  const S = chCS(), line = cssVar("--line"), mute = cssVar("--mute");
+  const bg = S.bgType === "gradient" ? { type: "gradient", topColor: S.bg || "#131722", bottomColor: S.bg2 || "#1e222d" } : { type: "solid", color: S.bg || "transparent" };
+  const xh = { color: S.xhC, style: +S.xhStyle, width: 1, labelBackgroundColor: "#363a45" };
+  try {
+    P.chart.applyOptions({
+      layout: { background: bg, textColor: S.textC || mute, fontSize: +S.fontSize || 11 },
+      grid: { vertLines: { visible: S.vGrid, color: S.vGridC || line }, horzLines: { visible: S.hGrid, color: S.hGridC || line } },
+      crosshair: { vertLine: xh, horzLine: xh },
+      rightPriceScale: { borderColor: S.scaleC || line }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
+      localization: { locale: "en-US", timeFormatter: chTimeFmt, priceFormatter: chPxFmt(P) },
+      watermark: { visible: S.wm !== "off" && !!CH.sym, text: S.wm === "symtf" ? `${chName(CH.sym)}, ${CH_TFL[P.tf]}` : chName(CH.sym), color: S.wmC, fontSize: 52, horzAlign: "center", vertAlign: "center" } });
+    P.cs.applyOptions({ upColor: S.body ? S.upC : "rgba(0,0,0,0)", downColor: S.body ? S.dnC : "rgba(0,0,0,0)", borderVisible: S.border, borderUpColor: S.upB, borderDownColor: S.dnB,
+      wickVisible: S.wick, wickUpColor: S.upW, wickDownColor: S.dnW, lastValueVisible: S.lastLbl, priceLineVisible: S.lastLine });
+  } catch (e) {}
+  const ph = P.pane && P.pane.querySelector(".chph"); if (ph) ph.classList.toggle("slbg", !!S.slBg);
+}
+function chLevelLines(P) {                                   // previous day close, high/low in view, your price alerts
+  if (!P || !P.cs || !P.t.length) return;
+  const S = chCS(), put = (key, on, price, color, title, style = 2) => {
+    const L = P[key]; if (!on || price == null || !isFinite(price)) { if (L) { try { P.cs.removePriceLine(L); } catch (e) {} P[key] = null; } return; }
+    const o = { price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: true, title };
+    if (L) L.applyOptions(o); else P[key] = P.cs.createPriceLine(o); };
+  let pd = null; const n = P.t.length;
+  if (S.prevDay) { if (CH_IV[P.tf] >= 864e5) pd = P.tf === "1d" && n > 1 ? P.c[n - 2] : null;
+    else { const today = chDay(P.t[n - 1]); for (let i = n - 1; i >= 0; i--) if (chDay(P.t[i]) < today) { pd = P.c[i]; break; } } }
+  put("plPD", S.prevDay, pd, S.prevDayC, "Prev close");
+  let hi = null, lo = null;
+  if (S.hiLo) { const r = P.chart.timeScale().getVisibleLogicalRange(); const a = Math.max(0, Math.floor(r ? r.from : 0)), b = Math.min(n - 1, Math.ceil(r ? r.to : n - 1));
+    for (let i = a; i <= b; i++) { if (hi == null || P.h[i] > hi) hi = P.h[i]; if (lo == null || P.l[i] < lo) lo = P.l[i]; } }
+  put("plHi", S.hiLo, hi, S.hiLoC, "High", 1); put("plLo", S.hiLo, lo, S.hiLoC, "Low", 1);
+  const al = S.alertLines && typeof WL !== "undefined" ? WL.alerts.filter(a => a.sym === CH.sym && !a.fired) : [], sig = al.map(a => a.price + a.dir).join(",") + S.alertC;
+  if (P.alSig !== sig || (P.alLines || []).length !== al.length) {
+    (P.alLines || []).forEach(L => { try { P.cs.removePriceLine(L); } catch (e) {} });
+    P.alLines = al.map(a => P.cs.createPriceLine({ price: a.price, color: S.alertC, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: `🔔 ${a.dir}` })); P.alSig = sig;
+  }
+}
+function chApplyCSAll(reData) {
+  CHP.forEach(P => { if (!P.chart) return; chApplyCS(P); chIndLayout(P); if (reData && P.t.length && P.sym === CH.sym) chSetData(P); else chLevelLines(P); chIndLegendBuild(P); chLegend(P, null); });
+  chHeader(); chDirty = true;
+}
+setInterval(() => { if (chOn) chVis().forEach(P => { if (P.chart && P.t.length) chLevelLines(P); }); }, 4000);   // alerts added or fired elsewhere
+const CS_TABS = [["sym", "Symbol", "M5 4v13M5 7h3v6H5M13 3v15M13 6h3v8h-3"], ["sl", "Status line", "M3 6h15M3 10.5h10M3 15h12"], ["sc", "Scales and lines", "M4 4v13h13M8 13l3-4 3 2 3-5"],
+  ["cv", "Canvas", "M4 16l1-4 8-8 3 3-8 8zM12 5l3 3"], ["al", "Alerts", "M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0"], ["ev", "Events", "M4 5h13v12H4zM4 9h13M8 3v3M13 3v3"]];
+function chChartSettings(tab) {
+  const snap = JSON.stringify({ cs: CH.cs || {}, ind: CH.ind || [] }); CH.cs = { ...(CH.cs || {}) }; let cur = tab || CH.csTab || "sym";
+  const box = chModal(`<div class="chmh"><h3>Settings</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div>
+    <div class="chcsw"><nav class="chcsn" role="tablist">${CS_TABS.map(([k, l, ic]) => `<button role="tab" data-cst="${k}">${chIco(ic, 17)}<span>${l}</span></button>`).join("")}</nav><div class="chmb chcsb" id="csBody"></div></div>
+    <div class="chmf"><div class="chtplw"><button class="btn sm" id="csTplBtn" aria-haspopup="true">Template <span>▾</span></button><div class="chtplpop" id="csTplPop" hidden></div></div><span style="flex:1"></span><button class="btn" id="csCancel">Cancel</button><button class="btn primary" id="csOk">Ok</button></div>`, "chmcs");
+  const bg = $("chModBg");
+  const cancel = () => { const o = JSON.parse(snap); CH.cs = o.cs; const indCh = JSON.stringify(CH.ind || []) !== JSON.stringify(o.ind); CH.ind = o.ind; chModalClose(); if (indCh) chIndChanged(); chApplyCSAll(true); };
+  bg._onCancel = cancel;
+  box.querySelector("[data-close]").onclick = cancel; $("csCancel").onclick = cancel;
+  $("csOk").onclick = () => { CH.csTab = cur; chSave(); chModalClose(); };
+  const S = () => chCS();
+  const set = (o, reData) => { CH.cs = { ...(CH.cs || {}), ...o }; chApplyCSAll(reData); };
+  const chk = (k, l, extra = "", reData = false) => `<div class="chsr sty"><input type="checkbox" id="cs_${k}" data-ck="${k}" ${reData ? 'data-rd="1"' : ""} ${S()[k] ? "checked" : ""}><label for="cs_${k}">${l}</label><span class="ctl">${extra}</span></div>`;
+  const sw = (k, rd) => chSwatch(S()[k] || (k.endsWith("GridC") || k === "scaleC" ? cssVar("--line") : k === "textC" ? cssVar("--mute") : k === "bg" ? "#131722" : "#9598a1"), 1, `data-cc="${k}" ${rd ? 'data-rd="1"' : ""}`);
+  const sel = (k, opts, rd) => `<select data-sel="${k}" ${rd ? 'data-rd="1"' : ""}>${opts.map(([v, l]) => `<option value="${v}" ${String(S()[k]) === String(v) ? "selected" : ""}>${l}</option>`).join("")}</select>`;
+  const row = (l, inner) => `<div class="chsr"><label>${l}</label><span class="ctl">${inner}</span></div>`;
+  const num = (k, min, max, unit) => `<input type="number" data-num="${k}" value="${S()[k]}" min="${min}" max="${max}" step="1"> <span class="mute">${unit}</span>`;
+  const render = () => {
+    box.querySelectorAll("[data-cst]").forEach(b => { const on = b.dataset.cst === cur; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+    const B = $("csBody"), s = S(); let h = "";
+    if (cur === "sym") h = `<div class="chsgh">Candles</div>${chk("prevClose", "Color bars based on previous close", "", true)}
+      ${chk("body", "Body", sw("upC", 1) + sw("dnC", 1), true)}${chk("border", "Borders", sw("upB", 1) + sw("dnB", 1), true)}${chk("wick", "Wick", sw("upW", 1) + sw("dnW", 1), true)}
+      <div class="chsgh">Data modification</div>${row("Precision", sel("prec", [["auto", "Default"], ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map(n => [n, n ? "0." + "0".repeat(n - 1) + "1" : "1"])]))}
+      ${row("Timezone", sel("tz", CS_TZ))}<div class="chsgh">Data feed</div><p class="meta chfeedp">${chEsc(chFeed(CH.sym).l)}</p>`;
+    else if (cur === "sl") h = `<div class="chsgh">Instrument</div>${chk("slTitle", "Title")}${chk("slSrc", "Data feed (exchange or broker)")}${chk("slOHLC", "Chart values")}${chk("slChg", "Bar change values")}${chk("slVol", "Volume")}
+      <div class="chsgh">Indicators</div>${chk("slInd", "Titles")}${chk("slInputs", "Inputs")}${chk("slVals", "Values")}${chk("slBg", "Background")}`;
+    else if (cur === "sc") h = `<div class="chsgh">Price labels &amp; lines</div>${chk("cd", "Countdown to bar close")}${chk("lastLbl", "Symbol last price label")}${chk("lastLine", "Symbol last price line")}
+      ${chk("prevDay", "Previous day close", sw("prevDayC"))}${chk("hiLo", "High and low (visible range)", sw("hiLoC"))}
+      <div class="chsgh">Time scale</div>${chk("dow", "Day of week on labels")}${row("Date format", sel("dateFmt", CS_DATE))}${row("Time hours format", sel("h12", [["false", "24-hours"], ["true", "12-hours"]]))}`;
+    else if (cur === "cv") h = `<div class="chsgh">Chart basic styles</div>${row("Background", sel("bgType", [["solid", "Solid"], ["gradient", "Gradient"]]) + sw("bg") + (s.bgType === "gradient" ? sw("bg2") : "") + (s.bg ? `<button class="btn sm" data-reset="bg">Theme</button>` : ""))}
+      ${chk("vGrid", "Vertical grid lines", sw("vGridC"))}${chk("hGrid", "Horizontal grid lines", sw("hGridC"))}
+      ${row("Crosshair", sw("xhC") + sel("xhStyle", [[0, "Solid"], [1, "Dotted"], [2, "Dashed"], [3, "Long dashes"]]))}
+      ${row("Watermark", sel("wm", [["off", "Hidden"], ["sym", "Ticker"], ["symtf", "Ticker and timeframe"]]) + sw("wmC"))}
+      <div class="chsgh">Scales</div>${row("Text", sw("textC") + sel("fontSize", [10, 11, 12, 13, 14].map(n => [n, n])))}${row("Lines", sw("scaleC"))}
+      <div class="chsgh">Margins</div>${row("Top", num("mTop", 0, 40, "%"))}${row("Bottom", num("mBot", 0, 40, "%"))}${row("Right", num("rightBars", 0, 60, "bars"))}`;
+    else if (cur === "al") h = `<div class="chsgh">Chart line visibility</div>${chk("alertLines", "Alert lines (your price alerts on this market)", sw("alertC"))}
+      <p class="meta">Add price alerts from a coin's Alerts &amp; Notes tab or the Watchlist page.</p>`;
+    else h = `<div class="chsgh">Events</div>${chk("sessBreaks", "Session breaks (start of each day)", sw("sbC"))}<p class="meta">Day boundaries follow the timezone on the Symbol tab. The Asia, London and NY session boxes are an indicator: add or edit them from Indicators.</p>`;
+    B.innerHTML = h;
+    B.querySelectorAll("[data-ck]").forEach(el => el.onchange = () => set({ [el.dataset.ck]: el.checked }, !!el.dataset.rd));
+    B.querySelectorAll("[data-sel]").forEach(el => el.onchange = () => { const k = el.dataset.sel; let v = el.value; if (k === "h12") v = v === "true"; else if (["xhStyle", "fontSize"].includes(k)) v = +v; else if (k === "prec" && v !== "auto") v = +v;
+      if (k === "tz") CH_OFF.clear(); set({ [k]: v }, !!el.dataset.rd || k === "tz"); if (k === "bgType") render(); });
+    B.querySelectorAll("[data-num]").forEach(el => el.oninput = () => { const v = parseInt(el.value, 10); if (!isFinite(v)) return; set({ [el.dataset.num]: Math.max(+el.min, Math.min(+el.max, v)) }); });
+    B.querySelectorAll("[data-cc]").forEach(el => el.onclick = () => { const k = el.dataset.cc; chColorPop(el, S()[k] || el.querySelector("i").style.background, null, c => { set({ [k]: c }, !!el.dataset.rd); el.querySelector("i").style.background = c; if (k === "bg") render(); }); });
+    B.querySelectorAll("[data-reset]").forEach(el => el.onclick = () => { set({ [el.dataset.reset]: "" }); render(); });
+  };
+  box.querySelectorAll("[data-cst]").forEach(b => b.onclick = () => { cur = b.dataset.cst; CH.csTab = cur; render(); });
+  // templates: name → { cs, ind? }
+  const pop = $("csTplPop");
+  const tplRender = (saving) => {
+    const T = CH.csTpl || {}, names = Object.keys(T).sort((a, b) => a.localeCompare(b));
+    pop.innerHTML = saving ? `<div class="chtplsave"><input id="csTplName" type="text" maxlength="40" placeholder="Template name" aria-label="Template name">
+        <label class="chtplind"><input type="checkbox" id="csTplInd" checked> Include indicators (${(CH.ind || []).length})</label>
+        <div class="chtplacts"><button class="btn sm" id="csTplBack">Back</button><button class="btn primary sm" id="csTplSave">Save</button></div></div>`
+      : `<button class="chtpli" data-ta="save">${chIco("M5 3h9l3 3v12H5zM8 3v5h6V3M8 13h6", 16)}<span>Save as…</span></button><button class="chtpli" data-ta="def">${chIco("M5 10.5a5.5 5.5 0 1 0 1.6-3.9M5 4v3h3", 16)}<span>Apply defaults</span></button>
+        ${names.length ? `<div class="chmsep"></div><div class="chmhd">Your templates</div>` : ""}${names.map(n => `<div class="chtplr"><button class="chtpli" data-tn="${chEsc(n)}"><span>${chEsc(n)}</span>${T[n].ind ? `<small class="mute">+ ${T[n].ind.length} indicators</small>` : ""}</button><button class="chtpldel" data-td="${chEsc(n)}" title="Delete template" aria-label="Delete ${chEsc(n)}">${chIco("trash", 15)}</button></div>`).join("")}`;
+    if (saving) { const inp = $("csTplName"); inp.focus();
+      const save = () => { const n = inp.value.trim(); if (!n) { inp.focus(); return; }
+        CH.csTpl = { ...(CH.csTpl || {}), [n]: { cs: JSON.parse(JSON.stringify(CH.cs || {})), ...($("csTplInd").checked ? { ind: JSON.parse(JSON.stringify(CH.ind || [])) } : {}) } };
+        chSave(); toast(`Template <b>${chEsc(n)}</b> saved.`); pop.hidden = true; };
+      $("csTplSave").onclick = save; $("csTplBack").onclick = () => tplRender(false); inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); save(); } }; return; }
+    pop.querySelectorAll("[data-ta]").forEach(b => b.onclick = () => { if (b.dataset.ta === "save") tplRender(true); else { CH.cs = {}; chApplyCSAll(true); pop.hidden = true; render(); } });
+    pop.querySelectorAll("[data-tn]").forEach(b => b.onclick = () => { const t = (CH.csTpl || {})[b.dataset.tn]; if (!t) return;
+      CH.cs = JSON.parse(JSON.stringify(t.cs || {})); CH_OFF.clear();
+      if (t.ind) { CH.ind = JSON.parse(JSON.stringify(t.ind)).map(I => ({ ...I, id: chUid() })); chIndChanged(); }
+      chApplyCSAll(true); pop.hidden = true; render(); });
+    pop.querySelectorAll("[data-td]").forEach(b => b.onclick = e => { e.stopPropagation(); const n = b.dataset.td, T2 = { ...(CH.csTpl || {}) }, old = T2[n]; delete T2[n]; CH.csTpl = T2; chSave(); tplRender(false);
+      chToast(`Template <b>${chEsc(n)}</b> deleted.`, () => { CH.csTpl = { ...(CH.csTpl || {}), [n]: old }; chSave(); }); });
+  };
+  $("csTplBtn").onclick = e => { e.stopPropagation(); pop.hidden = !pop.hidden; if (!pop.hidden) tplRender(false); };
+  box.addEventListener("pointerdown", e => { if (!pop.hidden && !e.target.closest(".chtplw")) pop.hidden = true; });
+  render();
+}
+
 /* ---- shared UI: escape, toast with undo, modal, colour picker, small menus ---- */
 const chEsc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function chToast(msg, undo) {
@@ -6591,7 +6780,7 @@ function chIndLayout(P) {
   const total = k ? Math.min(0.56, 0.22 + 0.13 * (k - 1)) : 0, h = k ? total / k : 0, A = 1 - total;
   P.oscL = osc.map((I, j) => ({ id: I.id, top: A + j * h, bot: A + (j + 1) * h }));
   try {
-    P.chart.priceScale("right").applyOptions({ scaleMargins: { top: 0.06, bottom: k ? total + 0.025 : 0.06 } });
+    { const S = chCS(); P.chart.priceScale("right").applyOptions({ scaleMargins: { top: (+S.mTop || 0) / 100, bottom: k ? total + 0.025 : (+S.mBot || 0) / 100 } }); }
     P.oscL.forEach(o => P.chart.priceScale("ind_" + o.id).applyOptions({ scaleMargins: { top: o.top + 0.03, bottom: Math.max(0.005, 1 - o.bot + 0.012) }, borderColor: cssVar("--line") }));
     act.filter(I => IND[I.type].scale && P.ix[I.id]).forEach(I => P.chart.priceScale(P.ix[I.id].scale).applyOptions({ scaleMargins: { top: A - 0.02 - 0.17 * A + (k ? 0 : 0.02), bottom: (k ? total + 0.025 : 0) + 0.005 }, visible: false }));
   } catch (e) {}
@@ -6646,7 +6835,8 @@ function chIco(k, sz = 16, extra = "") { return `<svg viewBox="0 0 21 21" width=
 function chIndLegendBuild(P) {
   let box = P.wrap.querySelector(".chind"); if (!box) { box = document.createElement("div"); box.className = "chind"; P.wrap.appendChild(box); chIndLegendBind(box); }
   const rows = (CH.ind || []).filter(I => IND[I.type] && (!I.vis || I.vis.includes(P.tf)));
-  const row = I => `<div class="chir${I.hide || chIndHidden ? " off" : ""}" data-iid="${I.id}"><span class="nm" title="Double-click for settings">${chEsc(indTitle(I))}</span><span class="vv" data-vv="${I.id}"></span>
+  const SL = chCS(); box.classList.toggle("slhide", !SL.slInd); box.classList.toggle("slnovals", !SL.slVals);
+  const row = I => `<div class="chir${I.hide || chIndHidden ? " off" : ""}" data-iid="${I.id}"><span class="nm" title="Double-click for settings">${chEsc(SL.slInputs ? indTitle(I) : (IND[I.type].short || IND[I.type].name))}</span><span class="vv" data-vv="${I.id}"></span>
     <span class="chia"><button data-ia="eye" title="${I.hide ? "Show" : "Hide"}" aria-label="${I.hide ? "Show" : "Hide"}">${chIco(I.hide ? "eyeoff" : "eye", 15)}</button><button data-ia="set" title="Settings" aria-label="Settings">${chIco("gear", 15)}</button><button data-ia="rm" title="Remove" aria-label="Remove">${chIco("x", 14)}</button></span></div>`;
   const main = rows.filter(I => !IND[I.type].pane || !(P.oscL || []).some(o => o.id === I.id));
   const tgl = main.length > 2 ? `<button class="chilt" data-ia="leg" title="${CH.legMin ? "Show" : "Hide"} the indicator legend" aria-label="Toggle legend">${chIco(CH.legMin ? "M6 8l4.5 4.5L15 8" : "M6 13l4.5-4.5L15 13", 14)}${CH.legMin ? ` ${main.length} indicators` : ""}</button>` : "";
@@ -7036,9 +7226,6 @@ function chSourceOK(s) {
 }
 
 /* ---- time axis in PHT ---- */
-const chTick = (time, type) => { const d = new Date(time * 1000 + PHT_MS), p = n => String(n).padStart(2, "0");
-  return type === 0 ? String(d.getUTCFullYear()) : type === 1 ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()]
-    : type === 2 ? String(d.getUTCDate()) : `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; };
 
 /* ---- page shell ---- */
 function chToolIcon(d) { return `<svg viewBox="0 0 21 21" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`; }
@@ -7056,6 +7243,7 @@ function chBuild() {
       </div>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <button class="chindbtn" id="chIndBtn" title="Indicators (/)" aria-label="Indicators">${chIco("fx", 17)} Indicators</button>
+      <button class="chindbtn chsetbtn" id="chSetBtn" title="Chart settings and templates" aria-label="Chart settings">${chIco("gear", 17)}<span>Settings</span></button>
       <div class="chund"><button id="chUndoB" title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 17)}</button><button id="chRedoB" title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo">${chIco("M13 6l4 4-4 4M17 10H8a4 4 0 0 0 0 8h2", 17)}</button></div>
       <div class="chfavbar" id="chFavBar" aria-label="Favorite drawing tools"></div>
       <div class="chseg"><button class="tg" id="chSync" title="Scroll one chart and the others follow to the same time">Sync scroll</button></div>
@@ -7072,7 +7260,7 @@ function chBuild() {
       <aside class="chwl" id="chWL" aria-label="Chart watchlist"></aside>
     </div>`;
   chToolbarBind();
-  $("chIndBtn").onclick = () => chIndDialog();
+  $("chIndBtn").onclick = () => chIndDialog(); $("chSetBtn").onclick = () => chChartSettings();
   $("chUndoB").onclick = () => chUndoDo(); $("chRedoB").onclick = () => chRedoDo();
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
   el.querySelectorAll("[data-cat]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpen(b.dataset.cat); });
@@ -7297,7 +7485,7 @@ function chMakeChart(P) {
   P.chart.subscribeCrosshairMove(prm => chOnCross(P, prm));
   P.chart.timeScale().subscribeVisibleLogicalRangeChange(() => chOnRange(P));
   if (window.ResizeObserver) new ResizeObserver(() => chResize(P)).observe(P.cv);
-  chIndSync(P); chApplyCursor();
+  chIndSync(P); chApplyCursor(); chApplyCS(P);
 }
 function chResize(P) {
   if (!P.chart || !P.cv.clientWidth) return;
@@ -7319,16 +7507,16 @@ async function chLoad(P) {
     ["t", "o", "h", "l", "c"].forEach(f => P[f] = k[f].slice()); P.v = (k.qv || []).map(Number);
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f])); P.v.push(fb.v || 0); }
     if (!P.t.length) throw new Error("no candles");
-    P.sym = sym; chIndSync(P); chSetData(P); chFit(P);
+    P.sym = sym; P.alSig = null; chIndSync(P); chSetData(P); chFit(P);
     P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader();
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
 }
 const chMaFn = () => (typeof data !== "undefined" && data && data.ma === "sma") ? sma : ema;
 function chRsiSig(r) { const out = new Array(r.length).fill(null); let s = 0, q = []; for (let i = 0; i < r.length; i++) { if (r[i] == null) continue; q.push(r[i]); s += r[i]; if (q.length > 14) s -= q.shift(); if (q.length === 14) out[i] = s / 14; } return out; }
 function chSetData(P) {
-  const ts = P.t.map(t => Math.floor(t / 1000));
-  P.cs.setData(ts.map((t, i) => ({ time: t, open: P.o[i], high: P.h[i], low: P.l[i], close: P.c[i] })));
-  chIndData(P); chIndLegendVals(P, null);
+  const ts = P.t.map(t => Math.floor(t / 1000)), S = chCS();
+  P.cs.setData(ts.map((t, i) => { const b = { time: t, open: P.o[i], high: P.h[i], low: P.l[i], close: P.c[i] }; return S.prevClose && i ? Object.assign(b, chBarCol(S, P.c[i] >= P.c[i - 1])) : b; }));
+  chIndData(P); chIndLegendVals(P, null); chApplyCS(P); chLevelLines(P);
 }
 function chBar(P, bar) {                                     // live update of the forming candle
   if (!P.chart || !P.t.length || bar.t < P.t.at(-1)) return;
@@ -7337,7 +7525,9 @@ function chBar(P, bar) {                                     // live update of t
   if (bar.t === P.t[n - 1]) { P.o[n - 1] = bar.o; P.h[n - 1] = bar.h; P.l[n - 1] = bar.l; P.c[n - 1] = bar.c; if (bar.v != null) P.v[n - 1] = bar.v; }
   else { P.t.push(bar.t); P.o.push(bar.o); P.h.push(bar.h); P.l.push(bar.l); P.c.push(bar.c); P.v.push(bar.v || 0); }
   const t = Math.floor(bar.t / 1000);
-  try { P.cs.update({ time: t, open: bar.o, high: bar.h, low: bar.l, close: bar.c }); } catch (e) {}
+  { const S = chCS(), b = { time: t, open: bar.o, high: bar.h, low: bar.l, close: bar.c }, m = P.c.length;
+    if (S.prevClose && m > 1) Object.assign(b, chBarCol(S, P.c[m - 1] >= P.c[m - 2]));
+    try { P.cs.update(b); } catch (e) {} if (S.hiLo || (S.prevDay && P.t.length !== P.lvN)) { P.lvN = P.t.length; chLevelLines(P); } }
   chIndLive(P);
   if (!P.hover) chLegend(P, null); else chIndLegendVals(P, null);
   chDirty = true;
@@ -7370,9 +7560,12 @@ function chLegend(P, prm) {
   const el = $("chLeg" + P.i); if (!el || !P.t.length) return;
   let i = P.t.length - 1;
   if (prm && prm.time != null) { const t = prm.time * 1000; i = chIdx(P, t); if (i < 0) i = P.t.length - 1; }
-  const o = P.o[i], h = P.h[i], l = P.l[i], c = P.c[i], ch = o ? (c - o) / o * 100 : 0, f = v => chFmt(v, P.c.at(-1));
+  const o = P.o[i], h = P.h[i], l = P.l[i], c = P.c[i], ch = o ? (c - o) / o * 100 : 0, f = chPxFmt(P), S = chCS(), fd = chFeed(CH.sym), up = S.prevClose && i ? c >= P.c[i - 1] : c >= o;
   chIndLegendVals(P, prm && prm.time != null ? i : null);
-  el.innerHTML = `<b>${chName(CH.sym)}</b> · ${CH_TFL[P.tf]} <span class="mute">O</span> ${f(o)} <span class="mute">H</span> ${f(h)} <span class="mute">L</span> ${f(l)} <span class="mute">C</span> <span class="${c >= o ? "up" : "dn"}">${f(c)} (${ch >= 0 ? "+" : ""}${ch.toFixed(2)}%)</span>`;
+  el.innerHTML = `${S.slTitle ? `<b>${chName(CH.sym)}</b> · ${CH_TFL[P.tf]}` : ""}${S.slSrc && fd.s ? ` · <span class="chfeed" title="${chEsc(fd.l)}">${chEsc(fd.s)}</span>` : ""}`
+    + (S.slOHLC ? ` <span class="mute">O</span> ${f(o)} <span class="mute">H</span> ${f(h)} <span class="mute">L</span> ${f(l)} <span class="mute">C</span> <span class="${up ? "up" : "dn"}">${f(c)}</span>` : "")
+    + (S.slChg ? ` <span class="${up ? "up" : "dn"}">${S.slOHLC ? "" : f(c) + " "}(${ch >= 0 ? "+" : ""}${ch.toFixed(2)}%)</span>` : "")
+    + (S.slVol && P.v && P.v[i] != null ? ` <span class="mute">Vol</span> ${chIndNum(+P.v[i])}` : "");
 }
 function chIdx(P, t) { const T = P.t; let lo = 0, hi = T.length - 1, a = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (T[m] <= t) { a = m; lo = m + 1; } else hi = m - 1; } return a; }
 function chOnCross(P, prm) {
@@ -7392,6 +7585,7 @@ function chOnCross(P, prm) {
 let chRangeT = 0;
 function chOnRange(P) {
   chDirty = true;
+  if (chCS().hiLo && !P.hlRaf) P.hlRaf = requestAnimationFrame(() => { P.hlRaf = 0; chLevelLines(P); });
   if (!CH.sync || chSyncing || Date.now() < P.progUntil || !P.t.length || !(Date.now() - (P.userAt || 0) < 1500)) return;   // only follow your own scrolling
   clearTimeout(chRangeT);
   chRangeT = setTimeout(() => {
@@ -7700,7 +7894,10 @@ function chBindPane(P) {
     downAt = null; moved = false;
   }, true);
   w.addEventListener("contextmenu", e => {
-    const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P) || chHidden) return; const hit = chHitTest(P, m.x, m.y); if (!hit) return;
+    const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P) || chHidden) return; const hit = chHitTest(P, m.x, m.y);
+    if (!hit) { e.preventDefault(); const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; chDlgLayer().appendChild(a);
+      chMenu(a, [{ l: "Settings…", k: "set", ico: chIco("gear", 16) }, { l: "Indicators…", k: "ind", ico: chIco("fx", 16) }, { l: "Reset chart view", k: "fit", ico: chIco("M5 10.5a5.5 5.5 0 1 0 1.6-3.9M5 4v3h3", 16) }],
+        { onPick: k => k === "set" ? chChartSettings() : k === "ind" ? chIndDialog() : chFit(P) }); setTimeout(() => a.remove(), 0); return; }
     e.preventDefault(); chSel = hit.id; chSelPane = P.i; chSelBar(); const d = chSelD(); if (!d) return;
     const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; chDlgLayer().appendChild(a);
     chMenu(a, chMoreItems(d), { onPick: k => chMoreDo(k, d) }); setTimeout(() => a.remove(), 0);
@@ -7741,6 +7938,10 @@ function chPaint(P) {
   if (!P.chart || !P.t.length || P.sym !== CH.sym) { P.hits = []; return; }
   const W = chPlotW(P), H = chPlotH(P), ref = P.c.at(-1), F = v => chFmt(v, ref), axis = [], ticks = [];
   g.save(); g.beginPath(); g.rect(0, 0, W, H); g.clip();
+  { const S = chCS(); if (S.sessBreaks && CH_IV[P.tf] < 864e5) { const r = P.chart.timeScale().getVisibleLogicalRange(), n = P.t.length;
+      const a = Math.max(1, Math.floor(r ? r.from : 1)), b = Math.min(n - 1, Math.ceil(r ? r.to : n - 1)); g.save(); g.strokeStyle = S.sbC; g.lineWidth = 1; g.setLineDash([4, 4]);
+      for (let i = a; i <= b; i++) if (chDay(P.t[i]) !== chDay(P.t[i - 1])) { const x = chX(P, P.t[i]); if (x != null) { g.beginPath(); g.moveTo(Math.round(x) + .5, 0); g.lineTo(Math.round(x) + .5, H); g.stroke(); } }
+      g.restore(); } }
   try { chIndPaint(g, P, { W, H, axis }); } catch (e) {}
   P.hits = [];
   const all = chHidden ? [] : chList().filter(d => CH_T[d.type] && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
@@ -7772,9 +7973,9 @@ function chPaint(P) {
   g.restore();
   axis.forEach(([y, txt, col]) => { if (y >= 0 && y <= H) chLabel(g, txt, W + 1, y, col, "#141517"); });
   const th = P.chart.timeScale().height(); ticks.forEach(([x, t, col]) => { if (x >= 0 && x <= W) chLabel(g, chTShort(t), x, H + th / 2, col, "#fff", "center"); });
-  { const left = P.t.at(-1) + CH_IV[P.tf] - Date.now(), yl = chY(P, ref), cd = fmtCountdown(left);   // candle countdown under the last-price label
-    if (yl != null && yl > 0 && yl < H - 18) chLabel(g, cd, W + 1, yl + 18, "rgba(40,42,48,.95)", "#c9ccd3");
-    const hd = $("chCd" + P.i); if (hd) hd.textContent = "⏱ " + cd; }
+  { const left = P.t.at(-1) + CH_IV[P.tf] - Date.now(), yl = chY(P, ref), cd = fmtCountdown(left), S = chCS();   // candle countdown under the last-price label
+    if (S.cd && S.lastLbl && yl != null && yl > 0 && yl < H - 18) chLabel(g, cd, W + 1, yl + 18, "rgba(40,42,48,.95)", "#c9ccd3");
+    const hd = $("chCd" + P.i); if (hd) hd.textContent = S.cd ? "⏱ " + cd : ""; }
   if (P.oscL && P.oscL.length) chIndLegendPos(P);
 }
 /* ---- floating toolbar on the selected drawing ---- */
@@ -7927,7 +8128,9 @@ function chHeader() {
   if (!$("chSymName")) return;
   const q = chQuote(CH.sym), P = chVis().find(x => x.sym === CH.sym && x.t.length), last = P ? P.c.at(-1) : q && q.price;
   $("chSymName").textContent = chName(CH.sym);
-  $("chSymPx").innerHTML = last != null ? `${chFmt(last)}${q && q.chg != null ? ` <span class="${q.chg >= 0 ? "up" : "dn"}">${q.chg >= 0 ? "+" : ""}${q.chg.toFixed(2)}%</span>` : ""}` : "";
+  const fd = chFeed(CH.sym);
+  $("chSymPx").innerHTML = (last != null ? `${chFmt(last)}${q && q.chg != null ? ` <span class="${q.chg >= 0 ? "up" : "dn"}">${q.chg >= 0 ? "+" : ""}${q.chg.toFixed(2)}%</span>` : ""}` : "")
+    + (fd.s ? ` <span class="chsrcb" title="${chEsc(fd.l)}">${chEsc(fd.s)}</span>` : "");
 }
 function chWLItems() {
   const seen = new Set(), out = [];

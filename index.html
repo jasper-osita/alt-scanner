@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.11.2207">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.11.2306">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2065,9 +2065,27 @@ const CT_PERIOD = { "15m": 7, "1h": 9, "4h": 10, "1d": 12 }, CT_MS = { "15m": 90
 const CT_SPAN = { "15m": 7 * 86400e3, "1h": 35 * 86400e3, "4h": 120 * 86400e3, "1d": 365 * 86400e3 };   // calendar span per request (weekends included)
 const FX_PAIRS = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
   "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"];
-const CT_CFD = [["Gold", ["XAUUSD", "GOLD"], "OANDA:XAUUSD"], ["Silver", ["XAGUSD", "SILVER"], "OANDA:XAGUSD"],
-  ["S&P 500", ["US500", "SPX500", "SP500", "US500CASH", "USA500"], "OANDA:SPX500USD"], ["Nasdaq 100", ["NAS100", "USTEC", "US100", "NDX100", "USTECH"], "OANDA:NAS100USD"],
-  ["Dow Jones", ["US30", "DJ30", "WS30", "DOW30", "USA30"], "OANDA:US30USD"], ["WTI Crude Oil", ["SPOTCRUDE", "USOIL", "XTIUSD", "WTI", "CRUDEOIL"], "TVC:USOIL"]];
+const CT_CFD = [      // [name (same as the exchange rows), broker symbol aliases, TradingView fallback, group]
+  ["Gold", ["XAUUSD", "GOLD"], "OANDA:XAUUSD", "Metals"], ["Silver", ["XAGUSD", "SILVER"], "OANDA:XAGUSD", "Metals"],
+  ["Platinum", ["XPTUSD", "PLATINUM"], "OANDA:XPTUSD", "Metals"], ["Palladium", ["XPDUSD", "PALLADIUM"], "OANDA:XPDUSD", "Metals"],
+  ["Copper", ["COPPER", "XCUUSD", "HGCOPPER", "COPPERUSD"], "OANDA:XCUUSD", "Metals"],
+  ["WTI Crude Oil", ["SPOTCRUDE", "USOIL", "XTIUSD", "WTI", "CRUDEOIL", "USCRUDE"], "TVC:USOIL", "Energy"],
+  ["Brent Crude Oil", ["SPOTBRENT", "UKOIL", "XBRUSD", "BRENT", "UKBRENT"], "TVC:UKOIL", "Energy"],
+  ["Natural Gas", ["NATGAS", "XNGUSD", "NGAS", "NATURALGAS"], "OANDA:NATGASUSD", "Energy"],
+  ["S&P 500", ["US500", "SPX500", "SP500", "US500CASH", "USA500"], "OANDA:SPX500USD", "Indices"], ["Nasdaq 100", ["NAS100", "USTEC", "US100", "NDX100", "USTECH"], "OANDA:NAS100USD", "Indices"],
+  ["Dow Jones", ["US30", "DJ30", "WS30", "DOW30", "USA30"], "OANDA:US30USD", "Indices"], ["Russell 2000", ["US2000", "RUSSELL2000", "US2K", "USSC2000"], "OANDA:US2000USD", "Indices"],
+  ["Nikkei 225", ["JPN225", "JP225", "NIKKEI225", "JAPAN225"], "OANDA:JP225USD", "Indices"], ["Hang Seng", ["HK50", "HSI", "HONGKONG50", "HK33"], "TVC:HSI", "Indices"],
+  ["DAX 40", ["GER40", "DE40", "GER30", "DAX40", "DE30"], "XETR:DAX", "Indices"], ["FTSE 100", ["UK100", "FTSE100"], "TVC:UKX", "Indices"],
+  ["Euro Stoxx 50", ["EUSTX50", "EU50", "STOXX50", "ESTX50"], "TVC:SX5E", "Indices"], ["CAC 40", ["FRA40", "FR40", "CAC40"], "TVC:CAC40", "Indices"],
+  ["ASX 200", ["AUS200", "AU200", "ASX200"], "TVC:XJO", "Indices"], ["US Dollar Index", ["USDX", "DXY", "USDINDEX"], "TVC:DXY", "Indices"]];
+const CT_ALIAS = { "Gold": "XAU", "Silver": "XAG", "WTI Crude Oil": "CL", "S&P 500": "SPY", "Nasdaq 100": "QQQ" };   // so the macro read-out finds them
+const ctPrefer = () => ctConfigured() && (ctCfg() || {}).prefer !== false;          // use the broker's prices wherever it lists the market
+function ctList() {                                       // the broker markets The Finder reads: 28 forex pairs plus metals, energy and indices
+  const list = [];
+  FX_PAIRS.forEach(p => { const x = CT.symbols[p]; if (x) list.push({ x, name: p.slice(0, 3) + "/" + p.slice(3), group: "Forex", fb: "FX:" + p }); });
+  CT_CFD.forEach(([name, al, fb, group]) => { const x = al.map(a => CT.symbols[a]).find(Boolean); if (x) list.push({ x, name, group, fb, alias: CT_ALIAS[name] || null }); });
+  return list;
+}
 const CT_TV = { pepperstone: "PEPPERSTONE", icmarkets: "ICMARKETS", fxpro: "FXPRO", blackbull: "BLACKBULL", fusionmarkets: "FUSIONMARKETS", fpmarkets: "FPMARKETS" };
 const ctNorm = n => String(n || "").toUpperCase().split(/[._\s]/)[0].replace(/[^A-Z0-9]/g, "");
 function ctCfg() { try { return JSON.parse(localStorage.getItem(CT_KEY) || "null"); } catch (e) { return null; } }
@@ -2135,7 +2153,7 @@ async function ctConnect(cfg = ctCfg()) {
         const list = (await ctReq(2114, { ctidTraderAccountId: a.ctidTraderAccountId })).symbol || [];
         CT.symbols = {}; CT.byId = {};
         list.forEach(x => { if (x.enabled === false) return; const k = ctNorm(x.symbolName); if (!CT.symbols[k]) CT.symbols[k] = x; CT.byId[x.symbolId] = x; });
-        CT.acct = a; CT.live = live; CT.broker = a.brokerTitleShort || "Broker"; CT.state = "ready";
+        CT.acct = a; CT.live = live; CT.broker = a.brokerTitleShort || "Broker"; CT.state = "ready"; if (typeof CT_SUBD !== "undefined") CT_SUBD.clear();
         ctSaveCfg({ ...cfg, accountId: a.ctidTraderAccountId, live });
         return CT;
       }
@@ -2147,6 +2165,8 @@ async function ctConnect(cfg = ctCfg()) {
 let ctNextAt = 0;
 async function ctThrottle() { const now = Date.now(), at = Math.max(now, ctNextAt); ctNextAt = at + 230; if (at > now) await sleep(at - now); }   // history limit: 5 requests/s
 async function ctKlines(sym, interval, limit, keepForming = false) {
+  if (interval === "2h") { const k = await ctKlines(sym, "1h", limit * 2 + 2, keepForming), rows = mxAgg(k.t.map((t, i) => [t, k.o[i], k.h[i], k.l[i], k.c[i], k.qv[i]]), 7200e3).slice(-limit);
+    return { t: rows.map(r => r[0]), o: rows.map(r => r[1]), h: rows.map(r => r[2]), l: rows.map(r => r[3]), c: rows.map(r => r[4]), qv: rows.map(r => r[5]) }; }
   if (CT.state !== "ready") await ctConnect();
   const s = CT.symbols[ctNorm(sym.slice(3))]; if (!s) throw new Error(`${sym.slice(3)} isn't available on this cTrader account`);
   const per = CT_PERIOD[interval], ms = CT_MS[interval]; if (!per) throw new Error(`no ${interval} bars from cTrader`);
@@ -2157,6 +2177,10 @@ async function ctKlines(sym, interval, limit, keepForming = false) {
     catch (e) { lastErr = e; if (/token|Client ID/i.test(e.message)) throw e; span = Math.floor(span / 2); }
   }
   if (!res) throw lastErr || new Error("cTrader didn't send bars");
+  for (let w = 0; w < 3 && (res.trendbar || []).length < Math.min(limit, 60) && span < CT_SPAN[interval] * 4; w++) {     // weekend or holiday: look further back
+    span = Math.min(CT_SPAN[interval] * 4, span * 3); await ctThrottle();
+    try { const r2 = await ctReq(2137, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: s.symbolId, period: per, fromTimestamp: Math.floor(to - span), toTimestamp: to, count: limit + 1 }); if ((r2.trendbar || []).length > (res.trendbar || []).length) res = r2; } catch (e) { break; }
+  }
   const bars = (res.trendbar || []).map(b => { const lo = +b.low;
     return { t: +b.utcTimestampInMinutes * 60000, o: (lo + +(b.deltaOpen || 0)) / 1e5, h: (lo + +(b.deltaHigh || 0)) / 1e5, l: lo / 1e5, c: (lo + +(b.deltaClose || 0)) / 1e5, v: +(b.volume || 0) }; })
     .sort((a, b) => a.t - b.t);
@@ -2170,14 +2194,12 @@ function ctTV(name, group, fallback) {
 }
 async function ctScan(maFn) {
   if (CT.state !== "ready") await ctConnect();
-  const list = [];
-  FX_PAIRS.forEach(p => { const x = CT.symbols[p]; if (x) list.push({ x, name: p.slice(0, 3) + "/" + p.slice(3), group: "Forex", fb: "FX:" + p }); });
-  CT_CFD.forEach(([name, al, fb]) => { const x = al.map(a => CT.symbols[a]).find(Boolean); if (x) list.push({ x, name, group: "Broker CFDs", fb }); });
+  const list = ctList();
   if (!list.length) throw new Error("no forex pairs found on this cTrader account");
   list.forEach(o => CT_SYMS.add("CT:" + o.x.symbolName));
   const out = await pool(list, 2, o => analyse({ symbol: "CT:" + o.x.symbolName, base: ctNorm(o.x.symbolName), quote: "", vol24h: 0, chg24h: 0, funding: null, spotVol: null }, maFn), () => {});
   return out.map((r, i) => { if (!r) return null; const o = list[i];
-    Object.assign(r, { macro: true, ct: true, name: o.name, group: o.group, tv: ctTV(o.x.symbolName, o.group, o.fb), symbolId: o.x.symbolId,
+    Object.assign(r, { macro: true, ct: true, name: o.name, group: o.group, alias: o.alias || null, tv: ctTV(o.x.symbolName, o.group, o.fb), symbolId: o.x.symbolId,
       chg24h: r.ret24 != null ? r.ret24 * 100 : 0, ref24: r.ret24 != null ? r.price / (1 + r.ret24) : null, rs24: null, rs7: null, sector: null });
     r.mom = momentum(r); return r; }).filter(Boolean);
 }
@@ -2187,13 +2209,13 @@ async function ctSubscribe(rows) {
 }
 
 /* ---- gold, oil and the US index ETFs: Binance TradFi perpetuals, same analysis as the coins ---- */
-async function scanMacro(maFn, progress = () => {}) {
+async function scanMacro(maFn, progress = () => {}, skip = new Set()) {
   const [info, tick, prem] = await Promise.all([getJSON(`${FAPI}/fapi/v1/exchangeInfo`), getJSON(`${FAPI}/fapi/v1/ticker/24hr`), getJSON(`${FAPI}/fapi/v1/premiumIndex`)]);
   const meta = {};
   info.symbols.forEach(s => {
     if (s.contractType !== "TRADIFI_PERPETUAL" || s.status !== "TRADING" || s.quoteAsset !== "USDT") return;
     const known = MACRO_INFO[s.baseAsset];
-    if (known || s.underlyingType === "COMMODITY") meta[s.symbol] = { base: s.baseAsset, info: known || [s.baseAsset, "Commodities", `BINANCE:${s.symbol}.P`] };
+    if ((known || s.underlyingType === "COMMODITY") && !(known && skip.has(known[0]))) meta[s.symbol] = { base: s.baseAsset, info: known || [s.baseAsset, "Commodities", `BINANCE:${s.symbol}.P`] };
   });
   const fund = {}; prem.forEach(f => fund[f.symbol] = +(f.lastFundingRate || 0));
   const coins = tick.filter(t => meta[t.symbol]).map(t => ({ symbol: t.symbol, base: meta[t.symbol].base, quote: "USDT", vol24h: +t.quoteVolume,
@@ -2206,12 +2228,12 @@ async function scanMacro(maFn, progress = () => {}) {
     Object.assign(r, { macro: true, name, group, tv, rs24: null, rs7: null, sector: null }); r.mom = momentum(r); return r;
   }).sort((a, b) => rank(a.base) - rank(b.base));
 }
-async function mxScanMacro(maFn, progress = () => {}) {
+async function mxScanMacro(maFn, progress = () => {}, skip = new Set()) {
   if (!(await pingMexc(false))) throw new Error("MEXC's futures API is unreachable from this network");
   const det = await mxDetail(0), tick = await mxTickers(0), live = new Set(det.filter(c => c.state === 0).map(c => c.symbol));
-  const coins = Object.keys(MX_INFO).filter(k => live.has(k)).map(k => { const t = tick[k] || {};
+  const coins = Object.keys(MX_INFO).filter(k => live.has(k) && !skip.has(MX_INFO[k][0])).map(k => { const t = tick[k] || {};
     return { symbol: "MX:" + k, base: k.replace(/_USDT$/, ""), quote: "USDT", vol24h: +t.amount24 || 0, chg24h: 0, funding: +(t.fundingRate || 0), spotVol: null }; });
-  if (!coins.length) throw new Error("MEXC lists none of its gold, index or forex contracts right now");
+  if (!coins.length) { if (skip.size) return []; throw new Error("MEXC lists none of its gold, index or forex contracts right now"); }
   const out = await pool(coins, 3, c => analyse(c, maFn), progress), order = Object.keys(MX_INFO);
   return out.filter(Boolean).map(r => {
     const [name, group, tv, pair] = MX_INFO[r.symbol.slice(3)];
@@ -3855,7 +3877,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.11.2207";
+const APP_VERSION = "2026.10.11.2306";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5709,9 +5731,9 @@ try { if (localStorage.getItem("finder-navcol") === "1") navCollapse(true); } ca
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
 
 /* ===================== Gold, Oil & Indices page ===================== */
-const MACRO_GROUPS = ["Forex", "MEXC Forex", "Broker CFDs", "Metals", "Energy", "Commodities", "US Indices", "Indices"];
-const MACRO_TITLE = g => g === "Broker CFDs" ? `${CT.broker || "Broker"} Gold &amp; Indices` : g === "MEXC Forex" ? `Forex <span class="meta">MEXC</span>`
-  : ["Metals", "Energy", "US Indices", "Indices", "Commodities"].includes(g) ? `${g} <span class="meta">${MACRO.src === "mexc" ? "MEXC" : "Binance"}</span>` : g;
+const MACRO_GROUPS = ["Forex", "MEXC Forex", "Metals", "Energy", "Commodities", "Indices", "US Indices"];
+const macroSrcName = r => r.ct ? (CT.broker || "Broker") : r.mx ? "MEXC" : "Binance";
+const MACRO_TITLE = (g, rs = []) => `${g === "MEXC Forex" ? (MACRO.rows.some(r => r.group === "Forex") ? "More Forex" : "Forex") : g} <span class="meta">${[...new Set(rs.map(macroSrcName))].join(" + ")}</span>`;
 function fxSession(ms) {                              // forex: Sunday 5 PM to Friday 5 PM New York time
   const { wd, m } = etClock(ms), tip = "Forex trades around the clock from Sunday 5 PM to Friday 5 PM New York time. Prices freeze over the weekend.";
   if (wd === "Sat" || (wd === "Sun" && m < 1020) || (wd === "Fri" && m >= 1020)) return { label: "Forex market closed", cls: "closed", tip };
@@ -5726,9 +5748,9 @@ function ccyStrength(rows) {                          // 24h change of each curr
 }
 function ctBarHTML() {
   const c = ctCfg();
-  if (!c) return `<span>Connect your cTrader account to add 28 forex pairs plus your broker's gold and index prices.</span><button class="btn primary sm" id="ctOpen">Connect cTrader</button>`;
+  if (!c) return `<span>Connect your cTrader account to use your broker's prices for forex (28 pairs), gold, oil and the indices, on these boards and the charts.</span><button class="btn primary sm" id="ctOpen">Connect cTrader</button>`;
   if (CT.state === "connecting" || (MACRO.running && CT.state !== "error")) return `<span class="mute">Connecting to cTrader…</span><button class="btn sm" id="ctOpen">Settings</button>`;
-  if (CT.state === "ready" || (CT.state === "closed" && CT.acct)) return `<span><span class="${CT.state === "ready" ? "up" : "mute"}">●</span> cTrader · ${CT.broker} ${CT.live ? "live" : "demo"} account ${CT.acct.traderLogin || CT.acct.ctidTraderAccountId}${CT.state === "ready" ? "" : " · reconnects on the next refresh"}</span><button class="btn sm" id="ctOpen">Settings</button>`;
+  if (CT.state === "ready" || (CT.state === "closed" && CT.acct)) return `<span><span class="${CT.state === "ready" ? "up" : "mute"}">●</span> cTrader · ${CT.broker} ${CT.live ? "live" : "demo"} account ${CT.acct.traderLogin || CT.acct.ctidTraderAccountId}${CT.state === "ready" ? (ctPrefer() ? ` · ${CT.broker} prices for forex, metals, energy and indices` : " · exchange prices first (change in Settings)") : " · reconnects on the next refresh"}</span><button class="btn sm" id="ctOpen">Settings</button>`;
   return `<span class="dn">cTrader: ${CT.err || "not connected"}.</span><button class="btn sm" id="ctOpen">Settings</button>`;
 }
 function etClock(ms) {                                // weekday and minutes after midnight in New York (handles daylight saving)
@@ -5768,7 +5790,7 @@ function macroReadHTML() {
 function macroRowHTML(r, i) {
   const p = coinPlay(r), m = r.momo;
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
-    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${mxInvTag(r)}${ratingHTML(r.rating)}</div>
+    <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${MACRO.rows.some(x => x.ct) && !r.ct ? `<span class="tag" title="Your broker doesn't list this one, so it comes from ${macroSrcName(r)}">${macroSrcName(r)}</span>` : ""}${mxInvTag(r)}${ratingHTML(r.rating)}</div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span>${m ? ` <span class="tag ${m.dir === "Long" ? "long" : "short"}">${MOMO_STAGE[m.stage]}</span>` : ""}</div>
       <div class="ln mstk"><span>1H ${chip(r.s1h)} 4H ${chip(r.s4h)} D ${chip(r.s1d)}</span><span class="rsis">RSI 1H ${rsiChip(r.rsi && r.rsi.h1)} 4H ${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""}</div></div>
@@ -5781,7 +5803,7 @@ function renderMacro() {
   else {
     const now = Date.now(), groups = MACRO_GROUPS.map(g => [g, MACRO.rows.filter(r => r.group === g)]).filter(([, rs]) => rs.length);
     body.innerHTML = `<div class="mgrid">${groups.map(([g, rs]) => { const st = g === "US Indices" || g === "Indices" ? usSession(now) : g === "Forex" || g === "MEXC Forex" ? fxSession(now) : cmeSession(now);
-      return `<div class="board${g === "Forex" ? " wide" : ""}"><div class="board-head"><h2>${MACRO_TITLE(g)}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div>${g === "MEXC Forex" ? `<div class="why mxfxnote">These are all the currencies MEXC lists, each against the dollar. NZD and crosses like EUR/JPY or GBP/JPY aren't on MEXC; connect cTrader for all 28 pairs. USD/JPY, USD/CAD, USD/CHF, USD/TRY and USD/BRL are flipped from MEXC's JPY_USDT-style contracts so they read like every other chart: a long here is a short on MEXC.</div>` : ""}<div class="${g === "Forex" ? "rows3" : ""}">${rs.map(macroRowHTML).join("")}</div></div>`; }).join("")}</div>`;
+      return `<div class="board${g === "Forex" ? " wide" : ""}"><div class="board-head"><h2>${MACRO_TITLE(g, rs)}</h2><span class="mstat ${st.cls}" title="${st.tip}">● ${st.label}</span></div>${g === "MEXC Forex" ? `<div class="why mxfxnote">${MACRO.rows.some(r => r.group === "Forex") ? "MEXC currencies your broker doesn't list. " : "These are all the currencies MEXC lists, each against the dollar. NZD and crosses like EUR/JPY or GBP/JPY aren't on MEXC; connect cTrader for all 28 pairs. "}USD/JPY, USD/CAD, USD/CHF, USD/TRY and USD/BRL are flipped from MEXC's JPY_USDT-style contracts so they read like every other chart: a long here is a short on MEXC.</div>` : ""}<div class="${g === "Forex" ? "rows3" : ""}">${rs.map(macroRowHTML).join("")}</div></div>`; }).join("")}</div>`;
     bindRows(body);
   }
   $("macroRead").innerHTML = MACRO.rows.length ? macroReadHTML() : "";
@@ -5799,9 +5821,13 @@ async function macroScan(force) {
   MACRO.running = true; MACRO.err = null; MACRO.src = macroSrc(); renderMacro();
   try {
     const maFn = $("maType").value === "sma" ? sma : ema;
-    const [bin, ct] = await Promise.allSettled([
-      (MACRO.src === "mexc" ? mxScanMacro : scanMacro)(maFn, (d, n) => { const t = `Reading ${d} of ${n}…`; $("macroMeta").textContent = t; document.querySelectorAll(".xmeta").forEach(e => e.textContent = t); }),
+    let skip = new Set();
+    if (ctPrefer()) { try { if (CT.state !== "ready") await ctConnect(); skip = new Set(ctList().map(o => o.name)); } catch (e) {} }
+    let [bin, ct] = await Promise.allSettled([
+      (MACRO.src === "mexc" ? mxScanMacro : scanMacro)(maFn, (d, n) => { const t = `Reading ${d} of ${n}…`; $("macroMeta").textContent = t; document.querySelectorAll(".xmeta").forEach(e => e.textContent = t); }, skip),
       ctConfigured() ? ctScan(maFn) : Promise.resolve([])]);
+    if (skip.size && !(ct.status === "fulfilled" && ct.value.length))         // the broker didn't deliver: fill in from the exchange after all
+      [bin] = await Promise.allSettled([(MACRO.src === "mexc" ? mxScanMacro : scanMacro)(maFn, () => {})]);
     if (ct.status === "rejected") { CT.state = "error"; CT.err = ct.reason && ct.reason.message || "couldn't load forex";
       if (NC_STATE.ctErr !== CT.err) { NC_STATE.ctErr = CT.err; ncAdd({ kind: "System", icon: "⚠️", tone: "warn", sym: null, action: "ctrader", title: "cTrader didn't connect", detail: CT.err.charAt(0).toUpperCase() + CT.err.slice(1) + "." }); } }
     else if (ct.status === "fulfilled" && ct.value.length) NC_STATE.ctErr = null;
@@ -5863,7 +5889,8 @@ const X_CLASS = {
   "Industrial metals": ["Copper", "Aluminium", "Nickel", "Zinc", "Lead"],
   "Energy": ["WTI Crude Oil", "Brent Crude Oil", "Natural Gas"],
   "US stocks": ["S&P 500", "Nasdaq 100", "Dow Jones", "Russell 2000", "Semiconductors"],
-  "Asian stocks": ["Nikkei 225", "Hang Seng", "KOSPI"],
+  "Asian stocks": ["Nikkei 225", "Hang Seng", "KOSPI", "ASX 200"],
+  "European stocks": ["DAX 40", "FTSE 100", "Euro Stoxx 50", "CAC 40"],
 };
 const xRet = (r, w) => w === "24h" ? r.chg24h : w === "7d" ? (r.ret7 == null ? null : r.ret7 * 100) : (r.ret30 == null ? null : r.ret30 * 100);
 const avg = a => { const v = a.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((p, x) => p + x, 0) / v.length : null; };
@@ -6032,6 +6059,7 @@ $("xmomoAlert").onchange = () => { try { localStorage.setItem(MOMO_ALERT_KEY, $(
 setInterval(() => { if (page === "macroov" && !document.hidden) renderXHours(); }, 60e3);
 CT.onSpot = p => {                                    // live bid from cTrader for the forex and broker rows
   const x = CT.byId[p.symbolId]; if (!x || p.bid == null) return;
+  if (typeof chCtSpot === "function") chCtSpot(x, +p.bid / 1e5);
   const r = MACRO.by["CT:" + x.symbolName]; if (!r) return;
   r.price = +p.bid / 1e5; if (r.ref24) r.chg24h = (r.price / r.ref24 - 1) * 100;
   macroPaint(r);
@@ -6052,13 +6080,14 @@ function openCTSettings() {
       <label>Client Secret<input id="ctSecret" type="password" autocomplete="off" value="${esc(c.clientSecret)}"></label>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${a.brokerTitleShort || "Broker"} ${a.isLive ? "live" : "demo"} ${a.traderLogin || a.ctidTraderAccountId}</option>`).join("")}</select></label>` : ""}
+      <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
       <p class="meta">Saved in this browser only and sent only to cTrader. The token gives read access to prices and your account list; the app never places orders.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
       <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
     </div>`;
   $("dlgClose").onclick = () => $("dlg").close();
   $("ctSave").onclick = async () => {
-    const cfg = { ...(ctCfg() || {}), clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: $("ctToken").value.trim() };
+    const cfg = { ...(ctCfg() || {}), clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: $("ctToken").value.trim(), prefer: $("ctPrefer").checked };
     if ($("ctAcct")) cfg.accountId = $("ctAcct").value;
     $("ctSave").disabled = true; $("ctMsg").textContent = "Connecting to cTrader…";
     try {
@@ -6072,7 +6101,7 @@ function openCTSettings() {
   if ($("ctForget")) $("ctForget").onclick = () => {
     ctClose(); ctSaveCfg(null); CT.state = "off"; CT.acct = null; CT.accounts = []; CT.err = null;
     MACRO.rows = MACRO.rows.filter(r => !r.ct); MACRO.by = Object.fromEntries(MACRO.rows.map(r => [r.symbol, r]));
-    $("dlg").close(); renderMacro(); navBadges();
+    $("dlg").close(); renderMacro(); navBadges(); macroScan(true);          // bring back the exchange's gold, oil and indices
   };
   if (!$("dlg").open) $("dlg").showModal();
 }
@@ -6125,6 +6154,20 @@ const CHQ = {};                                              // quotes fetched f
 const CH_COLORS = ["#2962ff", "#e8b04a", "#22ab94", "#f23645", "#9c27b0", "#00bcd4", "#ff9800", "#e0e3eb"];
 const CH_SESS = [["Asia", 8, 12, "242,54,69"], ["London", 12, 18, "154,156,161"], ["Pre-NY", 19.5, 21.5, "247,166,0"], ["NY AM", 21.5, 24, "41,98,255"]];
 const CH_FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+/* ---- cTrader: subscribe the chart's broker symbol and paint every tick into the forming candle ---- */
+const CT_SUBD = new Set();
+function chCtSub(sym) {
+  if (!sym || !sym.startsWith("CT:") || CT.state !== "ready") return; const x = CT.symbols[ctNorm(sym.slice(3))]; if (!x || CT_SUBD.has(x.symbolId)) return;
+  CT_SUBD.add(x.symbolId); ctReq(2127, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: [x.symbolId] }).catch(e => { if (!/ALREADY/i.test(e.code || e.message)) CT_SUBD.delete(x.symbolId); });
+}
+function chCtSpot(x, price) {
+  if (!chOn || !isFinite(price) || CH.sym !== "CT:" + x.symbolName) return;
+  chVis().forEach(P => { if (!P.t.length || P.sym !== CH.sym) return;
+    const iv = CH_IV[P.tf], n = P.t.length, last = P.t[n - 1];
+    if (iv < 864e5 && Date.now() >= last + iv) { const t = Math.floor(Date.now() / iv) * iv; chBar(P, { t, o: price, h: price, l: price, c: price, v: 0 }); }
+    else chBar(P, { t: last, o: P.o[n - 1], h: Math.max(P.h[n - 1], price), l: Math.min(P.l[n - 1], price), c: price }); });
+  chHeader();
+}
 /* ---- chart settings (TradingView's Settings: Symbol, Status line, Scales and lines, Canvas, Alerts, Events) and templates ---- */
 const CS_DEF = {
   upC: "#22ab94", dnC: "#f23645", body: true, border: false, upB: "#22ab94", dnB: "#f23645", wick: true, upW: "#22ab94", dnW: "#f23645", prevClose: false, prec: "auto", tz: "Asia/Manila",
@@ -7204,14 +7247,21 @@ const chBase = s => s.replace(/USDT$/, "");
 const chIsTF = s => !s.startsWith("CT:") && !isMX(s) && (TRADFI_SYMS.has(s) || (!!MACRO_INFO[chBase(s)] && !bySym[s]));
 const chKind = s => s.startsWith("CT:") ? "ct" : isMX(s) ? "mx" : chIsTF(s) ? "tradfi" : "crypto";
 const mxGroup = s => { const i = MX_INFO[s.slice(3)]; return !i ? "Stocks" : i[1] === "Forex" ? "Forex & CFDs" : i[1] === "Indices" ? "Indices" : "Metals & Energy"; };
+function chCtInfo(s) { if (!s || !s.startsWith("CT:") || typeof ctList !== "function") return null; const n = s.slice(3); return ctList().find(o => o.x.symbolName === n) || null; }
+function ctEquiv(s) {                                        // the same market on your cTrader broker, when you prefer its prices
+  if (!s || s.startsWith("CT:") || typeof ctPrefer !== "function" || !ctPrefer() || CT.state !== "ready") return null;
+  const name = isMX(s) ? (MX_INFO[s.slice(3)] || [])[0] : !bySym[s] || TRADFI_SYMS.has(s) ? (MACRO_INFO[chBase(s)] || [])[0] : null; if (!name) return null;
+  const o = ctList().find(o => o.name === name); if (!o) return null;
+  CT_SYMS.add("CT:" + o.x.symbolName); return "CT:" + o.x.symbolName;
+}
 function chName(s) {
-  if (s.startsWith("CT:")) { const r = MACRO.by[s]; return r && r.name ? r.name : s.slice(3); }
+  if (s.startsWith("CT:")) { const r = MACRO.by[s], o = r ? null : chCtInfo(s); return r && r.name ? r.name : o ? o.name : s.slice(3); }
   if (isMX(s)) { const i = MX_INFO[s.slice(3)]; return i ? i[0] : coin(s); }
   if (chIsTF(s) && MACRO_INFO[chBase(s)]) return MACRO_INFO[chBase(s)][0];
   return coin(s);
 }
 function chGroup(s) {
-  if (s.startsWith("CT:")) return "Forex & CFDs";
+  if (s.startsWith("CT:")) { const g = (MACRO.by[s] || chCtInfo(s) || {}).group; return g === "Metals" || g === "Energy" ? "Metals & Energy" : g === "Indices" ? "Indices" : "Forex & CFDs"; }
   if (isMX(s)) return mxGroup(s);
   if (chIsTF(s)) { const g = (MACRO_INFO[chBase(s)] || [])[1]; return g === "US Indices" ? "US Indices" : "Metals & Energy"; }
   return "Crypto";
@@ -7346,10 +7396,12 @@ async function chPageShown(on) {
   chOn = on;
   if (!on) { if (document.body.classList.contains("chfocus")) chFocus(false); if (typeof liveSync === "function") liveSync(); return; }
   try { await ensureLWC(); } catch (e) { return; }
+  { const eq = ctEquiv(CH.sym); if (eq) CH.sym = eq; }
   chBuild(); chIndicators(); chApplyLayout(); chHeader(); chWLRender(); chQuotesFetch();
+  if (ctPrefer() && CT.state !== "ready" && !CT.connecting) ctConnect().then(() => { if (!chOn) return; const eq = ctEquiv(CH.sym); if (eq) chSetSym(eq); else chWLRender(); }).catch(() => {});
 }
 function chSetSym(sym) {
-  if (!sym) return;
+  if (!sym) return; sym = ctEquiv(sym) || sym;
   const why = chSourceOK(sym); if (why) { toast(why); return; }
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
   CH.sym = sym; CH.recent = [sym, ...(CH.recent || []).filter(x => x !== sym)].slice(0, 12); chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
@@ -7363,18 +7415,21 @@ let chPickCat = "all", chPickQ = "", chPickSel = 0;
 const CH_POP_CRYPTO = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"];
 function chCatOf(s) {
   if (isMX(s)) return { "Forex & CFDs": "fx", "Indices": "indices", "Stocks": "stocks" }[mxGroup(s)] || "metals";
-  if (s.startsWith("CT:")) { const r = MACRO.by[s]; if (!r || r.group === "Forex") return "fx";
-    return /gold|silver|oil|crude|brent|gas|copper|platinum|palladium|xau|xag/i.test(r.name || s) ? "metals" : "indices"; }
+  if (s.startsWith("CT:")) { const g = (MACRO.by[s] || chCtInfo(s) || {}).group; return g === "Metals" || g === "Energy" ? "metals" : g === "Indices" ? "indices" : "fx"; }
   if (chIsTF(s)) return ((MACRO_INFO[chBase(s)] || [])[1] === "US Indices") ? "indices" : "metals";
   return "crypto";
 }
 function chSrc(s) { return s.startsWith("CT:") ? (CT.broker || "cTrader") : isMX(s) ? (mxInv(s) ? "MEXC perp, flipped to USD/xxx" : "MEXC perp") : chIsTF(s) ? "Binance TradFi perp" : `${exName()} ${MODE === "spot" ? "spot" : "perp"}`; }
 function chCatList(cat) {
-  const out = [], add = s => { if (s && !out.includes(s)) out.push(s); };
-  const ctRows = MACRO.rows.filter(r => r.ct).map(r => r.symbol);
+  const out = []; let add = s => { if (s && !out.includes(s)) out.push(s); };
+  const ctRows = [...new Set([...(CT.state === "ready" && ctPrefer() ? ctList().map(o => { CT_SYMS.add("CT:" + o.x.symbolName); return "CT:" + o.x.symbolName; }) : []), ...MACRO.rows.filter(r => r.ct).map(r => r.symbol)])];
+  const add0 = add; { const prefer = ctRows.length && ctPrefer(); if (prefer) add = s => add0(ctEquiv(s) || s); }
   if (cat === "recent") [CH.sym, ...(CH.recent || [])].forEach(add);
   if (cat === "crypto" || cat === "all") { (data ? data.all.filter(r => !r.macro).sort((a, b) => b.vol24h - a.vol24h).map(r => r.symbol) : CH_POP_CRYPTO).forEach(add); CHW.filter(s => chCatOf(s) === "crypto").forEach(add); }
   const mx = chMexc(), mxOf = c => Object.keys(MX_INFO).map(k => "MX:" + k).filter(k => chCatOf(k) === c);
+  if (cat === "metals" || cat === "all") ctRows.filter(s => chCatOf(s) === "metals").forEach(add0);
+  if (cat === "indices" || cat === "all") ctRows.filter(s => chCatOf(s) === "indices").forEach(add0);
+  if (cat === "fx" || cat === "all") ctRows.filter(s => chCatOf(s) === "fx").forEach(add0);
   if (cat === "metals" || cat === "all") { if (mx) mxOf("metals").forEach(add); else if (EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] !== "US Indices").forEach(([b]) => add(b + "USDT")); }
   if (cat === "metals" || cat === "all") ctRows.filter(s => chCatOf(s) === "metals").forEach(add);
   if (cat === "indices" || cat === "all") { if (mx) mxOf("indices").forEach(add); else if (EXCHANGE !== "bybit") Object.entries(MACRO_INFO).filter(([, v]) => v[1] === "US Indices").forEach(([b]) => add(b + "USDT")); }
@@ -7440,7 +7495,7 @@ async function chDlgStart(host, sym, tf) {
   chMenuClose(); chColorClose(); chPickClose();
   host.innerHTML = ""; host.appendChild(el); el.classList.add("chdlg");
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
-  CH.sym = sym; CH.max = 0;
+  sym = ctEquiv(sym) || sym; CH.sym = sym; CH.max = 0;
   const P = CHP[0]; P.tf = CH.tfs[0] = CH_TFS.includes(CH.dlgTf) ? CH.dlgTf : tf; P.sym = null;
   const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf;
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
@@ -7507,7 +7562,7 @@ async function chLoad(P) {
     ["t", "o", "h", "l", "c"].forEach(f => P[f] = k[f].slice()); P.v = (k.qv || []).map(Number);
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f])); P.v.push(fb.v || 0); }
     if (!P.t.length) throw new Error("no candles");
-    P.sym = sym; P.alSig = null; chIndSync(P); chSetData(P); chFit(P);
+    P.sym = sym; P.alSig = null; chIndSync(P); chSetData(P); chFit(P); chCtSub(sym);
     P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader();
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
 }
@@ -8134,16 +8189,16 @@ function chHeader() {
 }
 function chWLItems() {
   const seen = new Set(), out = [];
-  const add = (s, g) => { if (!s || seen.has(s)) return; seen.add(s); out.push({ sym: s, g: g || chGroup(s), user: CHW.includes(s) }); };
+  const add = (s, g, orig = s) => { if (!s || seen.has(s)) return; seen.add(s); out.push({ sym: s, orig, g: g || chGroup(s), user: CHW.includes(orig) }); };
   try { Object.keys(WL.coins || {}).filter(s => typeof isWatched === "function" ? isWatched(s) : true).forEach(s => add(s, "Starred")); } catch (e) {}
-  CHW.forEach(s => add(s));
+  CHW.forEach(s => add(ctEquiv(s) || s, null, s));
   return out;
 }
 function chWLRender() {
   const el = $("chWL"); if (!el || !chOn) return;
   const items = chWLItems(), groups = ["Starred", "Crypto", "Metals & Energy", "US Indices", "Indices", "Forex & CFDs", "Stocks"];
   const row = x => { const q = chQuote(x.sym), p = q && q.price, c = q && q.chg, abs = p != null && c != null ? p - p / (1 + c / 100) : null;
-    return `<div class="chwr ${x.sym === CH.sym ? "on" : ""}" data-s="${x.sym}" role="button" tabindex="0"><span class="n">${chName(x.sym)}</span><span class="v">${chFmt(p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${abs == null ? "" : (abs >= 0 ? "+" : "") + chFmt(abs, p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "—" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>${x.user ? `<button class="x" data-rm="${x.sym}" aria-label="Remove ${chName(x.sym)}">×</button>` : ""}</div>`; };
+    return `<div class="chwr ${x.sym === CH.sym ? "on" : ""}" data-s="${x.sym}" role="button" tabindex="0"><span class="n">${chName(x.sym)}</span><span class="v">${chFmt(p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${abs == null ? "" : (abs >= 0 ? "+" : "") + chFmt(abs, p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "—" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>${x.user ? `<button class="x" data-rm="${x.orig || x.sym}" aria-label="Remove ${chName(x.sym)}">×</button>` : ""}</div>`; };
   document.querySelector(".chbody").classList.toggle("nowl", !CH.wl);
   if (!CH.wl) { el.innerHTML = `<button class="chwlopen" id="chWLOpen" title="Show the watchlist" aria-label="Show the watchlist">‹ <span>Watchlist</span></button>`; $("chWLOpen").onclick = () => { CH.wl = true; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); }; return; }
   let html = `<div class="chwh"><b>Watchlist</b><span><button class="btn sm" id="chWLAddB">${chWLAdd ? "Done" : "+ Add"}</button> <button class="btn sm" id="chWLHide" title="Hide the watchlist" aria-label="Hide the watchlist">›</button></span></div>`;

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.10.1506">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.11.1645">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -825,6 +825,16 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   .chlaypop{position:fixed!important;left:8px!important;right:8px!important;top:110px!important;z-index:90}
 }
 @media (hover:none){.chia{display:inline-flex}.chtools .chtarr{opacity:1}}
+/* the Charts engine inside the coin dialog */
+.dchbox{padding:6px 8px 8px}
+#dChartHost{flex:1;min-height:0;display:flex;flex-direction:column}
+.chpage.chdlg,#dChartHost .chpage.chdlg.pg-off{display:flex!important;height:auto;flex:1;min-height:0}
+.chdlg .chcats,.chdlg .chlay,.chdlg .chseg,.chdlg .chfocusb,.chdlg .chhint,.chdlg .chwl,.chdlg [data-max]{display:none!important}
+.chdlg .chsym{pointer-events:none}.chdlg .chsym i{display:none}
+.chdlg .chbar{padding:0 0 6px}
+.chdlg .chbody,.chdlg .chbody.nowl{grid-template-columns:40px minmax(0,1fr)!important}
+@media (max-width:1000px){.dleft .dchbox{min-height:520px}}
+@media (max-width:760px){.chdlg .chbody,.chdlg .chbody.nowl{grid-template-columns:minmax(0,1fr)!important}.dleft .dchbox{min-height:0}.chdlg .chgrid .chleaf:only-child{height:min(62vh,560px)!important}}
 </style>
 </head>
 <body>
@@ -3562,7 +3572,7 @@ async function ensureLWC() {
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const pricePrec = p => p >= 1000 ? 2 : p >= 1 ? 4 : p >= 0.01 ? 5 : 7;
 const phtTime = t => { const d = new Date(t * 1000 + PHT_MS); return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")} PHT`; };
-function killChart() { if (mRO) { mRO.disconnect(); mRO = null; } if (mChart) { try { mChart.remove(); } catch (e) {} mChart = null; }
+function killChart() { if (window.chDlgEnd) chDlgEnd(); if (mRO) { mRO.disconnect(); mRO = null; } if (mChart) { try { mChart.remove(); } catch (e) {} mChart = null; }
   clearInterval(LIVE.chartTimer);
   if (LIVE.chart) { LIVE.chart = null; liveSync(); } }
 async function drawChart(r, tf) {
@@ -3627,12 +3637,14 @@ async function drawChart(r, tf) {
 }
 function chartBoxHTML(r) {
   const p = coinPlay(r), tf = p.lv && p.lv.tf === "15m" ? "15m" : "1h";
+  if (window.chDlgStart) return `<div class="chartbox dchbox"><div id="dChartHost" data-tf="${tf}"><div class="meta cload">Loading chart…</div></div></div>`;
   return `<div class="chartbox"><div class="tfrow" id="tfRow">${["15m", "1h", "4h", "1d"].map(t => `<button class="qchip ${t === tf ? "on" : ""}" data-tf="${t}">${t.toUpperCase()}</button>`).join("")}<span class="sep"></span><button class="qchip ${rsiPaneOn() ? "on" : ""}" id="rsiTog" title="Show or hide the RSI pane">RSI</button>
     <span class="clegend"><i style="background:#f23645"></i>20 <i style="background:#9c27b0"></i>50 <i style="background:#2962ff"></i>100 ${p.lv ? `· <i style="background:#f7a600"></i>zone <i style="background:#2962ff"></i>entry <i style="background:#f23645"></i>stop <i style="background:#22ab94"></i>target` : ""}</span></div>
     <div id="mchart" data-tf="${tf}"></div></div>`;
 }
 function initPanelExtras(r) {
   renderCalc(r); renderWatchBox(r);
+  if ($("dChartHost") && window.chDlgStart) { chDlgStart($("dChartHost"), r.symbol, $("dChartHost").dataset.tf); return; }
   const tf = $("mchart") ? $("mchart").dataset.tf : "1h";
   document.querySelectorAll("#tfRow [data-tf]").forEach(b => b.onclick = () => drawChart(r, b.dataset.tf));
   if ($("rsiTog")) $("rsiTog").onclick = () => {
@@ -3819,7 +3831,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.10.1506";
+const APP_VERSION = "2026.10.11.1645";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6099,7 +6111,7 @@ function chModal(html, cls = "") {                        // TradingView-style d
   chModalClose();
   const bg = document.createElement("div"); bg.className = "chmodbg"; bg.id = "chModBg";
   bg.innerHTML = `<div class="chmod ${cls}" role="dialog" aria-modal="true">${html}</div>`;
-  document.body.appendChild(bg);
+  chDlgLayer().appendChild(bg);
   bg.addEventListener("pointerdown", e => { if (e.target === bg) { bg.dataset.down = "1"; } });
   bg.addEventListener("click", e => { if (e.target === bg && bg.dataset.down) { (bg._onCancel || chModalClose)(); } });
   return bg.firstElementChild;
@@ -6121,7 +6133,7 @@ function chColorPop(anchor, c, al, onChange) {           // al = null hides the 
   const cur = String(c || "").toLowerCase();
   p.innerHTML = `<div class="chpal">${CH_PAL.map(row => row.map(x => `<button class="${x === cur ? "on" : ""}" data-pc="${x}" style="background:${x}" aria-label="${x}"></button>`).join("")).join("")}</div>
     <div class="chcolrow"><label class="chcust" title="Custom colour"><input type="color" value="${/^#[0-9a-f]{6}$/i.test(cur) ? cur : "#2962ff"}" aria-label="Custom colour">+</label>${al != null ? `<span class="meta">Opacity</span><input type="range" min="0" max="100" value="${Math.round(al * 100)}" id="chColAl" aria-label="Opacity"><b id="chColAlV">${Math.round(al * 100)}%</b>` : ""}</div>`;
-  document.body.appendChild(p);
+  chDlgLayer().appendChild(p);
   const r = anchor.getBoundingClientRect(), pw = 268; p.style.left = Math.max(6, Math.min(window.innerWidth - pw - 6, r.left)) + "px";
   const below = r.bottom + 6, h = p.offsetHeight; p.style.top = (below + h > window.innerHeight - 6 ? Math.max(6, r.top - h - 6) : below) + "px";
   let col = c, a = al;
@@ -6140,7 +6152,7 @@ function chMenu(anchor, items, opts = {}) {               // items: [{l, k, ico,
   const m = document.createElement("div"); m.className = "chmenu " + (opts.cls || ""); m.id = "chMenu";
   m.innerHTML = items.map(x => x.sep ? '<div class="chmsep"></div>' : x.hd ? `<div class="chmhd">${chEsc(x.hd)}</div>` :
     `<button data-mk="${x.k}" class="${x.on ? "on" : ""}">${x.ico ? `<span class="mi">${x.ico}</span>` : ""}<span class="ml">${chEsc(x.l)}</span>${x.sc ? `<span class="msc">${x.sc}</span>` : ""}${x.star != null ? `<span class="mst ${x.star ? "on" : ""}" data-star="${x.k}" title="${x.star ? "Remove from favorites" : "Add to favorites"}">${chIco("star", 14, x.star ? 'fill="currentColor"' : "")}</span>` : ""}</button>`).join("");
-  document.body.appendChild(m);
+  chDlgLayer().appendChild(m);
   const r = anchor.getBoundingClientRect();
   if (opts.side === "right" && r.right + 6 + m.offsetWidth <= window.innerWidth - 6) { m.style.left = (r.right + 6) + "px"; m.style.top = Math.max(6, Math.min(window.innerHeight - m.offsetHeight - 6, r.top - 4)) + "px"; }
   else { m.style.left = Math.max(6, Math.min(window.innerWidth - m.offsetWidth - 6, r.left)) + "px"; const b = r.bottom + 4; m.style.top = (b + m.offsetHeight > window.innerHeight - 6 ? Math.max(6, r.top - m.offsetHeight - 4) : b) + "px"; }
@@ -7227,7 +7239,50 @@ function chPickRender(focus) {
   if (focus || had) { inp.focus(); if (caret != null) inp.setSelectionRange(caret, caret); }
   if (!focus && scr) p.querySelector(".chplist").scrollTop = scr;
 }
-window.openInCharts = sym => { if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
+/* ---- the coin dialog borrows this chart: same drawing tools, indicators and every timeframe, one pane ---- */
+const CHDLG = { on: false, prev: null, home: null, ro: null, escBusy: false };
+const chDlgLayer = () => CHDLG.on && $("dlg") && $("dlg").open ? $("dlg") : document.body;   // menus and dialogs must sit inside the open modal
+async function chDlgStart(host, sym, tf) {
+  try { await ensureLWC(); } catch (e) { host.innerHTML = `<div class="meta cload">Couldn't load the chart library.</div>`; return; }
+  if (!host.isConnected || $("dlgBody").dataset.sym !== sym) return;
+  chBuild();
+  const el = $("chPage");
+  if (!CHDLG.on) { CHDLG.prev = { sym: CH.sym, max: CH.max, tf0: CH.tfs[0] }; CHDLG.home = [el.parentNode, el.nextSibling]; }
+  CHDLG.on = true;
+  chMenuClose(); chColorClose(); chPickClose();
+  host.innerHTML = ""; host.appendChild(el); el.classList.add("chdlg");
+  if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
+  CH.sym = sym; CH.max = 0;
+  const P = CHP[0]; P.tf = CH.tfs[0] = CH_TFS.includes(CH.dlgTf) ? CH.dlgTf : tf; P.sym = null;
+  const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf;
+  chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
+  chOn = true; chIndicators(); chApplyLayout(); chHeader(); chSelBar();
+  if (CHDLG.ro) CHDLG.ro.disconnect();
+  if (window.ResizeObserver) { CHDLG.ro = new ResizeObserver(() => { if (CHDLG.on) { chResizeAll(); chDirty = true; } }); CHDLG.ro.observe(host); }
+  if (typeof liveSync === "function") liveSync();
+}
+function chDlgEnd(nextSym) {
+  if (!CHDLG.on) return;
+  const pv = CHDLG.prev, el = $("chPage"); CHDLG.on = false;
+  if (CHDLG.ro) { CHDLG.ro.disconnect(); CHDLG.ro = null; }
+  chModalClose(); chMenuClose(); chColorClose(); chPickClose();
+  chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor"); chSelBar();
+  CH.dlgTf = CH.tfs[0]; CH.tfs[0] = pv.tf0; CHP[0].tf = pv.tf0; CHP[0].sym = null;
+  const sel = CHP[0].pane.querySelector(".chtf"); if (sel) sel.value = pv.tf0;
+  CH.sym = nextSym || pv.sym; CH.max = pv.max; chSave();
+  el.classList.remove("chdlg");
+  const [par, nx] = CHDLG.home || []; if (par) par.insertBefore(el, nx && nx.parentNode === par ? nx : null);
+  chOn = page === "charts";
+  if (chOn) { chIndicators(); chApplyLayout(); chHeader(); chWLRender(); }
+  if (typeof liveSync === "function") liveSync();
+}
+window.chDlgStart = chDlgStart; window.chDlgEnd = chDlgEnd;
+// Esc inside the dialog first cancels a drawing, a tool, a selection or an open menu; only a plain Esc closes the dialog
+document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
+  CHDLG.escBusy = CHDLG.on && !!(chDraft || chMeasure || chSel || chTool !== "cursor" || $("chModBg") || $("chMenu") || $("chColPop") || ($("chPick") && !$("chPick").hidden));
+  if (CHDLG.escBusy) e.preventDefault(); }, true);       // a handled Esc never reaches the dialog (the chart's own handlers still see it)
+$("dlg").addEventListener("cancel", e => { if (CHDLG.escBusy) { e.preventDefault(); CHDLG.escBusy = false; } });
+window.openInCharts = sym => { if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
 
 /* ---- a pane: data, MAs, RSI ---- */
 function chMakeChart(P) {
@@ -7505,7 +7560,7 @@ function chKey(e) {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") { e.preventDefault(); chRedoDo(); }
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "c" && chSel) { const d = chSelD(); if (d) { chClip = JSON.parse(JSON.stringify(d)); toast("Drawing copied. Paste with ⌘V / Ctrl+V."); } }
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "v" && chClip) { e.preventDefault(); chPaste(chClip); }
-  else if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp") && document.activeElement === document.body) {
+  else if (!CHDLG.on && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp") && document.activeElement === document.body) {
     const L = chWLItems().map(x => x.sym), i = L.indexOf(CH.sym); if (i < 0 || !L.length) return;
     e.preventDefault(); chSetSym(L[(i + (e.key === "ArrowDown" ? 1 : L.length - 1)) % L.length]);
   }
@@ -7647,7 +7702,7 @@ function chBindPane(P) {
   w.addEventListener("contextmenu", e => {
     const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P) || chHidden) return; const hit = chHitTest(P, m.x, m.y); if (!hit) return;
     e.preventDefault(); chSel = hit.id; chSelPane = P.i; chSelBar(); const d = chSelD(); if (!d) return;
-    const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; document.body.appendChild(a);
+    const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; chDlgLayer().appendChild(a);
     chMenu(a, chMoreItems(d), { onPick: k => chMoreDo(k, d) }); setTimeout(() => a.remove(), 0);
   });
   ["touchstart", "touchmove"].forEach(ev => w.addEventListener(ev, e => { if (chTool !== "cursor" || chDrag) { e.stopPropagation(); if (e.cancelable) e.preventDefault(); } }, { capture: true, passive: false }));

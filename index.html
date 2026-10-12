@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.11.2306">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.12.1408">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -654,6 +654,16 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .xtrack::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--line)}
 .xtrack i{position:absolute;top:0;bottom:0;border-radius:4px}.xtrack i.up{background:var(--green)}.xtrack i.dn{background:var(--red)}
 .momogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+section.mrow:has(.xstatcard){grid-template-columns:1fr}.xstatcard .xstat{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.xmovers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+@media (max-width:1100px){.xmovers{grid-template-columns:1fr}}
+.xmh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}.xmh h2{margin:0!important}
+.xseg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.xseg button{border:0;background:none;color:var(--mute);font:inherit;font-size:12.5px;padding:4px 10px;cursor:pointer}.xseg button.on{background:var(--pill);color:var(--strong)}
+.xmtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.xmtabs button{border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;cursor:pointer}
+.xmtabs button.on{border-color:var(--accent);background:var(--pill);color:var(--strong)}
+.xmsec+.xmsec{margin-top:16px}.xmsech{margin:0 0 8px;font-size:15px;color:var(--strong)}
 @media (max-width:1100px){.momogrid{grid-template-columns:1fr}}
 .mname{color:var(--strong);font-weight:600}
 .mpx{color:var(--text);font-weight:600}
@@ -978,9 +988,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <section class="card" id="xHours" data-page="macroov"><h2>Market Hours <span class="meta">your time (PHT) · holidays not included</span></h2><div class="xhours"></div></section>
 
   <section class="mrow" data-page="macroov">
-    <div class="mcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
-    <div class="mcard"><h2>Top Gainers <span class="meta">24h</span></h2><div class="note">Forex, metals, energy and indices</div><div id="xGainers"><div class="empty">Loading…</div></div></div>
-    <div class="mcard"><h2>Top Losers <span class="meta">24h</span></h2><div class="note">Forex, metals, energy and indices</div><div id="xLosers"><div class="empty">Loading…</div></div></div>
+    <div class="mcard xstatcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
+  </section>
+  <section class="xmovers" data-page="macroov">
+    <div class="mcard" data-xc="fx"><div class="xmh"><h2>Forex <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Forex movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_fx"><div class="empty">Loading…</div></div></div>
+    <div class="mcard" data-xc="cmd"><div class="xmh"><h2>Metals &amp; Energy <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Metals &amp; Energy movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_cmd"><div class="empty">Loading…</div></div></div>
+    <div class="mcard" data-xc="idx"><div class="xmh"><h2>Indices <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Indices movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_idx"><div class="empty">Loading…</div></div></div>
   </section>
 
   <section class="card rotcard" id="xFlow" data-page="macroov"><h2>Money Flow</h2><div class="empty">Loading…</div></section>
@@ -989,7 +1002,8 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="momohead"><h2>Momentum Board</h2><span class="meta">Forex, metals, energy and indices · 1H RSI (14) and EMA 20/50/100 · 4H as context</span>
       <label class="tog" style="margin-left:auto"><input type="checkbox" id="xmomoAlert"> Alert me on new breakouts</label></div>
     <div class="why">The same three stages as the coin board: already running, pausing after a push, and starting a new trend out of bunched moving averages. Each instrument is listed in its strongest stage; stretched ones (3+ ATR from the 20) are flagged so you wait for a pullback instead of chasing. When your cTrader account is connected, its prices are used for anything it also lists.</div>
-    <div id="xMomo" class="momogrid"><div class="empty">Loading…</div></div>
+    <div class="xmtabs" id="xMomoTabs" role="tablist" aria-label="Asset class"></div>
+    <div id="xMomo"><div class="empty">Loading…</div></div>
   </section>
 
   <section class="card macrocard" id="macro" data-page="macro">
@@ -3877,7 +3891,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.11.2306";
+const APP_VERSION = "2026.10.12.1408";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5931,13 +5945,21 @@ function xMoverRow(r, i) {
   return `<div class="mv" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span><div class="xinst"><b>${r.name.replace(/ \(.*\)$/, "")}</b><span class="meta">${(r.group || "").replace(/^MEXC /, "")}</span></div>
     <span class="mvp" data-mp="${r.symbol}">${fmtPrice(r.price)}</span><span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span></div>`;
 }
+const X_CLASSES = [["fx", "Forex"], ["cmd", "Metals & Energy"], ["idx", "Indices"]];
+const xClassOf = r => /Forex/.test(r.group || "") ? "fx" : /Indices/.test(r.group || "") ? "idx" : "cmd";
+const XMV = { fx: "g", cmd: "g", idx: "g" };
 function renderXMovers(rows) {
   const pool = rows.filter(r => r.name !== "Volatility (VIX)" && isFinite(r.chg24h));
-  const g = [...pool].filter(r => r.chg24h > 0).sort((a, b) => b.chg24h - a.chg24h).slice(0, 8), l = [...pool].filter(r => r.chg24h < 0).sort((a, b) => a.chg24h - b.chg24h).slice(0, 8);
-  $("xGainers").innerHTML = g.map(xMoverRow).join("") || `<div class="empty">Nothing is up over 24h.</div>`;
-  $("xLosers").innerHTML = l.map(xMoverRow).join("") || `<div class="empty">Nothing is down over 24h.</div>`;
-  bindRows($("xGainers")); bindRows($("xLosers"));
+  X_CLASSES.forEach(([k]) => {
+    const el = $("xMv_" + k); if (!el) return;
+    const P = pool.filter(r => xClassOf(r) === k), up = XMV[k] === "g";
+    const L = P.filter(r => up ? r.chg24h > 0 : r.chg24h < 0).sort((a, b) => up ? b.chg24h - a.chg24h : a.chg24h - b.chg24h).slice(0, 10);
+    el.innerHTML = L.map(xMoverRow).join("") || `<div class="empty">${P.length ? `Nothing is ${up ? "up" : "down"} over 24h.` : k === "fx" ? "No forex here: connect cTrader, or set the exchange to MEXC." : "None loaded."}</div>`;
+    el.closest(".mcard").querySelectorAll("[data-xm]").forEach(b => { const on = b.dataset.xm === XMV[k]; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+    bindRows(el);
+  });
 }
+document.querySelectorAll(".xmovers [data-xm]").forEach(b => b.onclick = () => { const k = b.closest("[data-xc]").dataset.xc; XMV[k] = b.dataset.xm; renderXMovers(xRows()); });
 
 function xFlowRead(rows) {                            // risk-on / risk-off, the dollar, havens and commodities over the last 7 days
   const W = ["24h", "7d", "30d"], cc = Object.fromEntries(W.map(w => [w, xCcy(rows, w)]));
@@ -6016,7 +6038,7 @@ function xMomoRows(rows) {
     out[m.stage].push({ r, m, s: r1(s) });
     if (m.stage === "breakout" && m.broke && m.ago <= 2 && !m.stretched) fresh.push({ r, m });
   });
-  Object.keys(out).forEach(k => out[k] = out[k].sort((a, b) => b.s - a.s).slice(0, 8));
+  Object.keys(out).forEach(k => out[k] = out[k].sort((a, b) => b.s - a.s).slice(0, 10));
   return { ...out, fresh };
 }
 function xMomoRowHTML(x, i) {
@@ -6027,15 +6049,21 @@ function xMomoRowHTML(x, i) {
       <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
 }
+let XMOMO_TAB = "all";
 function renderXMomo(rows) {
-  const el = $("xMomo"), R = xMomoRows(rows);
-  const col = (k, title, sub) => `<div class="sess"><div class="sesshead"><h3>${title}</h3></div><div class="sessstat">${sub}</div>
+  const el = $("xMomo"), all = xMomoRows(rows), n = R => R.momentum.length + R.awaiting.length + R.breakout.length;
+  const per = Object.fromEntries(X_CLASSES.map(([k]) => [k, xMomoRows(rows.filter(r => xClassOf(r) === k))]));
+  const col = (R, k, title, sub) => `<div class="sess"><div class="sesshead"><h3>${title}</h3><span class="meta">${R[k].length || ""}</span></div><div class="sessstat">${sub}</div>
     ${R[k].length ? R[k].map(xMomoRowHTML).join("") : `<div class="empty">Nothing here right now.</div>`}</div>`;
-  el.innerHTML = col("momentum", "🔥 In Momentum", "RSI 70+ on 1H (30 or below for shorts), price beyond all three MAs.")
-    + col("awaiting", "⏳ Awaiting Momentum", "Tapped RSI 70 in the last 12 hours, cooled to 55–70, still holding the 20. Watch for a base (NBB) or a reclaim.")
-    + col("breakout", "🚀 Breaking Out", "A clear close beyond bunched 20/50/100 after time on the other side, RSI 60+. Pressing = testing the cluster with RSI rising.");
+  const block = R => `<div class="momogrid">${col(R, "momentum", "🔥 In Momentum", "RSI 70+ on 1H (30 or below for shorts), price beyond all three MAs.")
+    + col(R, "awaiting", "⏳ Awaiting Momentum", "Tapped RSI 70 in the last 12 hours, cooled to 55–70, still holding the 20. Watch for a base (NBB) or a reclaim.")
+    + col(R, "breakout", "🚀 Breaking Out", "A clear close beyond bunched 20/50/100 after time on the other side, RSI 60+. Pressing = testing the cluster with RSI rising.")}</div>`;
+  $("xMomoTabs").innerHTML = [["all", "All"], ...X_CLASSES].map(([k, l]) => `<button role="tab" data-xmt="${k}" class="${XMOMO_TAB === k ? "on" : ""}" aria-selected="${XMOMO_TAB === k}">${l} <span class="mute">${n(k === "all" ? all : per[k])}</span></button>`).join("");
+  $("xMomoTabs").querySelectorAll("[data-xmt]").forEach(b => b.onclick = () => { XMOMO_TAB = b.dataset.xmt; renderXMomo(rows); });
+  el.innerHTML = X_CLASSES.filter(([k]) => XMOMO_TAB === "all" || XMOMO_TAB === k)
+    .map(([k, l]) => `<section class="xmsec"><h3 class="xmsech">${l} <span class="meta">${n(per[k])} on the board · top 10 per stage</span></h3>${block(per[k])}</section>`).join("");
   bindRows(el);
-  momoAlerts(R.fresh);
+  momoAlerts(all.fresh);
 }
 function renderMacroBoards() {
   if (page !== "macroov" && page !== "macromomo") { if (MACRO.rows.length && !MACRO.running) momoAlerts(xMomoRows(xRows()).fresh); return; }   // off-screen: just the breakout alerts
@@ -6048,7 +6076,7 @@ function renderMacroBoards() {
   const rows = xRows();
   if (!rows.length) {
     const msg = MACRO.err ? `Couldn't load the data (${MACRO.err}). Press Refresh to try again.` : MACRO.running ? "Reading forex, metals and the indices…" : "Press Refresh to load forex, metals and the indices.";
-    ["xStat", "xGainers", "xLosers", "xMomo"].forEach(id => $(id).innerHTML = `<div class="empty">${msg}</div>`);
+    ["xStat", "xMomo", ...X_CLASSES.map(([k]) => "xMv_" + k)].forEach(id => { if ($(id)) $(id).innerHTML = `<div class="empty">${msg}</div>`; }); if ($("xMomoTabs")) $("xMomoTabs").innerHTML = "";
     $("xFlow").innerHTML = `<h2>Money Flow</h2><div class="empty">${msg}</div>`; return;
   }
   renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows);

@@ -114,6 +114,10 @@ coins go to MEXC USDT perpetuals.
   stop and target as distances from the fill; limit and stop orders carry the exact prices.
 - **MEXC:** add an API key with Order Placing and view permissions only (never withdrawals). The key and secret stay in the browser
   and every request is signed there; the Mac app (`/proxy/mexc-priv`) or Vercel only forwards the signed request.
+- **From the chart:** draw a Long or Short position (the forecast tools). Its label shows the size from your trading account and
+  risk % (the tool's own Risk % setting, or the Trade page's when left empty), and the stop/target in money. Select it and press
+  **Trade** (or More → Place order…): pick market, limit at the entry, or stop at the entry, adjust risk or size, and place it.
+  "Open in ticket" copies it to the Trade page instead.
 - **Positions & orders:** live P&L, edit the stop/target of a cTrader position, close positions and cancel pending orders
   (each asks "Sure?" first). Activity lists what was sent and what came back.
 

@@ -122,7 +122,13 @@ coins go to MEXC USDT perpetuals.
   In the tool's settings, **Account size** is *Sync with account* by default (the cTrader balance, or MEXC futures equity, re-read
   every 30 s) or *Manual* (type an amount). The risk % stays as set; moving the entry or stop changes only the lots/contracts.
 - **Your positions and orders on the chart:** open positions (entry with size and live P&L, SL, TP) and pending orders
-  (orange dashed, with their SL/TP) for the chart's market, from cTrader or MEXC, refreshed every 5 s.
+  (dashed, with their SL/TP) for the chart's market, from cTrader or MEXC. The × beside the entry closes the position or cancels
+  the order (asks once when “confirm” is on). Drag a cTrader line to change it at the broker when you let go: a pending order's
+  price (its SL/TP move with it), any SL or TP, or a position's own line to add a stop loss (towards the loss) or take profit.
+  Colours, the ×, dragging and the trade watch are under chart Settings → Trading.
+- **Trade watch** (under the charts): Positions, Orders and History tabs with balance, equity and P&L; Close/Cancel per row;
+  “Columns” picks what shows (saved); click a header to sort; drag the top edge to resize; double-click a row to open its chart.
+  History reads cTrader closed deals (today to 1 year) and MEXC position history.
 - **Long or short follows the stop:** drag the stop to the other side of the entry and the position flips (Long ↔ Short),
   keeping its reward:risk; an open order panel switches between Buy and Sell with it.
 - **Lock reward : risk** (position settings or the order panel): Off, 1:1, 1:2, 1:3 or any ratio. While locked, moving the

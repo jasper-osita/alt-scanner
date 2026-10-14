@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0019">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0048">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -913,6 +913,16 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .chind.slhide{display:none}.chind.slnovals .vv{display:none}
 .chsetbtn span{margin-left:4px}
 .chacctw{position:relative;margin-left:auto}
+.chbkdrag,.chbkdrag *{cursor:ns-resize!important}.chbkx,.chbkx *{cursor:pointer!important}
+.trw{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-top:8px;display:flex;flex-direction:column;position:relative;flex:none}.chdlg .trw{display:none}
+.trwgrip{position:absolute;left:0;right:0;top:-5px;height:9px;cursor:ns-resize;z-index:2}.trw.shut .trwgrip{display:none}
+.trwh{display:flex;align-items:center;gap:10px;padding:4px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}.trw.shut .trwh{border-bottom:0}.trw.shut .trwb{display:none}
+.trwtabs{display:flex;gap:2px}.trwtabs button{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:5px 10px;font:12.5px var(--display);cursor:pointer}.trwtabs button.on{color:var(--strong);border-bottom-color:var(--accent)}
+.trwtabs i{font-style:normal;background:var(--pill);border-radius:9px;padding:0 6px;margin-left:4px;font-size:11px}.trwsum{font-size:12px;color:var(--mute)}.trwsum b{color:var(--text);font-weight:600}
+.trwsel{background:var(--pill);color:var(--text);border:1px solid var(--pill-b);border-radius:7px;padding:3px 6px;font:12px var(--display)}.trwcolw{position:relative}.trwcols{position:absolute;right:0;bottom:calc(100% + 4px);z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:4px;min-width:190px;max-height:360px;overflow:auto}
+.trwcols label{display:flex;gap:8px;align-items:center;font-size:12.5px;white-space:nowrap}.trwb{overflow:auto}
+.trwt{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.trwt th{position:sticky;top:0;background:var(--panel);color:var(--mute);font-weight:500;text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}.trwt th.srt{color:var(--text)}
+.trwt td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.trwt tr:hover td{background:var(--pill)}.trwact{text-align:right;width:1%}.trwsure{background:#f23645!important;color:#fff!important;border-color:#f23645!important}
 .chrrseg button{padding:5px 8px}.chrrv{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:12.5px;color:var(--mute)}.chrrv input{width:52px}.chrrv.on input{border-color:var(--accent)}.tprr{display:flex;flex-direction:column;gap:4px}.tprr #tpRR{display:flex;align-items:center;flex-wrap:wrap}.chacctbtn{max-width:260px}.chacctbtn #chAcctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chacctdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.chacctdot.demo{background:#22ab94}.chacctdot.live{background:#f23645}
 .chacctpop{left:auto;right:0;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:6px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
 .chacctrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:6px 9px;font:12.5px var(--display);cursor:pointer}.chacctrow:hover:not(:disabled){background:var(--pill)}.chacctrow.on{border-color:var(--accent);background:var(--pill)}.chacctrow:disabled{opacity:.5;cursor:not-allowed}.chacctrow small{margin-left:auto;color:var(--mute)}
@@ -4325,7 +4335,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.0019";
+const APP_VERSION = "2026.10.15.0048";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6702,6 +6712,7 @@ const CS_DEF = {
   bgType: "solid", bg: "", bg2: "#1e222d", vGrid: true, vGridC: "", hGrid: true, hGridC: "", xhC: "#9598a1", xhStyle: 3, wm: "off", wmC: "rgba(255,255,255,0.06)",
   textC: "", fontSize: 11, scaleC: "", mTop: 6, mBot: 6, rightBars: 8,
   alertLines: true, alertC: "#f7a600", sessBreaks: false, sbC: "#4c525e",
+  trLines: true, trX: true, trDrag: true, trWatch: true, trBuyC: "#2962ff", trSellC: "#f23645", trPendC: "#f7a600", trSLC: "#f23645", trTPC: "#22ab94",
 };
 const chCS = () => ({ ...CS_DEF, ...(CH.cs || {}) });
 const CS_TZ = [["Asia/Manila", "(UTC+8) Manila"], ["Asia/Singapore", "(UTC+8) Singapore"], ["Asia/Hong_Kong", "(UTC+8) Hong Kong"], ["Asia/Tokyo", "(UTC+9) Tokyo"], ["Australia/Sydney", "Sydney"],
@@ -6784,7 +6795,7 @@ function chApplyCSAll(reData) {
 }
 setInterval(() => { if (chOn) chVis().forEach(P => { if (P.chart && P.t.length) chLevelLines(P); }); }, 4000);   // alerts added or fired elsewhere
 const CS_TABS = [["sym", "Symbol", "M5 4v13M5 7h3v6H5M13 3v15M13 6h3v8h-3"], ["sl", "Status line", "M3 6h15M3 10.5h10M3 15h12"], ["sc", "Scales and lines", "M4 4v13h13M8 13l3-4 3 2 3-5"],
-  ["cv", "Canvas", "M4 16l1-4 8-8 3 3-8 8zM12 5l3 3"], ["al", "Alerts", "M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0"], ["ev", "Events", "M4 5h13v12H4zM4 9h13M8 3v3M13 3v3"]];
+  ["cv", "Canvas", "M4 16l1-4 8-8 3 3-8 8zM12 5l3 3"], ["al", "Alerts", "M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0"], ["ev", "Events", "M4 5h13v12H4zM4 9h13M8 3v3M13 3v3"], ["tr", "Trading", "M4 15l4-5 3 3 5-7M13 6h3v3"]];
 function chChartSettings(tab) {
   const snap = JSON.stringify({ cs: CH.cs || {}, ind: CH.ind || [] }); CH.cs = { ...(CH.cs || {}) }; let cur = tab || CH.csTab || "sym";
   const box = chModal(`<div class="chmh"><h3>Settings</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div>
@@ -6822,6 +6833,10 @@ function chChartSettings(tab) {
       <div class="chsgh">Margins</div>${row("Top", num("mTop", 0, 40, "%"))}${row("Bottom", num("mBot", 0, 40, "%"))}${row("Right", num("rightBars", 0, 60, "bars"))}`;
     else if (cur === "al") h = `<div class="chsgh">Chart line visibility</div>${chk("alertLines", "Alert lines (your price alerts on this market)", sw("alertC"))}
       <p class="meta">Add price alerts from a coin's Alerts &amp; Notes tab or the Watchlist page.</p>`;
+    else if (cur === "tr") h = `<div class="chsgh">Your trades on the chart</div>${chk("trLines", "Positions and pending orders as lines")}${chk("trX", "× on the line to close or cancel")}${chk("trDrag", "Drag a line to move the price, stop loss or take profit")}
+      ${row("Buy position", sw("trBuyC"))}${row("Sell position", sw("trSellC"))}${row("Pending order", sw("trPendC"))}${row("Stop loss", sw("trSLC"))}${row("Take profit", sw("trTPC"))}
+      <p class="meta">Drag a position's own line to add a stop loss or take profit. Changes go to your broker when you let go.</p>
+      <div class="chsgh">Trade watch</div>${chk("trWatch", "Positions, orders and history under the charts")}<p class="meta">Pick its columns with “Columns” on the panel. Double-click a row to open that market.</p>`;
     else h = `<div class="chsgh">Events</div>${chk("sessBreaks", "Session breaks (start of each day)", sw("sbC"))}<p class="meta">Day boundaries follow the timezone on the Symbol tab. The Asia, London and NY session boxes are an indicator: add or edit them from Indicators.</p>`;
     B.innerHTML = h;
     B.querySelectorAll("[data-ck]").forEach(el => el.onchange = () => set({ [el.dataset.ck]: el.checked }, !!el.dataset.rd));
@@ -8489,6 +8504,7 @@ function chBindPane(P) {
     chTouch = e.pointerType === "touch" || e.pointerType === "pen";
     const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P)) return;          // price/time scales keep their own drag
     const tool = chTool === "cursor" && e.shiftKey && !chHidden && !chHitTest(P, m.x, m.y) ? "measure" : chTool;
+    if (tool === "cursor" && !chHidden && typeof trLineDown === "function" && trLineDown(P, m)) { block(e); w.setPointerCapture(e.pointerId); return; }   // your broker lines: × or drag
     if (tool === "cursor" || tool === "eraser") {
       chMeasure = null; chDirty = true;
       if (chHidden) return;
@@ -8528,6 +8544,7 @@ function chBindPane(P) {
   w.addEventListener("pointermove", e => {
     if (!P.chart || !P.t.length) return;
     const m = local(e);
+    if (typeof TW !== "undefined" && TW.drag && TW.drag.P === P) { block(e); trLineMove(P, m); return; }
     if (chDrag && chDrag.P === P) {
       block(e); const cur = chPt(P, m.x, m.y, false), snap = chPt(P, m.x, m.y, true); if (!cur || !snap) return;
       const { d, h, start, orig, sm } = chDrag, T = CH_T[d.type]; let dt = cur.t - start.t, dp = cur.p - start.p;
@@ -8539,6 +8556,7 @@ function chBindPane(P) {
       }
       chDirty = true; chFloatPos(); return;
     }
+    if (!e.buttons && chTool === "cursor" && !chDraft) { const bh = !chHidden && typeof trLineHit === "function" && trLineHit(P, m); w.classList.toggle("chbkx", !!(bh && bh.on === "x")); w.classList.toggle("chbkdrag", !!(bh && bh.on === "line")); }
     if (!e.buttons && chTool === "cursor" && !chDraft) { const hit = !chHidden && chHitTest(P, m.x, m.y); w.classList.toggle("chhover", !!hit); w.classList.toggle("chhandle", !!(hit && hit.h != null)); }
     if (!chDraft || chDraft.pane !== P.i) return;
     block(e);
@@ -8548,6 +8566,7 @@ function chBindPane(P) {
     chDirty = true;
   }, true);
   w.addEventListener("pointerup", e => {
+    if (typeof TW !== "undefined" && TW.drag && TW.drag.P === P && !TW.drag.busy) { block(e); trLineUp(); return; }
     if (chDrag && chDrag.P === P) { block(e); const d = chDrag.d; chDrag = null; const prev = chUndo.length && JSON.parse(chUndo.at(-1)).find(x => x.id === d.id);
       if (prev && JSON.stringify(d.pts) === JSON.stringify(prev.pts)) chUndo.pop(); chCommit(); return; }
     if (!chDraft || chDraft.pane !== P.i) return;
@@ -9435,7 +9454,7 @@ function cttSym(name) {                        // a scanner symbol (CT:XAUUSD, G
 async function cttSpec(x) {
   if (CTT.specs[x.symbolId]) return CTT.specs[x.symbolId];
   const s = ((await cttReq(2116, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, symbolId: [x.symbolId] })).symbol || [])[0] || {};
-  return CTT.specs[x.symbolId] = { lotSize: +(s.lotSize || 10000000), step: +(s.stepVolume || 1000), min: +(s.minVolume || 1000), max: +(s.maxVolume || 0), digits: s.digits != null ? +s.digits : 5, base: "", quote: "" };
+  return CTT.specs[x.symbolId] = { lotSize: +(s.lotSize || 10000000), step: +(s.stepVolume || 1000), min: +(s.minVolume || 1000), max: +(s.maxVolume || 0), digits: s.digits != null ? +s.digits : 5, pip: s.pipPosition != null ? +s.pipPosition : null, base: "", quote: "" };
 }
 async function cttWatch(x) { if (!x || CTT.spots[x.symbolId] || CTT.state !== "ready") return; CTT.spots[x.symbolId] = {}; try { await cttReq(2127, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, symbolId: [x.symbolId] }); } catch (e) {} }
 async function cttRefresh() {
@@ -9656,41 +9675,217 @@ function trAcctPop() {
   if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
   if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
 }
-/* ---- your open positions and pending orders drawn on the chart (cTrader and MEXC) ---- */
-function trChartOrders(sym) {                   // → [{ p, col, txt, dash }]
-  const out = [], money = v => `${v >= 0 ? "+" : ""}${fmtNum(v)}`;
+/* ---- your open positions and pending orders on the chart (cTrader and MEXC): × closes or cancels, drag a line to change it ---- */
+const TW = { drag: null, arm: null, hist: [], histAt: 0, histBusy: false, histErr: "" };
+const trDig = x => { const sp = x && CTT.specs[x.symbolId]; return sp && sp.digits != null ? +sp.digits : 5; };
+function trAbsSLTP(o, px, buy) {                  // a pending order's SL/TP as prices (cTrader may keep them relative, in 1/100000)
+  const sl = +o.stopLoss || (o.relativeStopLoss ? px + (buy ? -1 : 1) * o.relativeStopLoss / 1e5 : 0), tp = +o.takeProfit || (o.relativeTakeProfit ? px + (buy ? 1 : -1) * o.relativeTakeProfit / 1e5 : 0);
+  return { sl: sl || null, tp: tp || null };
+}
+function trChartOrders(sym) {                   // → [{ key, p, col, txt, dash, x (close/cancel), drag, it }]
+  const out = [], S = chCS(), money = v => `${v >= 0 ? "+" : ""}${(+v).toFixed(2)}`;
+  if (!S.trLines) return out;
   if (CTT.state === "ready" && (String(sym || "").startsWith("CT:") || trVenue(sym) === "ct")) {
-    const x = cttSym(sym); if (!x) return out; const sp = CTT.specs[x.symbolId], ccy = CTT.info ? CTT.info.ccy || "" : "";
+    const x = cttSym(sym); if (!x) return out; const sp = CTT.specs[x.symbolId], ccy = CTT.info ? CTT.info.ccy || "" : "", dg = trDig(x);
     if (!sp && !CTT.specLoading) { CTT.specLoading = 1; cttSpec(x).finally(() => { CTT.specLoading = 0; chDirty = true; }); }
-    const size = v => sp ? `${(+v / sp.lotSize).toFixed(2)} lots` : `${+v / 100} units`, mine = o => +((o.tradeData || {}).symbolId) === +x.symbolId;
-    CTT.positions.filter(mine).forEach(p => { const td = p.tradeData, buy = +td.tradeSide === 1, pl = CTT.pnl[p.positionId];
-      if (p.price) out.push({ p: +p.price, col: buy ? "#2962ff" : "#f23645", txt: `${buy ? "Buy" : "Sell"} ${size(td.volume)}${pl != null ? ` · ${money(pl)} ${ccy}` : ""}` });
-      if (p.stopLoss) out.push({ p: +p.stopLoss, col: "#f23645", txt: `SL ${fmtPrice(+p.stopLoss)}`, dash: 1 });
-      if (p.takeProfit) out.push({ p: +p.takeProfit, col: "#22ab94", txt: `TP ${fmtPrice(+p.takeProfit)}`, dash: 1 }); });
+    const size = v => sp ? `${(+v / sp.lotSize).toFixed(2)} lots` : `${+v / 100} units`, mine = o => +((o.tradeData || {}).symbolId) === +x.symbolId, pf = v => (+v).toFixed(dg);
+    CTT.positions.filter(mine).forEach(p => { const td = p.tradeData, buy = +td.tradeSide === 1, pl = CTT.pnl[p.positionId], k = "pos:" + p.positionId, it = { kind: "pos", ref: p, buy, x, dg };
+      if (p.price) out.push({ key: k + ":entry", p: +p.price, col: buy ? S.trBuyC : S.trSellC, txt: `${buy ? "Buy" : "Sell"} ${size(td.volume)}${pl != null ? ` · ${money(pl)} ${ccy}` : ""}`, x: true, drag: true, it, role: "entry" });
+      if (p.stopLoss) out.push({ key: k + ":sl", p: +p.stopLoss, col: S.trSLC, txt: `SL ${pf(p.stopLoss)}`, dash: 1, drag: true, it, role: "sl" });
+      if (p.takeProfit) out.push({ key: k + ":tp", p: +p.takeProfit, col: S.trTPC, txt: `TP ${pf(p.takeProfit)}`, dash: 1, drag: true, it, role: "tp" }); });
     CTT.orders.filter(mine).forEach(o => { const td = o.tradeData, buy = +td.tradeSide === 1, ot = +o.orderType, px = +(ot === 3 || ot === 6 ? o.stopPrice || o.limitPrice : o.limitPrice || o.stopPrice) || 0; if (!px || ot === 4 || o.closingOrder) return;
-      out.push({ p: px, col: "#f7a600", txt: `${buy ? "Buy" : "Sell"} ${ot === 2 ? "limit" : ot === 3 ? "stop" : ot === 6 ? "stop limit" : "order"} ${size(td.volume)} · pending`, dash: 2 });
-      if (o.stopLoss) out.push({ p: +o.stopLoss, col: "#f23645", txt: `SL ${fmtPrice(+o.stopLoss)} (pending)`, dash: 2 });
-      if (o.takeProfit) out.push({ p: +o.takeProfit, col: "#22ab94", txt: `TP ${fmtPrice(+o.takeProfit)} (pending)`, dash: 2 }); });
-    return out;
-  }
-  if (mxtOn() && trVenue(sym) === "mx") { const ms = mxF(sym);
+      const k = "ord:" + o.orderId, it = { kind: "ord", ref: o, buy, x, dg, px, ot }, a = trAbsSLTP(o, px, buy);
+      out.push({ key: k + ":entry", p: px, col: S.trPendC, txt: `${buy ? "Buy" : "Sell"} ${ot === 2 ? "limit" : ot === 3 ? "stop" : ot === 6 ? "stop limit" : "order"} ${size(td.volume)} · pending`, dash: 2, x: true, drag: true, it, role: "entry" });
+      if (a.sl) out.push({ key: k + ":sl", p: a.sl, col: S.trSLC, txt: `SL ${pf(a.sl)} (pending)`, dash: 2, drag: true, it, role: "sl" });
+      if (a.tp) out.push({ key: k + ":tp", p: a.tp, col: S.trTPC, txt: `TP ${pf(a.tp)} (pending)`, dash: 2, drag: true, it, role: "tp" }); });
+  } else if (mxtOn() && trVenue(sym) === "mx") { const ms = mxF(sym);
     MXT.positions.filter(p => p.symbol === ms).forEach(p => { const long = +p.positionType === 1, avg = +(p.holdAvgPrice || p.openAvgPrice || 0);
-      if (avg) out.push({ p: avg, col: long ? "#2962ff" : "#f23645", txt: `${long ? "Long" : "Short"} ${p.holdVol} contracts${p.unrealised != null ? ` · ${money(+p.unrealised)} USDT` : ""}` }); });
-    MXT.orders.filter(o => o.symbol === ms).forEach(o => { if (+o.price) out.push({ p: +o.price, col: "#f7a600", txt: `${[1, 4].includes(+o.side) ? "Buy" : "Sell"} limit ${o.vol} contracts · pending`, dash: 2 }); });
+      if (avg) out.push({ key: "mxp:" + p.positionId + ":entry", p: avg, col: long ? S.trBuyC : S.trSellC, txt: `${long ? "Long" : "Short"} ${p.holdVol} contracts${p.unrealised != null ? ` · ${money(+p.unrealised)} USDT` : ""}`, x: true, it: { kind: "mxp", ref: p, buy: long } }); });
+    MXT.orders.filter(o => o.symbol === ms).forEach(o => { if (+o.price) out.push({ key: "mxo:" + o.orderId + ":entry", p: +o.price, col: S.trPendC, txt: `${[1, 4].includes(+o.side) ? "Buy" : "Sell"} limit ${o.vol} contracts · pending`, dash: 2, x: true, it: { kind: "mxo", ref: o } }); });
+  }
+  if (TW.drag) {                                 // the line you're dragging follows the mouse; dragging a position's entry makes a new SL or TP
+    const d = TW.drag, l = out.find(z => z.key === d.key);
+    if (l && l.it.kind === "pos" && l.role === "entry") { const r = trEntryRole(l.it, d.p); out.push({ key: "ghost", p: d.p, col: r === "sl" ? S.trSLC : S.trTPC, txt: `${r.toUpperCase()} ${(+d.p).toFixed(l.it.dg)} · let go to set`, dash: 1 }); }
+    else if (l) { const dp = d.p - l.p; l.p = d.p; l.txt = l.txt.replace(/^(SL|TP) [\d.]+/, (m0, w) => `${w} ${(+d.p).toFixed(l.it.dg || 5)}`) + (d.busy ? " · sending…" : "");
+      if (l.it.kind === "ord" && l.role === "entry") out.forEach(z => { if (z !== l && z.it === l.it) z.p += dp; }); }   // a pending order's SL/TP move with it
   }
   return out;
 }
+const trEntryRole = (it, p) => (it.buy ? p < +it.ref.price : p > +it.ref.price) ? "sl" : "tp";
 function trChartLines(P, g, W, H, axis) {
-  const L = trChartOrders(CH.sym); if (!L.length) return;
+  P.bk = []; const L = trChartOrders(CH.sym); if (!L.length) return; const S = chCS();
   L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > H) return; const yy = Math.round(y) + .5;
     g.strokeStyle = l.col; g.lineWidth = l.dash ? 1 : 1.5; g.setLineDash(l.dash === 2 ? [6, 4] : l.dash ? [2, 3] : []); g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); g.setLineDash([]);
-    chLabel(g, l.txt, 6, y, l.col, "#fff", "left"); axis.push([y, chFmt(l.p, P.c.at(-1)), l.col]); });
+    chLabel(g, l.txt, 6, y, l.col, "#fff", "left"); g.font = "11px " + chFont(); const w = g.measureText(l.txt).width + 8; let xb = null;
+    if (l.x && S.trX) { const armed = TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now(), t = armed ? (l.it.kind === "pos" || l.it.kind === "mxp" ? "Close?" : "Cancel?") : "×", bw = armed ? g.measureText(t).width + 10 : 16;
+      xb = [6 + w + 2, 6 + w + 2 + bw]; g.fillStyle = armed ? "#f23645" : "rgba(30,32,38,.95)"; g.fillRect(xb[0], y - 8, bw, 16); g.strokeStyle = l.col; g.lineWidth = 1; g.strokeRect(xb[0] + .5, y - 7.5, bw - 1, 15);
+      g.fillStyle = "#fff"; g.textBaseline = "middle"; g.textAlign = "center"; g.font = (armed ? "11px " : "14px ") + chFont(); g.fillText(t, (xb[0] + xb[1]) / 2, y + 0.5); g.textAlign = "left"; }
+    if (l.key !== "ghost") P.bk.push({ key: l.key, y, xb, drag: !!(l.drag && S.trDrag), l });
+    axis.push([y, chFmt(l.p, P.c.at(-1)), l.col]); });
 }
-setInterval(() => {                              // keep the lines and P&L fresh while you watch a chart with something open
-  if (page !== "charts" || document.visibilityState !== "visible") return;
-  if (CTT.state === "ready" && trVenue(CH.sym) === "ct") cttRefresh();
-  else if (mxtOn() && trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:")) mxtRefresh().then(() => { chDirty = true; }, () => {});
+function trLineHit(P, m) {                       // → { b, on: "x" | "line" } for the chart's pointer handlers
+  const tol = chTouch ? 12 : 5;
+  for (const b of P.bk || []) { if (b.xb && m.x >= b.xb[0] - 2 && m.x <= b.xb[1] + 2 && Math.abs(m.y - b.y) <= 9) return { b, on: "x" }; }
+  for (const b of P.bk || []) if (b.drag && Math.abs(m.y - b.y) <= tol) return { b, on: "line" };
+  return null;
+}
+function trLineDown(P, m) {
+  const h = trLineHit(P, m); if (!h) return false;
+  if (h.on === "x") { trLineX(h.b.l); return true; }
+  TW.drag = { P, key: h.b.key, p: h.b.l.p, p0: h.b.l.p, l: h.b.l }; chDirty = true; return true;
+}
+function trLineMove(P, m) { const pt = chPt(P, m.x, m.y, false); if (!pt || !TW.drag || TW.drag.busy) return; const dg = TW.drag.l.it.dg || 5; TW.drag.p = +(+pt.p).toFixed(dg); chDirty = true; }
+async function trLineUp() {
+  const d = TW.drag; if (!d || d.busy) return; const l = d.l, it = l.it;
+  if (Math.abs(d.p - d.p0) < 10 ** -(it.dg || 5) / 2) { TW.drag = null; chDirty = true; return; }   // a click, not a drag
+  d.busy = true; chDirty = true;
+  try {
+    const id = CTT.acct.ctidTraderAccountId, R = v => v ? cttRound(+v, it.dg) : undefined;
+    if (it.kind === "pos") { const p = it.ref; let sl = p.stopLoss || null, tp = p.takeProfit || null; const role = l.role === "entry" ? trEntryRole(it, d.p) : l.role;
+      if (role === "sl") sl = d.p; else tp = d.p;
+      if (sl && (it.buy ? sl >= trNowPx(it, false) : sl <= trNowPx(it, false))) throw new Error("that stop would close the trade right away");
+      await cttReq(2110, { ctidTraderAccountId: id, positionId: p.positionId, ...(sl ? { stopLoss: R(sl) } : {}), ...(tp ? { takeProfit: R(tp) } : {}) });
+      trLog(`cTrader: ${it.x.symbolName} ${role.toUpperCase()} moved to ${R(d.p)}`); }
+    else if (it.kind === "ord") { const o = it.ref, a = trAbsSLTP(o, it.px, it.buy), dp = l.role === "entry" ? d.p - it.px : 0;
+      const px = l.role === "entry" ? d.p : it.px, sl = l.role === "sl" ? d.p : a.sl ? a.sl + dp : null, tp = l.role === "tp" ? d.p : a.tp ? a.tp + dp : null;
+      await cttReq(2109, { ctidTraderAccountId: id, orderId: o.orderId, volume: +o.tradeData.volume, ...(it.ot === 3 || it.ot === 6 ? { stopPrice: R(px) } : { limitPrice: R(px) }), ...(sl ? { stopLoss: R(sl) } : {}), ...(tp ? { takeProfit: R(tp) } : {}) });
+      trLog(`cTrader: ${it.x.symbolName} pending order ${l.role === "entry" ? "moved to " + R(px) : l.role.toUpperCase() + " moved to " + R(d.p)}`); }
+    await cttRefresh();
+  } catch (x) { toast(`Not changed: ${chEsc(x.message)}`); trLog(`Couldn't change the order: ${x.message}`, true); }
+  TW.drag = null; chDirty = true;
+}
+const trNowPx = (it, entry) => { const q = (it.x && CTT.spots[it.x.symbolId]) || {}; return (it.buy ? q.bid : q.ask) || (entry ? +it.ref.price : NaN); };
+async function trLineX(l) {                     // × on a line: close the position or cancel the order (asks once when "confirm" is on)
+  if (trCfg().confirm && !(TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now())) { TW.arm = { key: l.key, until: Date.now() + 4000 }; chDirty = true; setTimeout(() => { chDirty = true; }, 4100); return; }
+  TW.arm = null; chDirty = true;
+  try { await trCloseIt(l.it.kind, l.it.ref); } catch (x) { toast(`Not done: ${chEsc(x.message)}`); trLog(`Couldn't close: ${x.message}`, true); }
+}
+async function trCloseIt(kind, r) {              // shared by the chart's × and the trade watch
+  const id = CTT.acct && CTT.acct.ctidTraderAccountId, nm = s => (CTT.byId[s] || {}).symbolName || "";
+  if (kind === "pos") { await cttReq(2111, { ctidTraderAccountId: id, positionId: r.positionId, volume: +r.tradeData.volume }); trLog(`cTrader: closing ${nm(r.tradeData.symbolId)}`); setTimeout(cttRefresh, 400); }
+  else if (kind === "ord") { await cttReq(2108, { ctidTraderAccountId: id, orderId: r.orderId }); trLog(`cTrader: ${nm(r.tradeData.symbolId)} order cancelled`); setTimeout(cttRefresh, 400); }
+  else if (kind === "mxp") { const long = +r.positionType === 1, q = trLivePrice(mxBack(r.symbol)) || {};
+    await mxtReq("POST", "/api/v1/private/order/create", { symbol: r.symbol, price: q.bid || 0, vol: +r.holdVol, side: long ? 4 : 2, type: 5, openType: +r.openType || 1, positionId: +r.positionId }); trLog(`MEXC: close ${r.symbol} sent`); setTimeout(() => mxtRefresh().then(() => { chDirty = true; }), 800); }
+  else if (kind === "mxo") { await mxtReq("POST", "/api/v1/private/order/cancel", [String(r.orderId)]); trLog("MEXC: order cancelled"); setTimeout(() => mxtRefresh().then(() => { chDirty = true; }), 800); }
+}
+setInterval(() => {                              // keep the lines, P&L and the trade watch fresh while you're on Charts
+  if (page !== "charts" || document.visibilityState !== "visible" || TW.drag) return; const open = TWS().open && chCS().trWatch;
+  if (CTT.state === "ready" && (trVenue(CH.sym) === "ct" || open)) cttRefresh();
+  if (mxtOn() && ((trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:")) || open)) mxtRefresh().then(() => { chDirty = true; }, () => {});
 }, 5000);
+
+/* ---- trade watch: positions, orders and history under the charts; pick the columns ---- */
+const TW_KEY = "finder-trwatch", TWS = () => ({ open: true, tab: "pos", h: 170, range: 30, cols: {}, sort: {}, ...(lsGet(TW_KEY, {}) || {}) }), twSave = o => lsSet(TW_KEY, { ...TWS(), ...o });
+const twTime = ms => { if (!ms) return ""; try { return new Intl.DateTimeFormat("en-GB", { timeZone: chCS().tz || "Asia/Manila", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(+ms)).replace(",", ""); } catch (e) { return new Date(+ms).toISOString().slice(0, 19).replace("T", " "); } };
+const twMoney = v => v == null || !isFinite(v) ? "" : `<span class="${v > 0 ? "up" : v < 0 ? "dn" : ""}">${v > 0 ? "+" : ""}${(+v).toFixed(2)}</span>`;
+function twSpec(sid) { const sp = CTT.specs[sid]; if (!sp && CTT.state === "ready" && CTT.byId[sid] && !TW["sp" + sid]) { TW["sp" + sid] = 1; cttSpec(CTT.byId[sid]).then(() => { TW["sp" + sid] = 0; twRender(); }, () => {}); } return sp; }
+const twPip = (sp, d) => sp && sp.pip != null ? d / 10 ** -sp.pip : null;
+const TW_COLS = {                                // [key, label, value (for sorting), display, on by default]
+  pos: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, null, 1], ["dir", "Direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" || r.dir === "Long" ? "long" : "short"}">${r.dir}</span>`, 1],
+    ["qty", "Quantity", r => r.qtyN, r => r.qty, 1], ["entry", "Entry price", r => r.entry, r => r.entryS, 1], ["cur", "Current price", r => r.cur, r => r.curS, 1], ["sl", "SL", r => r.sl, r => r.slS, 1], ["tp", "TP", r => r.tp, r => r.tpS, 1],
+    ["opened", "Opened", r => r.opened, r => twTime(r.opened), 1], ["pips", "Pips", r => r.pips, r => r.pips == null ? "" : twMoney(r.pips).replace(/\.(\d)\d</, ".$1<"), 1], ["swap", "Swap", r => r.swap, r => twMoney(r.swap), 0], ["comm", "Commission", r => r.comm, r => twMoney(r.comm), 0],
+    ["pnl", "Net P&L", r => r.pnl, r => twMoney(r.pnl), 1], ["id", "ID", r => r.id, null, 0]],
+  ord: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, null, 1], ["type", "Type", r => r.type, null, 1], ["dir", "Direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" ? "long" : "short"}">${r.dir}</span>`, 1],
+    ["qty", "Quantity", r => r.qtyN, r => r.qty, 1], ["price", "Price", r => r.price, r => r.priceS, 1], ["dist", "Distance", r => r.dist, r => r.dist == null ? "" : r.dist.toFixed(1) + " pips", 1], ["sl", "SL", r => r.sl, r => r.slS, 1], ["tp", "TP", r => r.tp, r => r.tpS, 1],
+    ["created", "Created", r => r.created, r => twTime(r.created), 1], ["id", "ID", r => r.id, null, 0]],
+  hist: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, null, 1], ["dir", "Opening direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" || r.dir === "Long" ? "long" : "short"}">${r.dir}</span>`, 1],
+    ["opened", "Opening time", r => r.opened, r => twTime(r.opened), 1], ["closed", "Closing time", r => r.closed, r => twTime(r.closed), 1], ["qty", "Quantity", r => r.qtyN, r => r.qty, 0], ["entry", "Entry price", r => r.entry, r => r.entryS, 1],
+    ["close", "Closing price", r => r.close, r => r.closeS, 1], ["gross", "Gross", r => r.gross, r => twMoney(r.gross), 0], ["swap", "Swap", r => r.swap, r => twMoney(r.swap), 0], ["comm", "Commission", r => r.comm, r => twMoney(r.comm), 0],
+    ["net", "Net", r => r.net, r => twMoney(r.net), 1], ["pips", "Pips", r => r.pips, r => r.pips == null ? "" : twMoney(r.pips), 1], ["bal", "Balance", r => r.bal, r => r.bal == null ? "" : fmtNum(r.bal), 0], ["id", "Deal ID", r => r.id, null, 0]],
+};
+const twCols = tab => { const c = TWS().cols[tab]; return TW_COLS[tab].filter(([k, , , , on]) => c ? c.includes(k) : on); };
+function twRows(tab) {
+  const rows = [], live = CTT.state === "ready";
+  if (tab === "pos") {
+    if (live) CTT.positions.forEach(p => { const td = p.tradeData || {}, x = CTT.byId[td.symbolId] || {}, sp = twSpec(td.symbolId), dg = sp && sp.digits != null ? +sp.digits : 5, buy = +td.tradeSide === 1, q = CTT.spots[td.symbolId] || {}, cur = buy ? q.bid : q.ask, md = p.moneyDigits != null ? +p.moneyDigits : (CTT.info || {}).md || 2;
+      rows.push({ kind: "pos", ref: p, venue: "cTrader", sym: x.symbolName || "#" + td.symbolId, dir: buy ? "Buy" : "Sell", qtyN: sp ? +td.volume / sp.lotSize : +td.volume / 100, qty: sp ? (+td.volume / sp.lotSize).toFixed(2) + " lots" : +td.volume / 100 + " units",
+        entry: +p.price, entryS: p.price ? (+p.price).toFixed(dg) : "", cur, curS: cur ? (+cur).toFixed(dg) : "", sl: +p.stopLoss || null, slS: p.stopLoss ? (+p.stopLoss).toFixed(dg) : "", tp: +p.takeProfit || null, tpS: p.takeProfit ? (+p.takeProfit).toFixed(dg) : "",
+        opened: +td.openTimestamp || null, pips: cur && p.price ? twPip(sp, (cur - p.price) * (buy ? 1 : -1)) : null, swap: p.swap != null ? +p.swap / 10 ** md : null, comm: p.commission != null ? +p.commission / 10 ** md : null, pnl: CTT.pnl[p.positionId] ?? null, id: String(p.positionId) }); });
+    if (mxtOn()) MXT.positions.forEach(p => { const long = +p.positionType === 1, q = trLivePrice(mxBack(p.symbol)) || {}, avg = +(p.holdAvgPrice || p.openAvgPrice || 0), cur = q.bid || q.last || null;
+      rows.push({ kind: "mxp", ref: p, venue: "MEXC", sym: p.symbol.replace("_", ""), dir: long ? "Long" : "Short", qtyN: +p.holdVol, qty: p.holdVol + " contracts", entry: avg, entryS: avg ? fmtPrice(avg) : "", cur, curS: cur ? fmtPrice(cur) : "", sl: null, slS: "", tp: null, tpS: "",
+        opened: +p.createTime || null, pips: null, swap: null, comm: null, pnl: p.unrealised != null ? +p.unrealised : null, id: String(p.positionId) }); });
+  } else if (tab === "ord") {
+    if (live) CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).forEach(o => { const td = o.tradeData || {}, x = CTT.byId[td.symbolId] || {}, sp = twSpec(td.symbolId), dg = sp && sp.digits != null ? +sp.digits : 5, buy = +td.tradeSide === 1, ot = +o.orderType;
+      const px = +(ot === 3 || ot === 6 ? o.stopPrice || o.limitPrice : o.limitPrice || o.stopPrice) || 0, a = trAbsSLTP(o, px, buy), q = CTT.spots[td.symbolId] || {}, now = buy ? q.ask : q.bid;
+      rows.push({ kind: "ord", ref: o, venue: "cTrader", sym: x.symbolName || "#" + td.symbolId, type: ot === 2 ? "Limit" : ot === 3 ? "Stop" : ot === 6 ? "Stop limit" : "Order", dir: buy ? "Buy" : "Sell", qtyN: sp ? +td.volume / sp.lotSize : +td.volume, qty: sp ? (+td.volume / sp.lotSize).toFixed(2) + " lots" : +td.volume / 100 + " units",
+        price: px, priceS: px ? px.toFixed(dg) : "", dist: now && px ? twPip(sp, Math.abs(px - now)) : null, sl: a.sl, slS: a.sl ? a.sl.toFixed(dg) : "", tp: a.tp, tpS: a.tp ? a.tp.toFixed(dg) : "", created: +td.openTimestamp || +o.utcLastUpdateTimestamp || null, id: String(o.orderId) }); });
+    if (mxtOn()) MXT.orders.forEach(o => rows.push({ kind: "mxo", ref: o, venue: "MEXC", sym: o.symbol.replace("_", ""), type: "Limit", dir: [1, 4].includes(+o.side) ? "Buy" : "Sell", qtyN: +o.vol, qty: o.vol + " contracts", price: +o.price, priceS: fmtPrice(+o.price), dist: null, sl: null, slS: "", tp: null, tpS: "", created: +o.createTime || null, id: String(o.orderId) }));
+  } else rows.push(...TW.hist);
+  const so = TWS().sort[tab], col = so && TW_COLS[tab].find(c => c[0] === so[0]);
+  if (col) rows.sort((a, b) => { const va = col[2](a), vb = col[2](b); return (va == null) - (vb == null) || (va < vb ? -1 : va > vb ? 1 : 0) * so[1]; });
+  else if (tab === "hist") rows.sort((a, b) => (b.closed || 0) - (a.closed || 0));
+  return rows;
+}
+async function twLoadHist(force) {               // closed trades: cTrader deals (a week per request) and MEXC position history
+  if (TW.histBusy || (!force && Date.now() - TW.histAt < 60e3)) return; TW.histBusy = true; TW.histErr = ""; twRender();
+  const out = [], days = TWS().range, now = Date.now();
+  try {
+    if (CTT.state === "ready") { const id = CTT.acct.ctidTraderAccountId, deals = [];
+      for (let to = now; to > now - days * 864e5; to -= 7 * 864e5) { const r = await cttReq(2133, { ctidTraderAccountId: id, fromTimestamp: Math.max(now - days * 864e5, to - 7 * 864e5), toTimestamp: to, maxRows: 1000 }); deals.push(...(r.deal || [])); }
+      const opened = {}; deals.forEach(d => { if (!d.closePositionDetail) opened[d.positionId] = +d.executionTimestamp || +d.createTimestamp; });
+      for (const d of deals.filter(d => d.closePositionDetail)) { const c = d.closePositionDetail, sp = CTT.specs[d.symbolId] || (CTT.byId[d.symbolId] ? await cttSpec(CTT.byId[d.symbolId]).catch(() => null) : null), md = c.moneyDigits != null ? +c.moneyDigits : d.moneyDigits != null ? +d.moneyDigits : 2;
+        const dg = sp && sp.digits != null ? +sp.digits : 5, buyOpen = +d.tradeSide !== 1, ep = +c.entryPrice, xp = +d.executionPrice, g = +c.grossProfit / 10 ** md, sw = +(c.swap || 0) / 10 ** md, cm = +(c.commission || 0) / 10 ** md, vol = +(c.closedVolume || d.filledVolume || d.volume);
+        out.push({ venue: "cTrader", sym: (CTT.byId[d.symbolId] || {}).symbolName || "#" + d.symbolId, dir: buyOpen ? "Buy" : "Sell", opened: opened[d.positionId] || null, closed: +d.executionTimestamp || +d.createTimestamp, qtyN: sp ? vol / sp.lotSize : vol / 100, qty: sp ? (vol / sp.lotSize).toFixed(2) + " lots" : vol / 100 + " units",
+          entry: ep, entryS: ep ? ep.toFixed(dg) : "", close: xp, closeS: xp ? xp.toFixed(dg) : "", gross: g, swap: sw, comm: cm, net: g + sw + cm, pips: twPip(sp, (xp - ep) * (buyOpen ? 1 : -1)), bal: c.balance != null ? +c.balance / 10 ** md : null, id: String(d.dealId) }); } }
+    if (mxtOn()) { const r = await mxtReq("GET", "/api/v1/private/position/list/history_positions", { page_num: 1, page_size: 100 }).catch(() => null), L = Array.isArray(r) ? r : (r && (r.resultList || r.data)) || [];
+      L.filter(p => +p.updateTime >= now - days * 864e5).forEach(p => { const long = +p.positionType === 1;
+        out.push({ venue: "MEXC", sym: String(p.symbol).replace("_", ""), dir: long ? "Long" : "Short", opened: +p.createTime || null, closed: +p.updateTime || null, qtyN: +p.closeVol || 0, qty: (p.closeVol || 0) + " contracts", entry: +p.openAvgPrice, entryS: fmtPrice(+p.openAvgPrice || 0), close: +p.closeAvgPrice, closeS: fmtPrice(+p.closeAvgPrice || 0),
+          gross: null, swap: null, comm: null, net: +p.realised || 0, pips: null, bal: null, id: String(p.positionId) }); }); }
+    TW.hist = out; TW.histAt = Date.now();
+  } catch (x) { TW.histErr = x.message; }
+  TW.histBusy = false; twRender();
+}
+function twMount() {                              // the panel lives under the charts; shown when Settings → Trading → Trade watch is on
+  const pg = $("chPage"), body = pg && pg.querySelector(".chbody"); if (!body) return null;
+  let el = $("trWatch"); const on = chCS().trWatch;
+  if (!on) { if (el) { el.remove(); window.dispatchEvent(new Event("resize")); } return null; }
+  if (el) return el;
+  el = document.createElement("div"); el.id = "trWatch"; el.className = "trw"; body.after(el);
+  el.innerHTML = `<div class="trwgrip" id="twGrip" title="Drag to resize"></div><div class="trwh"><div class="trwtabs" role="tablist" aria-label="Trade watch"></div><span class="trwsum" id="twSum"></span><span style="flex:1"></span>
+    <select id="twRange" class="trwsel" aria-label="History range" hidden>${[[1, "Today"], [7, "7 days"], [30, "30 days"], [90, "90 days"], [365, "1 year"]].map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select>
+    <button class="btn sm" id="twReload" hidden>Refresh</button><span class="trwcolw"><button class="btn sm" id="twColBtn" aria-haspopup="true">Columns ▾</button><div class="trwcols" id="twColPop" hidden></div></span>
+    <button class="chx" id="twToggle" aria-label="Hide or show the trade watch"></button></div><div class="trwb" id="twBody"></div>`;
+  ["pointerdown", "keydown", "wheel"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation()));
+  $("twToggle").onclick = () => { twSave({ open: !TWS().open }); twRender(); window.dispatchEvent(new Event("resize")); };
+  $("twRange").onchange = () => { twSave({ range: +$("twRange").value }); twLoadHist(true); };
+  $("twReload").onclick = () => twLoadHist(true);
+  $("twColBtn").onclick = e => { e.stopPropagation(); const p = $("twColPop"); p.hidden = !p.hidden; if (!p.hidden) twColPop(); };
+  document.addEventListener("click", e => { const p = $("twColPop"); if (p && !p.hidden && !e.target.closest(".trwcolw")) p.hidden = true; });
+  $("twGrip").onpointerdown = e => { e.preventDefault(); const y0 = e.clientY, h0 = TWS().h, mv = ev => { const h = Math.max(90, Math.min(window.innerHeight * 0.6, h0 + (y0 - ev.clientY))); $("twBody").style.height = h + "px"; },
+    up = ev => { document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); twSave({ h: Math.max(90, Math.min(window.innerHeight * 0.6, h0 + (y0 - ev.clientY))) }); window.dispatchEvent(new Event("resize")); };
+    document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up); };
+  twRender(); return el;
+}
+function twColPop() {
+  const tab = TWS().tab, cur = twCols(tab).map(c => c[0]), p = $("twColPop");
+  p.innerHTML = TW_COLS[tab].map(([k, l]) => `<label><input type="checkbox" data-twc="${k}" ${cur.includes(k) ? "checked" : ""}> ${trEsc(l)}</label>`).join("") + `<button class="btn sm" id="twColReset">Reset to default</button>`;
+  p.querySelectorAll("[data-twc]").forEach(c => c.onchange = () => { const on = [...p.querySelectorAll("[data-twc]")].filter(x => x.checked).map(x => x.dataset.twc); twSave({ cols: { ...TWS().cols, [tab]: on.length ? on : ["sym"] } }); twRender(); });
+  $("twColReset").onclick = () => { const c = { ...TWS().cols }; delete c[tab]; twSave({ cols: c }); twColPop(); twRender(); };
+}
+function twRender() {
+  const el = $("trWatch"); if (!el) return; const st = TWS(), tab = st.tab, ccy = CTT.info ? CTT.info.ccy || "" : "";
+  const nPos = (CTT.state === "ready" ? CTT.positions.length : 0) + (mxtOn() ? MXT.positions.length : 0), nOrd = (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) + (mxtOn() ? MXT.orders.length : 0);
+  el.classList.toggle("shut", !st.open); $("twToggle").innerHTML = chIco(st.open ? "M5 8l5 5 5-5" : "M5 12l5-5 5 5", 15); $("twToggle").title = st.open ? "Hide" : "Show";
+  el.querySelector(".trwtabs").innerHTML = [["pos", "Positions", nPos], ["ord", "Orders", nOrd], ["hist", "History"]].map(([k, l, n]) => `<button role="tab" data-twt="${k}" class="${k === tab ? "on" : ""}" aria-selected="${k === tab}">${l}${n ? ` <i>${n}</i>` : ""}</button>`).join("");
+  el.querySelectorAll("[data-twt]").forEach(b => b.onclick = () => { twSave({ tab: b.dataset.twt, open: true }); $("twColPop").hidden = true; if (b.dataset.twt === "hist") twLoadHist(); twRender(); window.dispatchEvent(new Event("resize")); });
+  const pnl = CTT.positions.reduce((a, p) => a + (CTT.pnl[p.positionId] || 0), 0), bal = CTT.info ? CTT.info.balance : null, mx = MXT.asset;
+  $("twSum").innerHTML = [CTT.state === "ready" && bal != null ? `cTrader ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", mxtOn() && mx ? `MEXC equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader or add a MEXC key to see your trades here");
+  $("twRange").hidden = $("twReload").hidden = tab !== "hist"; $("twRange").value = st.range;
+  const B = $("twBody"); B.style.height = st.h + "px"; if (!st.open) return;
+  if (TW.arm && TW.arm.until < Date.now()) TW.arm = null;
+  const cols = twCols(tab), rows = twRows(tab), so = st.sort[tab];
+  const head = `<tr>${cols.map(([k, l]) => `<th data-tws="${k}" class="${so && so[0] === k ? "srt" : ""}">${trEsc(l)}${so && so[0] === k ? (so[1] > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}${tab !== "hist" ? "<th></th>" : ""}</tr>`;
+  const act = r => { const k = r.kind + ":" + r.id, armed = TW.arm && TW.arm.key === k; return `<td class="trwact"><button class="btn sm ${armed ? "trwsure" : ""}" data-twx="${trEsc(k)}">${armed ? "Sure?" : r.kind === "pos" || r.kind === "mxp" ? "Close" : "Cancel"}</button></td>`; };
+  const body = rows.map(r => `<tr data-twsym="${trEsc(r.venue === "MEXC" ? r.sym : "CT:" + r.sym)}">${cols.map(c => `<td>${c[3] ? c[3](r) : trEsc(c[2](r) ?? "")}</td>`).join("")}${tab !== "hist" ? act(r) : ""}</tr>`).join("");
+  const empty = tab === "hist" ? (TW.histBusy ? "Loading history…" : TW.histErr ? "Couldn't load history: " + trEsc(TW.histErr) : "No closed trades in this range.") : tab === "pos" ? "No open positions." : "No pending orders.";
+  B.innerHTML = `<table class="trwt"><thead>${head}</thead><tbody>${body || `<tr><td colspan="${cols.length + 1}" class="mute">${empty}</td></tr>`}</tbody></table>`;
+  B.querySelectorAll("[data-tws]").forEach(th => th.onclick = () => { const k = th.dataset.tws, s0 = TWS().sort[tab]; twSave({ sort: { ...TWS().sort, [tab]: s0 && s0[0] === k ? (s0[1] > 0 ? [k, -1] : null) : [k, 1] } }); twRender(); });
+  B.querySelectorAll("[data-twx]").forEach(b => b.onclick = async e => { e.stopPropagation(); const k = b.dataset.twx, [kind, id] = [k.slice(0, k.indexOf(":")), k.slice(k.indexOf(":") + 1)], r = rows.find(z => z.kind === kind && z.id === id); if (!r) return;
+    if (trCfg().confirm && !(TW.arm && TW.arm.key === k && TW.arm.until > Date.now())) { TW.arm = { key: k, until: Date.now() + 4000 }; twRender(); setTimeout(twRender, 4100); return; }
+    TW.arm = null; b.disabled = true; try { await trCloseIt(kind, r.ref); } catch (x) { toast(`Not done: ${chEsc(x.message)}`); } twRender(); });
+  B.querySelectorAll("tr[data-twsym]").forEach(tr => tr.ondblclick = () => { const s = tr.dataset.twsym; if (s && s !== CH.sym && typeof chSetSym === "function") chSetSym(s); });
+}
+setInterval(() => { if (page !== "charts" || document.visibilityState !== "visible") return; const el = twMount(); if (el && !(TW.arm && TW.arm.until > Date.now()) && !el.contains(document.activeElement)) twRender(); }, 1000);
 function trPosAcct(d) {                         // for the settings box: where the account size comes from right now
   const c = TPS.get(d.id) || {}, v = c.val;
   return v ? `${fmtNum(v.bal)} ${v.bccy} · ${v.src === "manual" ? "typed" : v.src}` : c.err ? `Not synced: ${c.err}` : "Reading your account…";

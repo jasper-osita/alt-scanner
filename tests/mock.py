@@ -165,7 +165,7 @@ CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
 def CT_BASE(n): return CT_ASSET.get(n[:3], 9) if len(n) == 6 and n.isupper() else 9
 def CT_QUOTE(n): return CT_ASSET.get(n[3:6], 9) if len(n) == 6 and n.isupper() else (2 if n in ("GER40",) else 3 if n == "JPN225" else 5 if n == "UK100" else 1)
-CT_TRADE = {"pos": [], "ord": [], "log": []}
+CT_TRADE = {"pos": [], "ord": [], "log": [], "deals": []}
 def ct_handler(opts):
     """opts: {'secret': 'sec', 'token': 'tok', 'live': True} — what the fake server accepts."""
     def handler(ws):
@@ -213,7 +213,7 @@ def ct_handler(opts):
                     ws.send(json.dumps({"payloadType": 2131, "payload": {"ctidTraderAccountId": 4242, "symbolId": sid, "bid": round(last * 1.01 * 1e5), "ask": round(last * 1.0101 * 1e5)}}))
                 return
             # ---- trading (Trade page) ----
-            if t in (2106, 2124, 2187, 2111, 2110, 2108): CT_TRADE["log"].append((t, dict(p)))
+            if t in (2106, 2124, 2187, 2111, 2110, 2108, 2109, 2133): CT_TRADE["log"].append((t, dict(p)))
             if t == 2106:
                 sid = p["symbolId"]; px = candles(CT_LIST[sid - 1], "1h")[-1][4]
                 if p.get("orderType") == 1:
@@ -224,7 +224,20 @@ def ct_handler(opts):
             if t == 2124: return reply(2125, {"ctidTraderAccountId": p["ctidTraderAccountId"], "position": CT_TRADE["pos"], "order": CT_TRADE["ord"]})
             if t == 2187: return reply(2188, {"ctidTraderAccountId": p["ctidTraderAccountId"], "moneyDigits": 2, "positionUnrealizedPnL": [{"positionId": x["positionId"], "grossUnrealizedPnL": 1234, "netUnrealizedPnL": 1200} for x in CT_TRADE["pos"]]})
             if t == 2111:
+                for x in CT_TRADE["pos"]:
+                    if x["positionId"] == p["positionId"]:
+                        sid = x["tradeData"]["symbolId"]; px = candles(CT_LIST[sid - 1], "1h")[-1][4]; now = int(time.time() * 1000); side = x["tradeData"]["tradeSide"]
+                        CT_TRADE["deals"].append({"dealId": 700 + len(CT_TRADE["deals"]), "positionId": x["positionId"], "symbolId": sid, "volume": x["tradeData"]["volume"], "tradeSide": side, "executionPrice": x["price"], "executionTimestamp": now - 3600e3})
+                        CT_TRADE["deals"].append({"dealId": 700 + len(CT_TRADE["deals"]), "positionId": x["positionId"], "symbolId": sid, "volume": x["tradeData"]["volume"], "tradeSide": 3 - side, "executionPrice": px * 1.002, "executionTimestamp": now,
+                                                  "closePositionDetail": {"entryPrice": x["price"], "grossProfit": 4520, "swap": -30, "commission": -150, "balance": 1852034, "closedVolume": x["tradeData"]["volume"], "moneyDigits": 2}})
                 CT_TRADE["pos"] = [x for x in CT_TRADE["pos"] if x["positionId"] != p["positionId"]]; return reply(2126, {"executionType": 3, "deal": {"executionPrice": 1}})
+            if t == 2109:
+                for x in CT_TRADE["ord"]:
+                    if x["orderId"] == p["orderId"]:
+                        for k in ("limitPrice", "stopPrice", "stopLoss", "takeProfit", "volume"):
+                            if k in p: (x["tradeData"] if k == "volume" else x)[k] = p[k]
+                return reply(2126, {"executionType": 4})
+            if t == 2133: return reply(2134, {"ctidTraderAccountId": p["ctidTraderAccountId"], "deal": [d for d in CT_TRADE["deals"] if p["fromTimestamp"] <= d["executionTimestamp"] <= p["toTimestamp"]], "hasMore": False})
             if t == 2110:
                 for x in CT_TRADE["pos"]:
                     if x["positionId"] == p["positionId"]: x["stopLoss"] = p.get("stopLoss"); x["takeProfit"] = p.get("takeProfit")

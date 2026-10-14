@@ -106,6 +106,47 @@ async def main():
         print("23d) account menu:", await q("() => document.getElementById('chAcctPop').innerText.split('Open on this account')[1].split('Refresh')[0].trim()"))
         await q("() => { document.getElementById('chAcctPop').hidden = true; }")
         await pg.screenshot(path=f"{OUT}/trade_lines.png")
+        # broker lines: drag the pending order, its SL, × to cancel; a market position: drag its line to add a stop, × to close
+        BK = "() => JSON.stringify((chVis()[0].bk || []).map(b => [b.key.replace(/:\\d+:/, ':'), Math.round(b.y), b.xb && b.xb.map(Math.round)]))"
+        print("40) hit list:", await q(BK))
+        async def drag_line(role, kind, dy):
+            bx = await q(f"() => {{ const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => b.key.startsWith('{kind}:') && b.key.endsWith(':{role}')); return b && [r.left, r.top, chPlotW(P), b.y]; }}")
+            if not bx: return "no line"
+            x = bx[0] + bx[2] * 0.6; y = bx[1] + bx[3]
+            await pg.mouse.move(x, y); await pg.mouse.down(); await pg.mouse.move(x, y + dy, steps=6); await pg.mouse.up(); await asyncio.sleep(1.2)
+            return "ok"
+        n0 = len(CT_TRADE["log"])
+        await drag_line("entry", "ord", 30)
+        print("41) drag pending entry:", [(t, {k: v for k, v in p.items() if k in ("stopPrice", "limitPrice", "stopLoss", "takeProfit", "volume")}) for t, p in CT_TRADE["log"][n0:] if t == 2109], "| lines:", await q("() => trChartOrders(CH.sym).map(l => l.txt).join(' | ')"))
+        n0 = len(CT_TRADE["log"]); await drag_line("sl", "ord", -20)
+        print("42) drag pending SL:", [(t, p.get("stopLoss"), p.get("stopPrice")) for t, p in CT_TRADE["log"][n0:] if t == 2109])
+        async def click_x(kind):
+            bx = await q(f"() => {{ const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => b.key.startsWith('{kind}:') && b.xb); return b && [r.left + (b.xb[0] + b.xb[1]) / 2, r.top + b.y]; }}")
+            if not bx: return "no ×"
+            await pg.mouse.click(bx[0], bx[1]); await asyncio.sleep(0.3)
+            armed = await q("() => !!(TW.arm && TW.arm.key)")
+            bx = await q(f"() => {{ const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => b.key.startsWith('{kind}:') && b.xb); return b && [r.left + (b.xb[0] + b.xb[1]) / 2, r.top + b.y]; }}")
+            await pg.mouse.click(bx[0], bx[1]); await asyncio.sleep(1.2); return armed
+        await pg.screenshot(path=f"{OUT}/trade_bk.png")
+        print("43) × cancel (armed first):", await click_x("ord"), "| 2108 sent:", [t for t, p in CT_TRADE["log"]].count(2108), "| orders left:", await q("() => CTT.orders.length"))
+        await q("() => cttPlace({ x: cttSym(CH.sym), side: 'buy', type: 'market', lots: 1 })"); await wait("() => CTT.positions.length > 0", 10); await asyncio.sleep(0.6)
+        n0 = len(CT_TRADE["log"]); await drag_line("entry", "pos", 40)
+        print("44) drag position line down → SL:", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t == 2110], "| lines:", await q("() => trChartOrders(CH.sym).map(l => l.txt).join(' | ')"))
+        n0 = len(CT_TRADE["log"]); await drag_line("entry", "pos", -40)
+        print("45) drag up → TP (SL kept):", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t == 2110])
+        # trade watch
+        await asyncio.sleep(1.2)
+        TWQ = "() => [document.querySelector('#trWatch .trwtabs').innerText.replace(/\\s+/g, ' '), document.getElementById('twSum').innerText, [...document.querySelectorAll('#twBody th')].map(t => t.innerText).join('|'), [...document.querySelectorAll('#twBody tbody tr')].slice(0, 3).map(r => r.innerText.replace(/\\s+/g, ' ')).join(' // ')]"
+        print("46) watch positions:", await q(TWQ))
+        await q("() => document.querySelector('[data-twt=\"hist\"]').click()"); await wait("() => !TW.histBusy && TW.histAt", 10); await asyncio.sleep(1.2)
+        print("47) watch history:", await q(TWQ))
+        await q("() => { document.getElementById('twColBtn').click(); }"); await asyncio.sleep(0.2)
+        await q("() => { const c = document.querySelector('[data-twc=\"gross\"]'); c.checked = true; c.dispatchEvent(new Event('change')); const d = document.querySelector('[data-twc=\"pips\"]'); d.checked = false; d.dispatchEvent(new Event('change')); }"); await asyncio.sleep(0.3)
+        print("48) columns: +Gross −Pips:", await q("() => [...document.querySelectorAll('#twBody th')].map(t => t.innerText).join('|')"), "| saved:", await q("() => JSON.stringify(TWS().cols)"))
+        await pg.screenshot(path=f"{OUT}/trade_watch.png")
+        await q("() => document.querySelector('[data-twt=\"pos\"]').click()"); await asyncio.sleep(0.4)
+        for _ in range(2): await q("() => document.querySelector('#twBody [data-twx]').click()"); await asyncio.sleep(0.5)
+        await asyncio.sleep(1); print("49) watch Close (Sure? then close):", [t for t, p in CT_TRADE["log"]].count(2111), "| positions:", await q("() => CTT.positions.length"))
         print("24) toolbar button:", await q("() => { chSel = 'pz'; chSelBar(); return !!document.querySelector('#chFloat [data-fl=\"trade\"]'); }"), "| menu:", await q("() => chMoreItems(CHD[CH.sym][0]).map(x => x.l).filter(Boolean).slice(0, 2).join(', ')"))
         # account size: synced from the account by default, or typed (manual); the risk % stays, the size follows the stop
         d0 = "CHD[CH.sym][0]"

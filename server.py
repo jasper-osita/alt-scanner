@@ -5,7 +5,7 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8787
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
        "img-src 'self' data: https://s3-symbol-logo.tradingview.com; "
-       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://contract.mexc.com https://api.mexc.com https://api.coingecko.com https://api.alternative.me https://api.telegram.org wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://contract.mexc.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
+       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://contract.mexc.com https://api.mexc.com https://api.coingecko.com https://api.alternative.me https://api.telegram.org https://openapi.ctrader.com wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://contract.mexc.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
        "manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'")
 # Relay for Bybit's public market data, used when Bybit refuses requests made directly from a web page.
 # Only /v5/market/* paths are forwarded: read-only prices, candles, funding and open interest. No account endpoints.
@@ -115,6 +115,31 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
                 return
         return super().do_GET()
+    def do_POST(self):
+        # cTrader sign-in: swap the one-minute sign-in code (or a refresh token) for tokens. Only for pages served
+        # by this Mac app; the request goes straight to openapi.ctrader.com and nothing is logged or stored here.
+        if self.path.split("?")[0] != "/api/ct-token":
+            self.send_response(404); self.end_headers(); return
+        origin = self.headers.get("Origin", "")
+        if origin and not origin.startswith(("http://localhost:", "http://127.0.0.1:")):
+            self.send_response(403); self.end_headers(); return
+        try:
+            n = min(int(self.headers.get("Content-Length", "0") or 0), 8192)
+            p = json.loads(self.rfile.read(n) or b"{}")
+            keep = ("grant_type", "code", "redirect_uri", "client_id", "client_secret", "refresh_token")
+            q = {k: str(p[k]) for k in keep if p.get(k)}
+            if q.get("grant_type") not in ("authorization_code", "refresh_token"): raise ValueError("grant_type")
+            from urllib.parse import urlencode
+            req = urllib.request.Request("https://openapi.ctrader.com/apps/token?" + urlencode(q), headers={"Accept": "application/json", "User-Agent": "TheFinder/1.0"})
+            try:
+                with urllib.request.urlopen(req, timeout=20) as r: code, body = r.status, r.read()
+            except urllib.error.HTTPError as e: code, body = e.code, e.read()
+            except Exception: code, body = 502, json.dumps({"errorCode": "UNREACHABLE", "description": "couldn't reach cTrader's sign-in service"}).encode()
+        except Exception:
+            code, body = 400, json.dumps({"errorCode": "BAD_REQUEST", "description": "the sign-in request was incomplete"}).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
     def log_message(self, *a): pass
 
 # Auto-update: when this folder is a Git clone, pull new versions every 2 minutes.

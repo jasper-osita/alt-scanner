@@ -18,6 +18,7 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
 ## Key code areas (grep these names)
 - Scan: `structure`, `aots`, `preAots`, `preBest`, `coinPlay`, `renderBoards`, `TABS`, `testFilter`.
 - cTrader: `ctKlines(sym, tf, limit, keepForming, toMs)`, `ctAccountInfo`, `ctSpec`, `ctLots`, `CT_PERIOD/CT_MS/CT_SPAN`, `ctPrefer`, `ctEquiv`.
+  Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct or via server.py `/api/ct-token`), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
 - Charts: `CHP` panes, `chLoad`, `chSetData`, `chLoadOlder` (history on scroll, max 5000), `chPaint`, `chIndPaint`, `IND` registry,
   `chIndBuild/Layout/Sync`, dialog mode `CHDLG`/`chDlgStart`, settings `CS_DEF`/`chCS()`.
 - Calendar: `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
@@ -28,7 +29,7 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   that touch the change; the full suite takes about an hour. A test fails on a Traceback or `errors: [...]`.
   Prefer printed checks over screenshots; look at a screenshot only when layout is the question.
 - Commit as Jas: `git -c user.email=jasperosita18@gmail.com -c user.name="Jasper Osita" commit`, message ends with the
-  Co-Authored-By line. Jas pushes himself unless he asks otherwise.
+  Co-Authored-By line. Claude pushes from the cloud clone (Claude GitHub App is installed on the repo).
 
 ## Rules
 - Never put the cTrader Client ID/Secret/token or the Telegram bot token in code, commits or chat. They live only in the

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1146">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1203">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -674,6 +674,7 @@ section.mrow:has(.xstatcard){grid-template-columns:1fr}.xstatcard .xstat{grid-te
 .ctbar .btn{margin-left:auto}
 .ctform{display:flex;flex-direction:column;gap:10px;max-width:560px;padding:6px 2px}
 .ctform label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mute)}
+.ctsso{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:8px 0}.ctsso code{word-break:break-all;background:var(--bg);padding:1px 5px;border-radius:5px}.ctmanual summary{cursor:pointer}.ctmanual label{margin-top:8px}
 .ctform input,.ctform select{background:var(--bg);border:1px solid var(--pill-b);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit}
 .ctsteps{margin:0;padding-left:18px;line-height:1.6}
 .ctacts{display:flex;gap:8px}
@@ -2212,7 +2213,7 @@ const ctConfigured = () => { const c = ctCfg(); return !!(c && c.clientId && c.c
 function ctErrText(p) {
   const code = (p && p.errorCode) || "", d = (p && p.description) || "";
   if (/CLIENT_AUTH|APP_AUTH|INVALID_CLIENT/i.test(code)) return "cTrader rejected the Client ID or Secret (or the app isn't approved yet)";
-  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Create a new access token and refresh token on your app's Sandbox page and paste both in Settings";
+  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Use Sign in with cTrader in Settings (or paste a new access and refresh token)";
   if (/RATE|LIMIT|FREQUENCY/i.test(code)) return "cTrader is rate-limiting requests; try again in a minute";
   return `${code || "cTrader error"}${d ? ": " + d : ""}`;
 }
@@ -2263,7 +2264,7 @@ function ctReq(type, payload, timeout = 20000) {
 async function ctConnect(cfg = ctCfg()) {
   if (CT.connecting) return CT.connecting;
   CT.connecting = (async () => {
-    if (!cfg || !cfg.clientId || !cfg.clientSecret || !cfg.accessToken) throw new Error("enter your Client ID, Secret and access token");
+    if (!cfg || !cfg.clientId || !cfg.clientSecret || !cfg.accessToken) throw new Error("enter your Client ID and Secret, then click Sign in with cTrader");
     ctClose(); CT.state = "connecting"; CT.err = null;
     let live = cfg.live !== false;
     try {
@@ -4245,7 +4246,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1146";
+const APP_VERSION = "2026.10.14.1203";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6455,6 +6456,41 @@ CT.onSpot = p => {                                    // live bid from cTrader f
   r.price = +p.bid / 1e5; if (r.ref24) r.chg24h = (r.price / r.ref24 - 1) * 100;
   macroPaint(r);
 };
+/* ---- Sign in with cTrader (OAuth): the app swaps cTrader's one-minute sign-in code for tokens, then renews them itself ---- */
+const CT_OAUTH = "finder-ct-oauth";
+const ctRedirectUri = () => location.origin + location.pathname;
+function ctSignIn() {
+  const c = ctCfg() || {}, ru = ctRedirectUri();
+  try { sessionStorage.setItem(CT_OAUTH, JSON.stringify({ at: Date.now(), ru })); } catch (e) {}
+  location.href = "https://id.ctrader.com/my/settings/openapi/grantingaccess/?" + new URLSearchParams({ client_id: c.clientId, redirect_uri: ru, scope: "accounts", product: "web" });
+}
+async function ctTokenCall(params) {            // cTrader's token service; straight from the page, or through the Mac app when the browser blocks it
+  const read = async r => { const j = await r.json().catch(() => ({})); if (!r.ok || j.errorCode || !j.accessToken) throw new Error(j.description || j.errorCode || `cTrader answered ${r.status}`); return j; };
+  try { return await read(await fetch("https://openapi.ctrader.com/apps/token?" + new URLSearchParams(params), { headers: { Accept: "application/json" } })); }
+  catch (e) { if (!/Failed to fetch|NetworkError|Load failed|blocked/i.test(e.message)) throw e; }
+  let r; try { r = await fetch("/api/ct-token", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(params) }); }
+  catch (e) { throw new Error("couldn't reach cTrader's sign-in service"); }
+  if (r.status === 404 || r.status === 405 || r.status === 501) throw new Error("this page can't reach cTrader's sign-in service. Sign in from the Mac app (localhost:8787) instead");
+  return read(r);
+}
+async function ctOAuthReturn() {                // runs on load: finish a sign-in that cTrader sent back here
+  const u = new URL(location.href), code = u.searchParams.get("code"), err = u.searchParams.get("error");
+  if (!code && !err) return;
+  let pend = null; try { pend = JSON.parse(sessionStorage.getItem(CT_OAUTH) || "null"); sessionStorage.removeItem(CT_OAUTH); } catch (e) {}
+  ["code", "error", "error_description", "state"].forEach(k => u.searchParams.delete(k));
+  history.replaceState(null, "", u.pathname + u.search + u.hash);
+  if (!pend || Date.now() - pend.at > 15 * 60e3) return;                  // not a sign-in this page started
+  const say = (title, bad) => ncAdd({ kind: "System", icon: bad ? "⚠️" : "🔗", tone: bad ? "warn" : "up", sym: null, action: bad ? "ctrader" : null, title, detail: "" });
+  if (err || !code) { say("cTrader sign-in was cancelled", true); return; }
+  const c = ctCfg() || {};
+  try {
+    const r = await ctTokenCall({ grant_type: "authorization_code", code, redirect_uri: pend.ru, client_id: c.clientId, client_secret: c.clientSecret });
+    ctSaveCfg({ ...c, accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000 });
+    await ctConnect();
+    say(`Signed in to cTrader: ${CT.broker} ${CT.live ? "live" : "demo"} account. Access renews by itself`);
+    if (typeof goPage === "function") goPage("macro"); if (typeof macroScan === "function") macroScan(true);
+  } catch (e) { CT.state = "error"; CT.err = "sign-in didn't finish: " + e.message; say("cTrader sign-in didn't finish: " + e.message, true); if (typeof renderMacro === "function") renderMacro(); }
+}
 function openCTSettings() {
   killChart();
   const c = ctCfg() || {}, esc = v => String(v || "").replace(/"/g, "&quot;");
@@ -6464,13 +6500,16 @@ function openCTSettings() {
     <div class="ctform">
       <ol class="meta ctsteps">
         <li>On <b>openapi.ctrader.com → Applications</b>, open <b>Credentials</b> on your approved app and copy the Client ID and Secret.</li>
-        <li>Open <b>Sandbox</b> on the same app, choose the <b>accounts</b> (read-only) scope, sign in with your cTrader ID and copy the access token <b>and the refresh token</b>.</li>
-        <li>Paste them here. A demo or live account both work; the right server is picked automatically.</li>
+        <li>Paste them below and click <b>Sign in with cTrader</b>. A demo or live account both work; the right server is picked automatically.</li>
       </ol>
       <label>Client ID<input id="ctId" autocomplete="off" spellcheck="false" value="${esc(c.clientId)}"></label>
       <label>Client Secret<input id="ctSecret" type="password" autocomplete="off" value="${esc(c.clientSecret)}"></label>
+      <div class="ctsso"><button class="btn primary" id="ctSignIn" type="button">Sign in with cTrader</button>
+        <p class="meta">Easiest: fill in the Client ID and Secret, then sign in. The app gets the tokens and renews them itself, so you can leave the two token boxes empty.
+        Once only, add this return address to your app on openapi.ctrader.com (Applications → Edit → Redirect URIs → Save): <code id="ctRedir">${esc(ctRedirectUri())}</code> <button class="btn sm" id="ctCopyRedir" type="button">Copy</button></p></div>
+      <details class="ctmanual" ${c.accessToken && !c.refreshToken ? "open" : ""}><summary class="meta">Or paste tokens from the Sandbox page</summary>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
-      <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label>
+      <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label></details>
       ${c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${a.brokerTitleShort || "Broker"} ${a.isLive ? "live" : "demo"} ${a.traderLogin || a.ctidTraderAccountId}</option>`).join("")}</select></label>` : ""}
       ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.map(x => x[0])].filter(n => !got.some(o => o.name === n));
@@ -6481,6 +6520,13 @@ function openCTSettings() {
       <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
     </div>`;
   $("dlgClose").onclick = () => $("dlg").close();
+  $("ctCopyRedir").onclick = () => { try { navigator.clipboard.writeText(ctRedirectUri()); $("ctCopyRedir").textContent = "Copied"; } catch (e) {} };
+  $("ctSignIn").onclick = () => {
+    const id = $("ctId").value.trim(), sec = $("ctSecret").value.trim();
+    if (!id || !sec) { $("ctMsg").innerHTML = '<span class="dn">Fill in the Client ID and Secret first.</span>'; return; }
+    ctSaveCfg({ ...(ctCfg() || {}), clientId: id, clientSecret: sec, prefer: $("ctPrefer").checked });
+    ctSignIn();
+  };
   $("ctSave").onclick = async () => {
     const old = ctCfg() || {}, tok = $("ctToken").value.trim();
     const cfg = { ...old, clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: tok, refreshToken: $("ctRefresh").value.trim(), prefer: $("ctPrefer").checked };
@@ -9057,6 +9103,8 @@ setInterval(() => {
 setTimeout(() => { const c = tgCfg() || {}; if (c.awake !== false && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && NW.items.some(it => nwSession(it).on)) fetch("/api/awake?min=20").catch(() => {}); }, 5000);
 if ($("ncPhone")) $("ncPhone").onclick = () => { ncShow(false); openTGSettings(); };
 if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
+
+setTimeout(() => { try { ctOAuthReturn(); } catch (e) {} }, 0);
 </script>
 
 <script>

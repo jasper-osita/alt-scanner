@@ -21,7 +21,7 @@ async def main():
         await wait_rows("MACRO.rows.length > 0")
         print("1) before connect:", await pg.evaluate("() => document.getElementById('ctBar').innerText"), "| ct rows:", await pg.evaluate("() => MACRO.rows.filter(r => r.ct).length"))
         await pg.click("#ctOpen"); await asyncio.sleep(0.3)
-        await pg.fill("#ctId", "cid"); await pg.fill("#ctSecret", "sec"); await pg.fill("#ctToken", "WRONG"); await pg.click("#ctSave"); await asyncio.sleep(1.5)
+        await pg.fill("#ctId", "cid"); await pg.fill("#ctSecret", "sec"); await pg.evaluate("() => document.querySelector('.ctmanual').open = true"); await pg.fill("#ctToken", "WRONG"); await pg.click("#ctSave"); await asyncio.sleep(1.5)
         print("2) bad token:", await pg.evaluate("() => document.getElementById('ctMsg').innerText"))
         await pg.fill("#ctSecret", "nope"); await pg.fill("#ctToken", "tok"); await pg.click("#ctSave"); await asyncio.sleep(1.5)
         print("   bad secret:", await pg.evaluate("() => document.getElementById('ctMsg').innerText"))

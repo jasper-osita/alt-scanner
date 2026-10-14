@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1203">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1229">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -654,6 +654,15 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .xtrack::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--line)}
 .xtrack i{position:absolute;top:0;bottom:0;border-radius:4px}.xtrack i.up{background:var(--green)}.xtrack i.dn{background:var(--red)}
 .momogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.xchsec .xmh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.xcharts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px}
+@media (max-width:1100px){.xcharts{grid-template-columns:1fr}}
+.xch{border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.xchh{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:26px}.xchh .xseg button{font-size:11px;padding:3px 7px}
+.xchst{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;min-height:20px}
+.xchc{height:220px;cursor:pointer;position:relative}.xchc .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.xchidx{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px}
+.xchidx .xi{border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12px;cursor:pointer}.xchidx .xi b{display:block;font-weight:600}
 section.mrow:has(.xstatcard){grid-template-columns:1fr}.xstatcard .xstat{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .xmovers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
 @media (max-width:1100px){.xmovers{grid-template-columns:1fr}}
@@ -983,6 +992,16 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="mcard"><h2>Top 10 Losers <span class="meta">24h</span></h2><div class="note">Coins with $5M+ volume</div><div id="losers"><div class="empty">No scan yet.</div></div></div>
   </section>
 
+  <section class="card xchsec cchsec" data-page="overview">
+    <div class="xmh"><h2>What's driving crypto <span class="meta">EMA 20 / 50 / 100 · click a chart to open it</span></h2>
+      <div class="xseg" id="cchTf" role="group" aria-label="Chart timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
+    <div class="xcharts">
+      <div class="xch" data-ck="btc"><div class="xchh"><b>Bitcoin</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Bitcoin chart"></div></div>
+      <div class="xch" data-ck="eth"><div class="xchh"><b>Ethereum</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Ethereum chart"></div></div>
+      <div class="xch" data-ck="ethbtc"><div class="xchh"><b>ETH / BTC</b><span class="meta xchsrc">the alt-season gauge</span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="ETH against BTC chart"></div><div class="xchnote meta"></div></div>
+    </div>
+  </section>
+
   <section class="card rotcard" id="rotation" data-page="overview"><h2>Money Flow</h2><div class="empty">Run a scan to read where money is flowing.</div></section>
 
   <section class="card pbcard" id="playbook" aria-live="polite" data-page="playbook"><div class="empty">Run a scan to read today's environment.</div></section>
@@ -1050,6 +1069,15 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 
   <section class="mrow" data-page="macroov">
     <div class="mcard xstatcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
+  </section>
+  <section class="card xchsec" data-page="macroov">
+    <div class="xmh"><h2>Dollar · Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click a chart to open it</span></h2>
+      <div class="xseg" id="xchTf" role="group" aria-label="Chart timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
+    <div class="xcharts">
+      <div class="xch" data-xk="usd"><div class="xchh"><b>US Dollar</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="US Dollar chart"></div></div>
+      <div class="xch" data-xk="gold"><div class="xchh"><b>Gold</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Gold chart"></div></div>
+      <div class="xch" data-xk="idx"><div class="xchh"><div class="xseg" id="xchIdx" role="group" aria-label="Index"></div><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Index chart"></div><div class="xchidx"></div></div>
+    </div>
   </section>
   <section class="xmovers" data-page="macroov">
     <div class="mcard" data-xc="fx"><div class="xmh"><h2>Forex <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Forex movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_fx"><div class="empty">Loading…</div></div></div>
@@ -3340,6 +3368,7 @@ function renderMarket() {
       <div class="meta">${br ? `bull / bear stacks · ${br.n} liquid coins` : ""}</div></div>
     <div class="tile wide"><div class="tl">Funding (Median, Top 50)</div><div class="tv ${mf !== null && mf > FUNDING_EXTREME ? "dn" : ""}">${mf === null ? "n/a" : (mf * 100).toFixed(4) + "%"}</div>
       <div class="meta">${mf === null ? "" : mf > 0.0003 ? "Longs paying up: froth building" : mf < 0 ? "Shorts paying: fear in futures" : "Neutral"} · <a href="https://farside.co.uk/btc/" target="_blank" rel="noopener">ETF flows ↗</a></div></div>`;
+  if (typeof renderCCharts === "function") renderCCharts();
 }
 function moverRow(r, i) {
   return `<div class="mv" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>${instHTML(r)}
@@ -4246,7 +4275,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1203";
+const APP_VERSION = "2026.10.14.1229";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6036,6 +6065,8 @@ function goPage(id, keepTab) {
   if (MACRO_PAGES.includes(id)) { if (id !== "macro") renderMacroBoards(); macroScan(false).catch(() => {}); }
   if (id === "nbbwatch" && typeof nwShown === "function") nwShown();
   if (id === "calendar" && typeof calShown === "function") calShown();
+  if (id === "overview" && typeof renderCCharts === "function") setTimeout(() => renderCCharts(), 0);
+  if (id === "macroov" && typeof renderXCharts === "function") setTimeout(() => renderXCharts(xRows()), 0);
   if (typeof chPageShown === "function") chPageShown(id === "charts");
   if (changed) window.scrollTo(0, 0);
   // charts sized while hidden need a nudge once their page shows
@@ -6443,7 +6474,7 @@ function renderMacroBoards() {
     ["xStat", "xMomo", ...X_CLASSES.map(([k]) => "xMv_" + k)].forEach(id => { if ($(id)) $(id).innerHTML = `<div class="empty">${msg}</div>`; }); if ($("xMomoTabs")) $("xMomoTabs").innerHTML = "";
     $("xFlow").innerHTML = `<h2>Money Flow</h2><div class="empty">${msg}</div>`; return;
   }
-  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows);
+  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows); if (typeof renderXCharts === "function") renderXCharts(rows);
 }
 document.querySelectorAll(".xrun").forEach(b => b.onclick = () => macroScan(true));
 $("xmomoAlert").checked = momoAlertOn();
@@ -9105,6 +9136,118 @@ if ($("ncPhone")) $("ncPhone").onclick = () => { ncShow(false); openTGSettings()
 if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
 
 setTimeout(() => { try { ctOAuthReturn(); } catch (e) {} }, 0);
+
+/* ===================== Overview: dollar, gold and index charts ===================== */
+const XCH = { tf: lsGet("finder-xch-tf", "1h"), idx: lsGet("finder-xch-idx", "Nasdaq 100"), charts: {}, sig: {}, at: 0, busy: false };
+const XCH_IDX = ["Nasdaq 100", "S&P 500", "Dow Jones", "DAX 40"];
+const XCH_DXY = [["EURUSD", -0.576], ["USDJPY", 0.136], ["GBPUSD", -0.119], ["USDCAD", 0.091], ["USDSEK", 0.042], ["USDCHF", 0.036]];
+const xchStack = st => st ? `<span class="tag ${/bull/i.test(st) ? "long" : /bear/i.test(st) ? "short" : ""}">${st.replace(" stack", "").replace("Pullback in ", "pullback · ")}</span>` : "";
+function xchRows(rows) {
+  const fx = p => rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p);
+  return { usdx: xFind(rows, "US Dollar Index"), gold: xFind(rows, "Gold"), idx: xFind(rows, XCH.idx), fx };
+}
+async function xchDollar(rows, tf) {             // the broker's dollar index when it lists one; otherwise ICE's DXY formula from its pairs
+  const R = xchRows(rows);
+  if (R.usdx) return { k: await klines(R.usdx.symbol, tf, 300), sym: R.usdx.symbol, src: R.usdx.ct ? CT.broker : (R.usdx.src || "exchange") };
+  const legs = XCH_DXY.map(([p, w]) => ({ p, w, r: R.fx(p) })), have = legs.filter(l => l.r);
+  if (!["EURUSD", "USDJPY", "GBPUSD"].every(p => have.some(l => l.p === p))) return null;
+  const ks = await Promise.all(have.map(l => klines(l.r.symbol, tf, 300)));
+  const maps = ks.map(k => new Map(k.t.map((t, i) => [t, i]))), ts = ks[0].t.filter(t => maps.every(m => m.has(t)));
+  const sek = have.some(l => l.p === "USDSEK") ? null : 9.6;            // no USD/SEK listed: hold it near its recent level (small weight)
+  const f = (pick) => ts.map(t => { let v = 50.14348112 * (sek ? Math.pow(sek, 0.042) : 1);
+    have.forEach((l, j) => { const i = maps[j].get(t), k = ks[j]; v *= Math.pow(pick(k, i, l.w), l.w); }); return v; });
+  const k = { t: ts, o: f((k, i) => k.o[i]), c: f((k, i) => k.c[i]),
+    h: f((k, i, w) => w > 0 ? k.h[i] : k.l[i]), l: f((k, i, w) => w > 0 ? k.l[i] : k.h[i]), qv: ts.map(() => 0) };
+  return { k, sym: R.fx("EURUSD").symbol, src: `built from ${have.length} pairs (ICE formula${sek ? ", SEK held" : ""})` };
+}
+function xchDraw(key, el, k, opts = {}) {
+  let C = XCH.charts[key];
+  if (!C || !el.contains(C.box)) {
+    el.innerHTML = ""; const box = document.createElement("div"); box.style.cssText = "position:absolute;inset:0"; el.appendChild(box);
+    const chart = LightweightCharts.createChart(box, { autoSize: true, layout: { background: { type: "solid", color: "transparent" }, textColor: cssVar("--mute"), fontFamily: cssVar("--font"), fontSize: 10 },
+      grid: { vertLines: { visible: false }, horzLines: { color: cssVar("--line") } }, rightPriceScale: { borderVisible: false }, timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 3 },
+      crosshair: { mode: 0 }, handleScroll: false, handleScale: false, localization: { locale: "en-US", timeFormatter: phtTime } });
+    const cs = chart.addCandlestickSeries({ upColor: "#22ab94", downColor: "#f23645", borderVisible: false, wickUpColor: "#22ab94", wickDownColor: "#f23645", priceLineVisible: true, lastValueVisible: true });
+    const ln = ["#f23645", "#9c27b0", "#2962ff"].map(c => chart.addLineSeries({ color: c, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }));
+    C = XCH.charts[key] = { chart, cs, ln, box };
+  }
+  const ts = k.t.map(t => Math.floor(t / 1000)), dec = k.c.at(-1) >= 1000 ? 2 : k.c.at(-1) >= 10 ? 3 : 5;
+  C.cs.applyOptions({ priceFormat: { type: "price", precision: dec, minMove: Math.pow(10, -dec) } });
+  C.cs.setData(ts.map((t, i) => ({ time: t, open: k.o[i], high: k.h[i], low: k.l[i], close: k.c[i] })));
+  [20, 50, 100].forEach((n, j) => { const m = ema(k.c, n); C.ln[j].setData(ts.map((t, i) => m[i] == null ? { time: t } : { time: t, value: m[i] }).filter((p, i) => m[i] != null)); });
+  C.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, ts.length - 120), to: ts.length + 2 });
+  el.onclick = opts.sym ? () => openDetail(opts.sym) : null;
+}
+function xchStatus(k, extra, tf = XCH.tf) {
+  const s = k.c.length >= 110 ? structure(k, ema) : null, chg = k.c.length > 1 ? (k.c.at(-1) / k.c[Math.max(0, k.c.length - 1 - Math.round(864e5 / (CH_IV[tf] || 36e5)))] - 1) * 100 : null;
+  return `<b>${fmtPrice(k.c.at(-1))}</b>${chg != null && tf !== "1d" ? ` ${pctCell(chg)} <span class="mute">24h</span>` : ""}${s ? ` ${xchStack(s.state)} <span class="mute">${CH_TFL[tf]}</span>` : ""}${extra || ""}`;
+}
+async function renderXCharts(rows, force) {
+  const sec = document.querySelector(".xchsec:not(.cchsec)"); if (!sec || page !== "macroov" || !rows || !rows.length) return;
+  $("xchTf").querySelectorAll("button").forEach(b => { const on = b.dataset.tf === XCH.tf; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  const idxNames = XCH_IDX.filter(n => xFind(rows, n)); if (!idxNames.includes(XCH.idx) && idxNames.length) XCH.idx = idxNames[0];
+  $("xchIdx").innerHTML = idxNames.map(n => `<button data-ix="${n}" class="${n === XCH.idx ? "on" : ""}" aria-pressed="${n === XCH.idx}">${n.replace(" 100", "").replace(" Jones", "").replace(" 40", "")}</button>`).join("");
+  const sig = XCH.tf + "|" + XCH.idx + "|" + rows.length;
+  if (XCH.busy || (!force && XCH.lastSig === sig && Date.now() - XCH.at < 55e3)) return;
+  XCH.busy = true; XCH.lastSig = sig; XCH.at = Date.now();
+  try { await ensureLWC(); } catch (e) { XCH.busy = false; return; }
+  const tf = XCH.tf, card = k => sec.querySelector(`.xch[data-xk="${k}"]`), R = xchRows(rows), c24 = xCcy(rows, "24h");
+  const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts[key]; c.querySelector(".xchst").innerHTML = ""; };
+  await Promise.all([
+    (async () => { try { const d = await xchDollar(rows, tf); if (!d || !d.k.t.length) return fail("usd", "Needs EUR/USD, USD/JPY and GBP/USD");
+        const c = card("usd"); c.querySelector(".xchsrc").textContent = d.src; xchDraw("usd", c.querySelector(".xchc"), d.k, { sym: d.sym });
+        c.querySelector(".xchst").innerHTML = xchStatus(d.k, c24.USD != null ? ` <span class="mute">· vs others 24h</span> ${sgn(c24.USD)}` : ""); } catch (e) { fail("usd", "Couldn't load the dollar"); } })(),
+    (async () => { try { if (!R.gold) return fail("gold", "Gold isn't listed here"); const k = await klines(R.gold.symbol, tf, 300); const c = card("gold");
+        c.querySelector(".xchsrc").textContent = R.gold.ct ? CT.broker : (R.gold.src || ""); xchDraw("gold", c.querySelector(".xchc"), k, { sym: R.gold.symbol });
+        const t = macroTrend(R.gold); c.querySelector(".xchst").innerHTML = xchStatus(k, t ? ` <span class="mute">· 4H+D</span> <b class="${t === "Uptrend" ? "up" : t === "Downtrend" ? "dn" : ""}">${t}</b>` : ""); } catch (e) { fail("gold", "Couldn't load gold"); } })(),
+    (async () => { try { const r = xFind(rows, XCH.idx); if (!r) return fail("idx", "No indices listed here"); const k = await klines(r.symbol, tf, 300); const c = card("idx");
+        c.querySelector(".xchsrc").textContent = r.ct ? CT.broker : (r.src || ""); xchDraw("idx", c.querySelector(".xchc"), k, { sym: r.symbol });
+        const t = macroTrend(r); c.querySelector(".xchst").innerHTML = xchStatus(k, t ? ` <span class="mute">· 4H+D</span> <b class="${t === "Uptrend" ? "up" : t === "Downtrend" ? "dn" : ""}">${t}</b>` : "");
+        c.querySelector(".xchidx").innerHTML = ["S&P 500", "Nasdaq 100", "Dow Jones", "Russell 2000", "DAX 40", "Nikkei 225"].map(n => xFind(rows, n)).filter(Boolean).map(x => { const tt = macroTrend(x);
+          return `<div class="xi" data-s="${x.symbol}" role="button" tabindex="0"><b>${x.name}</b>${pctCell(x.chg24h)} <span class="${tt === "Uptrend" ? "up" : tt === "Downtrend" ? "dn" : "mute"}">${tt === "Uptrend" ? "▲" : tt === "Downtrend" ? "▼" : "◆"} ${tt || ""}</span></div>`; }).join("");
+        c.querySelectorAll(".xi").forEach(e => e.onclick = () => openDetail(e.dataset.s)); } catch (e) { fail("idx", "Couldn't load " + XCH.idx); } })(),
+  ]);
+  XCH.busy = false;
+}
+$("xchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; XCH.tf = b.dataset.tf; try { localStorage.setItem("finder-xch-tf", JSON.stringify(XCH.tf)); } catch (x) {} renderXCharts(xRows(), true); });
+$("xchIdx").addEventListener("click", e => { const b = e.target.closest("[data-ix]"); if (!b) return; XCH.idx = b.dataset.ix; try { localStorage.setItem("finder-xch-idx", JSON.stringify(XCH.idx)); } catch (x) {} renderXCharts(xRows(), true); });
+setInterval(() => { if (page === "macroov" && document.visibilityState === "visible") renderXCharts(xRows(), true); }, 60e3);
+
+/* ---- crypto overview: Bitcoin, Ethereum and ETH/BTC (money moving from BTC into alts shows up here first) ---- */
+const CCH = { tf: lsGet("finder-cch-tf", "1h"), at: 0, busy: false, sig: "" };
+async function renderCCharts(force) {
+  const sec = document.querySelector(".cchsec"); if (!sec || page !== "overview") return;
+  $("cchTf").querySelectorAll("button").forEach(b => { const on = b.dataset.tf === CCH.tf; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  const sig = CCH.tf + "|" + EXCHANGE;
+  if (CCH.busy || (!force && CCH.sig === sig && Date.now() - CCH.at < 55e3)) return;
+  CCH.busy = true; CCH.sig = sig; CCH.at = Date.now();
+  try { await ensureLWC(); } catch (e) { CCH.busy = false; return; }
+  const tf = CCH.tf, card = k => sec.querySelector(`.xch[data-ck="${k}"]`), src = { binance: "Binance", bybit: "Bybit", mexc: "MEXC" }[EXCHANGE] || "";
+  const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts["c_" + key]; c.querySelector(".xchst").innerHTML = ""; };
+  const [kb, ke] = await Promise.all(["BTCUSDT", "ETHUSDT"].map(s => klines(s, tf, 300).catch(() => null)));
+  const g = EXT.global, regime = $("regime") ? $("regime").textContent.trim() : "";
+  if (kb && kb.t.length) { const c = card("btc"); c.querySelector(".xchsrc").textContent = src; xchDraw("c_btc", c.querySelector(".xchc"), kb, { sym: "BTCUSDT" });
+    c.querySelector(".xchst").innerHTML = xchStatus(kb, `${g ? ` <span class="mute">· dominance</span> <b>${g.btcDom.toFixed(1)}%</b>` : ""}${regime && regime !== "–" ? ` <span class="mute">· regime</span> <b>${regime}</b>` : ""}`, tf); } else fail("btc", "Couldn't load Bitcoin");
+  if (ke && ke.t.length) { const c = card("eth"); c.querySelector(".xchsrc").textContent = src; xchDraw("c_eth", c.querySelector(".xchc"), ke, { sym: "ETHUSDT" });
+    c.querySelector(".xchst").innerHTML = xchStatus(ke, g ? ` <span class="mute">· dominance</span> <b>${g.ethDom.toFixed(1)}%</b>` : "", tf); } else fail("eth", "Couldn't load Ethereum");
+  if (kb && ke) {
+    const mb = new Map(kb.t.map((t, i) => [t, i])), ts = ke.t.filter(t => mb.has(t)), ie = new Map(ke.t.map((t, i) => [t, i]));
+    const R = (f, g2) => ts.map(t => ke[f][ie.get(t)] / kb[g2][mb.get(t)]);
+    const o = R("o", "o"), c = R("c", "c"), hh = R("h", "h"), ll = R("l", "l");
+    const k = { t: ts, o, c, h: hh.map((v, i) => Math.max(v, o[i], c[i])), l: ll.map((v, i) => Math.min(v, o[i], c[i])), qv: ts.map(() => 0) };
+    if (k.t.length > 20) {
+      const el = card("ethbtc"); xchDraw("c_ethbtc", el.querySelector(".xchc"), k, {}); el.querySelector(".xchc").style.cursor = "default";
+      const st = k.c.length >= 110 ? structure(k, ema) : null, as = typeof altSeason === "function" ? altSeason() : null;
+      el.querySelector(".xchst").innerHTML = xchStatus(k, as != null ? ` <span class="mute">· alt-season index</span> <b>${as}</b>` : "", tf);
+      const up = st && /bull/i.test(st.state), dn = st && /bear/i.test(st.state);
+      el.querySelector(".xchnote").innerHTML = up ? "<b class=\"up\">ETH is outpacing BTC.</b> Money is starting to rotate out of Bitcoin, the step before large caps and alts run."
+        : dn ? "<b class=\"dn\">BTC is leading.</b> Money is staying in Bitcoin; alts tend to lag until this turns." : "No clear leader between ETH and BTC on this timeframe.";
+    } else fail("ethbtc", "Not enough shared candles");
+  } else fail("ethbtc", "Needs both charts");
+  CCH.busy = false;
+}
+$("cchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; CCH.tf = b.dataset.tf; try { localStorage.setItem("finder-cch-tf", JSON.stringify(CCH.tf)); } catch (x) {} renderCCharts(true); });
+setInterval(() => { if (page === "overview" && document.visibilityState === "visible") renderCCharts(true); }, 60e3);
 </script>
 
 <script>

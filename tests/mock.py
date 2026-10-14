@@ -165,6 +165,7 @@ CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
 def CT_BASE(n): return CT_ASSET.get(n[:3], 9) if len(n) == 6 and n.isupper() else 9
 def CT_QUOTE(n): return CT_ASSET.get(n[3:6], 9) if len(n) == 6 and n.isupper() else (2 if n in ("GER40",) else 3 if n == "JPN225" else 5 if n == "UK100" else 1)
+CT_TRADE = {"pos": [], "ord": [], "log": []}
 def ct_handler(opts):
     """opts: {'secret': 'sec', 'token': 'tok', 'live': True} — what the fake server accepts."""
     def handler(ws):
@@ -177,8 +178,9 @@ def ct_handler(opts):
                 return reply(2101, {}) if p.get("clientSecret") == opts["secret"] else reply(2142, {"errorCode": "CH_CLIENT_AUTH_FAILURE", "description": "Client authentication failure"})
             if t == 2149:
                 if p.get("accessToken") not in (opts["token"], "tok-renewed"): return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
-                return reply(2150, {"accessToken": p["accessToken"], "permissionScope": "SCOPE_VIEW", "ctidTraderAccount": [
-                    {"ctidTraderAccountId": 4242, "isLive": opts["live"], "traderLogin": 5150123, "brokerTitleShort": "Pepperstone"}]})
+                accts = [{"ctidTraderAccountId": 4242, "isLive": opts["live"], "traderLogin": 5150123, "brokerTitleShort": "Pepperstone"}]
+                if opts.get("demo2"): accts.append({"ctidTraderAccountId": 777, "isLive": False, "traderLogin": 900777, "brokerTitleShort": "Demo Broker"})
+                return reply(2150, {"accessToken": p["accessToken"], "permissionScope": opts.get("scope", "SCOPE_VIEW"), "ctidTraderAccount": accts})
             if t == 2102: return reply(2103, {"ctidTraderAccountId": p["ctidTraderAccountId"]})
             if t == 2114: return reply(2115, {"ctidTraderAccountId": p["ctidTraderAccountId"], "symbol": [{"symbolId": i + 1, "symbolName": n, "enabled": True, "baseAssetId": CT_BASE(n), "quoteAssetId": CT_QUOTE(n)} for i, n in enumerate(CT_LIST)]})
             if t == 2137:
@@ -207,6 +209,25 @@ def ct_handler(opts):
                     last = candles(CT_LIST[sid - 1], "1h")[-1][4]
                     ws.send(json.dumps({"payloadType": 2131, "payload": {"ctidTraderAccountId": 4242, "symbolId": sid, "bid": round(last * 1.01 * 1e5), "ask": round(last * 1.0101 * 1e5)}}))
                 return
+            # ---- trading (Trade page) ----
+            if t in (2106, 2124, 2187, 2111, 2110, 2108): CT_TRADE["log"].append((t, dict(p)))
+            if t == 2106:
+                sid = p["symbolId"]; px = candles(CT_LIST[sid - 1], "1h")[-1][4]
+                if p.get("orderType") == 1:
+                    pid = 9000 + len(CT_TRADE["pos"]); pos = {"positionId": pid, "tradeData": {"symbolId": sid, "volume": p["volume"], "tradeSide": p["tradeSide"]}, "price": px, "positionStatus": 1}
+                    CT_TRADE["pos"].append(pos); return reply(2126, {"executionType": 3, "position": pos, "deal": {"executionPrice": px}})
+                oid = 5000 + len(CT_TRADE["ord"]); o = {"orderId": oid, "tradeData": {"symbolId": sid, "volume": p["volume"], "tradeSide": p["tradeSide"]}, "orderType": p["orderType"], "limitPrice": p.get("limitPrice"), "stopPrice": p.get("stopPrice"), "stopLoss": p.get("stopLoss"), "takeProfit": p.get("takeProfit")}
+                CT_TRADE["ord"].append(o); return reply(2126, {"executionType": 2, "order": o})
+            if t == 2124: return reply(2125, {"ctidTraderAccountId": p["ctidTraderAccountId"], "position": CT_TRADE["pos"], "order": CT_TRADE["ord"]})
+            if t == 2187: return reply(2188, {"ctidTraderAccountId": p["ctidTraderAccountId"], "moneyDigits": 2, "positionUnrealizedPnL": [{"positionId": x["positionId"], "grossUnrealizedPnL": 1234, "netUnrealizedPnL": 1200} for x in CT_TRADE["pos"]]})
+            if t == 2111:
+                CT_TRADE["pos"] = [x for x in CT_TRADE["pos"] if x["positionId"] != p["positionId"]]; return reply(2126, {"executionType": 3, "deal": {"executionPrice": 1}})
+            if t == 2110:
+                for x in CT_TRADE["pos"]:
+                    if x["positionId"] == p["positionId"]: x["stopLoss"] = p.get("stopLoss"); x["takeProfit"] = p.get("takeProfit")
+                return reply(2126, {"executionType": 4})
+            if t == 2108:
+                CT_TRADE["ord"] = [x for x in CT_TRADE["ord"] if x["orderId"] != p["orderId"]]; return reply(2126, {"executionType": 5})
             reply(2142, {"errorCode": "UNSUPPORTED", "description": f"mock has no {t}"})
         ws.on_message(on)
     return handler

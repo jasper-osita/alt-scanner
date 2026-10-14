@@ -61,6 +61,10 @@
   ],
   "rewrites": [
     {
+      "source": "/proxy/mexc-priv/api/v1/private/:path*",
+      "destination": "https://contract.mexc.com/api/v1/private/:path*"
+    },
+    {
       "source": "/proxy/mexc-fut/api/v1/contract/:path*",
       "destination": "https://contract.mexc.com/api/v1/contract/:path*"
     },

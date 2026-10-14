@@ -84,6 +84,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path.startswith("/version.json"): self.send_header("Cache-Control", "no-store")
         super().end_headers()
     def do_GET(self):
+        if self.path.startswith("/proxy/mexc-priv/"): return self.relay_mexc_private("GET")
         if self.path.startswith("/proxy/bybit/"):
             rest = self.path[len("/proxy/bybit"):]
             if not rest.startswith("/v5/market/"):
@@ -115,7 +116,32 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
                 return
         return super().do_GET()
+    def relay_mexc_private(self, method):
+        # MEXC futures trading for the Trade page. The browser signs every request itself (the secret never leaves it);
+        # this only forwards the signed request, because MEXC doesn't accept these headers from a web page.
+        rest = self.path[len("/proxy/mexc-priv"):]
+        if not rest.startswith("/api/v1/private/") or ".." in rest or "%2e" in rest.lower():
+            self.send_response(403); self.end_headers(); return
+        origin = self.headers.get("Origin", "")
+        if origin and not origin.startswith(("http://localhost:", "http://127.0.0.1:")):
+            self.send_response(403); self.end_headers(); return
+        hdr = {"User-Agent": "TheFinder/1.0", "Accept": "application/json", "Content-Type": "application/json"}
+        for k in ("ApiKey", "Request-Time", "Signature", "Recv-Window"):
+            if self.headers.get(k): hdr[k] = self.headers.get(k)
+        body = None
+        if method == "POST": body = self.rfile.read(min(int(self.headers.get("Content-Length", "0") or 0), 65536))
+        try:
+            req = urllib.request.Request("https://contract.mexc.com" + rest, data=body, headers=hdr, method=method)
+            try:
+                with urllib.request.urlopen(req, timeout=20) as r: code, out = r.status, r.read()
+            except urllib.error.HTTPError as e: code, out = e.code, e.read()
+        except Exception:
+            code, out = 502, json.dumps({"success": False, "code": 502, "message": "couldn't reach MEXC"}).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(out))); self.end_headers(); self.wfile.write(out)
     def do_POST(self):
+        if self.path.startswith("/proxy/mexc-priv/"): return self.relay_mexc_private("POST")
         # cTrader sign-in: swap the one-minute sign-in code (or a refresh token) for tokens. Only for pages served
         # by this Mac app; the request goes straight to openapi.ctrader.com and nothing is logged or stored here.
         if self.path.split("?")[0] != "/api/ct-token":

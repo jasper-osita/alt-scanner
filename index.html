@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1245">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1500">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -654,6 +654,19 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .xtrack::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--line)}
 .xtrack i{position:absolute;top:0;bottom:0;border-radius:4px}.xtrack i.up{background:var(--green)}.xtrack i.dn{background:var(--red)}
 .momogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.trpage{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.trpage{grid-template-columns:1fr}}
+.trticket{display:flex;flex-direction:column;gap:10px}.trticket .xmh{display:flex;justify-content:space-between;align-items:center}
+.trrow{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute)}
+.trticket .xseg{display:flex;width:100%}.trticket .xseg button{flex:1}
+.trrow input,.trrow select{width:100%;box-sizing:border-box}
+.trrow input,.trrow select,.trin{background:var(--bg);border:1px solid var(--pill-b);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit;min-width:0}
+.trin{padding:4px 6px;width:90px}.trinl{display:flex;gap:6px}.trinl input{flex:1}
+.trgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trside button{flex:1;font-weight:600}.trside button.buy.on{background:#22ab94;color:#fff;border-color:#22ab94}.trside button.sell.on{background:#f23645;color:#fff;border-color:#f23645}
+.trgo{padding:12px;font-weight:700;font-size:15px;border:0;color:#fff}.trgo.buy{background:#22ab94}.trgo.sell{background:#f23645}.trgo:disabled{opacity:.45}
+.trside2{display:flex;flex-direction:column;gap:14px;min-width:0}.trtbl td{white-space:nowrap}.trlog{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:3px}
+.trbal{margin-bottom:8px}
 .xchsec .xmh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .xcharts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px}
 @media (max-width:1100px){.xcharts{grid-template-columns:1fr}}
@@ -1113,6 +1126,31 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <section class="card btcard" id="edgeCard" data-page="backtest"></section>
 
   <section class="card btcard" id="botSim" data-page="bots"></section>
+
+  <section class="trpage" id="tradePage" data-page="trade">
+    <div class="card trticket">
+      <div class="xmh"><h2>Order ticket</h2><div><button class="btn sm" id="trChart" type="button">Chart</button> <button class="btn sm" id="trSet" type="button">Trade settings</button></div></div>
+      <div class="meta" id="trVenue"></div>
+      <label class="trrow">Market <input id="trSym" list="trSymList" autocomplete="off" spellcheck="false" placeholder="e.g. XAUUSD, NAS100, BTCUSDT"></label><datalist id="trSymList"></datalist>
+      <div class="meta" id="trQuote"></div>
+      <div class="xseg trside" id="trSide" role="group" aria-label="Side"><button data-side="buy" class="buy">Buy</button><button data-side="sell" class="sell">Sell</button></div>
+      <div class="xseg" id="trType" role="group" aria-label="Order type"><button data-type="market">Market</button><button data-type="limit">Limit</button><button data-type="stop">Stop</button></div>
+      <label class="trrow">Price <input id="trPrice" inputmode="decimal" autocomplete="off"></label>
+      <div class="trgrid"><label class="trrow">Stop loss <input id="trSL" inputmode="decimal" autocomplete="off"></label><label class="trrow">Take profit <input id="trTP" inputmode="decimal" autocomplete="off"></label></div>
+      <div class="meta" id="trRR"></div>
+      <div class="trgrid"><label class="trrow"><span>Size (<span id="trUnit">lots</span>)</span><input id="trSize" inputmode="decimal" autocomplete="off"></label>
+        <label class="trrow">Risk % <span class="trinl"><input id="trRisk" inputmode="decimal" autocomplete="off"><button class="btn sm" id="trRiskBtn" type="button">Size it</button></span></label></div>
+      <div class="meta" id="trSizeNote"></div>
+      <div class="trgrid" id="trMx" hidden><label class="trrow">Leverage <input id="trLev" inputmode="numeric" value="10"></label>
+        <label class="trrow">Margin <select id="trMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>
+      <button class="btn trgo buy" id="trGo" type="button">Buy</button>
+      <div class="dn meta" id="trWarn" aria-live="polite"></div>
+    </div>
+    <div class="trside2">
+      <div class="card"><h2>Positions &amp; orders</h2><div id="trBook"><div class="empty">Loading…</div></div></div>
+      <div class="card"><h2>Activity</h2><div id="trLog" class="trlog meta"></div></div>
+    </div>
+  </section>
 
   <section class="tblock" data-page="screener watch day swing aots momentum">
   <div class="quick" id="quick" aria-label="One-click views"></div>
@@ -4275,7 +4313,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1245";
+const APP_VERSION = "2026.10.14.1500";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5744,7 +5782,7 @@ function openDetail(sym) {
     <div class="dhead">
       <h3>${M ? `<b class="mname">${r.name}</b>` : starBtn(r.symbol)}${instHTML(r)} ${ratingHTML(r.rating)}${M ? `<span class="tag">${r.group}</span>${mxInvTag(r)}` : r.sector ? `<span class="tag">${r.sector}</span>` : ""}</h3>
       <span class="meta"><span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span> ${r.quote} · <span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span> ${r.ct ? "" : `· $${fmtVol(r.vol24h)} volume `}· Day <b>${r.dayScore}</b> · Swing <b>${r.swingScore}</b></span>
-      <div class="dacts"><button class="btn" data-openchart="${r.symbol}">Charts</button><button class="btn primary" data-tv="${r.symbol}">Open in TradingView</button><button class="btn" id="dlgClose" aria-label="Close">Close</button></div>
+      <div class="dacts"><button class="btn" data-openchart="${r.symbol}">Charts</button><button class="btn" data-trade="${r.symbol}">Trade</button><button class="btn primary" data-tv="${r.symbol}">Open in TradingView</button><button class="btn" id="dlgClose" aria-label="Close">Close</button></div>
     </div>
     <div class="dgrid">
       <div class="dleft">
@@ -6032,7 +6070,7 @@ const PAGES = [
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
   { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
-  { g: "MY TRADING", items: [["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
+  { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
 ];
 const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
@@ -6065,6 +6103,7 @@ function goPage(id, keepTab) {
   if (MACRO_PAGES.includes(id)) { if (id !== "macro") renderMacroBoards(); macroScan(false).catch(() => {}); }
   if (id === "nbbwatch" && typeof nwShown === "function") nwShown();
   if (id === "calendar" && typeof calShown === "function") calShown();
+  if (id === "trade" && typeof trShown === "function") trShown();
   if (id === "overview" && typeof renderCCharts === "function") setTimeout(() => renderCCharts(), 0);
   if (id === "macroov" && typeof renderXCharts === "function") setTimeout(() => renderXCharts(xRows()), 0);
   if (typeof chPageShown === "function") chPageShown(id === "charts");
@@ -6490,10 +6529,10 @@ CT.onSpot = p => {                                    // live bid from cTrader f
 /* ---- Sign in with cTrader (OAuth): the app swaps cTrader's one-minute sign-in code for tokens, then renews them itself ---- */
 const CT_OAUTH = "finder-ct-oauth";
 const ctRedirectUri = () => location.origin + location.pathname;
-function ctSignIn() {
-  const c = ctCfg() || {}, ru = ctRedirectUri();
-  try { sessionStorage.setItem(CT_OAUTH, JSON.stringify({ at: Date.now(), ru })); } catch (e) {}
-  location.href = "https://id.ctrader.com/my/settings/openapi/grantingaccess/?" + new URLSearchParams({ client_id: c.clientId, redirect_uri: ru, scope: "accounts", product: "web" });
+function ctSignIn(scope) {                       // scope "trading" lets the Trade page place orders; "accounts" is read-only
+  const c = ctCfg() || {}, ru = ctRedirectUri(), sc = scope || c.scope || "accounts";
+  try { sessionStorage.setItem(CT_OAUTH, JSON.stringify({ at: Date.now(), ru, sc, back: page })); } catch (e) {}
+  location.href = "https://id.ctrader.com/my/settings/openapi/grantingaccess/?" + new URLSearchParams({ client_id: c.clientId, redirect_uri: ru, scope: sc, product: "web" });
 }
 async function ctTokenCall(params) {            // cTrader's token service; straight from the page, or through the Mac app when the browser blocks it
   const read = async r => { const j = await r.json().catch(() => ({})); if (!r.ok || j.errorCode || !j.accessToken) throw new Error(j.description || j.errorCode || `cTrader answered ${r.status}`); return j; };
@@ -6516,9 +6555,10 @@ async function ctOAuthReturn() {                // runs on load: finish a sign-i
   const c = ctCfg() || {};
   try {
     const r = await ctTokenCall({ grant_type: "authorization_code", code, redirect_uri: pend.ru, client_id: c.clientId, client_secret: c.clientSecret });
-    ctSaveCfg({ ...c, accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000 });
+    ctSaveCfg({ ...c, accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000, scope: pend.sc || "accounts" });
     await ctConnect();
-    say(`Signed in to cTrader: ${CT.broker} ${CT.live ? "live" : "demo"} account. Access renews by itself`);
+    say(`Signed in to cTrader${pend.sc === "trading" ? " with trading access" : ""}: ${CT.broker} ${CT.live ? "live" : "demo"} account. Access renews by itself`);
+    if (pend.back === "trade" && typeof goPage === "function") { goPage("trade"); return; }
     if (typeof goPage === "function") goPage("macro"); if (typeof macroScan === "function") macroScan(true);
   } catch (e) { CT.state = "error"; CT.err = "sign-in didn't finish: " + e.message; say("cTrader sign-in didn't finish: " + e.message, true); if (typeof renderMacro === "function") renderMacro(); }
 }
@@ -9249,6 +9289,352 @@ async function renderCCharts(force) {
 $("cchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; CCH.tf = b.dataset.tf; try { localStorage.setItem("finder-cch-tf", JSON.stringify(CCH.tf)); } catch (x) {} renderCCharts(true); });
 setInterval(() => { if (page === "overview" && document.visibilityState === "visible") renderCCharts(true); }, 60e3);
 </script>
+<script id="trade">/* ===================== Trade page: order ticket, positions and orders — cTrader (demo first) and MEXC futures ===================== */
+const TR_KEY = "finder-trade", MXT_KEY = "finder-mexc-trade";
+const trCfg = () => ({ live: false, acct: null, confirm: true, risk: 0.5, ...(lsGet(TR_KEY, {}) || {}) });
+const trSave = c => { try { localStorage.setItem(TR_KEY, JSON.stringify(c)); } catch (e) {} };
+const TR = { sym: null, side: "buy", type: "market", armed: 0, log: [], busy: false, poll: null };
+const trEsc = v => String(v ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function trLog(msg, bad) { TR.log.unshift({ at: Date.now(), msg, bad: !!bad }); TR.log = TR.log.slice(0, 30); if (page === "trade") trRenderLog(); }
+
+/* ---- cTrader trading connection (separate from the price feed: it can sit on a demo server while prices come from live) ---- */
+const CTT = { ws: null, state: "off", err: null, seq: 0, pending: new Map(), hb: null, acct: null, accounts: [], live: false, symbols: {}, byId: {}, specs: {}, spots: {}, positions: [], orders: [], pnl: {}, info: null, connecting: null };
+function cttClose() { const ws = CTT.ws; CTT.ws = null; clearInterval(CTT.hb); CTT.pending.forEach(p => { clearTimeout(p.t); p.rej(new Error("trading connection closed")); }); CTT.pending.clear(); if (ws) try { ws.close(); } catch (e) {} }
+function cttReq(type, payload, timeout = 20000) {
+  return new Promise((res, rej) => {
+    if (!CTT.ws || CTT.ws.readyState !== 1) { rej(new Error("not connected to the trading account")); return; }
+    const id = "t" + (++CTT.seq), t = setTimeout(() => { CTT.pending.delete(id); rej(new Error("cTrader didn't answer in time. Check Positions before trying again")); }, timeout);
+    CTT.pending.set(id, { res, rej, t }); CTT.ws.send(JSON.stringify({ clientMsgId: id, payloadType: type, payload }));
+  });
+}
+async function cttOpen(live) {
+  cttClose(); const ws = await ctOpen(CT_HOST(live)); CTT.ws = ws;
+  ws.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    const p = m.payload || {};
+    if (m.payloadType === 2131) { const x = CTT.byId[p.symbolId]; if (x) { const d = 10 ** 5; CTT.spots[p.symbolId] = { bid: p.bid != null ? p.bid / d : (CTT.spots[p.symbolId] || {}).bid, ask: p.ask != null ? p.ask / d : (CTT.spots[p.symbolId] || {}).ask, at: Date.now() }; if (page === "trade") trQuote(); } return; }
+    const pend = m.clientMsgId && CTT.pending.get(m.clientMsgId);
+    if (pend) { CTT.pending.delete(m.clientMsgId); clearTimeout(pend.t);
+      if (m.payloadType === 2142 || m.payloadType === 50 || m.payloadType === 2132) pend.rej(new Error(p.description || p.errorCode || "cTrader refused the request")); else pend.res(p);
+      if (m.payloadType !== 2126) return; }
+    if (m.payloadType === 2126) cttOnExec(p);
+    else if (m.payloadType === 2132 && !pend) trLog(`cTrader: ${p.description || p.errorCode}`, true);
+    else if (m.payloadType === 2147 || m.payloadType === 2148) { CTT.state = "closed"; cttClose(); trLog("cTrader closed the trading session; reconnecting…", true); setTimeout(() => cttConnect().catch(() => {}), 2000); }
+  };
+  ws.onclose = () => { if (CTT.ws !== ws) return; cttClose(); if (CTT.state === "ready") { CTT.state = "closed"; setTimeout(() => { if (page === "trade") cttConnect().catch(() => {}); }, 3000); } if (page === "trade") trRender(); };
+  CTT.hb = setInterval(() => { try { ws.send(JSON.stringify({ payloadType: 51, payload: {} })); } catch (e) {} }, 10000);
+}
+const cttTradeScope = ps => ps === 1 || ps === "SCOPE_TRADE";
+async function cttConnect() {
+  if (CTT.connecting) return CTT.connecting;
+  CTT.connecting = (async () => {
+    const c = ctCfg(), tc = trCfg();
+    if (!c || !c.clientId || !c.clientSecret || !c.accessToken) throw new Error("connect cTrader first (Connect cTrader → Sign in)");
+    CTT.state = "connecting"; CTT.err = null;
+    try {
+      let live = !!tc.live;
+      for (let i = 0; i < 2; i++) {
+        await cttOpen(live);
+        await cttReq(2100, { clientId: c.clientId, clientSecret: c.clientSecret });
+        const r = await cttReq(2149, { accessToken: c.accessToken });
+        if (!cttTradeScope(r.permissionScope)) { CTT.scopeOk = false; throw new Error("your cTrader sign-in only allows reading prices. Click “Sign in with trading access”"); }
+        CTT.scopeOk = true; CTT.accounts = r.ctidTraderAccount || [];
+        const allowed = CTT.accounts.filter(a => tc.live ? true : !a.isLive);
+        if (!allowed.length) throw new Error(tc.live ? "no cTrader accounts on this sign-in" : "no demo account on this cTrader ID. Open one in cTrader, or switch the Trade page to live");
+        const a = allowed.find(x => String(x.ctidTraderAccountId) === String(tc.acct)) || allowed.find(x => !x.isLive) || allowed[0];
+        if (!!a.isLive !== live) { live = !!a.isLive; continue; }
+        await cttReq(2102, { ctidTraderAccountId: a.ctidTraderAccountId, accessToken: c.accessToken });
+        const list = (await cttReq(2114, { ctidTraderAccountId: a.ctidTraderAccountId })).symbol || [];
+        CTT.symbols = {}; CTT.byId = {}; CTT.specs = {}; CTT.spots = {};
+        list.forEach(x => { if (x.enabled === false) return; const k = ctNorm(x.symbolName); if (!CTT.symbols[k]) CTT.symbols[k] = x; CTT.byId[x.symbolId] = x; });
+        CTT.acct = a; CTT.live = live; CTT.state = "ready"; await cttRefresh(); return CTT;
+      }
+      throw new Error("couldn't open the right cTrader server for this account");
+    } catch (e) { CTT.state = "error"; CTT.err = e.message; cttClose(); throw e; }
+  })();
+  try { return await CTT.connecting; } finally { CTT.connecting = null; }
+}
+function cttSym(name) {                        // a scanner symbol (CT:XAUUSD, Gold) → the trading account's own symbol
+  const raw = String(name || "").replace(/^CT:/, ""), k = ctNorm(raw); if (CTT.symbols[k]) return CTT.symbols[k];
+  const cfd = CT_CFD.find(x => x[0] === raw || x[1].map(ctNorm).includes(k)); if (cfd) for (const al of cfd[1]) { const s = CTT.symbols[ctNorm(al)]; if (s) return s; }
+  return null;
+}
+async function cttSpec(x) {
+  if (CTT.specs[x.symbolId]) return CTT.specs[x.symbolId];
+  const s = ((await cttReq(2116, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, symbolId: [x.symbolId] })).symbol || [])[0] || {};
+  return CTT.specs[x.symbolId] = { lotSize: +(s.lotSize || 10000000), step: +(s.stepVolume || 1000), min: +(s.minVolume || 1000), max: +(s.maxVolume || 0), digits: s.digits != null ? +s.digits : 5, base: "", quote: "" };
+}
+async function cttWatch(x) { if (!x || CTT.spots[x.symbolId] || CTT.state !== "ready") return; CTT.spots[x.symbolId] = {}; try { await cttReq(2127, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, symbolId: [x.symbolId] }); } catch (e) {} }
+async function cttRefresh() {
+  if (CTT.state !== "ready") return; const id = CTT.acct.ctidTraderAccountId;
+  try {
+    const r = await cttReq(2124, { ctidTraderAccountId: id }); CTT.positions = r.position || []; CTT.orders = r.order || [];
+    const tr = (await cttReq(2121, { ctidTraderAccountId: id })).trader || {}, md = tr.moneyDigits != null ? +tr.moneyDigits : 2;
+    CTT.info = { balance: +(tr.balance || 0) / 10 ** md, md, lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
+    if (CTT.positions.length) { const u = await cttReq(2187, { ctidTraderAccountId: id }); const umd = u.moneyDigits != null ? +u.moneyDigits : md;
+      CTT.pnl = Object.fromEntries((u.positionUnrealizedPnL || []).map(x => [x.positionId, +(x.netUnrealizedPnL ?? x.grossUnrealizedPnL ?? 0) / 10 ** umd])); }
+    [...CTT.positions, ...CTT.orders].forEach(o => cttWatch(CTT.byId[(o.tradeData || {}).symbolId]));
+  } catch (e) { trLog("Couldn't refresh positions: " + e.message, true); }
+  if (page === "trade") trRenderBook();
+}
+function cttOnExec(p) {
+  const t = ["", "", "accepted", "filled", "changed", "cancelled", "expired", "rejected", "cancel rejected", "swap", "deposit/withdrawal", "partly filled"][+p.executionType] || String(p.executionType || "update");
+  const td = (p.order && p.order.tradeData) || (p.position && p.position.tradeData) || {}, x = CTT.byId[td.symbolId];
+  if (t !== "swap") trLog(`cTrader: ${x ? x.symbolName : "order"} ${t}${p.deal && p.deal.executionPrice ? ` at ${fmtPrice(+p.deal.executionPrice)}` : ""}`, t === "rejected");
+  if (t === "filled" || t === "rejected") ncAdd({ kind: "System", icon: t === "filled" ? "✅" : "⚠️", tone: t === "filled" ? "up" : "warn", sym: null, title: `${x ? x.symbolName : "Order"} ${t} on ${CTT.live ? "live" : "demo"} account`, detail: "" });
+  clearTimeout(CTT.rt); CTT.rt = setTimeout(cttRefresh, 300);
+}
+const cttRound = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
+async function cttPlace(o) {                   // o: { x, side, type, lots, price, sl, tp }
+  const spec = await cttSpec(o.x), vol = Math.floor(Math.round(o.lots * spec.lotSize) / spec.step) * spec.step;
+  if (!(vol >= spec.min)) throw new Error(`size is below the minimum (${spec.min / spec.lotSize} lots)`);
+  const p = { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, symbolId: o.x.symbolId, orderType: o.type === "market" ? 1 : o.type === "limit" ? 2 : 3,
+    tradeSide: o.side === "buy" ? 1 : 2, volume: vol, label: "TheFinder", comment: "The Finder" };
+  if (o.type === "market") {
+    const q = CTT.spots[o.x.symbolId] || {}, ref = o.side === "buy" ? q.ask : q.bid, rel = v => Math.round(Math.abs(ref - v) * 1e5 / 10 ** (5 - spec.digits)) * 10 ** (5 - spec.digits);
+    if ((o.sl || o.tp) && !(ref > 0)) throw new Error("no live price yet to place the stop and target from; try again in a second");
+    if (o.sl) p.relativeStopLoss = rel(o.sl); if (o.tp) p.relativeTakeProfit = rel(o.tp);
+  } else { p[o.type === "limit" ? "limitPrice" : "stopPrice"] = cttRound(o.price, spec.digits); if (o.sl) p.stopLoss = cttRound(o.sl, spec.digits); if (o.tp) p.takeProfit = cttRound(o.tp, spec.digits); }
+  return await cttReq(2106, p, 25000);       // the execution event that answers it is logged by the message handler
+}
+
+/* ---- MEXC futures (USDT-margined perpetuals): every request signed here; the Mac app or Vercel only forwards it ---- */
+const mxtCfg = () => lsGet(MXT_KEY, null), mxtOn = () => { const c = mxtCfg(); return !!(c && c.key && c.secret); };
+const MXT = { positions: [], orders: [], asset: null, detail: {}, err: null, tick: {} };
+async function mxtSign(text, secret) {
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return [...new Uint8Array(await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(text)))].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+async function mxtReq(method, path, params) {
+  const c = mxtCfg(); if (!c) throw new Error("add your MEXC API key in Trade settings");
+  const ts = String(Date.now()); let q = "", body, sigStr = "";
+  if (method === "GET") { q = Object.keys(params || {}).filter(k => params[k] != null).sort().map(k => `${k}=${params[k]}`).join("&"); sigStr = q; }
+  else { body = JSON.stringify(params || {}); sigStr = body; }
+  const sig = await mxtSign(c.key + ts + sigStr, c.secret);
+  const r = await fetch("/proxy/mexc-priv" + path + (q ? "?" + q : ""), { method, body, headers: { ApiKey: c.key, "Request-Time": ts, Signature: sig, "Recv-Window": "30", "Content-Type": "application/json" } });
+  const j = await r.json().catch(() => null);
+  if (r.status === 404) throw new Error("this page can't reach MEXC's trading service; use the Mac app or the Vercel site");
+  if (!j || j.success === false || (j.code != null && j.code !== 0)) throw new Error((j && (j.message || j.msg)) || `MEXC answered ${r.status}`);
+  return j.data;
+}
+async function mxtDetail(sym) { const s = mxF(sym); if (MXT.detail[s]) return MXT.detail[s]; const d = await mxGet("/api/v1/contract/detail", { symbol: s }); return MXT.detail[s] = Array.isArray(d) ? (d.find(x => x.symbol === s) || d[0]) : d; }
+async function mxtRefresh() {
+  if (!mxtOn()) return;
+  try {
+    const [pos, asset] = await Promise.all([mxtReq("GET", "/api/v1/private/position/open_positions", {}), mxtReq("GET", "/api/v1/private/account/asset/USDT", {})]);
+    MXT.positions = pos || []; MXT.asset = asset || null; MXT.err = null;
+    await Promise.all(MXT.positions.map(p => mxtDetail(p.symbol).catch(() => null)));
+    try { const ord = await mxtReq("GET", "/api/v1/private/order/list/open_orders", { page_num: 1, page_size: 50 }); MXT.orders = (ord && (ord.resultList || ord)) || []; } catch (e) { MXT.orders = []; }
+  } catch (e) { MXT.err = e.message; }
+  if (page === "trade") trRenderBook();
+}
+async function mxtPlace(o) {                   // o: { sym, side, type, contracts, price, sl, tp, lev, openType }
+  const p = { symbol: mxF(o.sym), price: o.price, vol: o.contracts, side: o.side === "buy" ? 1 : 3, type: o.type === "limit" ? 1 : 5, openType: o.openType || 1, leverage: o.lev || 10, externalOid: "finder" + Date.now() };
+  if (o.sl) p.stopLossPrice = o.sl; if (o.tp) p.takeProfitPrice = o.tp;
+  const d = await mxtReq("POST", "/api/v1/private/order/create", p);
+  trLog(`MEXC: ${o.side} ${o.contracts} contracts ${p.symbol} sent (order ${d && d.orderId || "?"})`);
+  setTimeout(mxtRefresh, 800); return d;
+}
+
+/* ---- which venue trades a symbol ---- */
+const trVenue = s => (String(s || "").startsWith("CT:") || (CTT.state === "ready" && cttSym(s))) ? "ct" : "mx";
+function trLivePrice(s) {
+  if (!s) return null;
+  if (trVenue(s) === "ct") { const x = cttSym(s), q = x && CTT.spots[x.symbolId]; if (q && q.bid) return q; const r = MACRO.by && MACRO.by[s]; return r ? { bid: r.price, ask: r.price } : null; }
+  const t = MXT.tick[mxF(s)]; if (t && Date.now() - t.at < 30e3) return t;
+  const r = (typeof bySym !== "undefined" && bySym[s]) || (MACRO.by && MACRO.by[s]); return r ? { bid: r.price, ask: r.price } : null;
+}
+async function mxtTick(s) {                     // MEXC's own bid/ask for the ticket (the scan may not include this coin)
+  try { const d = await mxGet("/api/v1/contract/ticker", { symbol: mxF(s) }), x = Array.isArray(d) ? d.find(y => y.symbol === mxF(s)) : d;
+    if (x) MXT.tick[mxF(s)] = { bid: +(x.bid1 || x.lastPrice), ask: +(x.ask1 || x.lastPrice), at: Date.now() }; } catch (e) {}
+}
+const trName = s => String(s || "").startsWith("CT:") ? (typeof chName === "function" ? chName(s) : s.slice(3)) : s;
+function trSetSym(s) { if (TR.sym !== s) ["trPrice", "trSL", "trTP", "trSize"].forEach(id => { if ($(id)) $(id).value = ""; }); TR.sym = s; TR.armed = 0; const i = $("trSym"); if (i) i.value = trName(s); if (page === "trade") { trPrep(); trRender(); } }
+window.openTrade = s => { if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("trade"); trSetSym(s); };
+document.addEventListener("click", e => { const b = e.target.closest("[data-trade]"); if (b) { e.preventDefault(); openTrade(b.dataset.trade); } });
+async function trPrep() {
+  const s = TR.sym; if (!s) return;
+  if (trVenue(s) === "ct") { try { if (CTT.state !== "ready") await cttConnect(); const x = cttSym(s); if (x) await cttWatch(x); } catch (e) {} }
+  else await mxtTick(s);
+  trRender();
+}
+function trResolveSym(text) {                  // what you typed → a symbol the app knows
+  const t = String(text || "").trim().toUpperCase().replace(/[\s/]/g, ""); if (!t) return null;
+  const ct = Object.values(MACRO.by || {}).find(r => r.ct && (ctNorm(coin(r.symbol)) === ctNorm(t) || ctNorm((r.name || "").replace(/[\s/]/g, "")) === ctNorm(t)));
+  if (ct) return ct.symbol;
+  if (CTT.state === "ready" && CTT.symbols[ctNorm(t)]) return "CT:" + CTT.symbols[ctNorm(t)].symbolName;
+  return /USDT$/.test(t) ? t : t + "USDT";
+}
+
+/* ---- the page ---- */
+function trRender() {
+  const el = $("tradePage"); if (!el) return;
+  const s = TR.sym, v = s ? trVenue(s) : null, tc = trCfg();
+  const venue = v === "ct" ? (CTT.state === "ready" ? `cTrader · ${CTT.acct.brokerTitleShort || "Broker"} <b class="${CTT.live ? "dn" : "up"}">${CTT.live ? "LIVE" : "demo"}</b> ${CTT.acct.traderLogin || CTT.acct.ctidTraderAccountId}` : CTT.state === "connecting" ? "cTrader · connecting…" : `cTrader · <span class="dn">${trEsc(CTT.err || "not connected")}</span>`)
+    : v === "mx" ? (mxtOn() ? "MEXC futures · USDT perpetual" : '<span class="dn">MEXC: add your API key in Trade settings</span>') : "";
+  $("trVenue").innerHTML = venue + (v === "ct" && CTT.scopeOk === false ? ` <button class="btn sm primary" id="trScope">Sign in with trading access</button>` : "");
+  if ($("trScope")) $("trScope").onclick = () => ctSignIn("trading");
+  document.querySelectorAll("#trSide [data-side]").forEach(b => { const on = b.dataset.side === TR.side; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  document.querySelectorAll("#trType [data-type]").forEach(b => { const on = b.dataset.type === TR.type, hide = v === "mx" && b.dataset.type === "stop"; b.hidden = hide; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  if (v === "mx" && TR.type === "stop") TR.type = "limit";
+  $("trPrice").disabled = TR.type === "market"; $("trUnit").textContent = v === "mx" ? "contracts" : "lots";
+  $("trMx").hidden = v !== "mx";
+  trQuote(); trPreview(); trRenderBook(); trRenderLog();
+}
+function trQuote() {
+  const q = TR.sym ? trLivePrice(TR.sym) : null, el = $("trQuote"); if (!el) return;
+  el.innerHTML = q && q.bid ? `Bid <b>${fmtPrice(q.bid)}</b> · Ask <b>${fmtPrice(q.ask || q.bid)}</b>` : TR.sym ? '<span class="mute">Waiting for a live price…</span>' : '<span class="mute">Pick a market</span>';
+  if (TR.type === "market" && q && q.bid) $("trPrice").placeholder = fmtPrice(TR.side === "buy" ? (q.ask || q.bid) : q.bid);
+}
+const trNum = id => { const v = parseFloat(($(id) || {}).value); return isFinite(v) && v > 0 ? v : null; };
+function trEntry() { if (!TR.sym) return null; if (TR.type !== "market") return trNum("trPrice"); const q = trLivePrice(TR.sym); return q ? (TR.side === "buy" ? (q.ask || q.bid) : q.bid) : null; }
+function trCheck() {                           // plain checks so a typo can't send a nonsense order
+  const e = trEntry(), sl = trNum("trSL"), tp = trNum("trTP"), size = trNum("trSize"), buy = TR.side === "buy";
+  if (!TR.sym) return "Pick a market first.";
+  if (!size) return "Enter a size.";
+  if (TR.type !== "market" && !trNum("trPrice")) return "Enter the order price.";
+  if (e && sl && (buy ? sl >= e : sl <= e)) return `The stop must be ${buy ? "below" : "above"} the entry for a ${TR.side}.`;
+  if (e && tp && (buy ? tp <= e : tp >= e)) return `The target must be ${buy ? "above" : "below"} the entry for a ${TR.side}.`;
+  return null;
+}
+function trPreview() {
+  const e = trEntry(), sl = trNum("trSL"), tp = trNum("trTP"), size = trNum("trSize"), v = trVenue(TR.sym), err = TR.sym ? trCheck() : null;
+  const rr = e && sl && tp ? Math.abs(tp - e) / Math.abs(e - sl) : null;
+  $("trRR").innerHTML = [e && sl ? `Stop ${(Math.abs(e - sl) / e * 100).toFixed(2)}% away` : "", rr ? `<b>${rr.toFixed(2)}R</b>` : ""].filter(Boolean).join(" · ");
+  const b = $("trGo"), unit = v === "mx" ? "contracts" : "lots";
+  b.className = `btn trgo ${TR.side}`; b.disabled = !!err || TR.busy;
+  b.textContent = TR.armed > Date.now() ? `Confirm ${TR.side} ${size || ""} ${unit}` : `${TR.side === "buy" ? "Buy" : "Sell"} ${size || ""} ${unit} ${TR.sym ? trName(TR.sym) : ""} ${TR.type === "market" ? "at market" : TR.type === "limit" ? "limit" : "stop"}`;
+  $("trWarn").textContent = err || "";
+}
+async function trSizeFromRisk() {
+  const e = trEntry(), sl = trNum("trSL"), risk = trNum("trRisk"), v = trVenue(TR.sym);
+  if (!e || !sl || !risk) { $("trWarn").textContent = "Fill in the stop (and entry for limit/stop orders) to size from risk."; return; }
+  try {
+    if (v === "ct") { if (CTT.state !== "ready") await cttConnect(); const x = cttSym(TR.sym); if (!x) throw new Error("not on the trading account");
+      const spec = await cttSpec(x), cs = await ctSpec(TR.sym).catch(() => null), m = ctLots({ ...spec, base: cs ? cs.base : "", quote: cs ? cs.quote : "" }, { balance: CTT.info.balance, ccy: (await ctAccountInfo().catch(() => ({ ccy: "USD" }))).ccy }, e, sl, risk, e);
+      if (!m) throw new Error("couldn't size this one"); $("trSize").value = Math.max(m.lots, 0).toFixed(2); $("trSizeNote").textContent = `${risk}% of ${fmtNum(CTT.info.balance)} = about ${fmtNum(m.risk)} ${m.ccy} at risk${m.below ? " (below the minimum size)" : ""}`; }
+    else { const d = await mxtDetail(TR.sym), a = MXT.asset || (await mxtReq("GET", "/api/v1/private/account/asset/USDT", {})), bal = +(a.equity || a.availableBalance || 0);
+      const coins = bal * risk / 100 / Math.abs(e - sl), cs = +d.contractSize || 1, step = +d.volUnit || 1, ctr = Math.floor(coins / cs / step) * step;
+      const minV = +d.minVol || step;
+      $("trSize").value = String(ctr); $("trSizeNote").textContent = ctr < minV ? `${risk}% of ${fmtNum(bal)} USDT is less than the smallest order (${minV} contract = ${fmtNum(minV * cs)} ${coin(TR.sym)}). Widen the risk or tighten the stop.`
+        : `${risk}% of ${fmtNum(bal)} USDT · ${ctr} contracts = ${fmtNum(ctr * cs)} ${coin(TR.sym)} · about ${fmtNum(ctr * cs * e)} USDT position`; }
+  } catch (x) { $("trWarn").textContent = "Couldn't size it: " + x.message; }
+  trPreview();
+}
+async function trSubmit() {
+  const err = trCheck(); if (err) { $("trWarn").textContent = err; return; }
+  const tc = trCfg();
+  if (tc.confirm && !(TR.armed > Date.now())) { TR.armed = Date.now() + 5000; trPreview(); setTimeout(trPreview, 5100); return; }
+  TR.armed = 0; TR.busy = true; trPreview();
+  const s = TR.sym, size = trNum("trSize"), o = { side: TR.side, type: TR.type, price: trNum("trPrice"), sl: trNum("trSL"), tp: trNum("trTP") };
+  try {
+    if (trVenue(s) === "ct") { if (CTT.state !== "ready") await cttConnect(); const x = cttSym(s); if (!x) throw new Error(`${trName(s)} isn't on this trading account`);
+      if (CTT.live && !tc.live) throw new Error("this is a live account but live trading is off"); await cttPlace({ ...o, x, lots: size }); }
+    else { const e = o.type === "market" ? trEntry() : o.price; await mxtPlace({ ...o, sym: s, contracts: size, price: e, lev: +$("trLev").value || 10, openType: +$("trMargin").value || 1 }); }
+  } catch (e) { trLog(`Order not sent: ${e.message}`, true); $("trWarn").textContent = e.message; }
+  TR.busy = false; trPreview();
+}
+function trRenderBook() {
+  const el = $("trBook"); if (!el || (TR.bookArm && TR.bookArm.until > Date.now())) return;
+  if (document.activeElement && document.activeElement.tagName === "INPUT" && el.contains(document.activeElement)) return;   // don't wipe a stop/target you're typing
+  const rows = [];
+  CTT.positions.forEach(p => { const td = p.tradeData || {}, x = CTT.byId[td.symbolId] || {}, sp = CTT.specs[td.symbolId], lots = sp ? td.volume / sp.lotSize : null, pnl = CTT.pnl[p.positionId];
+    rows.push(`<tr data-ct="${p.positionId}"><td class="l"><b>${trEsc(x.symbolName || td.symbolId)}</b> <span class="tag ${+td.tradeSide === 1 ? "long" : "short"}">${+td.tradeSide === 1 ? "Buy" : "Sell"}</span> <span class="mute">cTrader</span></td>
+      <td>${lots != null ? lots.toFixed(2) + " lots" : td.volume / 100 + " units"}</td><td>${p.price != null ? fmtPrice(+p.price) : "—"}</td>
+      <td><input class="trin" data-k="sl" value="${p.stopLoss || ""}" aria-label="Stop loss"> <input class="trin" data-k="tp" value="${p.takeProfit || ""}" aria-label="Take profit"> <button class="btn sm" data-a="amend">Save</button></td>
+      <td>${pnl != null ? `<span class="${pnl >= 0 ? "up" : "dn"}">${pnl >= 0 ? "+" : ""}${fmtNum(pnl)}</span>` : "—"}</td><td><button class="btn sm" data-a="close">Close</button></td></tr>`); });
+  CTT.orders.forEach(o => { const td = o.tradeData || {}, x = CTT.byId[td.symbolId] || {}, sp = CTT.specs[td.symbolId];
+    rows.push(`<tr data-cto="${o.orderId}"><td class="l"><b>${trEsc(x.symbolName || td.symbolId)}</b> <span class="tag">${+o.orderType === 2 ? "Limit" : +o.orderType === 3 ? "Stop" : "Order"} ${+td.tradeSide === 1 ? "buy" : "sell"}</span> <span class="mute">cTrader</span></td>
+      <td>${sp ? (td.volume / sp.lotSize).toFixed(2) + " lots" : td.volume / 100 + " units"}</td><td>${fmtPrice(+(o.limitPrice || o.stopPrice || 0))}</td><td class="mute">${o.stopLoss ? "SL " + o.stopLoss : ""} ${o.takeProfit ? "TP " + o.takeProfit : ""}</td><td>pending</td><td><button class="btn sm" data-a="cancel">Cancel</button></td></tr>`); });
+  MXT.positions.forEach(p => { const long = +p.positionType === 1, d = MXT.detail[p.symbol], q = trLivePrice(mxBack(p.symbol)), avg = +(p.holdAvgPrice || p.openAvgPrice || 0);
+    if (p.unrealised == null && d && q && q.bid && avg) p.unrealised = (q.bid - avg) * (long ? 1 : -1) * +p.holdVol * (+d.contractSize || 1);
+    rows.push(`<tr data-mx="${p.positionId}" data-sym="${trEsc(p.symbol)}" data-vol="${p.holdVol}" data-long="${long ? 1 : 0}" data-ot="${p.openType || 1}"><td class="l"><b>${trEsc(p.symbol.replace("_", ""))}</b> <span class="tag ${long ? "long" : "short"}">${long ? "Long" : "Short"}</span> <span class="mute">MEXC ${p.leverage || ""}×</span></td>
+      <td>${p.holdVol} contracts</td><td>${fmtPrice(+(p.holdAvgPrice || p.openAvgPrice || 0))}</td><td class="mute">liq. ${p.liquidatePrice ? fmtPrice(+p.liquidatePrice) : "—"}</td>
+      <td>${p.unrealised != null ? `<span class="${+p.unrealised >= 0 ? "up" : "dn"}">${fmtNum(+p.unrealised)}</span>` : "—"}</td><td><button class="btn sm" data-a="mxclose">Close</button></td></tr>`); });
+  MXT.orders.forEach(o => rows.push(`<tr data-mxo="${o.orderId}"><td class="l"><b>${trEsc(String(o.symbol || "").replace("_", ""))}</b> <span class="tag">Limit ${[, "open long", "close short", "open short", "close long"][+o.side] || ""}</span> <span class="mute">MEXC</span></td>
+    <td>${o.vol} contracts</td><td>${fmtPrice(+o.price || 0)}</td><td></td><td>pending</td><td><button class="btn sm" data-a="mxcancel">Cancel</button></td></tr>`));
+  const bal = [CTT.info ? `cTrader ${CTT.live ? "live" : "demo"}: <b>${fmtNum(CTT.info.balance)}</b>` : "", MXT.asset ? `MEXC: <b>${fmtNum(+(MXT.asset.equity || 0))}</b> USDT equity` : "", MXT.err ? `<span class="dn">MEXC: ${trEsc(MXT.err)}</span>` : ""].filter(Boolean).join(" · ");
+  el.innerHTML = `<div class="meta trbal">${bal || "Balances show once an account is connected."}</div>` + (rows.length ? `<div class="tablewrap"><table class="sct trtbl"><thead><tr><th class="l">Market</th><th>Size</th><th>Entry</th><th>Stop / target</th><th>P&amp;L</th><th></th></tr></thead><tbody>${rows.join("")}</tbody></table></div>` : `<div class="empty">No open positions or pending orders.</div>`);
+}
+function trRenderLog() { const el = $("trLog"); if (el) el.innerHTML = TR.log.length ? TR.log.map(l => `<div class="${l.bad ? "dn" : ""}"><span class="mute">${new Date(l.at + PHT_MS).toISOString().slice(11, 19)}</span> ${trEsc(l.msg)}</div>`).join("") : '<div class="mute">Nothing yet.</div>'; }
+async function trBookAction(btn) {
+  const tr = btn.closest("tr"), a = btn.dataset.a;
+  const key = a + ":" + (tr.dataset.ct || tr.dataset.cto || tr.dataset.mx || tr.dataset.mxo);
+  if (!TR.bookArm || TR.bookArm.key !== key || TR.bookArm.until < Date.now()) {          // first click asks; the list doesn't refresh until you answer
+    TR.bookArm = { key, until: Date.now() + 4000 }; btn.textContent = "Sure?"; setTimeout(() => { if (TR.bookArm && TR.bookArm.key === key) { TR.bookArm = null; trRenderBook(); } }, 4100); return; }
+  TR.bookArm = null; btn.disabled = true;
+  try {
+    if (a === "close") { const p = CTT.positions.find(x => String(x.positionId) === tr.dataset.ct); await cttReq(2111, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, positionId: p.positionId, volume: p.tradeData.volume }); }
+    else if (a === "amend") { const p = CTT.positions.find(x => String(x.positionId) === tr.dataset.ct), sl = parseFloat(tr.querySelector('[data-k="sl"]').value), tp = parseFloat(tr.querySelector('[data-k="tp"]').value);
+      await cttReq(2110, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, positionId: p.positionId, ...(isFinite(sl) && sl > 0 ? { stopLoss: sl } : {}), ...(isFinite(tp) && tp > 0 ? { takeProfit: tp } : {}) }); }
+    else if (a === "cancel") { await cttReq(2108, { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, orderId: +tr.dataset.cto }); }
+    else if (a === "mxclose") { const long = tr.dataset.long === "1", sym = tr.dataset.sym, q = trLivePrice(mxBack(sym)) || {};
+      await mxtReq("POST", "/api/v1/private/order/create", { symbol: sym, price: q.bid || 0, vol: +tr.dataset.vol, side: long ? 4 : 2, type: 5, openType: +tr.dataset.ot || 1, positionId: +tr.dataset.mx }); trLog(`MEXC: close ${sym} sent`); setTimeout(mxtRefresh, 800); }
+    else if (a === "mxcancel") { await mxtReq("POST", "/api/v1/private/order/cancel", [tr.dataset.mxo]); trLog("MEXC: order cancelled"); setTimeout(mxtRefresh, 800); }
+  } catch (e) { trLog(`Couldn't ${a.replace("mx", "")}: ${e.message}`, true); }
+  btn.disabled = false; setTimeout(cttRefresh, 500);
+}
+function trSettings() {
+  const tc = trCfg(), mc = mxtCfg() || {}, accts = CTT.accounts.length ? CTT.accounts : (CT.accounts || []);
+  killChart(); $("dlgBody").dataset.sym = "";
+  $("dlgBody").innerHTML = `<div class="dhead"><h3>Trade settings</h3><div class="dacts"><button class="btn" id="dlgClose">Close</button></div></div>
+    <div class="ctform">
+      <h4>cTrader</h4>
+      <p class="meta">Orders go through your cTrader sign-in. It needs <b>trading access</b>; if it only has read access, use “Sign in with trading access”.</p>
+      <label>Trading account<select id="tsAcct">${accts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(tc.acct) ? "selected" : ""} ${a.isLive && !tc.live ? "disabled" : ""}>${trEsc(a.brokerTitleShort || "Broker")} ${a.isLive ? "LIVE" : "demo"} ${a.traderLogin || a.ctidTraderAccountId}</option>`).join("") || "<option>Connect cTrader first</option>"}</select></label>
+      <label class="chk"><input type="checkbox" id="tsLive" ${tc.live ? "checked" : ""}> Allow live accounts (real money)</label>
+      <div id="tsLiveBox" ${tc.live ? "hidden" : ""} class="meta">To allow live trading, tick the box and type <b>LIVE</b> here: <input id="tsLiveTxt" class="trin" style="width:70px" autocomplete="off"></div>
+      <button class="btn sm" id="tsScope" type="button">Sign in with trading access</button>
+      <h4>MEXC futures</h4>
+      <p class="meta">Create an API key on MEXC with <b>Order Placing</b> and view permissions only (no withdrawals), and an IP whitelist if you can. The key and secret stay in this browser; every request is signed here.</p>
+      <label>Access key<input id="tsMxKey" autocomplete="off" spellcheck="false" value="${trEsc(mc.key)}"></label>
+      <label>Secret key<input id="tsMxSec" type="password" autocomplete="off" value="${trEsc(mc.secret)}"></label>
+      <h4>Order ticket</h4>
+      <label class="chk"><input type="checkbox" id="tsConfirm" ${tc.confirm ? "checked" : ""}> Ask me to confirm each order (a second click)</label>
+      <div class="meta" id="tsMsg" aria-live="polite"></div>
+      <div class="ctacts"><button class="btn primary" id="tsSave">Save</button>${mc.key ? '<button class="btn" id="tsMxForget">Remove MEXC key</button>' : ""}</div>
+    </div>`;
+  $("dlgClose").onclick = () => $("dlg").close();
+  $("tsLive").onchange = () => { $("tsLiveBox").hidden = !$("tsLive").checked || tc.live; };
+  $("tsScope").onclick = () => ctSignIn("trading");
+  if ($("tsMxForget")) $("tsMxForget").onclick = () => { try { localStorage.removeItem(MXT_KEY); } catch (e) {} MXT.positions = []; MXT.orders = []; MXT.asset = null; $("dlg").close(); trRender(); };
+  $("tsSave").onclick = async () => {
+    const wantLive = $("tsLive").checked;
+    if (wantLive && !tc.live && $("tsLiveTxt").value.trim().toUpperCase() !== "LIVE") { $("tsMsg").innerHTML = '<span class="dn">Type LIVE to allow live accounts.</span>'; return; }
+    const acct = $("tsAcct").value, changed = acct !== String(tc.acct) || wantLive !== tc.live;
+    trSave({ ...tc, acct, live: wantLive, confirm: $("tsConfirm").checked });
+    const k = $("tsMxKey").value.trim(), sc = $("tsMxSec").value.trim();
+    if (k && sc) { try { localStorage.setItem(MXT_KEY, JSON.stringify({ key: k, secret: sc })); } catch (e) {} }
+    $("dlg").close(); if (changed) { cttClose(); CTT.state = "off"; } goPage("trade"); trStart();
+  };
+  if (!$("dlg").open) $("dlg").showModal();
+}
+async function trStart() {
+  const opts = [...Object.values(MACRO.by || {}).filter(r => r.ct).map(r => coin(r.symbol)), ...((typeof data !== "undefined" && data && data.all) || []).slice(0, 150).map(r => r.symbol), "BTCUSDT", "ETHUSDT"];
+  $("trSymList").innerHTML = [...new Set(opts)].map(o => `<option value="${trEsc(o)}">`).join("");
+  trRender();
+  if (ctConfigured() && CTT.state !== "ready" && CTT.state !== "connecting") cttConnect().then(() => { if (TR.sym) trPrep(); trRender(); }, () => trRender());
+  if (mxtOn()) mxtRefresh();
+  clearInterval(TR.poll); TR.poll = setInterval(() => { if (page !== "trade" || document.visibilityState !== "visible") return; cttRefresh(); mxtRefresh(); if (TR.sym && trVenue(TR.sym) === "mx") mxtTick(TR.sym); trQuote(); trPreview(); }, 4000);
+  if (!TR.sym) { const s = (typeof CH !== "undefined" && CH.sym) || null; if (s) trSetSym(s); }
+}
+function trShown() { trStart(); }
+(function trBind() {
+  if (!$("tradePage")) return;
+  $("trSide").onclick = e => { const b = e.target.closest("[data-side]"); if (b) { TR.side = b.dataset.side; TR.armed = 0; trRender(); } };
+  $("trType").onclick = e => { const b = e.target.closest("[data-type]"); if (b) { TR.type = b.dataset.type; TR.armed = 0; trRender(); } };
+  $("trSym").onchange = () => { const s = trResolveSym($("trSym").value); if (s) trSetSym(s); };
+  ["trPrice", "trSL", "trTP", "trSize", "trRisk"].forEach(id => $(id).oninput = () => { TR.armed = 0; trPreview(); });
+  $("trRiskBtn").onclick = trSizeFromRisk;
+  $("trGo").onclick = trSubmit;
+  $("trSet").onclick = trSettings;
+  $("trChart").onclick = () => TR.sym && openInCharts(TR.sym);
+  $("trBook").addEventListener("click", e => { const b = e.target.closest("button[data-a]"); if (b) trBookAction(b); });
+  $("trRisk").value = trCfg().risk;
+  $("trRisk").onchange = () => { const c = trCfg(); c.risk = trNum("trRisk") || 0.5; trSave(c); };
+})();
+</script>
+
 
 <script>
 /* installable app: register the service worker (needs https or localhost) */

@@ -101,6 +101,22 @@ With cTrader connected, the coin pop-up's Size tab on a broker market (and NBB W
 balance (read-only), your risk %, the entry and stop, and the contract size and volume step your broker uses, converting the
 profit currency to your account currency with your broker's forex prices.
 
+## Trade page (cTrader and MEXC futures)
+
+My Trading → **Trade**, or **Trade** on any coin or market pop-up. One ticket for both venues: forex, metals and indices go to cTrader,
+coins go to MEXC USDT perpetuals.
+
+- **Ticket:** buy or sell, market / limit / stop (MEXC: market or limit), stop loss, take profit, size in lots (cTrader) or contracts (MEXC).
+  **Size it** turns a risk % of the account into a size from your stop. The button refuses a stop or target on the wrong side.
+  With confirmation on (Trade settings), every order needs a second click.
+- **cTrader:** uses your cTrader sign-in, which needs *trading access* (Trade settings → Sign in with trading access). It trades a
+  **demo account by default**; live accounts stay greyed out until you tick "Allow live accounts" and type LIVE. Market orders carry the
+  stop and target as distances from the fill; limit and stop orders carry the exact prices.
+- **MEXC:** add an API key with Order Placing and view permissions only (never withdrawals). The key and secret stay in the browser
+  and every request is signed there; the Mac app (`/proxy/mexc-priv`) or Vercel only forwards the signed request.
+- **Positions & orders:** live P&L, edit the stop/target of a cTrader position, close positions and cancel pending orders
+  (each asks "Sure?" first). Activity lists what was sent and what came back.
+
 ## RSI and momentum
 RSI (14) on 1H, 4H and Daily for every coin, with your zones (70+ momentum, 60–70 pre-momentum, 30–40 pre-weak, 30 or
 below weak), divergence and ignition (a fresh cross of 60 or 40). The Momentum score (0–100) blends RSI alignment, volume

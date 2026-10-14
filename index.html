@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1029">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1125">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4201,7 +4201,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1029";
+const APP_VERSION = "2026.10.14.1125";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -8380,8 +8380,14 @@ function chLabel(g, txt, x, y, bg, fg = "#fff", align = "left") {
 const chTShort = t => { const d = new Date(t + PHT_MS), p = n => String(n).padStart(2, "0"); return `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()]} ${d.getUTCDate()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; };
 function chPaint(P) {
   const cv = P.ov, g = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
-  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+  if (g.reset) g.reset(); else { g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }   // a fresh state every frame: no clip, alpha or blend left over can stop the wipe
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); g.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (!P.chart || !P.t.length || P.sym !== CH.sym) { P.hits = []; return; }
+  g.save(); try { chPaintBody(P, g); } catch (e) { chPaintErr(e, "chart"); } finally { g.restore(); }
+}
+let chPaintErrAt = 0;
+function chPaintErr(e, what) { if (Date.now() - chPaintErrAt > 10000) { chPaintErrAt = Date.now(); console.warn("[Finder] chart paint skipped " + what + ":", e); } }
+function chPaintBody(P, g) {
   const W = chPlotW(P), H = chPlotH(P), ref = P.c.at(-1), F = v => chFmt(v, ref), axis = [], ticks = [];
   g.save(); g.beginPath(); g.rect(0, 0, W, H); g.clip();
   { const S = chCS(); if (S.sessBreaks && CH_IV[P.tf] < 864e5) { const r = P.chart.timeScale().getVisibleLogicalRange(), n = P.t.length;
@@ -8392,8 +8398,8 @@ function chPaint(P) {
   P.hits = [];
   const all = chHidden ? [] : chList().filter(d => CH_T[d.type] && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
   if (chDraft && chDraft.pane === P.i && CH_T[chDraft.type] && CH_T[chDraft.type].paint) all.push({ ...chDraft, id: "draft", draft: true, s: chDraft.type === "icon" ? { icon: CH.icon } : undefined });
-  for (const d of all) {
-    const T = CH_T[d.type]; if (!T.paint) continue;
+  for (const d of all) { try {
+    const T = CH_T[d.type]; if (!T.paint || !Array.isArray(d.pts) || !d.pts.length) continue;
     const xs = d.pts.map(p => chX(P, p.t)), ys = d.pts.map(p => chY(P, p.p));
     if (xs.some(v => v == null) || ys.some(v => v == null)) continue;
     const K = chK(g, P, d, chDS(d), W, H, axis, ticks);
@@ -8401,10 +8407,10 @@ function chPaint(P) {
     const hp = K.hp || xs.map((x, j) => [x, ys[j]]);
     if (!d.draft) P.hits.push({ id: d.id, hits: K.hits, hp, nh: T.n === "free" });
     if (d.id === chSel && T.n !== "free") hp.forEach(([x, y]) => { if (x == null || y == null) return; g.fillStyle = "#131722"; g.strokeStyle = d.lk ? "#9a9ca1" : "#2962ff"; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.stroke(); });
-  }
+  } catch (e) { chPaintErr(e, d.type); } }
   // measure and zoom (draft or last result)
   const ms = chDraft && (chDraft.type === "measure" || chDraft.type === "zoom") ? chDraft : chMeasure;
-  if (ms && ms.pane === P.i) {
+  if (ms && ms.pane === P.i && Array.isArray(ms.pts) && ms.pts.length > 1) {
     const [a, b] = ms.pts, xa = chX(P, a.t), xb = chX(P, b.t), ya = chY(P, a.p), yb = chY(P, b.p);
     if ([xa, xb, ya, yb].every(v => v != null)) {
       if (ms.type === "zoom") { g.fillStyle = "rgba(41,98,255,.12)"; g.fillRect(Math.min(xa, xb), 0, Math.abs(xb - xa), H); }

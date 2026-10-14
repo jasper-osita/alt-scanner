@@ -60,6 +60,7 @@ async def main():
             await q(f"() => {{ const P = chVis()[0]; P.chart.timeScale().setVisibleLogicalRange({{ from: {a}, to: {z} }}); chDirty = true; }}"); await asyncio.sleep(0.6)
             await pg.screenshot(path=f"{OUT}/scroll_{nm}.png")
             print(nm, await q("() => { const P = chVis()[0]; const I = Object.values(P.ix).find(x => x.pane); const s = I && Object.values(I.ser)[0]; return JSON.stringify([P.chart.timeScale().getVisibleLogicalRange(), P.cs.priceToCoordinate(P.c.at(-1)), s && s.priceToCoordinate(70), s && s.priceToCoordinate(30), chPlotH(P)]); }"))
+        print("bad drawing:", await q("() => { CHD[CH.sym] = [{ id: 'bad', type: 'rect' }, { id: 'b2', type: 'trend', pts: [{ t: 1, p: 1 }, { t: 2, p: NaN }] }]; let e = null; try { for (let i = 0; i < 5; i++) chPaint(chVis()[0]); } catch (x) { e = String(x); } const g = chVis()[0].ov.getContext('2d'), m = g.getTransform(); delete CHD[CH.sym]; return JSON.stringify({ e, t: [m.a, m.d] }); }"))
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

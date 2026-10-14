@@ -171,8 +171,11 @@ def ct_handler(opts):
     def handler(ws):
         def on(msg):
             m = json.loads(msg); t = m.get("payloadType"); p = m.get("payload") or {}; cid = m.get("clientMsgId")
+            if opts.get("names"):
+                num = lambda v: int(v) if isinstance(v, str) and v.isdigit() else [num(x) for x in v] if isinstance(v, list) else v
+                p = {k: (num(v) if k in ("symbolId", "positionId", "orderId", "volume") else v) for k, v in p.items()}
             CT_LOG.append(t)
-            def reply(pt, pl): ws.send(json.dumps({"clientMsgId": cid, "payloadType": pt, "payload": pl}))
+            def reply(pt, pl): ws.send(json.dumps({"clientMsgId": cid, "payloadType": pt, "payload": names(pl) if opts.get("names") else pl}))
             if t == 51: return
             if t == 2100:
                 return reply(2101, {}) if p.get("clientSecret") == opts["secret"] else reply(2142, {"errorCode": "CH_CLIENT_AUTH_FAILURE", "description": "Client authentication failure"})
@@ -232,6 +235,17 @@ def ct_handler(opts):
         ws.on_message(on)
     return handler
 
+EN = {"tradeSide": {1: "BUY", 2: "SELL"}, "orderType": {1: "MARKET", 2: "LIMIT", 3: "STOP", 4: "STOP_LOSS_TAKE_PROFIT", 6: "STOP_LIMIT"},
+      "executionType": {2: "ORDER_ACCEPTED", 3: "ORDER_FILLED", 4: "ORDER_REPLACED", 5: "ORDER_CANCELLED", 7: "ORDER_REJECTED"}}
+def names(o):                           # like the real JSON feed: enums by name, ids and volumes as strings
+    if isinstance(o, list): return [names(v) for v in o]
+    if not isinstance(o, dict): return o
+    out = {}
+    for k, v in o.items():
+        if k in EN and v in EN[k]: out[k] = EN[k][v]
+        elif k in ("symbolId", "positionId", "orderId", "volume") and isinstance(v, int) and not isinstance(v, bool): out[k] = str(v)
+        else: out[k] = names(v)
+    return out
 # ---------------- mock MEXC (futures contract API + spot v3 + futures WebSocket) ----------------
 MX_SPOT_SKIP = {"C001USDT", "C002USDT", "HYPEUSDT"}     # a few coins MEXC lists as futures only
 MX_LOG = []

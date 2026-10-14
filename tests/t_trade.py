@@ -2,7 +2,7 @@ import asyncio, sys, re, json, hmac, hashlib
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__))); from mock import *
 from playwright.async_api import async_playwright
 from urllib.parse import urlparse
-OPTS = {"secret": "sec", "token": "tok", "live": True, "scope": "SCOPE_TRADE", "demo2": True}
+OPTS = {"secret": "sec", "token": "tok", "live": True, "scope": "SCOPE_TRADE", "demo2": True, "names": True}   # names: enums by name, ids as strings, like the real feed
 OUT = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "out")
 MX = {"pos": [], "orders": [], "log": [], "badsig": 0}
 async def mexc_priv(route):
@@ -102,6 +102,9 @@ async def main():
         print("23) chart order:", [t for t, p in CT_TRADE["log"]].count(2106) - n06, {k: sent2.get(k) for k in ("tradeSide", "orderType", "limitPrice", "stopPrice", "stopLoss", "takeProfit", "volume")}, "| panel closed:", await q("() => !document.getElementById('trPosPanel') && TR.posId == null"))
         await wait("() => trChartOrders(CH.sym).length > 0", 10)
         print("23c) on the chart:", await q("() => trChartOrders(CH.sym).map(l => l.txt + ' @' + l.p).join(' | ')"))
+        await q("() => { document.getElementById('chAcctPop').hidden = true; document.getElementById('chAcctBtn').click(); }"); await asyncio.sleep(0.5)
+        print("23d) account menu:", await q("() => document.getElementById('chAcctPop').innerText.split('Open on this account')[1].split('Refresh')[0].trim()"))
+        await q("() => { document.getElementById('chAcctPop').hidden = true; }")
         await pg.screenshot(path=f"{OUT}/trade_lines.png")
         print("24) toolbar button:", await q("() => { chSel = 'pz'; chSelBar(); return !!document.querySelector('#chFloat [data-fl=\"trade\"]'); }"), "| menu:", await q("() => chMoreItems(CHD[CH.sym][0]).map(x => x.l).filter(Boolean).slice(0, 2).join(', ')"))
         # account size: synced from the account by default, or typed (manual); the risk % stays, the size follows the stop

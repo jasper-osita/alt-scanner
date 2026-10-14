@@ -1,0 +1,48 @@
+import asyncio, sys, time
+sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__))); from mock import *
+from playwright.async_api import async_playwright
+OUT = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "out", "finder")
+async def main():
+    serve()
+    async with async_playwright() as pw:
+        b = await pw.chromium.launch(); ctx = await b.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark"); await setup(ctx)
+        pg = await ctx.new_page(); errs, csp = [], []
+        pg.on("pageerror", lambda e: errs.append(str(e))); pg.on("console", lambda m: "Content Security Policy" in m.text and csp.append(m.text[:140]))
+        await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
+        await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
+        q = lambda js: pg.evaluate(js)
+        await q("() => goPage('backtest')"); await asyncio.sleep(0.3)
+        print("1) options:", await q("() => [...document.querySelectorAll('#btCoins option')].map(o => o.textContent).join(' | ')"), "| panel hidden:", await q("() => document.getElementById('btPick').hidden"))
+        await pg.click("#btPickBtn"); await asyncio.sleep(0.3)
+        print("2) open:", await q("() => ({ sel: document.getElementById('btCoins').value, groups: [...document.querySelectorAll('.btpg')].map(x => x.innerText.split('(')[0].trim()).join('/'), items: document.querySelectorAll('.btpi').length, tradfi: [...document.querySelectorAll('.btpgrid')][0].innerText.replace(/\\s+/g,' ').slice(0,160) })"))
+        await pg.fill("#btPickQ", "nasd"); await asyncio.sleep(0.3)
+        print("3) search 'nasd':", await q("() => [...document.querySelectorAll('.btpi b')].map(x => x.innerText).join(', ')"), "| focus kept:", await q("() => document.activeElement.id"))
+        await pg.click('.btpi input[data-ps="QQQUSDT"]'); await asyncio.sleep(0.2)
+        await pg.fill("#btPickQ", "gold"); await asyncio.sleep(0.2); await pg.click('.btpi input[data-ps="XAUUSDT"]'); await asyncio.sleep(0.2)
+        await pg.fill("#btPickQ", ""); await asyncio.sleep(0.2)
+        first3 = await q("() => btpTop(3)")
+        for s in first3: await pg.click(f'.btpi input[data-ps="{s}"]'); await asyncio.sleep(0.1)
+        print("4) picked:", await q("() => BTP.syms.join(',')"), "| chips:", await q("() => [...document.querySelectorAll('.btpc')].map(x => x.innerText).join(' ')"), "| option:", await q("() => document.querySelector('#btCoins option[value=pick]').textContent"))
+        await pg.screenshot(path=f"{OUT}/pick_open.png")
+        await pg.click('[data-pp="20"]'); await asyncio.sleep(0.2); n20 = await q("() => BTP.syms.length")
+        await pg.click('[data-pp="clear"]'); await asyncio.sleep(0.2); nc = await q("() => BTP.syms.length")
+        print("5) +Top 20 →", n20, "| clear →", nc)
+        await pg.click("#btRun"); await asyncio.sleep(0.4)
+        print("6) run with empty pick:", await q("() => document.getElementById('btStatus').innerText"), "| running:", await q("() => btRunning"))
+        await q("() => { BTP.syms = ['QQQUSDT', 'XAUUSDT', ...btpTop(3)]; btpSave(); renderBacktest(); }")
+        t0 = time.time(); await pg.click("#btRun")
+        for _ in range(400):
+            if await q("() => !btRunning && !!BT"): break
+            await asyncio.sleep(0.5)
+        print(f"7) pick run {time.time() - t0:.0f}s:", await q("() => ({ coins: BT.coins, pick: (BT.pick || []).join(','), bySym: Object.entries(BT.trades.reduce((m, t) => (m[coin(t.sym)] = (m[coin(t.sym)] || 0) + 1, m), {})).map(e => e.join(':')).join(' ') })"))
+        print("   header:", await q("() => document.querySelector('#backtest .schead .meta').innerText.slice(0, 140)"))
+        await pg.reload(); await asyncio.sleep(1.5); await q("() => goPage('backtest')"); await asyncio.sleep(0.3)
+        print("8) after reload:", await q("() => ({ sel: document.getElementById('btCoins').value, syms: BTP.syms.length })"))
+        await q("() => { BTP.sel = '20'; btpSave(); renderBacktest(); }")
+        print("   top-20 select restored:", await q("() => document.getElementById('btCoins').value"))
+        await pg.set_viewport_size({"width": 390, "height": 844}); await pg.click("#btPickBtn"); await asyncio.sleep(0.3)
+        print("9) mobile overflow:", await q("() => document.documentElement.scrollWidth - innerWidth"), await q("() => [...document.querySelectorAll('#backtest *, #edgeCard *')].filter(e => e.getBoundingClientRect().right > innerWidth + 2 && !e.closest('.tablewrap')).slice(0, 10).map(e => e.tagName + '.' + e.className + ' ' + Math.round(e.getBoundingClientRect().right) + ' in ' + (e.parentElement && e.parentElement.closest('[id],[class]') ? (e.parentElement.closest('[id],[class]').id || e.parentElement.closest('[id],[class]').className) : '?') + '/' + (e.closest('section') || {}).id).join(' | ')"))
+        await pg.screenshot(path=f"{OUT}/pick_mobile.png")
+        print("CSP:", csp or "none", "| errors:", errs or "none")
+        await b.close()
+asyncio.run(main())

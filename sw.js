@@ -1,5 +1,5 @@
 /* The Finder service worker: keeps the app shell available, never caches market data. */
-const SHELL = "the-finder-shell-2026.10.12.1408";
+const SHELL = "the-finder-shell-2026.10.14.1029";
 const FILES = ["/", "/index.html", "/manifest.webmanifest", "/icons/finder-192.png", "/icons/finder-512.png", "/fonts/space-grotesk-latin-400-normal.woff2", "/fonts/space-grotesk-latin-500-normal.woff2", "/fonts/space-grotesk-latin-600-normal.woff2", "/fonts/space-grotesk-latin-700-normal.woff2", "/lib/lightweight-charts.standalone.production.js"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
@@ -9,6 +9,7 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;     // market data and logos always go to the network
+  if (url.pathname.startsWith("/proxy/") || url.pathname.startsWith("/api/") || url.pathname === "/version.json") return;     // relayed data and the Mac app's endpoints: never cached
   // network first so new deploys show up immediately; fall back to the cached shell when offline
   e.respondWith(fetch(e.request).then(res => {
     const copy = res.clone(); caches.open(SHELL).then(c => c.put(e.request, copy)); return res;

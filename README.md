@@ -9,6 +9,20 @@ Also includes: session picks (the best 3 coins to day trade in Asia, London and 
 (EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, price and setup alerts
 (while the app is open), and a scorecard that tracks every scan's picks and checks whether they hit target or stop.
 
+## Trend Starting: AOTS and the stages before it
+
+AOTS (alignment of the stars) is price beyond the 20, 50 and 100 with the three stacked. The scanner follows a turn through four stages on the 4H and 1H:
+
+| Stage | What it means | Where it shows |
+|---|---|---|
+| Coiling | 20/50/100 squeezed inside 1.5 ATR, the last 20 candles inside 4 ATR, ATR below 90% of normal, price on the 20's side and the 20 flat or turning | On deck, Pre-AOTS tab |
+| Reclaiming | Was beyond all three the other way in the last 60 candles, now 2+ closes back over the 20 and the 50, the 20 turning, within 1.5 ATR of the break level | On deck (ranked first), Pre-AOTS tab, Suggested Play |
+| Breaking out | Closed beyond all three and cleared the prior 20-candle range | Trend Starting board |
+| Fresh AOTS | The 20/50/100 stacked for 12 candles or fewer | Trend Starting board |
+
+The break level is the furthest MA or the 20-candle base high (low for shorts), whichever is further; "To the Break" shows the distance in ATR and %.
+When a coin that was Reclaiming turns into Breaking out or Fresh AOTS, a Breakouts alert fires. Past 12 candles stacked the trend is established and drops off.
+
 ## Momentum Board
 Three 1H columns, with 4H shown as context ("4H agrees" = 4H RSI 50+ and price above the 4H 20, for longs):
 🔥 **In Momentum**: RSI 70+ with price beyond all three MAs. ⏳ **Awaiting Momentum**: RSI tapped 70 in the last 12 hours,
@@ -40,6 +54,52 @@ plus your cTrader pairs when connected; where both list the same market, the cTr
   currency strength, and the week's leaders and laggards.
 - **Momentum Board**: the coin board's three stages (in momentum, awaiting momentum, breaking out) on 1H with 4H as
   context, with the same breakout alerts.
+
+## NBB Watch (Gold M5, Nasdaq M1)
+Sidebar → Forex · Metals · Indices → NBB Watch. Watches the next-base breakout on your trading timeframes, by default Gold on
+M5 through London (12–6 PM) and the Nasdaq 100 on M1 at the US open (9:30–11 PM, your cutoff). Candles come from your cTrader
+broker when connected (MEXC or Binance otherwise), closed candles only. Each card shows the session, the live price and the
+time to the candle close, and the state: basing (with the long and short trigger levels), triggered (entry at the breakout
+close, stop beyond the far side of the base, 3R, with checks: with the timeframe's trend, with the higher timeframe, base
+swept first, room to 2R, no high-impact news near), or missed. With cTrader connected it shows the lot size for your risk %.
+Today's triggers are logged with how they've done since (3R hit, stopped, or open R). Alerts fire inside the session (or
+always, with "Outside sessions too"); "Alert when a base forms" is optional. Edit watch list adds any forex pair, metal, index
+or oil, on 1m to 1H, with your own session times. It is a watcher, not a trade gate: check the chart before acting.
+
+## Economic calendar
+Sidebar → Market → Calendar.
+- **Forex Factory**: this week's calendar from Forex Factory's feed (read through the Mac app's relay or Vercel), with the same
+  filter as forexfactory.com: impact, event types, currencies and default view, plus reminders a set number of minutes before
+  events in your filter (high impact by default). The free feed covers the current week only and has no actual results;
+  this device keeps past weeks so Last Week fills in over time.
+- **What moves the Nasdaq**: US data from Forex Factory (CPI, jobs, ISM, retail sales, GDP and so on), the Fed (meetings with
+  projections, Powell and other speakers, blackout periods), earnings of the Nasdaq-100 heavyweights from Nasdaq.com's
+  calendar (Apple, Microsoft, Nvidia, Amazon, Alphabet, Meta, Broadcom, Tesla, Netflix, Costco as high impact), monthly
+  options expiry, quad witching and the Nasdaq-100 rebalance, VIX expiry, and US market holidays and early closes. Fed dates
+  are the Fed's published schedule (2027 tentative); expiries and holidays follow the exchange rules (one-off closures aren't
+  included).
+The NBB Watch cards warn when high-impact news for the market's currencies is within an hour.
+
+## Phone alerts (Telegram)
+The bell drawer's 📱 Phone button (or NBB Watch → Phone alerts): create a bot with @BotFather, send it a message, paste the
+token, press Find my chat ID, then Send test. Pick which alerts go to your phone (NBB Watch, news reminders, setups and price
+alerts are on; breakouts, bots and system messages start off). The token stays in that browser only, so set it up on the Mac
+app to avoid getting every alert twice. On the Mac app, "Keep this Mac awake during my NBB Watch sessions" asks the local server
+to run macOS's `caffeinate` while a session is on (the Mac still sleeps if you close the lid on battery).
+
+## Cloud watcher (alerts while the Mac is off)
+A GitHub Actions job (`.github/workflows/cloud-watch.yml`) runs `cloud/watch.mjs` every 5 minutes with the app's own NBB rules
+on MEXC's Gold and Nasdaq perpetuals during your sessions, and sends Telegram reminders before high-impact news. It can't use
+cTrader (your login never leaves your browser), so prices can differ a little from your broker's, and GitHub's schedule often
+runs a few minutes late, which matters most on M1. To turn it on, in the GitHub repo: Settings → Secrets and variables →
+Actions → add the secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and under Variables add `CLOUD_WATCH` = `on`. Markets,
+sessions and news settings are in `cloud/watch.json`. Its messages start with ☁️; if the Mac app is also sending, you'll
+see both.
+
+## Position size from your broker account
+With cTrader connected, the coin pop-up's Size tab on a broker market (and NBB Watch triggers) sizes in lots from your real
+balance (read-only), your risk %, the entry and stop, and the contract size and volume step your broker uses, converting the
+profit currency to your account currency with your broker's forex prices.
 
 ## RSI and momentum
 RSI (14) on 1H, 4H and Daily for every coin, with your zones (70+ momentum, 60–70 pre-momentum, 30–40 pre-weak, 30 or

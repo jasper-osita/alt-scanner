@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.12.1408">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1029">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -835,6 +835,46 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   .chlaypop{position:fixed!important;left:8px!important;right:8px!important;top:110px!important;z-index:90}
 }
 @media (hover:none){.chia{display:inline-flex}.chtools .chtarr{opacity:1}}
+/* NBB Watch + calendar */
+.nwopts{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.nbbw .why{font-size:12.5px;color:var(--mute);margin:4px 0 10px}
+.nwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
+@media (max-width:760px){.nwgrid{grid-template-columns:1fr}.nbbw .why{display:none}.nwopts{margin-left:0}}
+.nwcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);min-width:0}
+.nwcard.on{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
+.nwh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.nwh>b{font-size:16px;color:var(--strong)}
+.nwsess{font-size:12px;color:var(--mute)}.nwsess.on{color:var(--green)}.nwsess.soon{color:var(--amber)}.nwbtns{margin-left:auto}
+.nwpx{margin:6px 0;font-size:13px}.nwpx b{font-size:20px;color:var(--strong)}
+.nwnews{background:color-mix(in srgb,var(--amber) 14%,transparent);border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);border-radius:8px;padding:6px 10px;font-size:12.5px;margin:6px 0}
+.nwst{border-radius:10px;padding:10px 12px;margin:6px 0;background:var(--pill);font-size:13.5px;line-height:1.5}
+.nwst.trig.long{background:color-mix(in srgb,var(--green) 14%,var(--pill));border:1px solid color-mix(in srgb,var(--green) 45%,transparent)}
+.nwst.trig.short{background:color-mix(in srgb,var(--red) 14%,var(--pill));border:1px solid color-mix(in srgb,var(--red) 45%,transparent)}
+.nwst.base{border:1px dashed var(--line)}.nwst.none{color:var(--mute)}
+.nwlv{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.nwck{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:12.5px}.nwck .ok{color:var(--green)}.nwck .no{color:var(--mute)}
+.nwsz{margin-top:6px;font-size:13px}.nwctx{font-size:12.5px;color:var(--mute)}.nwctx b{color:var(--text);font-weight:600}.nwctx b.up{color:var(--green)}.nwctx b.dn{color:var(--red)}
+.nwlog{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}.nwlh{font-size:12px;color:var(--mute);margin-bottom:4px}
+.nwlr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;padding:2px 0}
+.nwedit{border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 12px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.nwer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nwer label{display:flex;gap:4px;align-items:center;font-size:13px}.nweacts{display:flex;gap:8px;align-items:center}
+.calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px}
+.calfilter{border:3px solid color-mix(in srgb,var(--green) 55%,transparent);border-radius:10px;padding:10px;margin:10px 0;background:var(--bg)}
+.calfg{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:10px}
+@media (max-width:760px){.calfg{grid-template-columns:1fr}}
+.calfb{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel)}.calfh{font-weight:700;color:var(--strong);margin-bottom:8px}.calfh a{font-weight:400;color:var(--blue);cursor:pointer;text-decoration:underline dotted}
+.calfc{grid-row:span 2}.calfimp{display:flex;gap:22px;flex-wrap:wrap}.calfimp label,.calft label,.calfcc label{display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13.5px}
+.calft{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}.calfcc{display:flex;flex-direction:column;gap:6px}
+.calfw{grid-column:1/-1;display:flex;gap:16px;flex-wrap:wrap;align-items:center}.calfw>label{display:flex;gap:6px;align-items:center;font-size:13.5px;flex-wrap:wrap}.calfv{font-weight:600}
+.calfw input[type=number]{width:56px}.calri{display:inline-flex;gap:3px;align-items:center}
+.calfacts{display:flex;gap:8px;align-items:center;margin-top:10px;justify-content:center}.calrm{margin-left:auto;color:var(--blue);cursor:pointer;text-decoration:underline;font-weight:600}
+.calimp{display:inline-block;width:14px;height:11px;border-radius:2px;vertical-align:middle}
+.calup{margin:10px 0 6px;font-size:13.5px}.calupl{background:var(--accent);color:#10131a;border-radius:6px;padding:1px 8px;font-weight:700;font-size:12px;margin-right:6px}
+.calsum{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--mute)}
+.calwrap{overflow-x:auto}.caltbl{width:100%;border-collapse:collapse;font-size:13px}.caltbl th,.caltbl td{text-align:left;white-space:normal}.caltbl th{position:static;cursor:default}
+.calfilter select,.calfilter input[type=number]{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:inherit}.caltbl th{text-align:left;color:var(--mute);font-weight:500;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+.caltbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}.caltbl .calday td{background:var(--pill);color:var(--strong);font-weight:600;padding:6px 8px}
+.caltbl tr.past td{opacity:.55}.caltbl tr.soon td{background:color-mix(in srgb,var(--amber) 9%,transparent)}.caltbl .ct{white-space:nowrap}.caltbl .cw{white-space:nowrap;text-align:right}.caltbl .ce .meta{font-size:11.5px}
+@media (max-width:760px){.caltbl .cty,.caltbl .cp{display:none}.caltbl td,.caltbl th{padding:6px 5px}}
+.tgform .tgrow{display:flex;gap:6px}.tgform .tgrow input{flex:1}.tgkinds{display:flex;flex-direction:column;gap:4px;margin:6px 0}
 /* chart settings + templates + data feed */
 .chsrcb{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--mute);margin-left:6px;white-space:nowrap;font-weight:500}
 .chfeed{color:var(--mute);border-bottom:1px dotted var(--line);cursor:help}
@@ -976,7 +1016,27 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 </div></div>
       <div class="why">AOTS: price just broke beyond the 20, 50 and 100 after clearing its range.</div>
       <div id="aotsBoard"><div class="empty">No scan yet.</div></div>
+      <div class="why preh"><b>On deck · before the break.</b> Reclaiming: back over the 20 and 50 after being below all three, within 1.5 ATR of the break level. Coiling: the three MAs squeezed together and volatility drying up. You get an alert when one of these breaks.</div>
+      <div id="preBoard"><div class="empty">No scan yet.</div></div>
     </div>
+  </section>
+
+  <section class="card nbbw" data-page="nbbwatch">
+    <div class="momohead"><h2>NBB Watch</h2><span class="meta" id="nwMeta"></span>
+      <span class="nwopts"><label class="tog"><input type="checkbox" id="nwBase"> Alert when a base forms</label><label class="tog"><input type="checkbox" id="nwOutside"> Outside sessions too</label>
+      <button class="btn sm" id="nwPhone">📱 Phone alerts</button><button class="btn sm" id="nwEditB">Edit watch list</button></span></div>
+    <div class="why">The next-base breakout on your trading timeframes: Gold on M5 through London, the Nasdaq on M1 at the US open. Read on closed candles from your broker (cTrader) when connected, otherwise MEXC or Binance. A trigger is a displacing close out of a base of 6+ candles; entry at that close, stop beyond the far side of the base, target 3R. Checks show whether it's with the trend, whether the base was swept first, whether there's room, and whether high-impact news is close.</div>
+    <div id="nwEdit" class="nwedit" hidden></div>
+    <div id="nwGrid" class="nwgrid"><div class="empty">Loading…</div></div>
+  </section>
+
+  <section class="card calcard" data-page="calendar">
+    <div class="momohead"><h2>Economic Calendar</h2><div class="xmtabs caltabs" id="calTabs" role="tablist"><button role="tab" data-ct="ff">Forex Factory</button><button role="tab" data-ct="idx">What moves the Nasdaq</button></div>
+      <span class="meta" id="calMeta"></span><span class="calbtns"><button class="btn sm" id="calFilterBtn">⚲ Filter</button><button class="btn sm" id="calRefresh">Refresh</button></span></div>
+    <div id="calFilter" class="calfilter" hidden></div>
+    <div id="calUp" class="calup"></div>
+    <div id="calBody"><div class="empty">Loading…</div></div>
+    <p class="meta" id="calNote"></p>
   </section>
 
   <section class="card macrocard xovhead" data-page="macroov macromomo">
@@ -1061,7 +1121,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <div class="ncchips" id="ncChips" role="tablist" aria-label="Filter notifications"></div>
   <div class="nclist" id="ncList"></div>
   <div class="ncfoot"><span>Kept for 7 days on this device</span>
-    <label class="tog"><input type="checkbox" id="ncMacro"> Forex &amp; gold triggers</label><button class="nclink" id="ncClear">Clear all</button></div>
+    <label class="tog"><input type="checkbox" id="ncMacro"> Forex &amp; gold triggers</label><button class="nclink" id="ncPhone">📱 Phone</button><button class="nclink" id="ncClear">Clear all</button></div>
 </aside>
 <div id="ncToasts" aria-live="polite"></div>
 <nav class="mtab" id="mTab" aria-label="Main sections"><button data-mgo="overview"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Overview</span></button><button data-mgo="playbook"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM9 9h7M9 13h7M9 17h4"/></svg><span>Playbook</span></button><button data-mgo="charts"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M9 20V4M14 20v-7M19 20V8M3 20h18"/></svg><span>Charts</span></button><button data-mgo="watch"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Watchlist</span></button><button data-mgo="more"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>More</span></button></nav>
@@ -1343,6 +1403,50 @@ function aots(k, maFn, tf) {
   }
   return null;
 }
+
+/* ---- pre-AOTS: the two stages before the break, so a turn is on the list before it's obvious ----
+   Coiling     20/50/100 squeezed inside 1.5 ATR, the last 20 candles inside 4 ATR, volatility drying up, leaning one way. Watch only.
+   Reclaiming  came from the other side of all three in the last 60 candles, now 2 closes back over the 20 and the 50,
+               the 20 turning, and within 1.5 ATR of the break level (the last MA or the base high, whichever is further). */
+const PRE_LOOK = 60, PRE_MAX_DIST = 1.5;
+function preAots(k, maFn, tf, s1d) {
+  const c = k.c, n = c.length;
+  if (n < 130) return null;
+  const m20 = maFn(c, 20), m50 = maFn(c, 50), m100 = maFn(c, 100), at = atr(k.h, k.l, c), a = at.at(-1) || 1e-12;
+  const hi = i => Math.max(m20[i], m50[i], m100[i]), lo = i => Math.min(m20[i], m50[i], m100[i]);
+  const avg = v => v.reduce((x, y) => x + y, 0) / (v.length || 1);
+  const spreadAt = i => (hi(i) - lo(i)) / (at[i] || a), spread = spreadAt(n - 1);
+  const base = at.slice(-PRE_LOOK, -10).filter(x => x != null), squeeze = base.length ? avg(at.slice(-5)) / avg(base) : 1;   // ATR now vs before
+  const H20 = Math.max(...k.h.slice(-20)), L20 = Math.min(...k.l.slice(-20)), box = (H20 - L20) / a;
+  const vb = k.qv.slice(-55, -5), vr = avg(vb) > 0 ? avg(k.qv.slice(-5)) / avg(vb) : 0;
+  const p = c[n - 1];
+  for (const dir of ["Long", "Short"]) {
+    const sg = dir === "Long" ? 1 : -1;
+    const beyond = i => sg > 0 ? c[i] > hi(i) : c[i] < lo(i), other = i => sg > 0 ? c[i] < lo(i) : c[i] > hi(i);
+    const stacked = i => sg > 0 ? (m20[i] > m50[i] && m50[i] > m100[i]) : (m20[i] < m50[i] && m50[i] < m100[i]);
+    if (beyond(n - 1) || stacked(n - 1)) continue;                 // already through, or already trending this way: aots() covers it
+    const slope20 = sg * (m20[n - 1] - m20[n - 6]) / a;
+    const over = i => sg * (c[i] - m20[i]) > 0 && sg * (c[i] - m50[i]) > 0;
+    let fromOther = false; for (let i = n - PRE_LOOK; i < n; i++) if (other(i)) { fromOther = true; break; }   // a turn, not a dip in an old trend
+    const edge = sg > 0 ? Math.max(hi(n - 1), H20) : Math.min(lo(n - 1), L20), dist = Math.max(0, sg * (edge - p) / a);
+    let stage = null, bars = 0;
+    if (fromOther && over(n - 1) && over(n - 2) && slope20 > 0 && dist <= PRE_MAX_DIST) {
+      stage = "Reclaiming"; for (let i = n - 1; i >= n - 30 && over(i); i--) bars++;
+    } else if (spread <= 1.5 && box <= 4 && squeeze < 0.9 && sg * (p - m20[n - 1]) >= 0 && slope20 >= 0 && dist <= 2.5) {
+      stage = "Coiling"; for (let i = n - 1; i >= n - PRE_LOOK && spreadAt(i) <= 1.5; i--) bars++;
+    }
+    if (!stage) continue;
+    const score = (stage === "Reclaiming" ? 25 : 10) + 20 * clamp(1 - dist / 2.5) + 15 * clamp(1 - (spread - 0.3) / 1.5)
+                + 10 * clamp((1 - squeeze) / 0.4) + 10 * clamp(vr - 1);
+    const flags = [];
+    if (s1d && s1d.dir && s1d.dir !== dir && FULL.includes(s1d.state)) flags.push("Daily trend is the other way");
+    if (vr < 1) flags.push("No volume yet");
+    if (stage === "Reclaiming" && spread > 3) flags.push("MAs still far apart");
+    return { tf, dir, stage, bars, early: true, trig: edge, dist: r2(dist), distPct: r2(Math.abs(edge - p) / p * 100), spread: r2(spread), squeeze: r2(squeeze), vr: r2(vr), score: r1(score), flags };
+  }
+  return null;
+}
+const preBest = r => [r.pre4h, r.pre1h].filter(Boolean).sort((x, y) => y.score - x.score)[0] || null;
 
 async function pool(items, n, fn, onDone) {
   const out = new Array(items.length); let next = 0, done = 0;
@@ -2054,7 +2158,7 @@ async function analyse(c, maFn) {
   const w1 = wickiness(k1h, 48), w4 = wickiness(k4h, 42);
   const wick = w1.pct !== null && w4.pct !== null ? (w1.pct + w4.pct) / 2 : (w1.pct ?? w4.pct);
   const spikes = w1.spikes + w4.spikes;
-  const a4 = aots(k4h, maFn, "4H"), a1 = aots(k1h, maFn, "1H");
+  const a4 = aots(k4h, maFn, "4H"), a1 = aots(k1h, maFn, "1H"), p4 = a4 ? null : preAots(k4h, maFn, "4H", s1d), p1 = a1 ? null : preAots(k1h, maFn, "1H", s1d);
   const rvn = rvolNow(k1h), rvNowPts = clamp(((rvn ?? rvol) - 1)) * 20, lp = locPts(s1h);
   const dayParts = { structure: r1(s1h.pts * 0.8), rvol: r1(rvNowPts), vol: r1(volPts * 0.6), rs: 0, loc: lp };
   const swingParts = { structure: r1(0.5 * s4h.pts + 0.5 * s1d.pts), rvol: r1(rvolPts * 0.8), vol: r1(volPts * 0.6), rs: 0 };
@@ -2062,7 +2166,7 @@ async function analyse(c, maFn) {
   return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
-           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
+           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
            wick: wick === null ? null : r1(wick), spikes, wicky: (wick !== null && wick > WICK_MAX) || spikes >= SPIKE_MAX,
            ret90: k1d.c.length > 91 ? k1d.c.at(-1) / k1d.c.at(-91) - 1 : null, ret30: k1d.c.length > 31 ? k1d.c.at(-1) / k1d.c.at(-31) - 1 : null,
            ...rate(s1h, s4h, s1d, a4, a1), mp: { "1H": maPack(k1h), "4H": maPack(k4h), "1D": maPack(k1d) },
@@ -2178,13 +2282,13 @@ async function ctConnect(cfg = ctCfg()) {
 }
 let ctNextAt = 0;
 async function ctThrottle() { const now = Date.now(), at = Math.max(now, ctNextAt); ctNextAt = at + 230; if (at > now) await sleep(at - now); }   // history limit: 5 requests/s
-async function ctKlines(sym, interval, limit, keepForming = false) {
-  if (interval === "2h") { const k = await ctKlines(sym, "1h", limit * 2 + 2, keepForming), rows = mxAgg(k.t.map((t, i) => [t, k.o[i], k.h[i], k.l[i], k.c[i], k.qv[i]]), 7200e3).slice(-limit);
+async function ctKlines(sym, interval, limit, keepForming = false, toMs = 0) {
+  if (interval === "2h") { const k = await ctKlines(sym, "1h", limit * 2 + 2, keepForming, toMs), rows = mxAgg(k.t.map((t, i) => [t, k.o[i], k.h[i], k.l[i], k.c[i], k.qv[i]]), 7200e3).slice(-limit);
     return { t: rows.map(r => r[0]), o: rows.map(r => r[1]), h: rows.map(r => r[2]), l: rows.map(r => r[3]), c: rows.map(r => r[4]), qv: rows.map(r => r[5]) }; }
   if (CT.state !== "ready") await ctConnect();
   const s = CT.symbols[ctNorm(sym.slice(3))]; if (!s) throw new Error(`${sym.slice(3)} isn't available on this cTrader account`);
   const per = CT_PERIOD[interval], ms = CT_MS[interval]; if (!per) throw new Error(`no ${interval} bars from cTrader`);
-  const to = Date.now(); let span = Math.min(CT_SPAN[interval], Math.max(limit * ms * 2.2, ms * 6)), res = null, lastErr = null;
+  const to = toMs || Date.now(); let span = Math.min(CT_SPAN[interval], Math.max(limit * ms * 2.2, ms * 6)), res = null, lastErr = null;
   for (let i = 0; i < 3 && !res; i++) {
     await ctThrottle();
     try { res = await ctReq(2137, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: s.symbolId, period: per, fromTimestamp: Math.floor(to - span), toTimestamp: to, count: limit + 1 }); }
@@ -2216,6 +2320,38 @@ async function ctScan(maFn) {
     Object.assign(r, { macro: true, ct: true, name: o.name, group: o.group, alias: o.alias || null, tv: ctTV(o.x.symbolName, o.group, o.fb), symbolId: o.x.symbolId,
       chg24h: r.ret24 != null ? r.ret24 * 100 : 0, ref24: r.ret24 != null ? r.price / (1 + r.ret24) : null, rs24: null, rs7: null, sector: null });
     r.mom = momentum(r); return r; }).filter(Boolean);
+}
+/* ---- your cTrader account (read-only): balance and contract specs for position sizing ---- */
+async function ctAccountInfo(force) {
+  if (CT.state !== "ready") await ctConnect();
+  if (!force && CT.info && Date.now() - CT.info.at < 60e3) return CT.info;
+  const id = CT.acct.ctidTraderAccountId, tr = (await ctReq(2121, { ctidTraderAccountId: id })).trader || {};
+  if (!CT.assets) { const al = (await ctReq(2112, { ctidTraderAccountId: id })).asset || []; CT.assets = Object.fromEntries(al.map(a => [a.assetId, a.name || a.displayName])); }
+  const md = tr.moneyDigits != null ? +tr.moneyDigits : 2;
+  CT.info = { at: Date.now(), balance: +(tr.balance || 0) / 10 ** md, ccy: CT.assets[tr.depositAssetId] || "USD", lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
+  return CT.info;
+}
+async function ctSpec(sym) {
+  if (CT.state !== "ready") await ctConnect();
+  const x = CT.symbols[ctNorm(String(sym).replace(/^CT:/, ""))]; if (!x) throw new Error("not on this cTrader account");
+  CT.specs = CT.specs || {}; if (CT.specs[x.symbolId]) return CT.specs[x.symbolId];
+  if (!CT.assets) await ctAccountInfo();
+  const s = ((await ctReq(2116, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: [x.symbolId] })).symbol || [])[0] || {};
+  return CT.specs[x.symbolId] = { lotSize: +(s.lotSize || 10000000), step: +(s.stepVolume || 1000), min: +(s.minVolume || 1000), max: +(s.maxVolume || 0), digits: s.digits,
+    base: CT.assets[x.baseAssetId] || "", quote: CT.assets[x.quoteAssetId] || "" };
+}
+function ctPx(code) {                                      // a broker forex price we already have (for converting profit and loss)
+  const r = MACRO.by["CT:" + code] || Object.values(MACRO.by).find(r => r.ct && ctNorm(coin(r.symbol)) === code); return r && r.price;
+}
+function ctLots(spec, info, entry, stop, riskPct, price) {    // lots for a risk % of the balance, rounded down to the broker's step
+  if (!spec || !info || !(entry > 0) || !(stop > 0) || entry === stop) return null;
+  const A = info.ccy, Q = spec.quote; let f = null, conv = "";
+  if (!Q || Q === A) f = 1;
+  else if (spec.base === A && price > 0) { f = 1 / price; conv = `${Q} profit converted at ${spec.base}${Q} ${fmtNum(price)}`; }
+  else { const qa = ctPx(Q + A), aq = ctPx(A + Q); if (qa) { f = qa; conv = `${Q} → ${A} at ${fmtNum(qa)}`; } else if (aq) { f = 1 / aq; conv = `${Q} → ${A} at ${A}${Q} ${fmtNum(aq)}`; } }
+  const riskAcct = info.balance * riskPct / 100, perUnit = Math.abs(entry - stop) * (f ?? 1);
+  const unitsPerLot = spec.lotSize / 100, rawCents = riskAcct / perUnit * 100, cents = Math.floor(rawCents / spec.step) * spec.step;
+  return { lots: cents / spec.lotSize, units: cents / 100, risk: cents / 100 * perUnit, riskAcct, f, conv, below: cents < spec.min, minLots: spec.min / spec.lotSize, stepLots: spec.step / spec.lotSize, unitsPerLot, ccy: f == null ? Q : A };
 }
 async function ctSubscribe(rows) {
   if (CT.state !== "ready" || !rows.length) return;
@@ -2466,6 +2602,116 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
   return { at: new Date().toISOString(), eth, exchange: EXCHANGE, mode: MODE, market, quote, fellBack, canShort, ma, alts, btc,
            total: coins.length, analysed: results.length, dayPool: dayPoolSyms, day: [], swing: [], all: results };
 }
+
+/* ===================== NBB Watch: the next-base breakout on a lower timeframe (Gold M5, Nasdaq M1), on closed candles ===================== */
+function nbbWatchRead(k, ivMs) {                     // k = closed candles, oldest first. Returns the base / breakout state both ways plus trend context.
+  const n = k.c.length; if (n < 60) return null;
+  const a = atr(k.h, k.l, k.c).at(-1); if (!a) return null;
+  const e20 = ema(k.c, 20), e50 = ema(k.c, 50), e100 = ema(k.c, 100), i = n - 1, rs = rsiSeries(k.c);
+  const stack = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null;
+  let L = null, S = null;
+  try { L = nbbLong(k, a); } catch (e) {}
+  try { const m = nbbLong(mirror(k), a); S = m ? unmirror(m) : null; } catch (e) {}
+  const fix = (m, dir) => m && { ...m, dir, tClose: m.trig ? k.t[n - 1] + ivMs : null };
+  L = fix(L, "Long"); S = fix(S, "Short");
+  const trig = [L, S].find(m => m && m.trig) || null, missed = [L, S].find(m => m && m.missed) || null;
+  const base = L && L.state === "Basing" ? L : S && S.state === "Basing" ? S : null;
+  return { atr: a, stack, rsi: rs[i], e20: e20[i], e50: e50[i], e100: e100[i], close: k.c[i], t: k.t[i], trig, missed,
+    base: base && { len: base.baseLen, hi: Math.max(base.zoneHi, base.zoneLo), lo: Math.min(base.zoneHi, base.zoneLo), tall: (Math.abs(base.zoneHi - base.zoneLo) / a) },
+    state: trig ? "trigger" : base ? "basing" : missed ? "missed" : "none" };
+}
+function nbbOutcome(sig, k) {                       // how a triggered signal has done since: 3R hit, stopped, or open (+R so far)
+  if (!sig || sig.entry == null || sig.stop == null) return null;
+  const long = sig.dir === "Long", R = Math.abs(sig.entry - sig.stop), t3 = long ? sig.entry + 3 * R : sig.entry - 3 * R;
+  let best = 0;
+  for (let i = 0; i < k.t.length; i++) { if (k.t[i] < sig.tClose) continue;
+    if (long ? k.l[i] <= sig.stop : k.h[i] >= sig.stop) return { st: "stopped", r: -1 };
+    if (long ? k.h[i] >= t3 : k.l[i] <= t3) return { st: "3R", r: 3 };
+    best = Math.max(best, (long ? k.h[i] - sig.entry : sig.entry - k.l[i]) / R); }
+  const last = k.c.at(-1); return { st: "open", r: (long ? last - sig.entry : sig.entry - last) / R, best };
+}
+
+/* ===================== Economic calendar helpers (Forex Factory's weekly feed) and US index market structure ===================== */
+const FF_TYPES = [["Growth", /\b(GDP|Retail Sales|Industrial Production|Manufacturing Production|Trade Balance|Current Account|Factory Orders|Durable Goods|Capacity Utilization|Business Inventories|Wholesale|Construction Spending|Leading Index|Core Retail)\b/i],
+  ["Inflation", /\b(CPI|PPI|PCE|Inflation|Price Index|Prices|HICP|Import Prices|Employment Cost|Wage|Earnings)\b/i],
+  ["Employment", /\b(Non-Farm|NFP|Employment|Unemployment|Jobless|Claims|Payrolls|ADP|JOLTS|Job Openings|Claimant|Labor|Jobs)\b/i],
+  ["Central Bank", /\b(Rate Statement|Rate Decision|Monetary Policy|FOMC|Federal Funds|Cash Rate|Official Bank Rate|Main Refinancing|Overnight Rate|Policy Rate|Minutes|Press Conference|Rate Report|MPC|Bank Rate|BOJ|ECB|SNB|RBA|RBNZ|BOC|Interest Rate)\b/i],
+  ["Bonds", /\b(Bond Auction|Note Auction|Bill Auction|Auction|Bund|Gilt|T-Note|Treasury)\b/i],
+  ["Housing", /\b(Housing|Home|Building Permits|Pending Home|Mortgage|House Price|NAHB|Construction)\b/i],
+  ["Consumer Surveys", /\b(Consumer Confidence|Consumer Sentiment|Inflation Expectations|Consumer Climate|GfK|Westpac)\b/i],
+  ["Business Surveys", /\b(PMI|ISM|ZEW|Ifo|Philly Fed|Empire State|Business Confidence|Tankan|KOF|NFIB|Richmond|Chicago|Business Outlook|Sentix)\b/i],
+  ["Speeches", /\b(Speaks|Testifies|Speech|Remarks)\b/i]];
+function ffType(title) {                             // Forex Factory's own types aren't in its feed: read them from the title
+  if (/Speaks|Testifies|Speech/i.test(title)) return "Speeches";
+  if (/Minutes|Statement|Press Conference|Rate Decision|Federal Funds|Monetary Policy|Cash Rate|Bank Rate|Policy Rate|Overnight Rate|Main Refinancing/i.test(title)) return "Central Bank";
+  for (const [t, re] of FF_TYPES) if (re.test(title)) return t;
+  return "Misc";
+}
+const FF_IMPACT = { High: 3, Medium: 2, Low: 1, Holiday: 0, "Non-Economic": 0 };
+function ffNorm(list) {                             // Forex Factory feed rows → { id, at, ccy, title, impact, type, forecast, previous }
+  return (Array.isArray(list) ? list : []).map(x => { const at = Date.parse(x.date); if (!isFinite(at)) return null;
+    const impact = x.impact === "Holiday" ? "Holiday" : x.impact === "Non-Economic" ? "Holiday" : x.impact;
+    return { id: `${x.country}|${x.title}|${at}`, at, ccy: x.country, title: x.title, impact, type: impact === "Holiday" ? "Misc" : ffType(x.title), forecast: x.forecast || "", previous: x.previous || "" }; })
+    .filter(Boolean).sort((a, b) => a.at - b.at);
+}
+// Fed meetings (two-day meetings; the decision is at 2:00 PM New York time on the second day). Source: federalreserve.gov schedule (2027 tentative).
+const FOMC_DATES = ["2026-01-28", "2026-03-18", "2026-04-29", "2026-06-17", "2026-07-29", "2026-09-16", "2026-10-28", "2026-12-09",
+  "2027-01-27", "2027-03-17", "2027-04-28", "2027-06-09", "2027-07-28", "2027-09-15", "2027-10-27", "2027-12-08"];
+const FOMC_SEP = new Set(["2026-03-18", "2026-06-17", "2026-09-16", "2026-12-09", "2027-03-17", "2027-06-09", "2027-09-15", "2027-12-08"]);
+function nyAt(y, m, d, hh = 9, mm = 30) {           // a New York wall-clock time → UTC ms (daylight saving handled)
+  const guess = Date.UTC(y, m - 1, d, hh, mm);
+  const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" })
+    .formatToParts(new Date(guess)).forEach(x => p[x.type] = x.value);
+  const off = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - guess;
+  return guess - off;
+}
+const ymd = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+function nthWd(y, m, wd, n) { const first = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); return 1 + ((wd - first + 7) % 7) + 7 * (n - 1); }
+function lastWd(y, m, wd) { const days = new Date(Date.UTC(y, m, 0)).getUTCDate(), last = new Date(Date.UTC(y, m - 1, days)).getUTCDay(); return days - ((last - wd + 7) % 7); }
+function easter(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
+  i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1; return [mo, da]; }
+function usHolidays(y) {                              // NYSE full closes and 1 PM early closes (rules; one-off closures are not included)
+  const obs = (m, d) => { const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); const t = new Date(Date.UTC(y, m - 1, d + (wd === 6 ? -1 : wd === 0 ? 1 : 0))); return [t.getUTCMonth() + 1, t.getUTCDate()]; };
+  const [em, ed] = easter(y), gf = new Date(Date.UTC(y, em - 1, ed - 2));
+  const H = [["New Year's Day", ...(new Date(Date.UTC(y, 0, 1)).getUTCDay() === 6 ? [null, null] : obs(1, 1))], ["Martin Luther King Jr. Day", 1, nthWd(y, 1, 1, 3)], ["Presidents' Day", 2, nthWd(y, 2, 1, 3)],
+    ["Good Friday", gf.getUTCMonth() + 1, gf.getUTCDate()], ["Memorial Day", 5, lastWd(y, 5, 1)], ["Juneteenth", ...obs(6, 19)], ["Independence Day", ...obs(7, 4)],
+    ["Labor Day", 9, nthWd(y, 9, 1, 1)], ["Thanksgiving", 11, nthWd(y, 11, 4, 4)], ["Christmas", ...obs(12, 25)]].filter(h => h[1]);
+  const early = [];
+  const jul3 = new Date(Date.UTC(y, 6, 3)).getUTCDay(); if (jul3 >= 1 && jul3 <= 4) early.push(["Day before Independence Day", 7, 3]);
+  early.push(["Day after Thanksgiving", 11, nthWd(y, 11, 4, 4) + 1]);
+  const d24 = new Date(Date.UTC(y, 11, 24)).getUTCDay(); if (d24 >= 1 && d24 <= 4) early.push(["Christmas Eve", 12, 24]);
+  return { closed: H.map(([n, m, d]) => ({ n, m, d })), early: early.map(([n, m, d]) => ({ n, m, d })) };
+}
+function usMarketEvents(fromMs, toMs) {             // OPEX, quad witching + Nasdaq-100 rebalance, VIX expiry, holidays, early closes, Fed meetings and blackouts
+  const out = [], y0 = new Date(fromMs).getUTCFullYear(), add = (at, title, impact, type, note) => { if (at >= fromMs && at <= toMs) out.push({ id: `US|${title}|${at}`, at, ccy: "USD", title, impact, type, note, src: "struct" }); };
+  for (let y = y0 - 1; y <= y0 + 1; y++) {
+    const hol = usHolidays(y), isHol = (m, d) => hol.closed.some(h => h.m === m && h.d === d);
+    for (let m = 1; m <= 12; m++) {
+      let d = nthWd(y, m, 5, 3); if (isHol(m, d)) d -= 1;                                  // third Friday (Thursday if it's a holiday)
+      const quad = m % 3 === 0;
+      add(nyAt(y, m, d, 9, 30), quad ? "Quad witching (stock + index options and futures expire)" : "Monthly options expiration (OPEX)", quad ? "High" : "Medium", "Options & flows",
+        quad ? "Huge options and futures expiry: volume spikes and pinning near big strikes, sharp moves into the close." : "Monthly options expire: pinning near big strikes, dealer hedging unwinds after.");
+      if (quad) add(nyAt(y, m, d, 16, 0), `Nasdaq-100 ${m === 12 ? "annual reconstitution" : "quarterly rebalance"} (effective after the close)`, m === 12 ? "High" : "Medium", "Options & flows",
+        m === 12 ? "Index adds and drops are traded at the close: big closing auction flows." : "Index weights reset at the close: closing auction flows in the heavyweights.");
+      // VIX expiry: the Wednesday 30 days before the next month's third-Friday S&P options expiry
+      const nm = m === 12 ? 1 : m + 1, ny = m === 12 ? y + 1 : y, fri = nthWd(ny, nm, 5, 3), vd = new Date(Date.UTC(ny, nm - 1, fri - 30));
+      add(nyAt(vd.getUTCFullYear(), vd.getUTCMonth() + 1, vd.getUTCDate(), 9, 30), "VIX futures and options expiration", "Low", "Options & flows", "Volatility products settle at the open: can jolt the open.");
+    }
+    hol.closed.forEach(h => add(nyAt(y, h.m, h.d, 9, 30), `US market closed: ${h.n}`, "Holiday", "Holidays", "NYSE and Nasdaq closed; index CFDs trade thin or not at all."));
+    hol.early.forEach(h => add(nyAt(y, h.m, h.d, 13, 0), `US early close 1 PM New York: ${h.n}`, "Holiday", "Holidays", "Stocks close at 1 PM New York: thin liquidity."));
+  }
+  FOMC_DATES.forEach(s => { const [y, m, d] = s.split("-").map(Number), at = nyAt(y, m, d, 14, 0);
+    add(at, `FOMC rate decision${FOMC_SEP.has(s) ? " + projections (dot plot)" : ""}`, "High", "Central Bank", "Statement at 2:00 PM New York, Powell's press conference at 2:30 PM.");
+    const bs = new Date(Date.UTC(y, m - 1, d - 1)); bs.setUTCDate(bs.getUTCDate() - ((bs.getUTCDay() + 1) % 7) - 7);      // second Saturday before the meeting
+    add(nyAt(bs.getUTCFullYear(), bs.getUTCMonth() + 1, bs.getUTCDate(), 0, 0), "Fed blackout begins (no Fed speakers until after the meeting)", "Low", "Central Bank", "Fed officials stop speaking publicly until the day after the decision.");
+  });
+  return out.sort((a, b) => a.at - b.at);
+}
+// Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
+const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO", "TSLA", "NFLX", "COST"];
+const NDX_T2 = ["AMD", "PLTR", "ASML", "TMUS", "CSCO", "PEP", "LIN", "INTU", "ISRG", "AMGN", "ADBE", "QCOM", "TXN", "BKNG", "AMAT", "MU", "LRCX", "KLAC", "ADI", "PANW", "SHOP", "ARM", "APP",
+  "CMCSA", "HON", "ADP", "VRTX", "GILD", "SBUX", "MELI", "CRWD", "INTC", "MSTR", "CDNS", "SNPS", "MRVL", "ABNB", "PYPL", "FTNT", "ORLY", "CTAS", "MAR", "REGN", "WDAY", "DASH", "TTD", "DDOG"];
+function earnImpact(sym, capUsd) { return NDX_T1.includes(sym) ? "High" : NDX_T2.includes(sym) || capUsd >= 300e9 ? "Medium" : "Low"; }
 </script>
 <script>/* ===================== UI ===================== */
 const $ = id => document.getElementById(id);
@@ -2618,6 +2864,41 @@ function aotsList() {
   });
   return capSectors(out.sort((x, y) => y.a.score - x.a.score));
 }
+function preList() {
+  const tf = $("aotsTf").value, hw = hideWicky(), out = [];
+  data.all.forEach(r => {
+    if (r.vol24h < AOTS_MIN_VOL || (hw && r.wicky) || !passBoards(r)) return;
+    const opts = [r.pre4h, r.pre1h].filter(a => a && (!tf || a.tf === tf) && dirOK(a.dir) && (a.dir === "Long" || data.canShort));
+    if (!opts.length) return;
+    const a = opts.sort((x, y) => (y.stage === "Reclaiming") - (x.stage === "Reclaiming") || y.score - x.score)[0];
+    out.push({ symbol: r.symbol, a, flags: a.flags });
+  });
+  return capSectors(out.sort((x, y) => (y.a.stage === "Reclaiming") - (x.a.stage === "Reclaiming") || y.a.score - x.a.score));
+}
+const preLine = a => `${a.tf} ${a.stage} · ${a.dist} ATR (${a.distPct}%) to the break at ${fmtPrice(a.trig)} · MAs ${a.spread} ATR apart${a.stage === "Coiling" ? ` · ATR at ${Math.round(a.squeeze * 100)}% of normal` : ` · ${a.bars} ${a.bars === 1 ? "close" : "closes"} back ${a.dir === "Long" ? "over" : "under"} the 20 and 50`}`;
+function renderPre() {
+  const el = $("preBoard"); if (!el) return; const list = preList().slice(0, 5);
+  if (!list.length) { el.innerHTML = `<div class="empty">Nothing reclaiming or coiling right now.</div>`; return; }
+  el.innerHTML = list.map((e, i) => rowHTML(i, e.symbol, e.a.dir, e.a.score, preLine(e.a),
+    (e.a.stage === "Reclaiming" ? `<span class="tag trade">Reclaiming</span>` : `<span class="tag">Coiling</span>`) + flagTags(e.flags), false)).join("");
+  bindRows(el);
+}
+const PRE_SEEN = "finder-pre-seen";
+function aotsPromotions() {                          // a coin that was on deck and has now broken out: tell me
+  if (!data || !data.all) return;
+  let st = {}; try { st = JSON.parse(localStorage.getItem(PRE_SEEN) || "{}"); } catch (e) {}
+  st.pre = st.pre || {}; st.sent = st.sent || {}; const now = Date.now(), first = !Object.keys(st.pre).length;
+  [st.pre, st.sent].forEach(o => Object.keys(o).forEach(k => { if (now - o[k] > 3 * 864e5) delete o[k]; }));
+  data.all.forEach(r => {
+    [r.pre4h, r.pre1h].forEach(a => { if (a && a.stage === "Reclaiming") st.pre[`${r.symbol}|${a.tf}|${a.dir}`] = now; });
+    if (first) return;
+    [r.aots4h, r.aots1h].forEach(a => { if (!a) return; const k = `${r.symbol}|${a.tf}|${a.dir}`;
+      if (!st.pre[k] || st.sent[k] || r.vol24h < AOTS_MIN_VOL) return; st.sent[k] = now;
+      ncAdd({ sym: r.symbol, kind: "Breakouts", icon: "🌟", tone: a.dir === "Long" ? "up" : "down", title: `${coin(r.symbol)} went from Reclaiming to ${a.stage} on the ${a.tf}`,
+        detail: `${a.dir} · MAs were ${a.spread} ATR apart · break volume ${a.vr}× · wait for the first ${a.dir === "Long" ? "base or pullback" : "base or rally"}` }); });
+  });
+  try { localStorage.setItem(PRE_SEEN, JSON.stringify(st)); } catch (e) {}
+}
 function renderAots() {
   const el = $("aotsBoard"), list = aotsList().slice(0, 5);
   if (!list.length) { el.innerHTML = `<div class="empty">${dirSel() === "Short" && !data.canShort ? "Spot can't be shorted. Switch Market to Futures for short setups." : activeFilters().length && FS.boards ? "No AOTS break passes your filters." : "No fresh AOTS break right now. Re-scan after the next 4H close."}</div>`; return; }
@@ -2626,7 +2907,7 @@ function renderAots() {
     (e.a.stage === "Fresh AOTS" ? `<span class="tag trade">Fresh AOTS</span>` : `<span class="tag">Breaking out</span>`) + flagTags(e.flags), false)).join("");
   bindRows(el);
 }
-function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAots(); if (typeof renderSessions === "function" && data && data.env) { renderSessions(); renderMomentum(); } }
+function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAots(); renderPre(); try { aotsPromotions(); } catch (e) {} if (typeof renderSessions === "function" && data && data.env) { renderSessions(); renderMomentum(); } }
 
 /* ---- why it's moving + fundamentals in the coin panel ---- */
 const drvCache = {};
@@ -2808,7 +3089,7 @@ function testFilter(r, f) {
       return { mom_up: v != null && v >= 70, pre_up: v != null && v >= 60, neutral: v != null && v > 40 && v < 60, pre_dn: v != null && v <= 40, mom_dn: v != null && v <= 30,
                div_bull: dv === "bull", div_bear: dv === "bear", cross_up: cx === "up60", cross_dn: cx === "down40" }[f.cond];
     }
-    case "aots": return [r.aots4h, r.aots1h].some(a => a && (f.tf === "any" || a.tf === f.tf) && (f.dir === "any" || a.dir === f.dir) && (f.stage === "any" || a.stage === f.stage));
+    case "aots": return [r.aots4h, r.aots1h, r.pre4h, r.pre1h].filter(a => a && (!a.early || f.stage === "Reclaiming" || f.stage === "Coiling")).some(a => a && (f.tf === "any" || a.tf === f.tf) && (f.dir === "any" || a.dir === f.dir) && (f.stage === "any" || a.stage === f.stage));
     case "rating": return f.set.includes(r.rating);
     case "num": {
       const v = NUM[f.field].get(r); if (v === null || v === undefined || Number.isNaN(v)) return false;
@@ -2860,7 +3141,7 @@ function editorHTML(f, i) {
     case "momo": return `<div class="fx">${sel(i, "stage", [["any", "Any stage"], ["momentum", "In momentum (RSI 70+)"], ["awaiting", "Awaiting momentum"], ["breakout", "Breaking out"]], f.stage, "Stage")}</div>`;
     case "rot": return `<div class="fx">${sel(i, "tier", [["any", "Any cap"], ["Large", "Large caps (top 20)"], ["Mid", "Mid caps (21–100)"], ["Small", "Small caps"]], f.tier, "Cap tier")}${sel(i, "status", [["any", "Any"], ["Leader", "Leaders"], ["Turning", "Turning"], ["In line", "In line"], ["Fading", "Fading leaders"], ["Holding up", "Holding up (falling less than BTC)"], ["Laggard", "Laggards"]], f.status, "Versus BTC")}</div>`;
     case "rsi": return `<div class="fx">${sel(i, "tf", [["h1", "1 hour"], ["h4", "4 hours"], ["d1", "1 day"]], f.tf, "Timeframe")}${sel(i, "cond", RSI_CONDS, f.cond, "Condition")}</div>`;
-    case "aots": return `<div class="fx">${sel(i, "tf", [["any", "4H or 1H"], ["4H", "4H"], ["1H", "1H"]], f.tf, "Timeframe")}${sel(i, "dir", [["Long", "Long"], ["Short", "Short"], ["any", "Either way"]], f.dir, "Direction")}${sel(i, "stage", [["any", "Any stage"], ["Breaking out", "Breaking out"], ["Fresh AOTS", "Fresh AOTS"]], f.stage, "Stage")}</div>`;
+    case "aots": return `<div class="fx">${sel(i, "tf", [["any", "4H or 1H"], ["4H", "4H"], ["1H", "1H"]], f.tf, "Timeframe")}${sel(i, "dir", [["Long", "Long"], ["Short", "Short"], ["any", "Either way"]], f.dir, "Direction")}${sel(i, "stage", [["any", "Any stage"], ["Coiling", "Coiling (pre)"], ["Reclaiming", "Reclaiming (pre)"], ["Breaking out", "Breaking out"], ["Fresh AOTS", "Fresh AOTS"]], f.stage, "Stage")}</div>`;
     case "rating": return `<div class="fx wrap">${RATINGS.map(rt => `<label class="mini"><input type="checkbox" data-i="${i}" data-set="${rt}" ${f.set.includes(rt) ? "checked" : ""}>${rt}</label>`).join("")}</div>`;
     case "session": return `<div class="fx wrap">${["Asia", "London", "NY AM"].map(s => `<label class="mini"><input type="checkbox" data-i="${i}" data-set="${s}" ${f.set.includes(s) ? "checked" : ""}>${sessLabel(s)}</label>`).join("")}</div>`;
     case "num": return `<div class="fx">${sel(i, "op", [[">", "Greater than"], ["<", "Less than"], ["between", "Between"]], f.op, "Operator")}
@@ -3399,6 +3680,11 @@ function coinPlay(r) {
       play = { kind: "watch", model: "NBB", dir: a.dir, head: `Early trend (AOTS ${a.tf}): wait for the first ${a.dir === "Long" ? "base or pullback" : "base or rally"}`,
         text: `Price just broke ${a.dir === "Long" ? "above" : "below"} the 20, 50 and 100. Don't chase${Math.abs(a.ext) > 2 ? ` while it's ${Math.abs(a.ext).toFixed(1)} ATR from the 20` : ""}: the play is the 1st base (NBB) or the first pullback into the OEZ (Bounce)${ema20 ? `, around the 1H 20 at ${L(ema20)}` : ""}.`,
         short: `Early ${a.dir === "Long" ? "▲" : "▼"}: wait for 1st base` };
+    } else if (preBest(r) && preBest(r).stage === "Reclaiming") {
+      const q = preBest(r);
+      play = { kind: "watch", model: "NBB", dir: q.dir, head: `Pre-AOTS (${q.tf}): reclaiming, ${q.dist} ATR from the break`,
+        text: `Back ${q.dir === "Long" ? "over" : "under"} the 20 and 50 after being on the other side of all three. Nothing to trade yet: the AOTS comes with a close ${q.dir === "Long" ? "above" : "below"} ${fmtPrice(q.trig)}. Set an alert there; the play after the break is the 1st base (NBB).`,
+        short: `Pre-AOTS ${q.dir === "Long" ? "▲" : "▼"}: alert ${fmtPrice(q.trig)}` };
     } else if ((bull1 || bear1) && Math.abs(ext) > 3) {
       const d = bull1 ? "Long" : "Short";
       play = { kind: "watch", model: "Bounce", dir: d, head: `Stretched: wait for a ${d === "Long" ? "pullback" : "rally"} (Bounce watch)`,
@@ -3585,6 +3871,7 @@ const fmtQty = q => q >= 1000 ? q.toFixed(0) : q >= 10 ? q.toFixed(2) : q >= 1 ?
 const fmtUsd = v => "$" + (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-US") : v.toFixed(2));
 function renderCalc(r) {
   const el = $("cBox"); if (!el) return;
+  if (r.symbol && r.symbol.startsWith("CT:") && typeof ctLots === "function") { renderCalcCT(r, el); return; }
   const p = coinPlay(r), m = p.lv;
   const entry = m && m.entry != null ? m.entry : r.price;
   const stop = m && m.stop != null ? m.stop : (p.dir === "Short" ? r.price + 1.5 * (r.atr1h || 0) : r.price - 1.5 * (r.atr1h || 0));
@@ -3616,6 +3903,29 @@ function renderCalc(r) {
   ["cAcct", "cRisk", "cEntry", "cStop", "cLev"].forEach(id => $(id).oninput = calc);
   el.querySelectorAll("[data-risk]").forEach(b => b.onclick = () => { $("cRisk").value = b.dataset.risk; calc(); });
   calc();
+}
+function renderCalcCT(r, el) {                     // your broker account: lots from the risk % of your real balance
+  const p = coinPlay(r), m = p.lv, entry = m && m.entry != null ? m.entry : r.price;
+  const stop = m && m.stop != null ? m.stop : (p.dir === "Short" ? r.price + 1.5 * (r.atr1h || 0) : r.price - 1.5 * (r.atr1h || 0));
+  el.innerHTML = `<div class="cgrid"><label>Risk %<input type="number" step="0.05" id="cRisk" value="${RISK.risk}"></label>
+      <label>Entry<input type="number" step="any" id="cEntry" value="${+entry.toPrecision(7)}"></label><label>Stop<input type="number" step="any" id="cStop" value="${+stop.toPrecision(7)}"></label></div>
+    <div class="cchips"><span class="meta">Risk</span>${[0.5, 0.75, 1, 1.5].map(x => `<button class="qchip ${RISK.risk == x ? "on" : ""}" data-risk="${x}">${x}%</button>`).join("")}</div>
+    <div id="cOut"><div class="meta">Reading your ${xEsc(CT.broker || "broker")} account…</div></div>
+    <p class="meta crules">Balance and contract size come from your cTrader account (read-only). Lots are rounded down to your broker's step.${m ? "" : " No setup here: stop defaults to 1.5× the 1H ATR."}</p>`;
+  let info = null, spec = null;
+  const calc = () => {
+    RISK.risk = +$("cRisk").value || 1; riskSave(); el.querySelectorAll("[data-risk]").forEach(b => b.classList.toggle("on", RISK.risk == +b.dataset.risk));
+    if (!info || !spec) return; const e = +$("cEntry").value, s = +$("cStop").value, z = ctLots(spec, info, e, s, RISK.risk, r.price), out = $("cOut");
+    if (!z) { out.innerHTML = `<div class="meta">Enter an entry and a stop.</div>`; return; }
+    const R1 = Math.abs(e - s), long = e > s, money = v => `${v.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${z.ccy}`;
+    out.innerHTML = `<div class="cres"><div><b>${z.below ? `Below the minimum (${z.minLots} lots)` : z.lots.toFixed(2) + " lots"}</b> ${long ? "long" : "short"} <span class="mute">(${z.units.toLocaleString("en-US")} units · step ${z.stepLots} lots)</span></div>
+      <div>Risk <b>${money(z.risk)}</b> of ${info.balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${info.ccy} (${RISK.risk}% = ${money(z.riskAcct)} target)${z.f == null ? ` <span class="dn">· couldn't convert ${spec.quote} to ${info.ccy}: amounts in ${spec.quote}</span>` : z.conv ? ` <span class="mute">· ${z.conv}</span>` : ""}</div>
+      <div>2R ${fmtPrice(long ? e + 2 * R1 : e - 2 * R1)} <span class="up">+${money(z.risk * 2)}</span> · 3R ${fmtPrice(long ? e + 3 * R1 : e - 3 * R1)} <span class="up">+${money(z.risk * 3)}</span></div></div>`;
+  };
+  ["cRisk", "cEntry", "cStop"].forEach(id => $(id).oninput = calc);
+  el.querySelectorAll("[data-risk]").forEach(b => b.onclick = () => { $("cRisk").value = b.dataset.risk; calc(); });
+  Promise.all([ctAccountInfo(true), ctSpec(r.symbol)]).then(([a, b]) => { info = a; spec = b; if ($("cOut")) calc(); })
+    .catch(e => { if ($("cOut")) $("cOut").innerHTML = `<div class="meta dn">Couldn't read your account: ${xEsc(e.message || String(e))}.</div>`; });
 }
 function sizeText(m) {
   if (!RISK.account || !m || m.entry == null || m.stop == null) return "";
@@ -3891,7 +4201,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.12.1408";
+const APP_VERSION = "2026.10.14.1029";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5255,6 +5565,10 @@ const C = {
   s4h:    { t: "4H", l: true, v: r => r.s4h.pts, h: r => chip(r.s4h) },
   s1d:    { t: "1D", l: true, v: r => r.s1d.pts, h: r => chip(r.s1d) },
   aots:   { t: "AOTS", l: true, v: r => Math.max(r.aots4h ? r.aots4h.score : 0, r.aots1h ? r.aots1h.score : 0), h: r => aotsTags(r) },
+  pre:    { t: "Pre-AOTS", l: true, v: r => { const a = preBest(r); return a ? (a.stage === "Reclaiming" ? 100 : 0) + a.score : 0; },
+            h: r => { const a = preBest(r); return a ? `<span class="tag ${a.dir === "Long" ? "long" : "short"}">${a.tf} ${a.stage === "Reclaiming" ? "reclaiming" : "coiling"}</span> <span class="mute">${a.score}</span>` : '<span class="mute">—</span>'; } },
+  pdist:  { t: "To the Break", v: r => { const a = preBest(r); return a ? -a.dist : -99; },
+            h: r => { const a = preBest(r); return a ? `<b>${a.dist}</b> ATR <span class="mute">${a.distPct}% · ${fmtPrice(a.trig)}</span>` : "—"; } },
   stage:  { t: "AOTS Score", v: r => Math.max(r.aots4h ? r.aots4h.score : 0, r.aots1h ? r.aots1h.score : 0), h: r => { const a = [r.aots4h, r.aots1h].filter(Boolean).sort((x, y) => y.score - x.score)[0]; return a ? `<b>${a.score}</b> <span class="mute">${a.bars} candles</span>` : "—"; } },
   rvol:   { t: "Rel Volume", v: r => r.rvol, h: r => `${r.rvol.toFixed(2)}×` },
   rvn:    { t: "RVOL Now", v: r => r.rvolNow ?? -1, h: r => r.rvolNow == null ? '<span class="mute">—</span>' : `<span class="${r.rvolNow >= 1.5 ? "up" : ""}">${r.rvolNow.toFixed(2)}×</span>` },
@@ -5292,6 +5606,8 @@ const TABS = [
     f: r => !!r.swingDir && r.vol24h >= SWING_MIN_VOL },
   { id: "aots", label: "Trend Starting", cols: ["inst","price","chg","vol","aots","stage","rvol","wick","rating"], sort: "stage",
     f: r => !!(r.aots4h || r.aots1h) && r.vol24h >= AOTS_MIN_VOL },
+  { id: "preaots", label: "Pre-AOTS", cols: ["inst","price","chg","vol","pre","pdist","rvol","wick","rating"], sort: "pre",
+    f: r => !!(r.pre4h || r.pre1h) && r.vol24h >= AOTS_MIN_VOL },
   { id: "models", label: "Models", cols: ["inst","price","chg","vol","mdl","mplan","play","rating"], sort: "mdl", f: r => (r.models || []).length > 0 },
   { id: "rotation", label: "Money Flow", cols: ["inst","price","chg","vol","tier","rel30","rs7","rs","rot","s1d","mom","play","rating"], sort: "rel30" },
   { id: "momentum", label: "Momentum", cols: ["inst","price","chg","momo","mom","rsi1h","rsi4h","rsi1d","rsisig","rvn","rs","aots","play","rating"], sort: "mom" },
@@ -5441,6 +5757,7 @@ function claudeText() {
   t += data.day.map((p, i) => { const r = bySym[p.symbol]; return `${i + 1}. ${p.symbol} ${p.dir} | ${r.rating} | score ${p.score} | ${p.status}${dr(r)} | 1H ${r.s1h.state}, 4H ${r.s4h.state} | RVOL now ${r.rvolNow ?? "n/a"}x | vs BTC 24h ${fmtRS(r.rs24)} | D-ATR ${r.atrPct}% | wick ${r.wick}% | max lev ${r.maxLev ?? "n/a"}x | funding ${fmtFund(r.funding)} | best session ${r.session}${p.flags.length ? " | " + p.flags.join(", ") : ""}`; }).join("\n") || "None.";
   t += `\n\nSWING (4H + Daily aligned)\n` + (data.swing.map((p, i) => { const r = bySym[p.symbol]; return `${i + 1}. ${p.symbol} ${p.dir} | ${r.rating} | score ${p.score}${dr(r)} | 4H ${r.s4h.state}, D ${r.s1d.state} | RVOL ${r.rvol}x | wick ${r.wick}%${p.flags.length ? " | " + p.flags.join(", ") : ""}`; }).join("\n") || "None.");
   t += `\n\nTREND STARTING (AOTS)\n` + (aotsList().slice(0, 5).map((e, i) => { const r = bySym[e.symbol]; return `${i + 1}. ${e.symbol} ${e.a.tf} ${e.a.dir} | ${r.rating} | ${e.a.stage}, ${e.a.bars} candles in | score ${e.a.score}${dr(r)} | MAs ${e.a.spread} ATR apart before break | break vol ${e.a.vr}x | wick ${r.wick}%${e.flags.length ? " | " + e.flags.join(", ") : ""}`; }).join("\n") || "None.");
+  t += `\n\nON DECK (PRE-AOTS)\n` + (preList().slice(0, 5).map((e, i) => { const r = bySym[e.symbol]; return `${i + 1}. ${e.symbol} ${e.a.tf} ${e.a.dir} | ${e.a.stage} | ${e.a.dist} ATR (${e.a.distPct}%) to break at ${fmtPrice(e.a.trig)} | MAs ${e.a.spread} ATR apart | vol ${e.a.vr}x${e.flags.length ? " | " + e.flags.join(", ") : ""}`; }).join("\n") || "None.");
   const trig = data.all.filter(r => r.vol24h >= 10e6 && (r.models || []).some(m => m.trig)).sort((a, b) => b.vol24h - a.vol24h).slice(0, 10);
   t += `\n\nMODEL SETUPS (triggered, $10M+ volume)\n` + (trig.map((r, i) => `${i + 1}. ${r.symbol} | ` + r.models.filter(m => m.trig).map(m => `${m.model} ${m.dir} ${m.state} (${m.tf})${m.entry != null ? ` E ${fmtPrice(m.entry)}` : ""}${m.stop != null ? ` S ${fmtPrice(m.stop)}` : ""}${m.t2 != null ? ` T ${fmtPrice(m.t2)}` : ""}${m.baseNo ? ` base#${m.baseNo}` : ""}${m.sweep ? " swept" : ""}`).join("; ")).join("\n") || "None.");
   const sc = scoreRows("model").filter(x => x.done);
@@ -5495,7 +5812,7 @@ function loadPrefs() { try { const p = JSON.parse(localStorage.getItem("altscan3
 
 $("runBtn").onclick = run;
 ["exF", "market", "quote", "minVol", "maType", "alts"].forEach(id => $(id).onchange = () => { savePrefs(); run(); });
-$("aotsTf").onchange = () => { savePrefs(); if (data) renderAots(); };
+$("aotsTf").onchange = () => { savePrefs(); if (data) { renderAots(); renderPre(); } };
 $("dirF").onchange = () => { savePrefs(); if (data) { renderBoards(); renderPlaybook(); renderTable(); renderQuick(); } };
 $("wickF").onchange = () => { savePrefs(); if (data) { renderBoards(); renderTable(); renderPlaybook(); } };
 $("rateF").onchange = renderTable;
@@ -5526,7 +5843,7 @@ run();
 /* ===================== Notification center: bell + drawer + toast cards ===================== */
 const NC_KEY = "finder-notifs", NC_DAYS = 7, NC_STATE = { filter: "All", ctErr: null, toasts: [] };
 const NC_TONE = { up: "var(--green)", down: "var(--red)", gold: "var(--accent)", blue: "var(--blue)", warn: "var(--amber)" };
-const NC_KINDS = ["All", "Breakouts", "Setups", "Price", "Bots", "System"];
+const NC_KINDS = ["All", "NBB Watch", "News", "Breakouts", "Setups", "Price", "Bots", "System"];
 let NC = [];
 try { NC = JSON.parse(localStorage.getItem(NC_KEY) || "[]"); } catch (e) { NC = []; }
 const ncSave = () => { try { localStorage.setItem(NC_KEY, JSON.stringify(NC)); } catch (e) {} };
@@ -5637,9 +5954,9 @@ ncPrune(); ncSave(); ncRenderBell();
 
 /* ===================== The Finder: sidebar pages ===================== */
 const PAGES = [
-  { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"]] },
+  { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
-  { g: "FOREX · METALS · INDICES", items: [["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
+  { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
   { g: "MY TRADING", items: [["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
@@ -5672,6 +5989,8 @@ function goPage(id, keepTab) {
   }
   renderNav();
   if (MACRO_PAGES.includes(id)) { if (id !== "macro") renderMacroBoards(); macroScan(false).catch(() => {}); }
+  if (id === "nbbwatch" && typeof nwShown === "function") nwShown();
+  if (id === "calendar" && typeof calShown === "function") calShown();
   if (typeof chPageShown === "function") chPageShown(id === "charts");
   if (changed) window.scrollTo(0, 0);
   // charts sized while hidden need a nudge once their page shows
@@ -6108,6 +6427,8 @@ function openCTSettings() {
       <label>Client Secret<input id="ctSecret" type="password" autocomplete="off" value="${esc(c.clientSecret)}"></label>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${a.brokerTitleShort || "Broker"} ${a.isLive ? "live" : "demo"} ${a.traderLogin || a.ctidTraderAccountId}</option>`).join("")}</select></label>` : ""}
+      ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.map(x => x[0])].filter(n => !got.some(o => o.name === n));
+        return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => o.group !== "Forex").map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => o.group === "Forex") ? `, plus ${got.filter(o => o.group === "Forex").length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
       <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
       <p class="meta">Saved in this browser only and sent only to cTrader. The token gives read access to prices and your account list; the app never places orders.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
@@ -6840,7 +7161,8 @@ function chIndBuild(P, I) {
     if (pl.kind === "hist" || pl.kind === "hist4") ser[pl.k] = P.chart.addHistogramSeries({ ...common, color: s.c, priceFormat: pl.kind === "hist" ? { type: "volume" } : undefined, base: 0 });
     else if (pl.kind === "dots") ser[pl.k] = P.chart.addLineSeries({ ...common, color: s.c, lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 1 + s.w, lineWidth: s.w });
     else ser[pl.k] = P.chart.addLineSeries({ ...common, color: s.c, lineWidth: s.w, lineStyle: CH_LWS[s.ls] || 0,
-      autoscaleInfoProvider: D.range ? () => ({ priceRange: { minValue: D.range[0], maxValue: D.range[1] } }) : undefined });
+      autoscaleInfoProvider: D.range ? () => ({ priceRange: { minValue: D.range[0], maxValue: D.range[1] } }) : undefined,
+      ...(D.pane ? { priceFormat: { type: "custom", minMove: 0.01, formatter: chIndNum } } : {}) });
   });
   const first = Object.values(ser)[0];
   if (first && D.levels) st.lv.forEach(L => { if (L.on) first.createPriceLine({ price: L.v, color: L.c, lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); });
@@ -6945,17 +7267,23 @@ function chIndLegendBind(box) {
 function chIndPaint(g, P, k) {
   if (!P.ix) return;
   const r = P.chart.timeScale().getVisibleLogicalRange(); if (!r) return;
-  const i0 = Math.max(0, Math.floor(r.from) - 1), i1 = Math.min(P.t.length - 1, Math.ceil(r.to) + 1);
+  const i0 = Math.max(0, Math.floor(r.from) - 1), i1 = Math.min(P.t.length - 1, Math.ceil(r.to) + 1), H = chPlotH(P), OL = P.oscL || [];
+  const priceBot = (OL.length ? OL[0].top : 1) * H;          // each indicator stays inside its own pane, whatever its scale says while you scroll
   chIndActive(P).forEach(I => { const D = IND[I.type], x = P.ix[I.id], V = (P.iv || {})[I.id] || {}; if (!x) return; const st = x.st;
+    const o = D.pane ? OL.find(q => q.id === I.id) : null; if (D.pane && !o) return;
+    const cy0 = o ? o.top * H : 0, cy1 = o ? o.bot * H : priceBot;
+    g.save(); g.beginPath(); g.rect(0, cy0, k.W, cy1 - cy0); g.clip();
+    try {
     (D.fills || []).forEach(f => { const fs = st.fills[f.k]; if (!fs || !fs.on) return;
-      if (f.lv) { const s = Object.values(x.ser)[0]; if (!s) return; const ya = s.priceToCoordinate(f.lv[0]), yb = s.priceToCoordinate(f.lv[1]); if (ya == null || yb == null) return;
+      if (f.lv) { const s = Object.values(x.ser)[0]; if (!s) return; const ya = s.priceToCoordinate(f.lv[0]), yb = s.priceToCoordinate(f.lv[1]); if (ya == null || yb == null || !isFinite(ya) || !isFinite(yb)) return;
         g.fillStyle = chHexA(fs.c, fs.al); g.fillRect(0, Math.min(ya, yb), k.W, Math.abs(yb - ya)); return; }
       if (!f.a || !V[f.a] || !V[f.b] || !st.plots[f.a].on && !st.plots[f.b].on) return;
       g.fillStyle = chHexA(fs.c, fs.al); let seg = [];
       const flush = () => { if (seg.length > 1) { g.beginPath(); seg.forEach(([xx, ya], j) => j ? g.lineTo(xx, ya) : g.moveTo(xx, ya)); for (let j = seg.length - 1; j >= 0; j--) g.lineTo(seg[j][0], seg[j][2]); g.closePath(); g.fill(); } seg = []; };
       for (let i = i0; i <= i1; i++) { const a = V[f.a][i], b = V[f.b][i]; if (a == null || b == null) { flush(); continue; } const xx = chLgX(P, i), ya = chY(P, a), yb = chY(P, b); if (xx == null || ya == null || yb == null) { flush(); continue; } seg.push([xx, ya, yb]); }
       flush(); });
-    if (D.paint) { try { D.paint(g, P, { ...I, p: { ...indDefaults(I.type), ...I.p } }, V, { ...k, st }); } catch (e) {} }
+    if (D.paint) { try { D.paint(g, P, { ...I, p: { ...indDefaults(I.type), ...I.p } }, V, { ...k, st, H: cy1 }); } catch (e) {} }
+    } catch (e) {} finally { g.restore(); }
   });
   if ((P.oscL || []).length) { const H = chPlotH(P); g.strokeStyle = cssVar("--line") || "#333"; g.lineWidth = 1;
     P.oscL.forEach(o => { const y = Math.round(o.top * H) + 0.5; g.beginPath(); g.moveTo(0, y); g.lineTo(P.cv.clientWidth, y); g.stroke(); }); }
@@ -7590,9 +7918,43 @@ async function chLoad(P) {
     ["t", "o", "h", "l", "c"].forEach(f => P[f] = k[f].slice()); P.v = (k.qv || []).map(Number);
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f])); P.v.push(fb.v || 0); }
     if (!P.t.length) throw new Error("no candles");
-    P.sym = sym; P.alSig = null; chIndSync(P); chSetData(P); chFit(P); chCtSub(sym);
+    P.sym = sym; P.alSig = null; P.noOlder = false; P.older = false; chIndSync(P); chSetData(P); chFit(P); chCtSub(sym);
     P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader();
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
+}
+/* ---- older history: scrolling back past the first loaded candle fetches the 500 before it, like TradingView ---- */
+const CH_MAXBARS = 5000;
+async function chOlderBars(sym, tf, endMs, limit) {           // candles that closed before endMs, ascending
+  const iv = CH_IV[tf], from = endMs - (limit + 2) * iv, K = rows => mxRowsToK(rows.filter(r => r[0] < endMs).slice(-limit));
+  if (CT_SYMS.has(sym)) { const k = await ctKlines(sym, tf, limit, false, endMs - 1); const j = k.t.findIndex(t => t >= endMs);
+    return j < 0 ? k : { t: k.t.slice(0, j), o: k.o.slice(0, j), h: k.h.slice(0, j), l: k.l.slice(0, j), c: k.c.slice(0, j), qv: k.qv.slice(0, j) }; }
+  if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
+    if (MODE === "futures" || isMX(sym)) return K(await mxKlinesF(sym, tf, from, endMs - 1));
+    if (MX_AGG[tf] || !MXS_IV[tf]) return K([]);
+    return K((await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[tf], endTime: endMs - 1, limit: Math.min(1000, limit) })}`)).map(mxSpotRow));
+  }
+  if (EXCHANGE === "bybit" && !TRADFI_SYMS.has(sym)) {
+    const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[tf], end: endMs - 1, limit: Math.min(1000, limit) }, 1);
+    return K(res.list.slice().reverse().map(k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[6]]));
+  }
+  await spend(klineWeight(limit));
+  const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
+  return K((await getJSON(`${base}?${qs({ symbol: sym, interval: tf, endTime: endMs - 1, limit })}`, 1)).map(k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]]));
+}
+async function chLoadOlder(P) {
+  if (P.older || P.noOlder || !P.t.length || P.t.length >= CH_MAXBARS || P.sym !== CH.sym) return;
+  const tok = P.tok, sym = P.sym, tf = P.tf; P.older = true;
+  try {
+    const k = await chOlderBars(sym, tf, P.t[0], 500); if (tok !== P.tok || P.sym !== sym || P.tf !== tf) return;
+    const keep = k.t.map((t, i) => i).filter(i => k.t[i] < P.t[0] && (!i || k.t[i] > k.t[i - 1]));
+    if (!keep.length) { P.noOlder = true; return; }
+    const r = P.chart.timeScale().getVisibleLogicalRange(), m = keep.length;
+    ["t", "o", "h", "l", "c"].forEach(f => P[f] = keep.map(i => k[f][i]).concat(P[f])); P.v = keep.map(i => +k.qv[i] || 0).concat(P.v || []);
+    P.progUntil = Date.now() + 400; chSetData(P);
+    if (r) P.chart.timeScale().setVisibleLogicalRange({ from: r.from + m, to: r.to + m });
+    if (m < 50) P.noOlder = true;
+    chDirty = true;
+  } catch (e) { P.olderErr = Date.now(); } finally { P.older = false; }
 }
 const chMaFn = () => (typeof data !== "undefined" && data && data.ma === "sma") ? sma : ema;
 function chRsiSig(r) { const out = new Array(r.length).fill(null); let s = 0, q = []; for (let i = 0; i < r.length; i++) { if (r[i] == null) continue; q.push(r[i]); s += r[i]; if (q.length > 14) s -= q.shift(); if (q.length === 14) out[i] = s / 14; } return out; }
@@ -7668,6 +8030,7 @@ function chOnCross(P, prm) {
 let chRangeT = 0;
 function chOnRange(P) {
   chDirty = true;
+  { const r = P.chart.timeScale().getVisibleLogicalRange(); if (r && r.from < 30 && P.t.length && !P.older && !P.noOlder && Date.now() - (P.olderErr || 0) > 15000) chLoadOlder(P); }
   if (chCS().hiLo && !P.hlRaf) P.hlRaf = requestAnimationFrame(() => { P.hlRaf = 0; chLevelLines(P); });
   if (!CH.sync || chSyncing || Date.now() < P.progUntil || !P.t.length || !(Date.now() - (P.userAt || 0) < 1500)) return;   // only follow your own scrolling
   clearTimeout(chRangeT);
@@ -8274,6 +8637,372 @@ async function chQuotesFetch(list) {
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
+</script>
+
+<script id="extras">/* ===================== NBB Watch · Economic calendar · Phone alerts (Telegram) · keep-awake ===================== */
+const phtHM = ms => { const d = new Date(ms + PHT_MS); let h = d.getUTCHours(); const m = String(d.getUTCMinutes()).padStart(2, "0"), ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return `${h}:${m} ${ap}`; };
+const phtDay = ms => { const d = new Date(ms + PHT_MS); return `${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getUTCDay()]} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const phtDayKey = ms => Math.floor((ms + PHT_MS) / 864e5);
+const inTxt = ms => { const m = Math.round(Math.abs(ms) / 60e3), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mm = m % 60; return d ? `${d}d ${h}h` : h ? `${h}h ${mm}m` : `${mm}m`; };
+const xEsc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+/* ===================== Economic calendar (Forex Factory's weekly feed) ===================== */
+const CAL_KEY = "finder-ff", CALF_KEY = "finder-ff-filter", CALI_KEY = "finder-cal-idx";
+let CAL = { items: [], at: 0, err: null, weeks: {}, ...lsGet(CAL_KEY, {}) }; CAL.err = null;
+const CAL_IMPACTS = [["High", "#e0332e", "High impact"], ["Medium", "#f08a24", "Medium impact"], ["Low", "#f2c94c", "Low impact"], ["Holiday", "#9aa0a6", "Holiday / non-economic"]];
+const CAL_TYPES = ["Growth", "Inflation", "Employment", "Central Bank", "Bonds", "Housing", "Consumer Surveys", "Business Surveys", "Speeches", "Misc"];
+const CAL_CCY = ["AUD", "CAD", "CHF", "CNY", "EUR", "GBP", "JPY", "NZD", "USD"];
+const CAL_VIEWS = [["today", "Today"], ["tomorrow", "Tomorrow"], ["yesterday", "Yesterday"], ["week", "This Week"], ["rest", "Rest of the week"], ["last", "Last Week"]];
+const CALF_DEF = { imp: ["High", "Holiday"], types: CAL_TYPES.slice(), ccy: CAL_CCY.slice(), view: "week", remind: true, lead: 15, rimp: ["High"] };
+let CALF = { ...CALF_DEF, ...lsGet(CALF_KEY, {}) };
+const CALI_DEF = { src: ["macro", "earn", "flow", "fed", "hol"], imp: ["High", "Medium", "Holiday"], scope: "heavy", view: "2w" };
+let CALI = { ...CALI_DEF, ...lsGet(CALI_KEY, {}) };
+let calTab = "ff", calFilterOpen = false;
+const weekStart = ms => { const d = new Date(ms - 4 * 3600e3); d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.getTime(); };   // Forex Factory weeks run Sunday to Saturday, New York time
+async function calFetch(force) {
+  if (!force && CAL.items.length && Date.now() - CAL.at < 30 * 60e3) return;
+  try {
+    const items = ffNorm(await getJSON("/proxy/ff", 1)); if (!items.length) throw new Error("the calendar came back empty");
+    CAL.items = items; CAL.at = Date.now(); CAL.err = null;
+    const wk = weekStart(items[Math.floor(items.length / 2)].at); CAL.weeks = { ...(CAL.weeks || {}), [wk]: items };
+    Object.keys(CAL.weeks).sort().slice(0, -3).forEach(k => delete CAL.weeks[k]);           // keep the last three weeks on this device
+    lsSet(CAL_KEY, { items: CAL.items, at: CAL.at, weeks: CAL.weeks });
+  } catch (e) { CAL.err = e.message || String(e); }
+  if (page === "calendar") calRender(); nwRenderAll();
+}
+function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
+function calRange(view) {
+  const now = Date.now(), today = phtDayKey(now) * 864e5 - PHT_MS, wk = weekStart(now);
+  if (view === "today") return [today, today + 864e5]; if (view === "tomorrow") return [today + 864e5, today + 2 * 864e5]; if (view === "yesterday") return [today - 864e5, today];
+  if (view === "rest") return [now - 60 * 60e3, wk + 7 * 864e5 + 4 * 3600e3]; if (view === "last") return [wk - 7 * 864e5 + 4 * 3600e3, wk + 4 * 3600e3];
+  if (view === "2w") return [today, today + 14 * 864e5]; if (view === "next") return [wk + 7 * 864e5 + 4 * 3600e3, wk + 14 * 864e5 + 4 * 3600e3];
+  return [wk + 4 * 3600e3, wk + 7 * 864e5 + 4 * 3600e3];
+}
+const calPass = (x, F) => F.imp.includes(x.impact) && (x.impact === "Holiday" || F.types.includes(x.type)) && (x.ccy === "All" || F.ccy.includes(x.ccy));
+const impDot = imp => { const c = (CAL_IMPACTS.find(i => i[0] === imp) || CAL_IMPACTS[3]); return `<i class="calimp" style="background:${c[1]}" title="${c[2]}"></i>`; };
+function calRowHTML(x, now) {
+  const past = x.at < now - 2 * 60e3, soon = !past && x.at - now < 60 * 60e3;
+  return `<tr class="${past ? "past" : ""}${soon ? " soon" : ""}"><td class="ct">${x.allDay ? "All day" : x.timeLbl || phtHM(x.at)}</td><td class="cc"><b>${xEsc(x.ccy)}</b></td><td class="ci">${impDot(x.impact)}</td>
+    <td class="ce">${xEsc(x.title)}${x.note ? `<div class="meta">${xEsc(x.note)}</div>` : ""}</td><td class="cty"><span class="tag">${xEsc(x.type)}</span></td>
+    <td class="cf">${xEsc(x.forecast || "")}</td><td class="cp">${xEsc(x.previous || "")}</td><td class="cw ${past ? "mute" : soon ? "up" : ""}">${past ? "done" : "in " + inTxt(x.at - now)}</td></tr>`;
+}
+function calTable(list, now) {
+  if (!list.length) return `<div class="empty">Nothing matches your filter in this range.</div>`;
+  let h = "", day = null;
+  list.forEach(x => { const k = phtDayKey(x.at); if (k !== day) { day = k; h += `<tr class="calday"><td colspan="8">${phtDay(x.at)}${k === phtDayKey(now) ? " · today" : ""}</td></tr>`; } h += calRowHTML(x, now); });
+  return `<div class="calwrap"><table class="caltbl"><thead><tr><th>Time <span class="mute">PHT</span></th><th>Cur.</th><th>Imp.</th><th>Event</th><th>Type</th><th>Forecast</th><th>Previous</th><th></th></tr></thead><tbody>${h}</tbody></table></div>`;
+}
+function calFilterHTML() {
+  if (calTab === "ff") { const F = CALF, cb = (grp, v, on, lbl) => `<label><input type="checkbox" data-cf="${grp}" value="${xEsc(v)}" ${on ? "checked" : ""}> ${lbl}</label>`;
+    return `<div class="calfg"><div class="calfb"><div class="calfh">Expected Impact <a data-cfall="imp">all</a>, <a data-cfnone="imp">none</a></div><div class="calfimp">${CAL_IMPACTS.map(([k, c, t]) => cb("imp", k, F.imp.includes(k), `<i class="calimp" style="background:${c}" title="${t}"></i>`)).join("")}</div></div>
+      <div class="calfb calfc"><div class="calfh">Currencies <a data-cfall="ccy">all</a>, <a data-cfnone="ccy">none</a></div><div class="calfcc">${CAL_CCY.map(c => cb("ccy", c, F.ccy.includes(c), c)).join("")}</div></div>
+      <div class="calfb"><div class="calfh">Event Types <a data-cfall="types">all</a>, <a data-cfnone="types">none</a></div><div class="calft">${CAL_TYPES.map(t => cb("types", t, F.types.includes(t), t)).join("")}</div></div>
+      <div class="calfb calfw"><label class="calfv">Default View <select data-cfv="view">${CAL_VIEWS.map(([k, l]) => `<option value="${k}" ${F.view === k ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+        <label><input type="checkbox" data-cfr="remind" ${F.remind ? "checked" : ""}> Remind me <input type="number" min="1" max="120" data-cfr="lead" value="${F.lead}"> min before events in this filter that are ${CAL_IMPACTS.slice(0, 2).map(([k, c]) => `<label class="calri"><input type="checkbox" data-cfr="rimp" value="${k}" ${F.rimp.includes(k) ? "checked" : ""}><i class="calimp" style="background:${c}"></i></label>`).join("")}</label></div></div>
+      <div class="calfacts"><button class="btn primary sm" data-cfa="apply">Apply Filter</button><button class="btn sm" data-cfa="cancel">Cancel</button><a data-cfa="reset" class="calrm">Remove Filter</a></div>`; }
+  const F = CALI, cb = (grp, v, on, lbl) => `<label><input type="checkbox" data-ci="${grp}" value="${v}" ${on ? "checked" : ""}> ${lbl}</label>`;
+  return `<div class="calfg"><div class="calfb"><div class="calfh">Expected Impact</div><div class="calfimp">${CAL_IMPACTS.map(([k, c, t]) => cb("imp", k, F.imp.includes(k), `<i class="calimp" style="background:${c}" title="${t}"></i>`)).join("")}</div></div>
+    <div class="calfb"><div class="calfh">What moves the index</div><div class="calft">${[["macro", "US economic data (Forex Factory, USD)"], ["fed", "Fed: meetings, speakers, blackouts"], ["earn", "Earnings of index heavyweights"], ["flow", "Options expiry, rebalances, VIX expiry"], ["hol", "US market holidays and early closes"]].map(([k, l]) => cb("src", k, F.src.includes(k), l)).join("")}</div></div>
+    <div class="calfb calfw"><label class="calfv">Earnings <select data-civ="scope"><option value="heavy" ${F.scope === "heavy" ? "selected" : ""}>Nasdaq-100 heavyweights</option><option value="big" ${F.scope === "big" ? "selected" : ""}>All companies over $100B</option><option value="all" ${F.scope === "all" ? "selected" : ""}>Everything over $10B</option></select></label>
+      <label class="calfv">View <select data-civ="view">${[["today", "Today"], ["week", "This Week"], ["next", "Next Week"], ["2w", "Next 14 days"]].map(([k, l]) => `<option value="${k}" ${F.view === k ? "selected" : ""}>${l}</option>`).join("")}</select></label></div></div>
+    <div class="calfacts"><button class="btn primary sm" data-cfa="apply">Apply Filter</button><button class="btn sm" data-cfa="cancel">Cancel</button><a data-cfa="reset" class="calrm">Remove Filter</a></div>`;
+}
+// earnings from Nasdaq's calendar (through the Mac app's relay), cached per day
+const EARN = lsGet("finder-earn", {});
+async function earnDay(ds) {
+  const c = EARN[ds]; if (c && Date.now() - c.at < 6 * 3600e3) return c.rows;
+  try { const j = await getJSON("/proxy/earnings?date=" + ds, 1); const rows = ((j && j.data && j.data.rows) || []).map(r => ({ sym: r.symbol, name: r.name, time: r.time, cap: +String(r.marketCap || "").replace(/[$,]/g, "") || 0, eps: r.epsForecast || "", n: r.noOfEsts || "" }));
+    EARN[ds] = { at: Date.now(), rows }; Object.keys(EARN).sort().slice(0, -30).forEach(k => delete EARN[k]); lsSet("finder-earn", EARN); return rows; }
+  catch (e) { if (c) return c.rows; throw e; }
+}
+let EARN_ERR = null;
+async function earnRange(from, to) {
+  const out = []; EARN_ERR = null;
+  const seen = new Set();
+  for (let t = from - 864e5; t < to + 864e5; t += 864e5) { const d = new Date(t - 4 * 3600e3); if (d.getUTCDay() === 0 || d.getUTCDay() === 6) continue;     // the US trading dates this range touches
+    const ds = ymd(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); if (seen.has(ds)) continue; seen.add(ds);
+    try { (await earnDay(ds)).forEach(r => out.push({ ...r, ds, y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() })); } catch (e) { EARN_ERR = e.message; } }
+  return out;
+}
+async function calIndexItems() {
+  const [from, to] = calRange(CALI.view), F = CALI, out = [];
+  if (F.src.includes("macro") || F.src.includes("fed")) calAll().filter(x => x.ccy === "USD" && x.at >= from && x.at < to).forEach(x => {
+    const fed = x.type === "Central Bank" || (x.type === "Speeches" && /Fed|FOMC|Powell/i.test(x.title));
+    if (fed ? F.src.includes("fed") : F.src.includes("macro") && x.type !== "Speeches") out.push({ ...x, type: fed ? "Fed" : x.type }); });
+  usMarketEvents(from, to).forEach(x => { const k = x.type === "Holidays" ? "hol" : x.type === "Central Bank" ? "fed" : "flow"; if (F.src.includes(k) && !(k === "fed" && out.some(y => y.type === "Fed" && Math.abs(y.at - x.at) < 3600e3))) out.push({ ...x, type: k === "fed" ? "Fed" : x.type }); });
+  if (F.src.includes("earn")) {
+    const rows = await earnRange(Math.max(from, Date.now() - 7 * 864e5), Math.min(to, Date.now() + 15 * 864e5));
+    rows.filter(r => F.scope === "all" ? r.cap >= 10e9 : F.scope === "big" ? r.cap >= 100e9 : NDX_T1.includes(r.sym) || NDX_T2.includes(r.sym)).forEach(r => {
+      const pre = r.time === "time-pre-market", post = r.time === "time-after-hours", at = nyAt(r.y, r.m, r.d, pre ? 7 : post ? 16 : 9, pre ? 0 : post ? 5 : 30);
+      out.push({ id: "E|" + r.sym + "|" + r.ds, at, ccy: "USD", title: `${r.sym} earnings · ${r.name}`, impact: earnImpact(r.sym, r.cap), type: "Earnings",
+        timeLbl: pre ? "Before open" : post ? "After close" : "Time TBA", note: `${pre ? "Before the US open" : post ? "After the US close" : "Time not announced"}${r.eps ? ` · EPS est. ${r.eps}` : ""}${r.cap ? ` · $${fmtVol(r.cap).replace(" ", "")} market cap` : ""}`, forecast: r.eps, previous: "" }); });
+  }
+  return out.filter(x => F.imp.includes(x.impact) && x.at >= from && x.at < to).sort((a, b) => a.at - b.at);
+}
+async function calRender() {
+  const el = $("calBody"); if (!el) return;
+  const now = Date.now();
+  $("calTabs").querySelectorAll("[data-ct]").forEach(b => { const on = b.dataset.ct === calTab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  $("calFilter").hidden = !calFilterOpen; if (calFilterOpen) { $("calFilter").innerHTML = calFilterHTML(); calBindFilter(); }
+  $("calMeta").textContent = CAL.at ? `Forex Factory · updated ${phtHM(CAL.at)}${CAL.err ? " · last refresh failed" : ""}` : CAL.err ? `Couldn't load Forex Factory (${CAL.err})` : "Loading Forex Factory…";
+  let list;
+  if (calTab === "ff") { const [from, to] = calRange(CALF.view); list = calAll().filter(x => x.at >= from && x.at < to && calPass(x, CALF));
+    $("calNote").innerHTML = `Times in your timezone (PHT). Forex Factory's free feed covers this week only and doesn't include actual results; the actual appears on <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">forexfactory.com</a> as it's released.${CALF.view === "last" && !list.length ? " Last week shows once this device has kept a week of data." : ""}`; }
+  else { el.innerHTML = `<div class="empty">Loading what moves the Nasdaq…</div>`; list = await calIndexItems(); if (calTab !== "idx") return;
+    $("calNote").innerHTML = `US data from Forex Factory (this week only), earnings from Nasdaq.com's calendar, Fed meetings from the Fed's schedule, and expiries, rebalances and holidays from the exchange rules (one-off closures aren't included).${EARN_ERR ? ` <span class="dn">Earnings didn't load (${xEsc(EARN_ERR)}); they need the Mac app's relay.</span>` : ""}`; }
+  const nxt = list.find(x => x.at > now - 60e3 && x.impact !== "Holiday" && x.impact !== "Low");
+  $("calUp").innerHTML = nxt ? `<span class="calupl">Up next</span> ${impDot(nxt.impact)} <b>${xEsc(nxt.ccy)}</b> ${xEsc(nxt.title)} <span class="mute">· ${phtDay(nxt.at)} ${nxt.timeLbl || phtHM(nxt.at)} · in ${inTxt(nxt.at - now)}</span>` : "";
+  if (calTab === "idx") { const wk = list.filter(x => x.at > now && x.at < now + 7 * 864e5 && (x.impact === "High")); $("calUp").innerHTML += wk.length ? `<div class="calsum">Next 7 days, high impact for the Nasdaq: ${wk.slice(0, 8).map(x => `<span class="mchip"><b>${xEsc(x.type === "Earnings" ? x.title.split(" ·")[0] : x.title.replace(/ \(.*\)$/, ""))}</b> ${phtDay(x.at).slice(0, 3)}</span>`).join(" ")}</div>` : ""; }
+  el.innerHTML = calTable(list, now);
+}
+function calBindFilter() {
+  const box = $("calFilter"), grp = calTab === "ff" ? "cf" : "ci";
+  box.querySelectorAll("[data-cfall],[data-cfnone]").forEach(a => a.onclick = () => { const g = a.dataset.cfall || a.dataset.cfnone; box.querySelectorAll(`[data-cf="${g}"]`).forEach(c => c.checked = !!a.dataset.cfall); });
+  box.querySelectorAll("[data-cfa]").forEach(b => b.onclick = () => { const a = b.dataset.cfa;
+    if (a === "cancel") { calFilterOpen = false; calRender(); return; }
+    if (a === "reset") { if (calTab === "ff") { CALF = { ...CALF_DEF }; lsSet(CALF_KEY, CALF); } else { CALI = { ...CALI_DEF }; lsSet(CALI_KEY, CALI); } calFilterOpen = false; calRender(); return; }
+    const pick = g => [...box.querySelectorAll(`[data-${grp}="${g}"]`)].filter(c => c.checked).map(c => c.value);
+    if (calTab === "ff") { CALF = { ...CALF, imp: pick("imp"), ccy: pick("ccy"), types: pick("types"), view: box.querySelector('[data-cfv="view"]').value,
+        remind: box.querySelector('[data-cfr="remind"]').checked, lead: Math.max(1, Math.min(120, +box.querySelector('[data-cfr="lead"]').value || 15)), rimp: [...box.querySelectorAll('[data-cfr="rimp"]')].filter(c => c.checked).map(c => c.value) }; lsSet(CALF_KEY, CALF); }
+    else { CALI = { ...CALI, imp: pick("imp"), src: pick("src"), scope: box.querySelector('[data-civ="scope"]').value, view: box.querySelector('[data-civ="view"]').value }; lsSet(CALI_KEY, CALI); }
+    calFilterOpen = false; calRender(); });
+}
+$("calTabs").querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { calTab = b.dataset.ct; calFilterOpen = false; calRender(); });
+$("calFilterBtn").onclick = () => { calFilterOpen = !calFilterOpen; calRender(); };
+$("calRefresh").onclick = () => { Object.keys(EARN).forEach(k => EARN[k].at = 0); calFetch(true); };
+function calShown() { calFetch(false); calRender(); }
+// reminders: events in your filter, of the impacts you picked, a few minutes before
+const CAL_SEEN_KEY = "finder-ff-seen";
+function calRemind() {
+  if (!CALF.remind || !CAL.items.length) return;
+  const now = Date.now(), lead = (CALF.lead || 15) * 60e3, seen = lsGet(CAL_SEEN_KEY, {});
+  calAll().filter(x => x.at > now && x.at - now <= lead && CALF.rimp.includes(x.impact) && calPass({ ...x, impact: x.impact }, { ...CALF, imp: CALF.rimp })).forEach(x => {
+    if (seen[x.id]) return; seen[x.id] = now;
+    notify(`📅 ${x.ccy} ${x.title} in ${inTxt(x.at - now)}`, `${x.impact} impact at ${phtHM(x.at)} PHT${x.forecast ? ` · forecast ${x.forecast}` : ""}${x.previous ? ` · previous ${x.previous}` : ""}. Spreads widen and breakouts around the release are unreliable.`,
+      { kind: "News", icon: "📅", tone: x.impact === "High" ? "down" : "warn", title: `${x.ccy} ${x.title} in ${inTxt(x.at - now)}` }); });
+  Object.keys(seen).forEach(k => { if (now - seen[k] > 8 * 864e5) delete seen[k]; }); lsSet(CAL_SEEN_KEY, seen);
+}
+setInterval(() => { calFetch(false); calRemind(); }, 30e3);
+setTimeout(() => { calFetch(false).then(calRemind); }, 4000);
+function calNextFor(ccys, aheadMin = 60, behindMin = 15) {      // the next high-impact release for these currencies, close to now
+  const now = Date.now(); return calAll().find(x => x.impact === "High" && ccys.includes(x.ccy) && x.at > now - behindMin * 60e3 && x.at < now + aheadMin * 60e3) || null;
+}
+
+/* ===================== NBB Watch: Gold M5 (London), Nasdaq M1 (US open) — your broker's data first ===================== */
+const NW_KEY = "finder-nbbwatch", NW_LOG_KEY = "finder-nbbwatch-log";
+const NW_DEF = [{ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }, { name: "Nasdaq 100", tf: "1m", from: "21:30", to: "23:00", alerts: true }];
+let NW = { items: NW_DEF.map(x => ({ ...x })), base: false, outside: false, ...lsGet(NW_KEY, {}) };
+const nwSave = () => lsSet(NW_KEY, NW);
+let NW_LOG = lsGet(NW_LOG_KEY, []);                              // today's (and recent) triggers
+const NW_ST = {}, NW_HTF = { "1m": "15m", "3m": "15m", "5m": "1h", "15m": "4h", "30m": "4h", "1h": "4h" };
+const nwKey = it => `${it.name}|${it.tf}`;
+const NW_TV = { "Gold": "OANDA:XAUUSD", "Nasdaq 100": "OANDA:NAS100USD" };
+function nwNames() {
+  const s = new Set(["Gold", "Nasdaq 100"]);
+  try { if (CT.state === "ready") ctList().forEach(o => s.add(o.name)); } catch (e) {}
+  Object.values(MX_INFO).forEach(v => s.add(v[0])); Object.values(MACRO_INFO).forEach(v => s.add(v[0]));
+  return [...s].filter(n => n !== "Volatility (VIX)").sort((a, b) => a === "Gold" ? -1 : b === "Gold" ? 1 : a === "Nasdaq 100" ? -1 : b === "Nasdaq 100" ? 1 : a.localeCompare(b));
+}
+function nwSym(name) {
+  try { if (ctPrefer() && CT.state === "ready") { const o = ctList().find(o => o.name === name); if (o) { CT_SYMS.add("CT:" + o.x.symbolName); return { sym: "CT:" + o.x.symbolName, src: CT.broker || "Broker", ct: true }; } } } catch (e) {}
+  const mk = Object.keys(MX_INFO).find(k => MX_INFO[k][0] === name), bn = Object.entries(MACRO_INFO).find(([, v]) => v[0] === name);
+  if (mk && (macroSrc() === "mexc" || !bn || EXCHANGE === "bybit")) return { sym: "MX:" + mk, src: "MEXC" };
+  if (bn) { TRADFI_SYMS.add(bn[0] + "USDT"); return { sym: bn[0] + "USDT", src: bn[0] === "QQQ" ? "Binance TradFi (QQQ, tracks the Nasdaq 100)" : "Binance TradFi" }; }
+  if (mk) return { sym: "MX:" + mk, src: "MEXC" };
+  return null;
+}
+function nwCcys(name) {
+  if (/\//.test(name)) return name.replace(/ .*/, "").split("/");
+  return /DAX|Euro Stoxx|CAC/.test(name) ? ["EUR", "USD"] : /FTSE/.test(name) ? ["GBP", "USD"] : /Nikkei/.test(name) ? ["JPY", "USD"] : /Hang Seng/.test(name) ? ["CNY", "USD"] : /ASX/.test(name) ? ["AUD", "USD"] : ["USD"];
+}
+const hm = s => { const [h, m] = String(s || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+function nwSession(it, now = Date.now()) {
+  const d = new Date(now + PHT_MS), m = d.getUTCHours() * 60 + d.getUTCMinutes(), a = hm(it.from), b = hm(it.to), wrap = b <= a;
+  const on = wrap ? (m >= a || m < b) : (m >= a && m < b), closed = typeof fxSession === "function" && fxSession(now).cls === "closed";
+  const toStart = ((a - m) + 1440) % 1440, toEnd = ((b - m) + 1440) % 1440;
+  const fm = x => phtHM(Date.UTC(2000, 0, 1, Math.floor(x / 60), x % 60) - PHT_MS);
+  return { on: on && !closed, closed, soon: !on && toStart <= 15, label: closed ? "Market closed (weekend)" : on ? `In session until ${fm(b)} · ${inTxt(toEnd * 60e3)} left` : `Session ${fm(a)}–${fm(b)} · opens in ${inTxt(toStart * 60e3)}` };
+}
+async function nwFetch(it) {
+  const key = nwKey(it), st = NW_ST[key] = NW_ST[key] || { sigs: [] }; if (st.busy) return;
+  const iv = CH_IV[it.tf] || 60e3, now = Date.now();
+  const needBars = !st.k || !st.k.t.length || now >= st.k.t.at(-1) + 2 * iv + 1500 || now - st.at > 5 * 60e3, needPx = !st.pxAt || now - st.pxAt > 8000;
+  if (!needBars && !needPx) return;
+  st.busy = true;
+  try {
+    if (ctPrefer() && CT.state !== "ready" && !CT.connecting) { try { await ctConnect(); } catch (e) {} }
+    const S = nwSym(it.name); if (!S) throw new Error("this market isn't available on your broker or exchange");
+    if (st.sym !== S.sym) { st.k = null; st.read = null; }
+    st.sym = S.sym; st.src = S.src; st.ct = !!S.ct;
+    if (needBars) {
+      const k = await klines(S.sym, it.tf, 400), cut = k.t.findIndex(t => t + iv > Date.now()), kk = cut < 0 ? k : { t: k.t.slice(0, cut), o: k.o.slice(0, cut), h: k.h.slice(0, cut), l: k.l.slice(0, cut), c: k.c.slice(0, cut), qv: k.qv.slice(0, cut) };
+      st.k = kk; st.read = nbbWatchRead(kk, iv); st.at = Date.now(); st.err = null;
+      if (!st.htfAt || Date.now() - st.htfAt > 5 * 60e3) { try { const h = await klines(S.sym, NW_HTF[it.tf] || "1h", 150), c = h.c, e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), i = c.length - 1;
+        st.htf = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null; st.htfAt = Date.now(); } catch (e) {} }
+      nwSignals(it, st);
+    }
+    try { const fb = await formingBar(S.sym, it.tf); if (fb) { st.px = fb.c; st.fb = fb; st.pxAt = Date.now(); } } catch (e) {}
+  } catch (e) { st.err = e.message || String(e); st.at = Date.now(); }
+  st.busy = false; nwRender(it);
+}
+function nwSignals(it, st) {
+  const r = st.read; if (!r) return;
+  const sess = nwSession(it), now = Date.now(), dayAgo = now - 24 * 3600e3;
+  if (r.trig) {
+    const m = r.trig, id = `${nwKey(it)}|${m.dir}|${m.tClose}`;
+    if (!NW_LOG.some(x => x.id === id) && now - m.tClose < 3 * (CH_IV[it.tf] || 60e3)) {
+      const news = calNextFor(nwCcys(it.name), 30, 15), sig = { id, name: it.name, tf: it.tf, sym: st.sym, src: st.src, dir: m.dir, entry: m.entry, stop: m.stop, tClose: m.tClose, at: now, inSess: sess.on,
+        withTf: r.stack === m.dir, withHtf: st.htf === m.dir, sweep: !!m.sweep, room: !!m.room, baseNo: m.baseNo, baseLen: m.baseLen, news: news ? `${news.ccy} ${news.title} at ${phtHM(news.at)}` : null };
+      NW_LOG.unshift(sig); NW_LOG = NW_LOG.filter(x => x.at > now - 3 * 864e5).slice(0, 200); lsSet(NW_LOG_KEY, NW_LOG);
+      if (it.alerts && (sess.on || NW.outside)) {
+        const R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, f = v => fmtPrice(v);
+        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
+          { sym: st.sym, kind: "NBB Watch", icon: "🥪", tone: m.dir === "Long" ? "up" : "down", title: `NBB ${m.dir.toLowerCase()}: ${it.name} ${CH_TFL[it.tf] || it.tf}` });
+      }
+    }
+  }
+  if (NW.base && it.alerts && sess.on && r.base && r.base.len === 6) {
+    const id = `${nwKey(it)}|base|${r.t}`; if (!st.baseSeen || st.baseSeen !== id) { st.baseSeen = id;
+      notify(`🧱 Base forming on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `6 candles, ${r.base.tall.toFixed(1)} ATR tall. Long above ${fmtPrice(r.base.hi)}, short below ${fmtPrice(r.base.lo)}.`, { sym: st.sym, kind: "NBB Watch", icon: "🧱", tone: "blue", title: `Base forming: ${it.name}` }); }
+  }
+}
+function nwSizeTxt(st, entry, stop) {
+  if (!st.ct || !CT.info || !st.spec) return "";
+  const z = ctLots(st.spec, CT.info, entry, stop, RISK.risk || 1, st.px || entry);
+  return z ? `<div class="nwsz">Size at ${RISK.risk || 1}%: <b>${z.below ? "below the minimum" : z.lots.toFixed(2) + " lots"}</b> <span class="mute">(risk ${z.risk.toFixed(2)} ${z.ccy} of ${CT.info.balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${CT.info.ccy})</span></div>` : "";
+}
+function nwCardHTML(it) {
+  const key = nwKey(it), st = NW_ST[key] || {}, r = st.read, sess = nwSession(it), tfl = CH_TFL[it.tf] || it.tf, f = v => fmtPrice(v), now = Date.now();
+  const news = calNextFor(nwCcys(it.name), 60, 15);
+  let state = `<div class="nwst none">Loading ${xEsc(it.name)} ${tfl}…</div>`;
+  if (st.err && !r) state = `<div class="nwst none dn">Couldn't load: ${xEsc(st.err)}</div>`;
+  else if (r) {
+    const ctx = `${tfl} ${r.stack ? `<b class="${r.stack === "Long" ? "up" : "dn"}">${r.stack === "Long" ? "bull" : "bear"} stack</b>` : "<b>no stack</b>"} · ${CH_TFL[NW_HTF[it.tf]] || ""} ${st.htf ? `<b class="${st.htf === "Long" ? "up" : "dn"}">${st.htf === "Long" ? "bull" : "bear"}</b>` : "<b>mixed</b>"} · RSI ${r.rsi != null ? r.rsi.toFixed(0) : "—"} · ATR ${f(r.atr)}`;
+    if (r.state === "trigger") { const m = r.trig, R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, ago = Math.max(0, Math.round((now - m.tClose) / 60e3));
+      const ck = (ok, txt) => `<span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"} ${txt}</span>`;
+      state = `<div class="nwst trig ${m.dir === "Long" ? "long" : "short"}">🚀 <b>NBB ${m.dir.toUpperCase()} triggered</b> <span class="mute">${ago ? ago + " min ago" : "just now"} (${phtHM(m.tClose)} close)</span>
+        <div class="nwlv"><span>Entry <b>${f(m.entry)}</b></span><span>Stop <b>${f(m.stop)}</b></span><span>3R <b>${f(t3)}</b></span><span class="mute">base ${m.baseLen} candles${m.baseNo === 2 ? " · base #2 (prime)" : ""}</span></div>
+        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${ck(!news, "no high-impact news near")}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
+    else if (r.state === "basing") state = `<div class="nwst base">🧱 <b>Basing</b> · ${r.base.len} candles, ${r.base.tall.toFixed(1)} ATR tall
+        <div class="nwlv"><span class="up">Long above <b>${f(r.base.hi)}</b></span><span class="dn">Short below <b>${f(r.base.lo)}</b></span><span class="mute">${r.stack ? `trend favors ${r.stack.toLowerCase()}s` : "no clear trend: either side"}</span></div>
+        <div class="meta">Trigger: a displacing close out of the base (body 1.5× the base's average) with the trend.</div></div>`;
+    else if (r.state === "missed") state = `<div class="nwst missed">⏭ <b>Missed breakout</b> · ${xEsc(r.missed.note || "")}</div>`;
+    else state = `<div class="nwst none">No base right now. ${r.stack ? `${tfl} is trending ${r.stack === "Long" ? "up" : "down"}: wait for price to pause and base.` : "Choppy: wait for a clean base."}</div>`;
+    state += `<div class="nwctx">${ctx}</div>`;
+  }
+  const log = NW_LOG.filter(x => x.name === it.name && x.tf === it.tf && phtDayKey(x.at) === phtDayKey(now)).slice(0, 6);
+  const logH = log.map(x => { const o = st.k ? nbbOutcome(x, st.k) : null, R = o ? (o.st === "3R" ? `<span class="up">3R hit</span>` : o.st === "stopped" ? `<span class="dn">stopped −1R</span>` : `<span class="${o.r >= 0 ? "up" : "dn"}">${o.r >= 0 ? "+" : ""}${o.r.toFixed(1)}R open</span>`) : "";
+    return `<div class="nwlr"><span>${phtHM(x.tClose)}</span><span class="tag ${x.dir === "Long" ? "long" : "short"}">${x.dir}</span><span>E ${f(x.entry)} · S ${f(x.stop)}</span><span>${R}</span>${x.inSess ? "" : `<span class="mute">outside session</span>`}</div>`; }).join("");
+  const cd = st.k && st.k.t.length ? fmtCountdown(st.k.t.at(-1) + 2 * (CH_IV[it.tf] || 60e3) - now) : "";
+  return `<div class="nwcard ${sess.on ? "on" : ""}" data-nw="${xEsc(key)}">
+    <div class="nwh"><b>${xEsc(it.name)}</b><span class="tag">${tfl}</span>${st.src ? `<span class="chsrcb" title="Data feed">${xEsc(st.src)}</span>` : ""}<span class="nwsess ${sess.on ? "on" : sess.soon ? "soon" : ""}">● ${sess.label}</span>
+      <span class="nwbtns"><button class="btn sm" data-nwchart="${xEsc(key)}">Chart</button></span></div>
+    <div class="nwpx"><b>${st.px != null ? f(st.px) : ""}</b>${cd ? ` <span class="mute">⏱ ${cd} to the ${tfl} close</span>` : ""}${!it.alerts ? ' <span class="tag">alerts off</span>' : ""}</div>
+    ${news ? `<div class="nwnews">⚠ <b>${xEsc(news.ccy)} ${xEsc(news.title)}</b> ${news.at > now ? `in ${inTxt(news.at - now)}` : `${inTxt(now - news.at)} ago`} (${phtHM(news.at)}): breakouts around the release are unreliable.</div>` : ""}
+    ${state}${log.length ? `<div class="nwlog"><div class="nwlh">Today</div>${logH}</div>` : ""}</div>`;
+}
+function nwRender(it) { if (page !== "nbbwatch") return; const el = document.querySelector(`[data-nw="${CSS.escape(nwKey(it))}"]`); if (el) { el.outerHTML = nwCardHTML(it); nwBind(); } else nwRenderAll(); }
+function nwRenderAll() {
+  if (page !== "nbbwatch" || !$("nwGrid")) return;
+  $("nwGrid").innerHTML = NW.items.length ? NW.items.map(nwCardHTML).join("") : `<div class="empty">Add a market to watch with Edit watch list.</div>`;
+  $("nwMeta").textContent = `${NW.items.length} market${NW.items.length === 1 ? "" : "s"} · ${ctPrefer() ? (CT.state === "ready" ? `${CT.broker} prices` : "connecting to cTrader…") : "exchange prices (connect cTrader for your broker's)"}`;
+  $("nwBase").checked = !!NW.base; $("nwOutside").checked = !!NW.outside;
+  nwBind();
+}
+function nwBind() {
+  document.querySelectorAll("[data-nwchart]").forEach(b => b.onclick = () => { const st = NW_ST[b.dataset.nwchart], it = NW.items.find(x => nwKey(x) === b.dataset.nwchart); if (!st || !st.sym) return;
+    if (typeof CH !== "undefined" && it) { CH.tfs[0] = it.tf; CH.max = 0; try { chSave(); } catch (e) {} if (typeof CHP !== "undefined" && CHP[0]) { CHP[0].tf = it.tf; const s = CHP[0].pane && CHP[0].pane.querySelector(".chtf"); if (s) s.value = it.tf; } }
+    openInCharts(st.sym); });
+}
+function nwEditor() {
+  const names = nwNames(), tfs = ["1m", "3m", "5m", "15m", "30m", "1h"];
+  const row = (it, i) => `<div class="nwer" data-i="${i}"><select data-k="name">${names.map(n => `<option ${n === it.name ? "selected" : ""}>${xEsc(n)}</option>`).join("")}</select>
+    <select data-k="tf">${tfs.map(t => `<option value="${t}" ${t === it.tf ? "selected" : ""}>${CH_TFL[t]}</option>`).join("")}</select>
+    <label>from <input type="time" data-k="from" value="${it.from}"></label><label>to <input type="time" data-k="to" value="${it.to}"></label>
+    <label class="tog"><input type="checkbox" data-k="alerts" ${it.alerts ? "checked" : ""}> Alerts</label><button class="btn sm" data-rm="${i}" aria-label="Remove">✕</button></div>`;
+  const items = NW.items.map(x => ({ ...x }));
+  const box = $("nwEdit"); box.hidden = false;
+  const draw = () => { box.innerHTML = `<div class="meta">Session times are your time (PHT). Alerts fire inside the session; turn on "Outside sessions too" to hear them all the time.</div>${items.map(row).join("")}
+    <div class="nweacts"><button class="btn sm" id="nwAdd">+ Add a market</button><span style="flex:1"></span><button class="btn sm" id="nwDef">Defaults</button><button class="btn sm" id="nwCancel">Cancel</button><button class="btn primary sm" id="nwSaveB">Save</button></div>`;
+    box.querySelectorAll(".nwer").forEach(r => r.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { const it = items[+r.dataset.i], k = el.dataset.k; it[k] = el.type === "checkbox" ? el.checked : el.value; }));
+    box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { items.splice(+b.dataset.rm, 1); draw(); });
+    $("nwAdd").onclick = () => { items.push({ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }); draw(); };
+    $("nwDef").onclick = () => { items.splice(0, items.length, ...NW_DEF.map(x => ({ ...x }))); draw(); };
+    $("nwCancel").onclick = () => { box.hidden = true; };
+    $("nwSaveB").onclick = () => { NW.items = items.filter((x, i) => items.findIndex(y => nwKey(y) === nwKey(x)) === i); nwSave(); box.hidden = true; nwRenderAll(); nwTick(true); }; };
+  draw();
+}
+$("nwEditB").onclick = () => { const b = $("nwEdit"); if (!b.hidden) { b.hidden = true; return; } nwEditor(); };
+$("nwBase").onchange = () => { NW.base = $("nwBase").checked; nwSave(); };
+$("nwOutside").onchange = () => { NW.outside = $("nwOutside").checked; nwSave(); };
+$("nwPhone").onclick = () => openTGSettings();
+let nwLastAll = 0;
+async function nwTick(force) {
+  const showing = page === "nbbwatch";
+  for (const it of NW.items) { const s = nwSession(it); if (force || showing || s.on || s.soon) nwFetch(it); }       // off-page, only markets in (or about to start) their session are read
+  if (showing && Date.now() - nwLastAll > 1000) { nwLastAll = Date.now(); NW.items.forEach(it => { const st = NW_ST[nwKey(it)]; if (st && !st.busy) { const el = document.querySelector(`[data-nw="${CSS.escape(nwKey(it))}"] .nwpx .mute`); if (el && st.k && st.k.t.length) el.textContent = `⏱ ${fmtCountdown(st.k.t.at(-1) + 2 * (CH_IV[it.tf] || 60e3) - Date.now())} to the ${CH_TFL[it.tf]} close`; } }); }
+  if (CT.state === "ready" && NW.items.some(it => (NW_ST[nwKey(it)] || {}).ct)) { try { await ctAccountInfo(); for (const it of NW.items) { const st = NW_ST[nwKey(it)]; if (st && st.ct && !st.spec) st.spec = await ctSpec(st.sym); } } catch (e) {} }
+}
+setInterval(() => nwTick(false), 5000);
+function nwShown() { nwRenderAll(); nwTick(true); }
+
+/* ===================== Phone alerts: Telegram (your own bot; token kept in this browser only) ===================== */
+const TG_KEY = "finder-telegram";
+const TG_KINDS = [["NBB Watch", "NBB Watch triggers and bases"], ["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["Bots", "Bot simulator"], ["System", "System messages"]];
+const tgCfg = () => lsGet(TG_KEY, null), TG_OFF = ["Breakouts", "Bots", "System"];      // noisy kinds start switched off
+const tgKind = (c, k) => { const v = ((c || {}).kinds || {})[k]; return v == null ? !TG_OFF.includes(k) : !!v; };
+const tgOn = () => { const c = tgCfg(); return !!(c && c.token && c.chat); };
+const TGQ = []; let tgBusy = false;
+async function tgPump() {
+  if (tgBusy) return; tgBusy = true;
+  while (TGQ.length) { const { text, res } = TGQ.shift(), c = tgCfg(); if (!c || !c.token || !c.chat) { res(false); continue; }
+    try { const r = await fetch(`https://api.telegram.org/bot${c.token}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: c.chat, text, parse_mode: "HTML", disable_web_page_preview: true }) });
+      const j = await r.json().catch(() => ({})); res(!!j.ok, j.description); } catch (e) { res(false, e.message); }
+    await sleep(1100); }
+  tgBusy = false;
+}
+function tgSend(text) { return new Promise(res => { if (TGQ.length > 20) TGQ.shift(); TGQ.push({ text, res: (ok, why) => res({ ok, why }) }); tgPump(); }); }
+const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
+const _ncAdd = ncAdd;
+ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
+function openTGSettings() {
+  killChart();
+  const c = tgCfg() || {}, kinds = c.kinds || {}, local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  $("dlgBody").dataset.sym = "";
+  $("dlgBody").innerHTML = `<div class="dhead"><h3>Phone alerts (Telegram)</h3><div class="dacts"><button class="btn" id="dlgClose">Close</button></div></div>
+    <div class="ctform tgform">
+      <ol class="meta ctsteps"><li>In Telegram, message <b>@BotFather</b>, send <b>/newbot</b> and pick a name. It gives you a <b>bot token</b>.</li>
+        <li>Open your new bot and send it any message (e.g. "hi").</li><li>Paste the token here and press <b>Find my chat ID</b>, then <b>Send test</b>.</li></ol>
+      <label>Bot token<input id="tgToken" type="password" autocomplete="off" value="${xEsc(c.token || "")}" placeholder="123456789:AA…"></label>
+      <label>Chat ID<span class="tgrow"><input id="tgChat" autocomplete="off" value="${xEsc(c.chat || "")}" placeholder="e.g. 123456789"><button class="btn sm" id="tgFind">Find my chat ID</button></span></label>
+      <div class="tgkinds"><div class="meta">Send these to your phone:</div>${TG_KINDS.map(([k, l]) => `<label class="chk"><input type="checkbox" data-tgk="${k}" ${tgKind(c, k) ? "checked" : ""}> ${l}</label>`).join("")}</div>
+      ${local ? `<label class="chk"><input type="checkbox" id="tgAwake" ${c.awake === false ? "" : "checked"}> Keep this Mac awake during my NBB Watch sessions (so alerts keep coming; the Mac still sleeps if you close the lid on battery)</label>` : ""}
+      <p class="meta">Saved in this browser only and sent only to Telegram. Each device with a token sends its own alerts, so set this up on the Mac app only to avoid doubles. For alerts while the Mac is off, see "Cloud watcher" in the README.</p>
+      <div class="meta" id="tgMsg" aria-live="polite"></div>
+      <div class="ctacts"><button class="btn primary" id="tgSave">Save</button><button class="btn" id="tgTest">Send test</button>${c.token ? '<button class="btn" id="tgForget">Turn off and forget</button>' : ""}</div></div>`;
+  const read = () => ({ ...(tgCfg() || {}), token: $("tgToken").value.trim(), chat: $("tgChat").value.trim(), kinds: Object.fromEntries([...document.querySelectorAll("[data-tgk]")].map(x => [x.dataset.tgk, x.checked])), awake: $("tgAwake") ? $("tgAwake").checked : true });
+  $("dlgClose").onclick = () => $("dlg").close();
+  $("tgFind").onclick = async () => { const t = $("tgToken").value.trim(); if (!t) { $("tgMsg").textContent = "Paste the bot token first."; return; }
+    try { const j = await (await fetch(`https://api.telegram.org/bot${t}/getUpdates`)).json(); if (!j.ok) throw new Error(j.description || "Telegram refused the token");
+      const m = (j.result || []).map(u => u.message || u.channel_post || u.edited_message).filter(Boolean).pop();
+      if (!m) { $("tgMsg").textContent = "No messages yet: send your bot a message in Telegram, then press this again."; return; }
+      $("tgChat").value = m.chat.id; $("tgMsg").innerHTML = `<span class="up">Found ${xEsc(m.chat.first_name || m.chat.title || "your chat")} (${m.chat.id}).</span>`; } catch (e) { $("tgMsg").innerHTML = `<span class="dn">${xEsc(e.message)}</span>`; } };
+  $("tgSave").onclick = () => { lsSet(TG_KEY, read()); $("tgMsg").innerHTML = `<span class="up">Saved.</span>`; };
+  $("tgTest").onclick = async () => { lsSet(TG_KEY, read()); $("tgMsg").textContent = "Sending…"; const r = await tgSend(`✅ <b>The Finder</b> is connected. Alerts you picked will arrive here.`);
+    $("tgMsg").innerHTML = r.ok ? `<span class="up">Sent: check Telegram.</span>` : `<span class="dn">Didn't send: ${xEsc(r.why || "check the token and chat ID")}.</span>`; };
+  if ($("tgForget")) $("tgForget").onclick = () => { try { localStorage.removeItem(TG_KEY); } catch (e) {} $("dlg").close(); };
+  if (!$("dlg").open) $("dlg").showModal();
+}
+// keep the Mac awake while an NBB Watch session is on (the Mac app's server runs caffeinate; nothing happens on the web version)
+setInterval(() => {
+  const c = tgCfg() || {}; if (c.awake === false || !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  if (NW.items.some(it => { const s = nwSession(it); return s.on || s.soon; })) fetch("/api/awake?min=20").catch(() => {});
+}, 4 * 60e3);
+setTimeout(() => { const c = tgCfg() || {}; if (c.awake !== false && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && NW.items.some(it => nwSession(it).on)) fetch("/api/awake?min=20").catch(() => {}); }, 5000);
+if ($("ncPhone")) $("ncPhone").onclick = () => { ncShow(false); openTGSettings(); };
+if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
 </script>
 
 <script>

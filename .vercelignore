@@ -3,3 +3,6 @@ uninstall-mac-app.sh
 server.py
 update-mac-app.sh
 bump-version.sh
+cloud
+tests
+.github

@@ -5,7 +5,7 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8787
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
        "img-src 'self' data: https://s3-symbol-logo.tradingview.com; "
-       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://contract.mexc.com https://api.mexc.com https://api.coingecko.com https://api.alternative.me wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://contract.mexc.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
+       "connect-src 'self' https://fapi.binance.com https://api.binance.com https://data-api.binance.vision https://api.bybit.com https://api.bytick.com https://contract.mexc.com https://api.mexc.com https://api.coingecko.com https://api.alternative.me https://api.telegram.org wss://fstream.binance.com wss://stream.binance.com:9443 wss://data-stream.binance.vision wss://stream.bybit.com wss://contract.mexc.com wss://live.ctraderapi.com:5036 wss://demo.ctraderapi.com:5036; "
        "manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'")
 # Relay for Bybit's public market data, used when Bybit refuses requests made directly from a web page.
 # Only /v5/market/* paths are forwarded: read-only prices, candles, funding and open interest. No account endpoints.
@@ -33,6 +33,46 @@ def relay_mexc(prefix, rest):
         with urllib.request.urlopen(req, timeout=15) as r: return r.status, r.read()
     except urllib.error.HTTPError as e: return e.code, e.read()
     except Exception as e: return 502, json.dumps({"success": False, "message": f"relay could not reach MEXC: {e}"}).encode()
+# Relay for Forex Factory's weekly calendar feed and Nasdaq's earnings calendar (neither allows calls from a web page).
+# Cached so the sources are asked at most every few minutes.
+CACHE = {}
+def cached_get(key, url, ttl, headers):
+    hit = CACHE.get(key)
+    if hit and time.time() - hit[0] < ttl: return 200, hit[1]
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as r:
+            body = r.read(); CACHE[key] = (time.time(), body)
+            if len(CACHE) > 200: CACHE.pop(next(iter(CACHE)))
+            return r.status, body
+    except urllib.error.HTTPError as e:
+        if hit: return 200, hit[1]
+        return e.code, e.read()
+    except Exception as e:
+        if hit: return 200, hit[1]
+        return 502, json.dumps({"error": f"relay could not reach the source: {e}"}).encode()
+BROWSER = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36",
+           "Accept": "application/json, text/plain, */*", "Accept-Language": "en-US,en;q=0.9"}
+def relay_ff():
+    return cached_get("ff", "https://nfs.faireconomy.media/ff_calendar_thisweek.json", 600, BROWSER)
+def relay_earnings(q):
+    import re
+    m = re.match(r"^date=(\d{4}-\d{2}-\d{2})$", q or "")
+    if not m: return 400, b'{"error":"date=YYYY-MM-DD"}'
+    return cached_get("earn" + m.group(1), "https://api.nasdaq.com/api/calendar/earnings?date=" + m.group(1), 6 * 3600,
+                      {**BROWSER, "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/"})
+# Keep this Mac awake while a trading session is on (asked for by the app; caffeinate stops by itself after the time given).
+AWAKE = {"proc": None, "until": 0}
+def keep_awake(minutes):
+    minutes = max(1, min(240, int(minutes)))
+    until = time.time() + minutes * 60
+    if AWAKE["proc"] and AWAKE["proc"].poll() is None and AWAKE["until"] >= until - 60: return AWAKE["until"]
+    try:
+        if AWAKE["proc"] and AWAKE["proc"].poll() is None: AWAKE["proc"].terminate()
+        AWAKE["proc"] = subprocess.Popen(["caffeinate", "-i", "-s", "-t", str(minutes * 60)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        AWAKE["until"] = until
+    except Exception: return 0
+    return until
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".webmanifest": "application/manifest+json", ".js": "text/javascript"}
     def __init__(self, *a, **k): super().__init__(*a, directory=ROOT, **k)
@@ -49,6 +89,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if not rest.startswith("/v5/market/"):
                 self.send_response(403); self.end_headers(); return
             code, body = relay_bybit(rest)
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+            return
+        path, _, query = self.path.partition("?")
+        if path in ("/proxy/ff", "/proxy/earnings", "/api/awake"):
+            if path == "/proxy/ff": code, body = relay_ff()
+            elif path == "/proxy/earnings": code, body = relay_earnings(query)
+            else:
+                mins = 0
+                for kv in query.split("&"):
+                    if kv.startswith("min="): mins = int("".join(ch for ch in kv[4:] if ch.isdigit()) or 0)
+                until = keep_awake(mins) if mins else AWAKE["until"]
+                code, body = 200, json.dumps({"awakeUntil": int(until * 1000), "running": bool(AWAKE["proc"] and AWAKE["proc"].poll() is None)}).encode()
             self.send_response(code)
             self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)

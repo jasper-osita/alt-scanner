@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2210">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2242">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -912,6 +912,9 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .chph.slbg .cholc{background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:6px;padding:1px 6px}
 .chind.slhide{display:none}.chind.slnovals .vv{display:none}
 .chsetbtn span{margin-left:4px}
+.chacctw{position:relative;margin-left:auto}.chacctbtn{max-width:260px}.chacctbtn #chAcctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chacctdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.chacctdot.demo{background:#22ab94}.chacctdot.live{background:#f23645}
+.chacctpop{left:auto;right:0;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:6px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
+.chacctrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:6px 9px;font:12.5px var(--display);cursor:pointer}.chacctrow:hover:not(:disabled){background:var(--pill)}.chacctrow.on{border-color:var(--accent);background:var(--pill)}.chacctrow:disabled{opacity:.5;cursor:not-allowed}.chacctrow small{margin-left:auto;color:var(--mute)}
 .chmod.chmcs{width:min(720px,96vw);height:min(600px,90vh);display:flex;flex-direction:column}
 .chcsw{flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr)}
 .chcsn{display:flex;flex-direction:column;gap:2px;padding:8px;border-right:1px solid var(--line);overflow:auto}
@@ -4321,7 +4324,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.2210";
+const APP_VERSION = "2026.10.14.2242";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6566,7 +6569,7 @@ async function ctOAuthReturn() {                // runs on load: finish a sign-i
     ctSaveCfg({ ...c, accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000, scope: pend.sc || "accounts" });
     await ctConnect();
     say(`Signed in to cTrader${pend.sc === "trading" ? " with trading access" : ""}: ${CT.broker} ${CT.live ? "live" : "demo"} account. Access renews by itself`);
-    if (pend.back === "trade" && typeof goPage === "function") { goPage("trade"); return; }
+    if ((pend.back === "trade" || pend.back === "charts") && typeof goPage === "function") { goPage(pend.back); return; }
     if (typeof goPage === "function") goPage("macro"); if (typeof macroScan === "function") macroScan(true);
   } catch (e) { CT.state = "error"; CT.err = "sign-in didn't finish: " + e.message; say("cTrader sign-in didn't finish: " + e.message, true); if (typeof renderMacro === "function") renderMacro(); }
 }
@@ -7842,6 +7845,7 @@ function chBuild() {
       <div class="chseg"><button class="tg" id="chSync" title="Scroll one chart and the others follow to the same time">Sync scroll</button></div>
       <button class="btn sm chfocusb" id="chFocus" title="Hide the side bar and top bar (Esc to leave)">⛶ Focus</button>
       <span class="chhint" id="chHint"></span>
+      <div class="chlay chacctw"><button class="chindbtn chacctbtn" id="chAcctBtn" aria-haspopup="true" aria-expanded="false" title="The trading account used for position sizes and orders"><i class="chacctdot"></i><span id="chAcctTxt">Account</span><span>▾</span></button><div class="chlaypop chacctpop" id="chAcctPop" hidden></div></div>
     </div>
     <div class="chbody">
       <div class="chtools" id="chTools" role="toolbar" aria-label="Drawing tools">${chToolbarHTML()}
@@ -7858,6 +7862,8 @@ function chBuild() {
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
   el.querySelectorAll("[data-cat]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpen(b.dataset.cat); });
   document.addEventListener("click", e => { const p = $("chPick"); if (p && !p.hidden && !e.target.closest(".chpickw")) chPickClose(); });
+  $("chAcctBtn").onclick = e => { e.stopPropagation(); const p = $("chAcctPop"), open = p.hidden; p.hidden = !open; $("chAcctBtn").setAttribute("aria-expanded", open); if (open && typeof trAcctPop === "function") trAcctPop(); };
+  document.addEventListener("click", e => { const p = $("chAcctPop"); if (p && !p.hidden && !e.target.closest(".chacctw")) { p.hidden = true; $("chAcctBtn").setAttribute("aria-expanded", "false"); } });
   $("chLayBtn").onclick = e => { e.stopPropagation(); const p = $("chLayPop"), open = p.hidden; p.hidden = !open; $("chLayBtn").setAttribute("aria-expanded", open); if (open) chLayPop(); };
   document.addEventListener("click", e => { const p = $("chLayPop"); if (p && !p.hidden && !e.target.closest(".chlay")) { p.hidden = true; $("chLayBtn").setAttribute("aria-expanded", "false"); } });
   $("chFocus").onclick = () => chFocus(!document.body.classList.contains("chfocus"));
@@ -8704,7 +8710,7 @@ function chDrawSettings(d) {
       if (f.includes("fiblbl")) h += `<div class="chsr sty"><input type="checkbox" data-b="lbl" ${s.lbl ? "checked" : ""}><label>Levels text</label><span class="ctl"></span></div><div class="chsr sty"><input type="checkbox" data-b="prices" ${s.prices ? "checked" : ""}><label>Prices</label><span class="ctl"></span></div>`;
       if (f.includes("dev")) h += row("Deviation", `<input type="number" step="0.1" min="0" data-n="dev" value="${s.dev ?? 2}">`);
       if (f.includes("pos")) h += row("Profit zone", chSwatch(s.pc, 1, 'data-col="pc"')) + row("Stop zone", chSwatch(s.lc, 1, 'data-col="lc"')) + row("Account size", `<span class="chamseg" role="group" aria-label="Account size">${[["sync", "Sync with account"], ["manual", "Manual"]].map(([k, l]) => `<button data-am="${k}" class="${(s.am === "manual" ? "manual" : "sync") === k ? "on" : ""}" aria-pressed="${(s.am === "manual" ? "manual" : "sync") === k}">${l}</button>`).join("")}</span>`)
-        + (s.am === "manual" ? row("Amount", `<input type="number" min="0" step="any" data-n="acct" value="${s.acct || ""}" placeholder="e.g. 10000">`) : row("Balance", `<span class="chamv" id="chAmV">${chEsc(typeof trPosAcct === "function" ? trPosAcct(d) : "Open the Trade page to link an account")}</span>`)) + row("Risk %", `<input type="number" min="0" step="0.1" data-n="risk" value="${s.risk ?? ""}" placeholder="Trade page (${typeof trCfg === "function" ? trCfg().risk : 1}%)">`);
+        + (s.am === "manual" ? row("Amount", `<input type="number" min="0" step="any" data-n="acct" value="${s.acct || ""}" placeholder="e.g. 10000">`) : row("Balance", `<span class="chamv" id="chAmV">${chEsc(typeof trPosAcct === "function" ? trPosAcct(d) : "Open the Trade page to link an account")}</span>`)) + row("Risk %", `<input type="number" min="0" step="0.1" data-n="risk" value="${s.risk ?? ""}" placeholder="${typeof trCfg === "function" ? trCfg().risk : 1} (default)" title="Leave empty to use the Trade page risk %">`);
       if (f.includes("vp")) h += row("Rows", `<input type="number" min="4" max="120" data-n="rows" value="${s.rows || 24}">`) + row("Value area %", `<input type="number" min="10" max="100" data-n="va" value="${s.va || 70}">`) + row("Up volume", chSwatch(s.up, 1, 'data-col="up"')) + row("Down volume", chSwatch(s.dn, 1, 'data-col="dn"'));
       if (f.includes("icon")) h += `<div class="chemogrid big">${CH_EMOJI.map(e => `<button data-emo="${e}" class="${s.icon === e ? "on" : ""}">${e}</button>`).join("")}</div>` + row("Size", `<input type="number" min="10" max="96" data-n="fs" value="${s.fs}">`);
       if (f.includes("lv")) { const def = { fib: CH_FIB_LV, fibext: CH_EXT_LV, fibchan: CH_FIB_LV, fibfan: CH_FAN_LV, fibcirc: CH_CIRC_LV, gbox: CH_GANN_LV }[d.type] || CH_FIB_LV, L = (s.lv || def).map(x => ({ ...x }));
@@ -9354,6 +9360,7 @@ async function cttOpen(live) {
   CTT.hb = setInterval(() => { try { ws.send(JSON.stringify({ payloadType: 51, payload: {} })); } catch (e) {} }, 10000);
 }
 const cttTradeScope = ps => ps === 1 || ps === "SCOPE_TRADE";
+const cttMayTrade = () => ctConfigured() && CTT.scopeOk !== false && (ctCfg() || {}).scope !== "accounts" && CTT.state !== "error";
 async function cttConnect() {
   if (CTT.connecting) return CTT.connecting;
   CTT.connecting = (async () => {
@@ -9399,7 +9406,7 @@ async function cttRefresh() {
   try {
     const r = await cttReq(2124, { ctidTraderAccountId: id }); CTT.positions = r.position || []; CTT.orders = r.order || [];
     const tr = (await cttReq(2121, { ctidTraderAccountId: id })).trader || {}, md = tr.moneyDigits != null ? +tr.moneyDigits : 2;
-    CTT.info = { balance: +(tr.balance || 0) / 10 ** md, md, lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
+    CTT.info = { balance: +(tr.balance || 0) / 10 ** md, md, ccy: (CT.assets || {})[tr.depositAssetId] || (CTT.info || {}).ccy || "USD", at: Date.now(), lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
     if (CTT.positions.length) { const u = await cttReq(2187, { ctidTraderAccountId: id }); const umd = u.moneyDigits != null ? +u.moneyDigits : md;
       CTT.pnl = Object.fromEntries((u.positionUnrealizedPnL || []).map(x => [x.positionId, +(x.netUnrealizedPnL ?? x.grossUnrealizedPnL ?? 0) / 10 ** umd])); }
     [...CTT.positions, ...CTT.orders].forEach(o => cttWatch(CTT.byId[(o.tradeData || {}).symbolId]));
@@ -9539,14 +9546,15 @@ async function trSizeCalc(sym, e, sl, risk, man) {   // → { qty, unit, txt, ri
   if (!(risk > 0)) throw new Error("set a risk %");
   if (trVenue(sym) === "ct") {
     let spec = null, bal = null, src = "";
-    if (CTT.state === "ready" || (ctCfg() || {}).scope === "trading") {      // the trading account: its balance and contract sizes
+    if (CTT.state === "ready" || cttMayTrade()) {      // the trading account (picked in the chart's account menu): its balance and contract sizes
       if (CTT.state !== "ready") await cttConnect().catch(() => {});
-      const x = CTT.state === "ready" && cttSym(sym); if (x) { spec = await cttSpec(x); bal = CTT.info ? CTT.info.balance : null; src = `cTrader ${CTT.live ? "live" : "demo"}`; }
+      const x = CTT.state === "ready" && cttSym(sym);
+      if (x) { spec = await cttSpec(x); if (!CTT.info || Date.now() - (CTT.info.at || 0) > 60e3) await cttRefresh(); bal = CTT.info ? CTT.info.balance : null; src = `cTrader ${CTT.live ? "live" : "demo"} ${CTT.acct.traderLogin || ""}`.trim(); }
     }
-    const cs = await ctSpec(sym).catch(() => null), info = await ctAccountInfo().catch(() => null), bccy = info ? info.ccy : "USD";
-    if (!spec) { if (!cs) throw new Error("connect cTrader to size this"); spec = cs; bal = info ? info.balance : null; src = "cTrader"; }   // no trading link yet: the data account
+    const cs = await ctSpec(sym).catch(() => null), info = await ctAccountInfo().catch(() => null), bccy = src && CTT.info ? CTT.info.ccy : info ? info.ccy : "USD";
+    if (!spec) { if (!cs) throw new Error("connect cTrader to size this"); spec = cs; bal = info ? info.balance : null; src = "cTrader price account"; }   // no trading link: the account the prices come from
     if (man > 0) { bal = man; src = "manual"; }
-    if (!(bal > 0)) throw new Error("no account balance yet");
+    if (!(bal > 0)) throw new Error(src === "cTrader price account" ? (CTT.scopeOk === false || (ctCfg() || {}).scope === "accounts" ? "your cTrader sign-in only reads prices. Pick “Sign in with trading access” in the chart's account menu" : "the account your prices come from has no balance. Pick your trading account in the chart's account menu") : "that account shows no balance");
     const m = ctLots({ ...spec, base: cs ? cs.base : "", quote: cs ? cs.quote : "" }, { balance: bal, ccy: bccy }, e, sl, risk, e); if (!m) throw new Error("couldn't size this one");
     return { qty: +m.lots.toFixed(2), unit: "lots", risk: m.risk, ccy: m.ccy, below: m.below, bal, bccy, src, txt: `${m.lots.toFixed(2)} lots`,
       note: `${risk}% of ${fmtNum(bal)} ${bccy}${src === "manual" ? " (typed size)" : ""} = about ${fmtNum(m.risk)} ${m.ccy} at risk${m.below ? " (below the minimum size)" : ""}` };
@@ -9570,6 +9578,44 @@ function trPosSize(d, risk, man) {              // the chart's position tool ask
     trSizeCalc(sym, d.pts[0].p, d.pts[1].p, risk, man).then(val => { if (TPS.get(d.id) === n) { n.val = val; n.err = ""; chDirty = true; } }, x => { if (TPS.get(d.id) === n) { n.val = null; n.err = x.message; chDirty = true; } });
   }
   return (TPS.get(d.id) || {}).val || null;
+}
+/* ---- account picker on the chart toolbar: which account sizes and places orders for the chart's market ---- */
+function trAcctNow(sym) {                       // → { txt, cls } for the chip
+  if (trVenue(sym) === "mx" && !String(sym || "").startsWith("CT:")) {
+    if (!mxtOn()) return { txt: "Link MEXC", cls: "" };
+    const a = MXT.asset; return { txt: `MEXC futures${a ? " · " + fmtNum(+(a.equity || a.availableBalance || 0)) + " USDT" : ""}`, cls: "demo" };
+  }
+  if (!ctConfigured()) return { txt: "Link cTrader", cls: "" };
+  if (CTT.state === "ready") return { txt: `${CTT.live ? "LIVE" : "Demo"} ${CTT.acct.traderLogin || CTT.acct.ctidTraderAccountId}${CTT.info ? " · " + fmtNum(CTT.info.balance) + " " + (CTT.info.ccy || "") : ""}`, cls: CTT.live ? "live" : "demo" };
+  if (CTT.state === "connecting") return { txt: "cTrader: connecting…", cls: "" };
+  return { txt: CTT.scopeOk === false || (ctCfg() || {}).scope === "accounts" ? "Prices only: link trading" : "Pick trading account", cls: "" };
+}
+function trAcctChip() {
+  const t = $("chAcctTxt"); if (!t || !t.offsetParent) return; const n = trAcctNow(CH.sym), dot = t.previousElementSibling;
+  if (CTT.state === "off" && trVenue(CH.sym) === "ct" && cttMayTrade()) cttConnect().catch(() => {});
+  if (t.textContent !== n.txt) t.textContent = n.txt; if (dot) dot.className = "chacctdot " + n.cls;
+}
+setInterval(trAcctChip, 1000);
+function trAcctPop() {
+  const p = $("chAcctPop"); if (!p) return;
+  const tc = trCfg(), accts = CTT.accounts.length ? CTT.accounts : (CT.accounts || []), cur = CTT.state === "ready" ? String(CTT.acct.ctidTraderAccountId) : String(tc.acct || "");
+  const readOnly = CTT.scopeOk === false || (ctCfg() || {}).scope === "accounts", a = MXT.asset;
+  p.innerHTML = `<div class="chsgh">cTrader (forex, metals, indices)</div>
+    ${!ctConfigured() ? `<p class="meta">Not connected yet.</p><button class="btn sm" data-aa="ct">Connect cTrader</button>`
+      : readOnly ? `<p class="meta">Your sign-in only reads prices, so it can't see your balance or place orders.</p><button class="btn sm primary" data-aa="scope">Sign in with trading access</button>`
+      : accts.map(x => { const id = String(x.ctidTraderAccountId), off = x.isLive && !tc.live;
+          return `<button class="chacctrow ${id === cur ? "on" : ""}" data-acct="${id}" ${off ? 'disabled title="Allow live accounts in Trade settings first"' : ""}><i class="chacctdot ${x.isLive ? "live" : "demo"}"></i>${trEsc(x.brokerTitleShort || "Broker")} ${x.isLive ? "LIVE" : "demo"} ${trEsc(x.traderLogin || id)}<small>${id === cur && CTT.info ? fmtNum(CTT.info.balance) + " " + (CTT.info.ccy || "") : off ? "live off" : ""}</small></button>`; }).join("") || `<p class="meta">No accounts found on this sign-in.</p>`}
+    ${CTT.state === "error" && CTT.err && !readOnly ? `<p class="meta dn">${trEsc(CTT.err)}</p>` : ""}
+    <div class="chsgh">MEXC futures (crypto)</div>
+    <p class="meta">${mxtOn() ? `Linked${a ? ` · ${fmtNum(+(a.equity || a.availableBalance || 0))} USDT` : ""}` : "Add an API key in Trade settings to size crypto from your balance."}</p>
+    <p class="meta">The chart's market picks the venue: cTrader symbols use the account above, crypto uses MEXC.</p>
+    <button class="btn sm" data-aa="settings">Trade settings…</button>`;
+  const done = () => { TPS.clear(); chDirty = true; trAcctChip(); if (!p.hidden) trAcctPop(); };
+  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (b.dataset.acct === cur && CTT.state === "ready") return; trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; done(); cttConnect().then(done, done); });
+  p.querySelectorAll("[data-aa]").forEach(b => b.onclick = () => { const k = b.dataset.aa; p.hidden = true;
+    if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else openCTSettings(); });
+  if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
+  if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
 }
 function trPosAcct(d) {                         // for the settings box: where the account size comes from right now
   const c = TPS.get(d.id) || {}, v = c.val;

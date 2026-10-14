@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2257">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2306">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4325,7 +4325,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.2257";
+const APP_VERSION = "2026.10.14.2306";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7662,11 +7662,16 @@ function chPosPaint(K, x, y) {
 }
 function chPosFinish(d, P) {
   const e0 = d.pts[0].p; let s = d.pts[1].p; const sg = d.type === "long" ? 1 : -1;
-  if (!(sg * (e0 - s) > 0)) s = e0 * (1 - sg * 0.01);
+  if (s === e0) s = e0 * (1 - sg * 0.01); else if (!(sg * (e0 - s) > 0)) d.type = s < e0 ? "long" : "short";   // stop clicked on the other side: it's the other direction
   const t2 = Math.max(d.pts[1].t, d.pts[0].t + 12 * CH_IV[P.tf]), rr = +chDS(d).rr || 2; d.pts = [{ t: d.pts[0].t, p: e0 }, { t: t2, p: s }, { t: t2, p: e0 + rr * (e0 - s) }];
 }
 function chPosDrag(d, h, pt) {
-  const rr = +chDS(d).rr || 0;
+  const rr = +chDS(d).rr || 0, e0 = d.pts[0].p, r0 = Math.abs(d.pts[2].p - e0) / (Math.abs(e0 - d.pts[1].p) || 1);
+  chPosMove(d, h, pt, rr);
+  const e = d.pts[0].p, sl = d.pts[1].p, dir = sl < e ? "long" : sl > e ? "short" : d.type;   // adaptive: the stop's side of the entry sets long or short
+  if (dir !== d.type) { d.type = dir; if (!(rr > 0)) d.pts[2] = { t: d.pts[2].t, p: e + r0 * (e - sl) }; chPosLock(d); }
+}
+function chPosMove(d, h, pt, rr) {
   if (h === 2 && rr > 0) {                       // reward:risk locked: dragging the target picks a new ratio (0.5R steps), the stop stays put
     const R = d.pts[0].p - d.pts[1].p; if (R) chRRSet(d, Math.max(0.5, Math.round((pt.p - d.pts[0].p) / R * 2) / 2)); return; }
   if (typeof TR !== "undefined" && TR.posId === d.id && h != null) { d.pts[h] = { t: d.pts[h].t, p: pt.p }; chPosLock(d); return; }   // order lines move one level at a time
@@ -7687,8 +7692,8 @@ function chRRBind(root, d, after) {
   root.querySelectorAll("[data-rr]").forEach(b => b.onclick = () => { chRRSet(d, +b.dataset.rr); if (after) after(); });
   root.querySelectorAll("[data-rrv]").forEach(el => { el.onchange = () => { const v = parseFloat(el.value); if (v > 0) { chRRSet(d, v); if (after) after(); } }; });
 }
-chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, rr: 0, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
-chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, rr: 0, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
+chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. Drag the stop past the entry to flip long and short; drag the target. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, rr: 0, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
+chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. Drag the stop past the entry to flip long and short; drag the target. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, rr: 0, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
 chDef("avwap", { g: "forecast", name: "Anchored VWAP", n: 1, ico: "M3 15c4 0 5-8 9-8s3 5 6 5M5 3v15", sd: { c: "#2962ff", w: 2 }, f: "c w ls", hint: "Click the candle to anchor the VWAP on.",
   paint(K, x, y) { const P = K.P, i0 = Math.max(0, Math.round(chLogical(P, K.d.pts[0].t))); if (i0 >= P.t.length) return; let pv = 0, vv = 0; const pts = [];
     for (let i = i0; i < P.t.length; i++) { const v = P.v && P.v[i] > 0 ? P.v[i] : 1, tp = (P.h[i] + P.l[i] + P.c[i]) / 3; pv += tp * v; vv += v; const xx = chLgX(P, i), yy = chY(P, pv / vv); if (xx != null && yy != null) pts.push([xx, yy]); }
@@ -9644,11 +9649,11 @@ function trPosAcct(d) {                         // for the settings box: where t
 function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
 async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
   trPosClose();
-  const sym = CH.sym, side = d.type === "long" ? "buy" : "sell", v = trVenue(sym), unit = v === "mx" ? "contracts" : "lots";
+  const sym = CH.sym, v = trVenue(sym); let side = d.type === "long" ? "buy" : "sell"; const unit = v === "mx" ? "contracts" : "lots";
   const dg = x => x >= 100 ? 2 : x >= 1 ? 5 : 6, f = x => +(+x).toFixed(dg(d.pts[0].p));
   const host = $("chPage") || document.body, el = document.createElement("div");
   el.id = "trPosPanel"; el.className = "trpospanel"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Order from the chart");
-  el.innerHTML = `<div class="trpph"><b>${side === "buy" ? "Buy" : "Sell"} ${chEsc(trName(sym))}</b><button class="chx" id="tpClose" aria-label="Close">${chIco("x", 15)}</button></div>
+  el.innerHTML = `<div class="trpph"><b id="tpHead">${side === "buy" ? "Buy" : "Sell"} ${chEsc(trName(sym))}</b><button class="chx" id="tpClose" aria-label="Close">${chIco("x", 15)}</button></div>
     <div class="meta" id="tpVenue">${v === "ct" ? "cTrader · connecting…" : "MEXC futures"}</div>
     <div class="meta">Drag the blue, red and green lines on the chart; the risk % stays fixed and the size follows the entry and stop.</div>
     <div class="trkv" id="tpLv"></div>
@@ -9678,6 +9683,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     catch (x) { $("tpWarn").dataset.size = x.message; } check(); };
   const sync = () => {                           // follow the lines as you drag them
     const { e, sl, tp } = lv(), ds = chDS(d), key = [e, sl, tp, ds.am, ds.acct, ds.risk, ds.rr].join("|"); if (key === lastKey) return; lastKey = key;
+    const sd = d.type === "long" ? "buy" : "sell"; if (sd !== side) { side = sd; $("tpHead").textContent = `${side === "buy" ? "Buy" : "Sell"} ${trName(sym)}`; $("tpGo").className = `btn trgo ${side}`; $("tpGo").dataset.armed = ""; $("tpGo").textContent = "Place order"; delete $("tpType").dataset.user; }
     if (document.activeElement === null || !$("tpRR").contains(document.activeElement)) { $("tpRR").innerHTML = chRRCtl(d); chRRBind($("tpRR"), d, () => { lastKey = ""; sync(); }); } if (ds.risk > 0 && document.activeElement !== $("tpRisk")) $("tpRisk").value = ds.risk;
     $("tpLv").innerHTML = `<span>Entry</span><b>${f(e)}</b><span>Stop</span><b class="dn">${f(sl)}</b><span>Target</span><b class="up">${tp ? f(tp) : "—"}</b><span>Reward : risk</span><b>${tp ? (Math.abs(tp - e) / Math.abs(e - sl)).toFixed(2) + "R" : "—"}</b>`;
     types(); clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 120);

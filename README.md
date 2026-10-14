@@ -121,6 +121,8 @@ coins go to MEXC USDT perpetuals.
   the entry or stop at the entry, and place it. Esc or Cancel closes it.
   In the tool's settings, **Account size** is *Sync with account* by default (the cTrader balance, or MEXC futures equity, re-read
   every 30 s) or *Manual* (type an amount). The risk % stays as set; moving the entry or stop changes only the lots/contracts.
+- **Long or short follows the stop:** drag the stop to the other side of the entry and the position flips (Long ↔ Short),
+  keeping its reward:risk; an open order panel switches between Buy and Sell with it.
 - **Lock reward : risk** (position settings or the order panel): Off, 1:1, 1:2, 1:3 or any ratio. While locked, moving the
   stop or entry moves the target to keep the ratio; dragging the target picks a new ratio in 0.5R steps. Locked targets show 🔒.
 - **Account picker (chart toolbar, right end):** shows the account that sizes and places orders for the chart's market

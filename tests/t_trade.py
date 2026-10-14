@@ -132,6 +132,16 @@ async def main():
         await pg.mouse.move(x0, ys); await pg.mouse.down(); await pg.mouse.move(x0, ys - 30, steps=6); await pg.mouse.up(); await asyncio.sleep(0.8)
         print("36) panel 1:3, drag stop line:", await q(f"() => [{R}, document.getElementById('tpLv').innerText.replace(/\\s+/g, ' '), [...document.querySelectorAll('#tpRR [data-rr]')].filter(b => b.classList.contains('on')).map(b => b.innerText).join()]"))
         await q("() => { trPosClose(); chRRSet(CHD[CH.sym][0], 0); }")
+        # adaptive: dragging the stop past the entry flips short ↔ long
+        st = "(() => { const d = CHD[CH.sym][0], [e, s, t] = d.pts.map(x => x.p); return [d.type, s < e ? 'stop below' : 'stop above', t > e ? 'target above' : 'target below', +(Math.abs(t - e) / Math.abs(e - s)).toFixed(2)]; })()"
+        print("37) flip unlocked:", await q(f"() => {{ const d = CHD[CH.sym][0]; const a = {st}; chPosDrag(d, 1, {{ t: d.pts[1].t, p: d.pts[0].p * 0.99 }}); const b = {st}; chRRSet(d, 2); chPosDrag(d, 1, {{ t: d.pts[1].t, p: d.pts[0].p * 1.01 }}); return JSON.stringify([a, b, {st}]); }}"))
+        print("38) draw a short with the stop below:", await q("() => { const d = { id: 'tmp', type: 'short', pts: [{ t: 1, p: 100 }, { t: 2, p: 98 }], s: {} }; chPosFinish(d, chVis()[0]); return [d.type, d.pts.map(x => +x.p.toFixed(2))].join(' '); }"))
+        await q("() => trFromPos(CHD[CH.sym][0])"); await wait("() => document.getElementById('tpHead')", 10); h0 = await q("() => document.getElementById('tpHead').innerText")
+        box = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), d = CHD[CH.sym][0]; return [r.left, r.top, chPlotW(P), chY(P, d.pts[1].p), chY(P, d.pts[0].p)]; }")
+        x0 = box[0] + box[2] - 260
+        await pg.mouse.move(x0, box[1] + box[3]); await pg.mouse.down(); await pg.mouse.move(x0, box[1] + box[4] + (box[4] - box[3]), steps=8); await pg.mouse.up(); await asyncio.sleep(1)
+        print("39) panel, drag stop across entry:", h0, "→", await q(f"() => [document.getElementById('tpHead').innerText, document.getElementById('tpGo').className, JSON.stringify({st})]"))
+        await q("() => { trPosClose(); chRRSet(CHD[CH.sym][0], 0); }")
         # account picker on the chart toolbar
         await q("() => { $('dlg').open && $('dlg').close(); document.querySelectorAll('.chdsbox,.chdrawdlg').forEach(x => x.remove()); }"); await asyncio.sleep(1.2)
         print("28) chip:", await q("() => document.getElementById('chAcctBtn').innerText.replace(/\\s+/g, ' ')"))

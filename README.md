@@ -119,6 +119,8 @@ coins go to MEXC USDT perpetuals.
   **Trade** (or More → Place order…): blue (entry), red (stop) and green (target) order lines appear across the chart and a small
   order panel opens beside it. Drag any line, or its label, to move that level; the size follows the risk %. Pick market, limit at
   the entry or stop at the entry, and place it. Esc or Cancel closes it.
+  In the tool's settings, **Account size** is *Sync with account* by default (the cTrader balance, or MEXC futures equity, re-read
+  every 30 s) or *Manual* (type an amount). The risk % stays as set; moving the entry or stop changes only the lots/contracts.
   "Open in ticket" copies it to the Trade page instead.
 - **Positions & orders:** live P&L, edit the stop/target of a cTrader position, close positions and cancel pending orders
   (each asks "Sure?" first). Activity lists what was sent and what came back.

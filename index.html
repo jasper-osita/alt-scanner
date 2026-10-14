@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1835">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2210">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -446,6 +446,7 @@ body.pg-charts #fToggle{display:none}body.navcol .wrap{max-width:2200px}.shell>.
 .chseg{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden;background:var(--pill)}
 .chseg button{background:transparent;border:0;border-right:1px solid var(--pill-b);color:var(--mute);padding:5px 10px;font:12.5px var(--display);cursor:pointer}.chseg button:last-child{border-right:0}
 .chseg button.on{color:var(--on-accent);background:var(--accent)}.chseg button:hover:not(.on){color:var(--text)}
+.chamseg{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden;background:var(--pill)}.chamseg button{background:transparent;border:0;border-right:1px solid var(--pill-b);color:var(--mute);padding:5px 10px;font:12.5px var(--display);cursor:pointer}.chamseg button:last-child{border-right:0}.chamseg button.on{color:var(--on-accent);background:var(--accent)}.chamv{font-size:12.5px;color:var(--text)}
 .chselbar{display:inline-flex;align-items:center;gap:5px}.chselbar .sw{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}.chselbar .sw.on{border-color:var(--strong)}
 .chhint{font-size:12.5px;color:var(--mute);margin-left:auto}
 .chbody{flex:1;display:grid;grid-template-columns:40px minmax(0,1fr) 300px;gap:8px;min-height:0}
@@ -4320,7 +4321,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1835";
+const APP_VERSION = "2026.10.14.2210";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7631,14 +7632,17 @@ chDef("tri3", { g: "pattern", name: "Triangle pattern", n: 4, ico: "M3 5l15 5L3 
 chDef("ew5", { g: "pattern", name: "Elliott impulse wave (12345)", n: 6, ico: "M2 17l4-7 3 3 4-9 3 4 3-5", sd: { c: "#2962ff", w: 1 }, f: "c w ls tc", paint: chPatPaint(["(0)", "(1)", "(2)", "(3)", "(4)", "(5)"]) });
 chDef("ew3", { g: "pattern", name: "Elliott correction wave (ABC)", n: 4, ico: "M3 5l5 9 4-4 6 8", sd: { c: "#f23645", w: 1 }, f: "c w ls tc", paint: chPatPaint(["(0)", "(A)", "(B)", "(C)"]) });
 /* -- forecasting, volume-based, measurers -- */
+let chAmT = 0;
 function chPosPaint(K, x, y) {
   const d = K.d, s = K.s, P = K.P, sg = d.type === "long" ? 1 : -1, x0 = x[0], x1 = Math.max(x[1], x0 + 30), ye = y[0], ys2 = y[1], yt = y[2], e0 = d.pts[0].p, s0 = d.pts[1].p, t0 = d.pts[2].p, R = Math.abs(e0 - s0);
   K.rect(x0, ye, x1, yt, { fill: chHexA(s.pc || "#22ab94", 0.2), stroke: false }); K.rect(x0, ye, x1, ys2, { fill: chHexA(s.lc || "#f23645", 0.2), stroke: false });
   K.seg(x0, ye, x1, ye, { c: "#9a9ca1", w: 1, ls: 0 });
   const rr = R ? Math.abs(t0 - e0) / R : 0, pc = v => `${((v - e0) / e0 * 100) >= 0 ? "+" : ""}${((v - e0) / e0 * 100).toFixed(2)}%`;
-  const rp = s.risk > 0 ? s.risk : (typeof trCfg === "function" ? trCfg().risk : 1), live = typeof trPosSize === "function" ? trPosSize(d, rp) : null;   // live: sized from your trading account
-  const risk = live ? live.risk : (s.acct || 0) * (rp || 0) / 100, qty = risk && R ? risk / R : 0;
-  const q = live ? ` · ${live.txt}` : qty ? ` · Qty ${qty >= 100 ? qty.toFixed(0) : qty.toPrecision(3)}` : "", cc = live && live.ccy ? " " + live.ccy : "";
+  // size: risk % (fixed) of the account balance (synced from cTrader/MEXC, or typed in Manual); lots/contracts follow the entry and stop
+  const rp = s.risk > 0 ? s.risk : (typeof trCfg === "function" ? trCfg().risk : 1), man = s.am === "manual" ? +s.acct || 0 : 0;
+  const live = typeof trPosSize === "function" ? trPosSize(d, rp, man) : null;
+  const risk = live ? live.risk : man * (rp || 0) / 100, qty = risk && R ? risk / R : 0;
+  const q = (live ? ` · ${live.txt}` : qty ? ` · Qty ${qty >= 100 ? qty.toFixed(0) : qty.toPrecision(3)}` : s.am !== "manual" && typeof TPS !== "undefined" && (TPS.get(d.id) || {}).err ? " · no account size (see settings)" : "") + ` · ${rp}%`, cc = live && live.ccy ? " " + live.ccy : "";
   K.lbl(`Target ${chPF(P, t0)} · ${pc(t0)} · ${rr.toFixed(2)}R${risk ? ` · +${(risk * rr).toFixed(2)}${cc}` : ""}`, (x0 + x1) / 2, yt + (yt < ye ? -9 : 9), "#1b8f7c");
   K.lbl(`Stop ${chPF(P, s0)} · ${pc(s0)}${risk ? ` · −${risk.toFixed(2)}${cc}` : ""}`, (x0 + x1) / 2, ys2 + (ys2 > ye ? 9 : -9), "#c62f3d");
   K.lbl(`${d.type === "long" ? "Long" : "Short"} ${chPF(P, e0)}${q}`, x0, ye, "rgba(40,42,48,.92)", "#e0e3eb", "left");
@@ -7661,8 +7665,8 @@ function chPosDrag(d, h, pt) {
   if (typeof TR !== "undefined" && TR.posId === d.id && h != null) { d.pts[h] = { t: d.pts[h].t, p: pt.p }; return; }   // order lines move one level at a time
   if (h === 0) { const dt = pt.t - d.pts[0].t, dp = pt.p - d.pts[0].p; d.pts = d.pts.map(q => ({ t: q.t + (h === 0 ? dt : 0), p: q.p + dp })); d.pts[1].t = d.pts[2].t = Math.max(d.pts[1].t, d.pts[0].t + 1); }
   else if (h === 1) { d.pts[1] = { t: pt.t, p: pt.p }; d.pts[2].t = pt.t; } else d.pts[2] = { t: d.pts[1].t, p: pt.p }; }
-chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size comes from your trading account and risk %; Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
-chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size comes from your trading account and risk %; Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
+chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
+chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
 chDef("avwap", { g: "forecast", name: "Anchored VWAP", n: 1, ico: "M3 15c4 0 5-8 9-8s3 5 6 5M5 3v15", sd: { c: "#2962ff", w: 2 }, f: "c w ls", hint: "Click the candle to anchor the VWAP on.",
   paint(K, x, y) { const P = K.P, i0 = Math.max(0, Math.round(chLogical(P, K.d.pts[0].t))); if (i0 >= P.t.length) return; let pv = 0, vv = 0; const pts = [];
     for (let i = i0; i < P.t.length; i++) { const v = P.v && P.v[i] > 0 ? P.v[i] : 1, tp = (P.h[i] + P.l[i] + P.c[i]) / 3; pv += tp * v; vv += v; const xx = chLgX(P, i), yy = chY(P, pv / vv); if (xx != null && yy != null) pts.push([xx, yy]); }
@@ -8699,7 +8703,8 @@ function chDrawSettings(d) {
       if (f.includes("rev")) h += `<div class="chsr sty"><input type="checkbox" data-b="rev" ${s.rev ? "checked" : ""}><label>Reverse</label><span class="ctl"></span></div>`;
       if (f.includes("fiblbl")) h += `<div class="chsr sty"><input type="checkbox" data-b="lbl" ${s.lbl ? "checked" : ""}><label>Levels text</label><span class="ctl"></span></div><div class="chsr sty"><input type="checkbox" data-b="prices" ${s.prices ? "checked" : ""}><label>Prices</label><span class="ctl"></span></div>`;
       if (f.includes("dev")) h += row("Deviation", `<input type="number" step="0.1" min="0" data-n="dev" value="${s.dev ?? 2}">`);
-      if (f.includes("pos")) h += row("Profit zone", chSwatch(s.pc, 1, 'data-col="pc"')) + row("Stop zone", chSwatch(s.lc, 1, 'data-col="lc"')) + row("Account size", `<input type="number" min="0" step="any" data-n="acct" value="${s.acct || 0}" placeholder="used without a trading account">`) + row("Risk %", `<input type="number" min="0" step="0.1" data-n="risk" value="${s.risk ?? ""}" placeholder="Trade page (${typeof trCfg === "function" ? trCfg().risk : 1}%)">`);
+      if (f.includes("pos")) h += row("Profit zone", chSwatch(s.pc, 1, 'data-col="pc"')) + row("Stop zone", chSwatch(s.lc, 1, 'data-col="lc"')) + row("Account size", `<span class="chamseg" role="group" aria-label="Account size">${[["sync", "Sync with account"], ["manual", "Manual"]].map(([k, l]) => `<button data-am="${k}" class="${(s.am === "manual" ? "manual" : "sync") === k ? "on" : ""}" aria-pressed="${(s.am === "manual" ? "manual" : "sync") === k}">${l}</button>`).join("")}</span>`)
+        + (s.am === "manual" ? row("Amount", `<input type="number" min="0" step="any" data-n="acct" value="${s.acct || ""}" placeholder="e.g. 10000">`) : row("Balance", `<span class="chamv" id="chAmV">${chEsc(typeof trPosAcct === "function" ? trPosAcct(d) : "Open the Trade page to link an account")}</span>`)) + row("Risk %", `<input type="number" min="0" step="0.1" data-n="risk" value="${s.risk ?? ""}" placeholder="Trade page (${typeof trCfg === "function" ? trCfg().risk : 1}%)">`);
       if (f.includes("vp")) h += row("Rows", `<input type="number" min="4" max="120" data-n="rows" value="${s.rows || 24}">`) + row("Value area %", `<input type="number" min="10" max="100" data-n="va" value="${s.va || 70}">`) + row("Up volume", chSwatch(s.up, 1, 'data-col="up"')) + row("Down volume", chSwatch(s.dn, 1, 'data-col="dn"'));
       if (f.includes("icon")) h += `<div class="chemogrid big">${CH_EMOJI.map(e => `<button data-emo="${e}" class="${s.icon === e ? "on" : ""}">${e}</button>`).join("")}</div>` + row("Size", `<input type="number" min="10" max="96" data-n="fs" value="${s.fs}">`);
       if (f.includes("lv")) { const def = { fib: CH_FIB_LV, fibext: CH_EXT_LV, fibchan: CH_FIB_LV, fibfan: CH_FAN_LV, fibcirc: CH_CIRC_LV, gbox: CH_GANN_LV }[d.type] || CH_FIB_LV, L = (s.lv || def).map(x => ({ ...x }));
@@ -8725,6 +8730,8 @@ function chDrawSettings(d) {
     B.querySelectorAll("[data-k]").forEach(el => el.onchange = () => set({ [el.dataset.k]: el.dataset.k === "ext" ? el.value : +el.value }));
     B.querySelectorAll("[data-b]").forEach(el => el.onchange = () => set({ [el.dataset.b]: el.checked }));
     B.querySelectorAll("[data-n]").forEach(el => el.oninput = () => { const v = parseFloat(el.value); if (isFinite(v)) set({ [el.dataset.n]: v }); });
+    B.querySelectorAll("[data-am]").forEach(el => el.onclick = () => { set({ am: el.dataset.am }); render(); });
+    if ($("chAmV")) { clearInterval(chAmT); chAmT = setInterval(() => { const el = $("chAmV"); if (!el || typeof trPosAcct !== "function") return clearInterval(chAmT); el.textContent = trPosAcct(d); }, 500); }
     B.querySelectorAll("[data-t]").forEach(el => el.oninput = () => set({ txt: el.value }));
     B.querySelectorAll("[data-tg]").forEach(el => el.onclick = () => { const k = el.dataset.tg, v = !chDS(d)[k]; set({ [k]: v }); el.classList.toggle("on", v); });
     B.querySelectorAll("[data-emo]").forEach(el => el.onclick = () => { set({ icon: el.dataset.emo }); render(); });
@@ -9528,27 +9535,45 @@ function trPreview() {
   b.textContent = TR.armed > Date.now() ? `Confirm ${TR.side} ${size || ""} ${unit}` : `${TR.side === "buy" ? "Buy" : "Sell"} ${size || ""} ${unit} ${TR.sym ? trName(TR.sym) : ""} ${TR.type === "market" ? "at market" : TR.type === "limit" ? "limit" : "stop"}`;
   $("trWarn").textContent = err || "";
 }
-async function trSizeCalc(sym, e, sl, risk) {   // → { qty, unit, txt, risk, ccy, below } from the trading account's balance
+async function trSizeCalc(sym, e, sl, risk, man) {   // → { qty, unit, txt, risk, ccy, below, bal, bccy, src }; man > 0 = a typed account size, else the account's own balance
+  if (!(risk > 0)) throw new Error("set a risk %");
   if (trVenue(sym) === "ct") {
-    if (CTT.state !== "ready") await cttConnect(); const x = cttSym(sym); if (!x) throw new Error("not on the trading account");
-    const spec = await cttSpec(x), cs = await ctSpec(sym).catch(() => null), ccy = (await ctAccountInfo().catch(() => ({ ccy: "USD" }))).ccy;
-    const m = ctLots({ ...spec, base: cs ? cs.base : "", quote: cs ? cs.quote : "" }, { balance: CTT.info.balance, ccy }, e, sl, risk, e); if (!m) throw new Error("couldn't size this one");
-    return { qty: +m.lots.toFixed(2), unit: "lots", risk: m.risk, ccy: m.ccy, below: m.below, txt: `${m.lots.toFixed(2)} lots`, note: `${risk}% of ${fmtNum(CTT.info.balance)} = about ${fmtNum(m.risk)} ${m.ccy} at risk${m.below ? " (below the minimum size)" : ""}` };
+    let spec = null, bal = null, src = "";
+    if (CTT.state === "ready" || (ctCfg() || {}).scope === "trading") {      // the trading account: its balance and contract sizes
+      if (CTT.state !== "ready") await cttConnect().catch(() => {});
+      const x = CTT.state === "ready" && cttSym(sym); if (x) { spec = await cttSpec(x); bal = CTT.info ? CTT.info.balance : null; src = `cTrader ${CTT.live ? "live" : "demo"}`; }
+    }
+    const cs = await ctSpec(sym).catch(() => null), info = await ctAccountInfo().catch(() => null), bccy = info ? info.ccy : "USD";
+    if (!spec) { if (!cs) throw new Error("connect cTrader to size this"); spec = cs; bal = info ? info.balance : null; src = "cTrader"; }   // no trading link yet: the data account
+    if (man > 0) { bal = man; src = "manual"; }
+    if (!(bal > 0)) throw new Error("no account balance yet");
+    const m = ctLots({ ...spec, base: cs ? cs.base : "", quote: cs ? cs.quote : "" }, { balance: bal, ccy: bccy }, e, sl, risk, e); if (!m) throw new Error("couldn't size this one");
+    return { qty: +m.lots.toFixed(2), unit: "lots", risk: m.risk, ccy: m.ccy, below: m.below, bal, bccy, src, txt: `${m.lots.toFixed(2)} lots`,
+      note: `${risk}% of ${fmtNum(bal)} ${bccy}${src === "manual" ? " (typed size)" : ""} = about ${fmtNum(m.risk)} ${m.ccy} at risk${m.below ? " (below the minimum size)" : ""}` };
   }
-  if (!mxtOn()) throw new Error("add your MEXC API key in Trade settings");
-  const d = await mxtDetail(sym), a = MXT.asset || (MXT.asset = await mxtReq("GET", "/api/v1/private/account/asset/USDT", {})), bal = +(a.equity || a.availableBalance || 0);
+  const d = await mxtDetail(sym); let bal = man > 0 ? man : null, src = "manual";
+  if (!bal) { if (!mxtOn()) throw new Error("add your MEXC API key in Trade settings"); const a = MXT.asset || (MXT.asset = await mxtReq("GET", "/api/v1/private/account/asset/USDT", {})); bal = +(a.equity || a.availableBalance || 0); src = "MEXC futures"; }
+  if (!(bal > 0)) throw new Error("no USDT in the futures account");
   const cs = +d.contractSize || 1, step = +d.volUnit || 1, minV = +d.minVol || step, ctr = Math.floor(bal * risk / 100 / Math.abs(e - sl) / cs / step) * step;
-  return { qty: ctr, unit: "contracts", risk: ctr * cs * Math.abs(e - sl), ccy: "USDT", below: ctr < minV, txt: `${ctr} contracts`,
-    note: ctr < minV ? `${risk}% of ${fmtNum(bal)} USDT is less than the smallest order (${minV} contract = ${fmtNum(minV * cs)} ${coin(sym)}). Widen the risk or tighten the stop.` : `${risk}% of ${fmtNum(bal)} USDT · ${ctr} contracts = ${fmtNum(ctr * cs)} ${coin(sym)} · about ${fmtNum(ctr * cs * e)} USDT position` };
+  return { qty: ctr, unit: "contracts", risk: ctr * cs * Math.abs(e - sl), ccy: "USDT", bal, bccy: "USDT", src, below: ctr < minV, txt: `${ctr} contracts`,
+    note: ctr < minV ? `${risk}% of ${fmtNum(bal)} USDT is less than the smallest order (${minV} contract = ${fmtNum(minV * cs)} ${coin(sym)}). Widen the risk or tighten the stop.` : `${risk}% of ${fmtNum(bal)} USDT${src === "manual" ? " (typed size)" : ""} · ${ctr} contracts = ${fmtNum(ctr * cs)} ${coin(sym)} · about ${fmtNum(ctr * cs * e)} USDT position` };
 }
 const TPS = new Map();
-function trPosSize(d, risk) {                   // the chart's position tool asks this every frame; answers from a cache, refreshed in the background
+function trPosSize(d, risk, man) {              // the chart's position tool asks this every frame; answers from a cache, refreshed in the background
   const sym = CH.sym; if (!sym || !d.pts || d.pts.length < 2) return null;
-  const v = trVenue(sym); if (v === "ct" && CTT.state !== "ready") { if (CTT.state === "off" && ctConfigured() && (ctCfg() || {}).scope === "trading") cttConnect().catch(() => {}); return null; }
-  if (v === "mx" && !mxtOn()) return null;
-  const key = [sym, d.pts[0].p, d.pts[1].p, risk].join("|"), c = TPS.get(d.id);
-  if (!c || c.key !== key) { TPS.set(d.id, { key, val: c ? c.val : null }); trSizeCalc(sym, d.pts[0].p, d.pts[1].p, risk).then(val => { const n = TPS.get(d.id); if (n && n.key === key) { n.val = val; chDirty = true; } }, () => {}); }
-  return c ? c.val : null;
+  const v = trVenue(sym), c = TPS.get(d.id), set = o => { TPS.set(d.id, o); return o.val; };
+  if (v === "ct" && !ctConfigured()) return set({ key: "", val: null, err: "connect cTrader for live sizing" });
+  if (v === "mx" && !mxtOn() && !(man > 0)) return set({ key: "", val: null, err: "add your MEXC key in Trade settings" });
+  const key = [sym, d.pts[0].p, d.pts[1].p, risk, man || 0].join("|"), age = c ? Date.now() - c.at : 1e9;
+  if (!c || c.key !== key || age > (c.err ? 10e3 : 30e3)) {   // new levels or risk → resize; also re-read the balance every 30 s
+    const n = { key, at: Date.now(), val: c ? c.val : null, err: c && c.key === key ? c.err : "" }; TPS.set(d.id, n);
+    trSizeCalc(sym, d.pts[0].p, d.pts[1].p, risk, man).then(val => { if (TPS.get(d.id) === n) { n.val = val; n.err = ""; chDirty = true; } }, x => { if (TPS.get(d.id) === n) { n.val = null; n.err = x.message; chDirty = true; } });
+  }
+  return (TPS.get(d.id) || {}).val || null;
+}
+function trPosAcct(d) {                         // for the settings box: where the account size comes from right now
+  const c = TPS.get(d.id) || {}, v = c.val;
+  return v ? `${fmtNum(v.bal)} ${v.bccy} · ${v.src === "manual" ? "typed" : v.src}` : c.err ? `Not synced: ${c.err}` : "Reading your account…";
 }
 function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
 async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
@@ -9559,7 +9584,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
   el.id = "trPosPanel"; el.className = "trpospanel"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Order from the chart");
   el.innerHTML = `<div class="trpph"><b>${side === "buy" ? "Buy" : "Sell"} ${chEsc(trName(sym))}</b><button class="chx" id="tpClose" aria-label="Close">${chIco("x", 15)}</button></div>
     <div class="meta" id="tpVenue">${v === "ct" ? "cTrader · connecting…" : "MEXC futures"}</div>
-    <div class="meta">Drag the blue, red and green lines on the chart; the size follows your risk %.</div>
+    <div class="meta">Drag the blue, red and green lines on the chart; the risk % stays fixed and the size follows the entry and stop.</div>
     <div class="trkv" id="tpLv"></div>
     <label class="trrow">Order<select id="tpType"></select></label>
     <div class="trgrid"><label class="trrow">Risk %<input id="tpRisk" inputmode="decimal"></label><label class="trrow"><span>Size (${unit})</span><input id="tpSize" inputmode="decimal"></label></div>
@@ -9581,17 +9606,17 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     else if (ref && tp && (side === "buy" ? tp <= ref : tp >= ref)) w = `The target is on the wrong side for a ${side}.`;
     warn(w || $("tpWarn").dataset.size || ""); $("tpGo").disabled = !(q > 0) || !!w; };
   const sizeIt = async () => { const { e, sl } = lv(), my = ++seq;
-    try { const r = await trSizeCalc(sym, e, sl, parseFloat($("tpRisk").value) || 0); if (my !== seq) return;
+    try { const ds = chDS(d), r = await trSizeCalc(sym, e, sl, parseFloat($("tpRisk").value) || 0, ds.am === "manual" ? +ds.acct || 0 : 0); if (my !== seq) return;
       if (!manual) $("tpSize").value = r.qty; $("tpNote").textContent = r.note; $("tpWarn").dataset.size = r.below ? "That size is below the market's minimum." : ""; }
     catch (x) { $("tpWarn").dataset.size = x.message; } check(); };
   const sync = () => {                           // follow the lines as you drag them
-    const { e, sl, tp } = lv(), key = [e, sl, tp].join("|"); if (key === lastKey) return; lastKey = key;
+    const { e, sl, tp } = lv(), ds = chDS(d), key = [e, sl, tp, ds.am, ds.acct, ds.risk].join("|"); if (key === lastKey) return; lastKey = key; if (ds.risk > 0 && document.activeElement !== $("tpRisk")) $("tpRisk").value = ds.risk;
     $("tpLv").innerHTML = `<span>Entry</span><b>${f(e)}</b><span>Stop</span><b class="dn">${f(sl)}</b><span>Target</span><b class="up">${tp ? f(tp) : "—"}</b><span>Reward : risk</span><b>${tp ? (Math.abs(tp - e) / Math.abs(e - sl)).toFixed(2) + "R" : "—"}</b>`;
     types(); clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 120);
   };
   $("tpClose").onclick = $("tpCancel").onclick = trPosClose;
   $("tpType").onchange = () => { $("tpType").dataset.user = "1"; check(); };
-  $("tpRisk").oninput = () => { manual = false; clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 300); };
+  $("tpRisk").oninput = () => { manual = false; const rv = parseFloat($("tpRisk").value); if (rv > 0) { d.s = { ...(d.s || {}), risk: rv }; chSaveDraw(); chDirty = true; } clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 300); };
   $("tpSize").oninput = () => { manual = true; check(); };
   $("tpTicket").onclick = () => { const { e, sl, tp } = lv(), size = $("tpSize").value, risk = $("tpRisk").value, type = $("tpType").value; trPosClose(); openTrade(sym); TR.side = side; TR.type = type; trRender();
     $("trPrice").value = f(e); $("trSL").value = f(sl); if (tp) $("trTP").value = f(tp); $("trSize").value = size; $("trRisk").value = risk; trPreview(); };

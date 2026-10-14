@@ -101,6 +101,19 @@ async def main():
         sent2 = [p for t, p in CT_TRADE["log"] if t == 2106][-1]
         print("23) chart order:", [t for t, p in CT_TRADE["log"]].count(2106) - n06, {k: sent2.get(k) for k in ("tradeSide", "orderType", "limitPrice", "stopPrice", "stopLoss", "takeProfit", "volume")}, "| panel closed:", await q("() => !document.getElementById('trPosPanel') && TR.posId == null"))
         print("24) toolbar button:", await q("() => { chSel = 'pz'; chSelBar(); return !!document.querySelector('#chFloat [data-fl=\"trade\"]'); }"), "| menu:", await q("() => chMoreItems(CHD[CH.sym][0]).map(x => x.l).filter(Boolean).slice(0, 2).join(', ')"))
+        # account size: synced from the account by default, or typed (manual); the risk % stays, the size follows the stop
+        d0 = "CHD[CH.sym][0]"
+        await q(f"() => {{ TPS.clear(); chDirty = true; chDrawSettings({d0}); }}"); await asyncio.sleep(1.5)
+        print("25) synced:", await q("() => [[...document.querySelectorAll('[data-am]')].map(b => b.innerText + (b.classList.contains('on') ? '*' : '')).join('/'), (document.getElementById('chAmV') || {}).innerText]"))
+        sz = lambda: q(f"() => {{ const d = {d0}, s = chDS(d); const v = trPosSize(d, s.risk > 0 ? s.risk : trCfg().risk, s.am === 'manual' ? +s.acct || 0 : 0); return v && [v.qty, v.src, +v.bal.toFixed(2), +v.risk.toFixed(2)]; }}")
+        a1 = await sz()
+        await q("() => document.querySelector('[data-am=\"manual\"]').click()"); await asyncio.sleep(0.3)
+        await pg.fill("[data-n='acct']", "50000"); await asyncio.sleep(0.3); await pg.fill("[data-n='risk']", "1"); await asyncio.sleep(0.3)
+        await wait(f"() => {{ const c = TPS.get({d0}.id); return c && c.val && c.val.src === 'manual'; }}", 10); a2 = await sz()
+        await q(f"() => {{ const d = {d0}; d.pts[1] = {{ t: d.pts[1].t, p: d.pts[0].p + (d.pts[1].p - d.pts[0].p) * 2 }}; chDirty = true; }}"); await asyncio.sleep(0.2); await sz(); await asyncio.sleep(1); a3 = await sz()
+        print("26) sync → manual 50,000 @1% → stop twice as far:", a1, "→", a2, "→", a3, "| label:", await q(f"() => chDS({d0}).am"))
+        await q("() => document.querySelector('[data-am=\"sync\"]').click()"); await asyncio.sleep(1.5); print("27) back to sync:", await sz(), "| balance row:", await q("() => (document.getElementById('chAmV') || {}).innerText"))
+        await pg.screenshot(path=f"{OUT}/trade_acct.png")
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

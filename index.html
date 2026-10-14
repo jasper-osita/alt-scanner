@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1819">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1835">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -424,6 +424,7 @@ body.pg-charts .pills,body.pg-charts #pageTitle,body.pg-charts .subline{display:
 body.pg-charts .wrap{max-width:none;padding:10px 14px 10px}body.pg-charts .layout{grid-template-columns:minmax(0,1fr)!important}body.pg-charts #fPanel{display:none!important}
 body.pg-charts #fToggle{display:none}body.navcol .wrap{max-width:2200px}.shell>.wrap{width:100%;min-width:0}
 .chpage{display:flex;flex-direction:column;height:calc(100vh - 78px);min-height:520px}
+.chpage{position:relative}
 .chbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:4px 0 8px}
 .chpickw{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .chsym{display:flex;align-items:baseline;gap:8px;min-width:150px;background:transparent;border:1px solid transparent;border-radius:8px;padding:3px 8px;cursor:pointer;color:var(--text)}
@@ -661,6 +662,10 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .trticket .xseg{display:flex;width:100%}.trticket .xseg button{flex:1}
 .trrow input,.trrow select{width:100%;box-sizing:border-box}
 .chfloat .chfltr{background:#2962ff;color:#fff;border-radius:6px;padding:0 10px;font-weight:600}
+.trpospanel{position:absolute;right:220px;top:120px;z-index:40;width:300px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.trpph{display:flex;justify-content:space-between;align-items:center}.trppf{display:flex;gap:6px;align-items:center}.trpospanel .trgo{padding:7px 12px;font-size:13px}
+.trpospanel .trkv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}.trpospanel .trkv span{color:var(--mute)}
+@media (max-width:900px){.trpospanel{right:10px;left:10px;width:auto;top:auto;bottom:10px;position:fixed}}
 .trpos{display:flex;flex-direction:column;gap:10px;min-width:320px}.trpos .trkv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}.trpos .trkv span:nth-child(odd){color:var(--mute)}
 .trrow input,.trrow select,.trin{background:var(--bg);border:1px solid var(--pill-b);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit;min-width:0}
 .trin{padding:4px 6px;width:90px}.trinl{display:flex;gap:6px}.trinl input{flex:1}
@@ -4315,7 +4320,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1819";
+const APP_VERSION = "2026.10.14.1835";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7639,13 +7644,22 @@ function chPosPaint(K, x, y) {
   K.lbl(`${d.type === "long" ? "Long" : "Short"} ${chPF(P, e0)}${q}`, x0, ye, "rgba(40,42,48,.92)", "#e0e3eb", "left");
   if (s.lbl) { K.axP(ye, e0, "#9a9ca1"); K.axP(yt, t0, "#1b8f7c"); K.axP(ys2, s0, "#c62f3d"); }
   K.hp = [[x0, ye], [x1, ys2], [x1, yt]]; void sg;
+  if (typeof TR !== "undefined" && TR.posId === d.id) {          // order lines: full width, drag a line (or its label) to move that level
+    const W = K.W, line = (yy, col, txt) => { K.seg(0, yy, W, yy, { c: col, w: 1.5, ls: 1, nohit: true }); K.lbl(txt, W - 8, yy, col, "#fff", "right"); };
+    line(ys2, "#f23645", `SL ${chPF(P, s0)}${risk ? ` · −${risk.toFixed(2)}${cc}` : ""}`);
+    line(yt, "#22ab94", `TP ${chPF(P, t0)} · ${rr.toFixed(2)}R${risk ? ` · +${(risk * rr).toFixed(2)}${cc}` : ""}`);
+    line(ye, "#2962ff", `${d.type === "long" ? "Buy" : "Sell"} ${chPF(P, e0)}${live ? ` · ${live.txt}` : ""}`);
+    K.hl = [[ye, 0], [ys2, 1], [yt, 2]]; K.axP(ye, e0, "#2962ff"); K.axP(ys2, s0, "#f23645"); K.axP(yt, t0, "#22ab94");
+  }
 }
 function chPosFinish(d, P) {
   const e0 = d.pts[0].p; let s = d.pts[1].p; const sg = d.type === "long" ? 1 : -1;
   if (!(sg * (e0 - s) > 0)) s = e0 * (1 - sg * 0.01);
   const t2 = Math.max(d.pts[1].t, d.pts[0].t + 12 * CH_IV[P.tf]); d.pts = [{ t: d.pts[0].t, p: e0 }, { t: t2, p: s }, { t: t2, p: e0 + 2 * (e0 - s) }];
 }
-function chPosDrag(d, h, pt) { if (h === 0) { const dt = pt.t - d.pts[0].t, dp = pt.p - d.pts[0].p; d.pts = d.pts.map(q => ({ t: q.t + (h === 0 ? dt : 0), p: q.p + dp })); d.pts[1].t = d.pts[2].t = Math.max(d.pts[1].t, d.pts[0].t + 1); }
+function chPosDrag(d, h, pt) {
+  if (typeof TR !== "undefined" && TR.posId === d.id && h != null) { d.pts[h] = { t: d.pts[h].t, p: pt.p }; return; }   // order lines move one level at a time
+  if (h === 0) { const dt = pt.t - d.pts[0].t, dp = pt.p - d.pts[0].p; d.pts = d.pts.map(q => ({ t: q.t + (h === 0 ? dt : 0), p: q.p + dp })); d.pts[1].t = d.pts[2].t = Math.max(d.pts[1].t, d.pts[0].t + 1); }
   else if (h === 1) { d.pts[1] = { t: pt.t, p: pt.p }; d.pts[2].t = pt.t; } else d.pts[2] = { t: d.pts[1].t, p: pt.p }; }
 chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size comes from your trading account and risk %; Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
 chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size comes from your trading account and risk %; Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
@@ -8536,6 +8550,7 @@ function chHitShape(s, x, y) {
 function chHitTest(P, x, y) {
   const L = P.hits || [];
   const sel = L.find(h => h.id === chSel);
+  for (const h of L) if (h.hl) for (const [hy, j] of h.hl) if (hy != null && Math.abs(hy - y) <= (chTouch ? 12 : 5)) return { id: h.id, h: j };   // order lines grab anywhere along them
   if (sel && !sel.nh) for (let j = 0; j < sel.hp.length; j++) { const [hx, hy] = sel.hp[j]; if (hx != null && hy != null && Math.hypot(hx - x, hy - y) <= (chTouch ? 18 : 8)) return { id: sel.id, h: j }; }
   for (let k = L.length - 1; k >= 0; k--) { const h = L[k]; if (h.hits.some(s => chHitShape(s, x, y))) return { id: h.id, h: null }; }
   return null;
@@ -8574,7 +8589,7 @@ function chPaintBody(P, g) {
     const K = chK(g, P, d, chDS(d), W, H, axis, ticks);
     g.save(); try { T.paint(K, xs, ys); } catch (e) {} g.restore(); g.setLineDash([]);
     const hp = K.hp || xs.map((x, j) => [x, ys[j]]);
-    if (!d.draft) P.hits.push({ id: d.id, hits: K.hits, hp, nh: T.n === "free" });
+    if (!d.draft) P.hits.push({ id: d.id, hits: K.hits, hp, nh: T.n === "free", hl: K.hl || null });
     if (d.id === chSel && T.n !== "free") hp.forEach(([x, y]) => { if (x == null || y == null) return; g.fillStyle = "#131722"; g.strokeStyle = d.lk ? "#9a9ca1" : "#2962ff"; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.stroke(); });
   } catch (e) { chPaintErr(e, d.type); } }
   // measure and zoom (draft or last result)
@@ -9535,46 +9550,71 @@ function trPosSize(d, risk) {                   // the chart's position tool ask
   if (!c || c.key !== key) { TPS.set(d.id, { key, val: c ? c.val : null }); trSizeCalc(sym, d.pts[0].p, d.pts[1].p, risk).then(val => { const n = TPS.get(d.id); if (n && n.key === key) { n.val = val; chDirty = true; } }, () => {}); }
   return c ? c.val : null;
 }
-async function trFromPos(d) {                   // a Long/Short position drawn on the chart → an order with its entry, stop, target and risk-based size
-  const sym = CH.sym, side = d.type === "long" ? "buy" : "sell", e = d.pts[0].p, sl = d.pts[1].p, tp = d.pts[2] ? d.pts[2].p : null, v = trVenue(sym), dg = s => s >= 100 ? 2 : s >= 1 ? 5 : 6;
-  const risk0 = chDS(d).risk > 0 ? chDS(d).risk : trCfg().risk, f = x => +x.toFixed(dg(e));
-  const box = chModal(`<div class="chmh"><h3>${side === "buy" ? "Buy" : "Sell"} ${chEsc(trName(sym))}</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div>
-    <div class="chmb trpos"><div class="meta" id="tpVenue">${v === "ct" ? "cTrader · connecting…" : "MEXC futures"}</div>
-      <div class="trkv"><span>Entry</span><b>${f(e)}</b><span>Stop</span><b class="dn">${f(sl)}</b><span>Target</span><b class="up">${tp ? f(tp) : "—"}</b><span>Reward : risk</span><b>${tp ? (Math.abs(tp - e) / Math.abs(e - sl)).toFixed(2) + "R" : "—"}</b></div>
-      <label class="trrow">Order<select id="tpType"></select></label>
-      <div class="trgrid"><label class="trrow">Risk %<input id="tpRisk" inputmode="decimal" value="${risk0}"></label><label class="trrow"><span>Size (${v === "mx" ? "contracts" : "lots"})</span><input id="tpSize" inputmode="decimal"></label></div>
-      ${v === "mx" ? `<div class="trgrid"><label class="trrow">Leverage<input id="tpLev" inputmode="numeric" value="10"></label><label class="trrow">Margin<select id="tpMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>` : ""}
-      <div class="meta" id="tpNote"></div><div class="dn meta" id="tpWarn" aria-live="polite"></div></div>
-    <div class="chmf"><button class="btn" id="tpTicket">Open in ticket</button><span style="flex:1"></span><button class="btn" data-close>Cancel</button><button class="btn trgo ${side}" id="tpGo" disabled>Place order</button></div>`, "chmset");
-  box.querySelectorAll("[data-close]").forEach(b => b.onclick = chModalClose);
-  const warn = t => { $("tpWarn").textContent = t || ""; };
-  const sizeIt = async () => { try { const r = await trSizeCalc(sym, e, sl, parseFloat($("tpRisk").value) || 0); $("tpSize").value = r.qty; $("tpNote").textContent = r.note; warn(r.below ? "That size is below the market's minimum." : ""); } catch (x) { warn(x.message); } check(); };
-  const check = () => { const q = parseFloat($("tpSize").value); $("tpGo").disabled = !(q > 0); };
-  try {
-    if (v === "ct" && CTT.state !== "ready") await cttConnect();
-    if (v === "ct") { const x = cttSym(sym); if (!x) throw new Error(`${trName(sym)} isn't on the trading account`); await cttWatch(x); $("tpVenue").innerHTML = `cTrader · ${chEsc(CTT.acct.brokerTitleShort || "Broker")} <b class="${CTT.live ? "dn" : "up"}">${CTT.live ? "LIVE" : "demo"}</b> ${CTT.acct.traderLogin || CTT.acct.ctidTraderAccountId}`; }
-    else { if (!mxtOn()) throw new Error("add your MEXC API key in Trade settings first"); await mxtTick(sym); }
-  } catch (x) { warn(x.message); $("tpVenue").textContent = v === "ct" ? "cTrader: not ready" : "MEXC: not ready"; }
-  const q = trLivePrice(sym) || {}, now = side === "buy" ? (q.ask || q.bid) : q.bid, near = now && Math.abs(e - now) / now < 0.0005;
-  const better = now && (side === "buy" ? e < now : e > now), opts = [["market", `Market now${now ? " (" + fmtPrice(now) + ")" : ""}`], ["limit", `Limit at ${f(e)}`], ...(v === "ct" ? [["stop", `Stop at ${f(e)}`]] : [])];
-  const def = near ? "market" : better ? "limit" : v === "ct" ? "stop" : "market";
-  $("tpType").innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === def ? "selected" : ""}>${l}</option>`).join("");
-  $("tpRisk").oninput = () => { clearTimeout(trFromPos.t); trFromPos.t = setTimeout(sizeIt, 300); };
-  $("tpSize").oninput = check;
-  $("tpTicket").onclick = () => { chModalClose(); openTrade(sym); TR.side = side; TR.type = $("tpType") ? $("tpType").value : "limit"; trRender(); $("trPrice").value = f(e); $("trSL").value = f(sl); if (tp) $("trTP").value = f(tp); $("trSize").value = $("tpSize").value; $("trRisk").value = $("tpRisk").value; trPreview(); };
+function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
+async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
+  trPosClose();
+  const sym = CH.sym, side = d.type === "long" ? "buy" : "sell", v = trVenue(sym), unit = v === "mx" ? "contracts" : "lots";
+  const dg = x => x >= 100 ? 2 : x >= 1 ? 5 : 6, f = x => +(+x).toFixed(dg(d.pts[0].p));
+  const host = $("chPage") || document.body, el = document.createElement("div");
+  el.id = "trPosPanel"; el.className = "trpospanel"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Order from the chart");
+  el.innerHTML = `<div class="trpph"><b>${side === "buy" ? "Buy" : "Sell"} ${chEsc(trName(sym))}</b><button class="chx" id="tpClose" aria-label="Close">${chIco("x", 15)}</button></div>
+    <div class="meta" id="tpVenue">${v === "ct" ? "cTrader · connecting…" : "MEXC futures"}</div>
+    <div class="meta">Drag the blue, red and green lines on the chart; the size follows your risk %.</div>
+    <div class="trkv" id="tpLv"></div>
+    <label class="trrow">Order<select id="tpType"></select></label>
+    <div class="trgrid"><label class="trrow">Risk %<input id="tpRisk" inputmode="decimal"></label><label class="trrow"><span>Size (${unit})</span><input id="tpSize" inputmode="decimal"></label></div>
+    ${v === "mx" ? `<div class="trgrid"><label class="trrow">Leverage<input id="tpLev" inputmode="numeric" value="10"></label><label class="trrow">Margin<select id="tpMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>` : ""}
+    <div class="meta" id="tpNote"></div><div class="dn meta" id="tpWarn" aria-live="polite"></div>
+    <div class="trppf"><button class="btn sm" id="tpTicket">Open in ticket</button><span style="flex:1"></span><button class="btn sm" id="tpCancel">Cancel</button><button class="btn trgo ${side}" id="tpGo" disabled>Place order</button></div>`;
+  ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation()));
+  host.appendChild(el); TR.posId = d.id; chSel = d.id; chDirty = true; if (typeof chSelBar === "function") chSelBar();
+  $("tpRisk").value = chDS(d).risk > 0 ? chDS(d).risk : trCfg().risk;
+  const warn = t => { $("tpWarn").textContent = t || ""; }, lv = () => ({ e: d.pts[0].p, sl: d.pts[1].p, tp: d.pts[2] ? d.pts[2].p : null });
+  let manual = false, lastKey = "", seq = 0;
+  const now = () => { const q = trLivePrice(sym) || {}; return side === "buy" ? (q.ask || q.bid) : q.bid; };
+  const types = () => { const { e } = lv(), n = now(), near = n && Math.abs(e - n) / n < 0.0005, better = n && (side === "buy" ? e < n : e > n);
+    const opts = [["market", `Market now${n ? " (" + fmtPrice(n) + ")" : ""}`], ["limit", `Limit at ${f(e)}`], ...(v === "ct" ? [["stop", `Stop at ${f(e)}`]] : [])];
+    const def = near ? "market" : better ? "limit" : v === "ct" ? "stop" : "market", cur = $("tpType").dataset.user ? $("tpType").value : def;
+    $("tpType").innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === cur ? "selected" : ""}>${l}</option>`).join(""); };
+  const check = () => { const { e, sl, tp } = lv(), q = parseFloat($("tpSize").value), type = $("tpType").value, ref = type === "market" ? now() : e;
+    let w = ""; if (ref && (side === "buy" ? sl >= ref : sl <= ref)) w = `The stop is on the wrong side of the ${type === "market" ? "current price" : "entry"} for a ${side}.`;
+    else if (ref && tp && (side === "buy" ? tp <= ref : tp >= ref)) w = `The target is on the wrong side for a ${side}.`;
+    warn(w || $("tpWarn").dataset.size || ""); $("tpGo").disabled = !(q > 0) || !!w; };
+  const sizeIt = async () => { const { e, sl } = lv(), my = ++seq;
+    try { const r = await trSizeCalc(sym, e, sl, parseFloat($("tpRisk").value) || 0); if (my !== seq) return;
+      if (!manual) $("tpSize").value = r.qty; $("tpNote").textContent = r.note; $("tpWarn").dataset.size = r.below ? "That size is below the market's minimum." : ""; }
+    catch (x) { $("tpWarn").dataset.size = x.message; } check(); };
+  const sync = () => {                           // follow the lines as you drag them
+    const { e, sl, tp } = lv(), key = [e, sl, tp].join("|"); if (key === lastKey) return; lastKey = key;
+    $("tpLv").innerHTML = `<span>Entry</span><b>${f(e)}</b><span>Stop</span><b class="dn">${f(sl)}</b><span>Target</span><b class="up">${tp ? f(tp) : "—"}</b><span>Reward : risk</span><b>${tp ? (Math.abs(tp - e) / Math.abs(e - sl)).toFixed(2) + "R" : "—"}</b>`;
+    types(); clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 120);
+  };
+  $("tpClose").onclick = $("tpCancel").onclick = trPosClose;
+  $("tpType").onchange = () => { $("tpType").dataset.user = "1"; check(); };
+  $("tpRisk").oninput = () => { manual = false; clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 300); };
+  $("tpSize").oninput = () => { manual = true; check(); };
+  $("tpTicket").onclick = () => { const { e, sl, tp } = lv(), size = $("tpSize").value, risk = $("tpRisk").value, type = $("tpType").value; trPosClose(); openTrade(sym); TR.side = side; TR.type = type; trRender();
+    $("trPrice").value = f(e); $("trSL").value = f(sl); if (tp) $("trTP").value = f(tp); $("trSize").value = size; $("trRisk").value = risk; trPreview(); };
   $("tpGo").onclick = async () => {
-    const type = $("tpType").value, size = parseFloat($("tpSize").value), ref = type === "market" ? ((trLivePrice(sym) || {})[side === "buy" ? "ask" : "bid"] || now) : e;
-    if (ref && (side === "buy" ? sl >= ref : sl <= ref)) { warn(`The stop is on the wrong side of the ${type === "market" ? "current price" : "entry"} for a ${side}.`); return; }
-    if (trCfg().confirm && $("tpGo").dataset.armed !== "1") { $("tpGo").dataset.armed = "1"; $("tpGo").textContent = `Confirm ${side} ${size} ${v === "mx" ? "contracts" : "lots"}`; return; }
+    const { e, sl, tp } = lv(), type = $("tpType").value, size = parseFloat($("tpSize").value), ref = type === "market" ? now() : e; check(); if ($("tpGo").disabled) return;
+    if (trCfg().confirm && $("tpGo").dataset.armed !== "1") { $("tpGo").dataset.armed = "1"; $("tpGo").textContent = `Confirm ${side} ${size} ${unit}`; setTimeout(() => { if ($("tpGo")) { $("tpGo").dataset.armed = ""; $("tpGo").textContent = "Place order"; } }, 5000); return; }
     $("tpGo").disabled = true; warn("");
     try {
       if (v === "ct") { if (CTT.live && !trCfg().live) throw new Error("this is a live account but live trading is off"); await cttPlace({ x: cttSym(sym), side, type, lots: size, price: e, sl, tp }); }
       else await mxtPlace({ sym, side, type, contracts: size, price: type === "market" ? ref : e, sl, tp, lev: +$("tpLev").value || 10, openType: +$("tpMargin").value || 1 });
-      trLog(`Chart order: ${side} ${size} ${v === "mx" ? "contracts" : "lots"} ${trName(sym)} (${type})`); chModalClose(); toast(`${side === "buy" ? "Buy" : "Sell"} order sent for ${chEsc(trName(sym))}. See it under Trade → Positions &amp; orders.`);
+      trLog(`Chart order: ${side} ${size} ${unit} ${trName(sym)} (${type})`); trPosClose(); toast(`${side === "buy" ? "Buy" : "Sell"} order sent for ${chEsc(trName(sym))}. See it under Trade → Positions &amp; orders.`);
     } catch (x) { warn("Order not sent: " + x.message); $("tpGo").disabled = false; $("tpGo").dataset.armed = ""; $("tpGo").textContent = "Place order"; }
   };
-  sizeIt();
+  try {
+    if (v === "ct" && CTT.state !== "ready") await cttConnect();
+    if (v === "ct") { const x = cttSym(sym); if (!x) throw new Error(`${trName(sym)} isn't on the trading account`); await cttWatch(x); $("tpVenue").innerHTML = `cTrader · ${chEsc(CTT.acct.brokerTitleShort || "Broker")} <b class="${CTT.live ? "dn" : "up"}">${CTT.live ? "LIVE" : "demo"}</b> ${CTT.acct.traderLogin || CTT.acct.ctidTraderAccountId}`; }
+    else { if (!mxtOn()) throw new Error("add your MEXC API key in Trade settings first"); await mxtTick(sym); }
+  } catch (x) { $("tpWarn").dataset.size = x.message; warn(x.message); if ($("tpVenue")) $("tpVenue").textContent = v === "ct" ? "cTrader: not ready" : "MEXC: not ready"; }
+  if (!$("trPosPanel")) return;
+  sync(); clearInterval(TR.posTimer);
+  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } sync(); if (!$("tpType").dataset.user) types(); check(); }, 250);
 }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("trPosPanel")) { e.stopPropagation(); trPosClose(); } }, true);
 async function trSizeFromRisk() {
   const e = trEntry(), sl = trNum("trSL"), risk = trNum("trRisk"), v = trVenue(TR.sym);
   if (!e || !sl || !risk) { $("trWarn").textContent = "Fill in the stop (and entry for limit/stop orders) to size from risk."; return; }

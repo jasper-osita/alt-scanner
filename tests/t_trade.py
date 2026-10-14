@@ -87,12 +87,19 @@ async def main():
         print("20) chart size:", await q("() => JSON.stringify(trPosSize(CHD[CH.sym][0], 0.5))"))
         n06 = [t for t, p in CT_TRADE["log"]].count(2106)
         await q("() => trFromPos(CHD[CH.sym][0])"); await wait("() => document.getElementById('tpSize') && +document.getElementById('tpSize').value > 0", 15)
-        print("21) dialog:", await q("() => [document.getElementById('tpVenue').innerText, document.getElementById('tpType').value, [...document.getElementById('tpType').options].map(o => o.text).join(' | '), document.getElementById('tpSize').value, document.getElementById('tpNote').innerText]"))
+        print("21) panel:", await q("() => [TR.posId, document.getElementById('tpVenue').innerText, document.getElementById('tpType').value, document.getElementById('tpSize').value, document.getElementById('tpLv').innerText.replace(/\\s+/g, ' ')]"))
+        # drag the red stop line with the mouse: the size follows
+        box = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), d = CHD[CH.sym][0]; return [r.left, r.top, chPlotW(P), chY(P, d.pts[1].p), chY(P, d.pts[0].p)]; }")
+        x0 = box[0] + box[2] - 260; ys = box[1] + box[3]
+        hit = await q(f"() => JSON.stringify(chHitTest(chVis()[0], {box[2] - 260}, {box[3]}))"); s0 = await q("() => [CHD[CH.sym][0].pts[1].p, document.getElementById('tpSize').value]")
+        await pg.mouse.move(x0, ys); await pg.mouse.down(); await pg.mouse.move(x0, ys - 25, steps=6); await pg.mouse.up(); await asyncio.sleep(1.2)
+        s1 = await q("() => [CHD[CH.sym][0].pts[1].p, document.getElementById('tpSize').value, document.getElementById('tpLv').innerText.replace(/\\s+/g, ' ')]")
+        print("22) drag stop line:", hit, "|", s0, "→", s1)
         await pg.screenshot(path=f"{OUT}/trade_chart.png")
-        await q("() => document.getElementById('tpGo').click()"); print("22) armed:", await q("() => document.getElementById('tpGo').innerText"))
+        await q("() => document.getElementById('tpGo').click()"); print("22b) armed:", await q("() => document.getElementById('tpGo').innerText"))
         await q("() => document.getElementById('tpGo').click()"); await asyncio.sleep(1.5)
         sent2 = [p for t, p in CT_TRADE["log"] if t == 2106][-1]
-        print("23) chart order:", [t for t, p in CT_TRADE["log"]].count(2106) - n06, {k: sent2.get(k) for k in ("tradeSide", "orderType", "limitPrice", "stopLoss", "takeProfit", "volume")}, "| modal closed:", await q("() => !document.getElementById('chModBg')"))
+        print("23) chart order:", [t for t, p in CT_TRADE["log"]].count(2106) - n06, {k: sent2.get(k) for k in ("tradeSide", "orderType", "limitPrice", "stopPrice", "stopLoss", "takeProfit", "volume")}, "| panel closed:", await q("() => !document.getElementById('trPosPanel') && TR.posId == null"))
         print("24) toolbar button:", await q("() => { chSel = 'pz'; chSelBar(); return !!document.querySelector('#chFloat [data-fl=\"trade\"]'); }"), "| menu:", await q("() => chMoreItems(CHD[CH.sym][0]).map(x => x.l).filter(Boolean).slice(0, 2).join(', ')"))
         print("errors:", errs or "none")
         await b.close()

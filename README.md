@@ -116,7 +116,9 @@ coins go to MEXC USDT perpetuals.
   and every request is signed there; the Mac app (`/proxy/mexc-priv`) or Vercel only forwards the signed request.
 - **From the chart:** draw a Long or Short position (the forecast tools). Its label shows the size from your trading account and
   risk % (the tool's own Risk % setting, or the Trade page's when left empty), and the stop/target in money. Select it and press
-  **Trade** (or More → Place order…): pick market, limit at the entry, or stop at the entry, adjust risk or size, and place it.
+  **Trade** (or More → Place order…): blue (entry), red (stop) and green (target) order lines appear across the chart and a small
+  order panel opens beside it. Drag any line, or its label, to move that level; the size follows the risk %. Pick market, limit at
+  the entry or stop at the entry, and place it. Esc or Cancel closes it.
   "Open in ticket" copies it to the Trade page instead.
 - **Positions & orders:** live P&L, edit the stop/target of a cTrader position, close positions and cancel pending orders
   (each asks "Sure?" first). Activity lists what was sent and what came back.

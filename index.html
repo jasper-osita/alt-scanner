@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0109">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0129">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4336,7 +4336,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.0109";
+const APP_VERSION = "2026.10.15.0129";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -8576,7 +8576,7 @@ function chBindPane(P) {
       }
       chDirty = true; chFloatPos(); return;
     }
-    if (!e.buttons && chTool === "cursor" && !chDraft) { const bh = !chHidden && typeof trLineHit === "function" && trLineHit(P, m); w.classList.toggle("chbkx", !!(bh && bh.on === "x")); w.classList.toggle("chbkdrag", !!(bh && bh.on === "line")); }
+    if (!e.buttons && chTool === "cursor" && !chDraft) { const bh = !chHidden && typeof trHover === "function" && trHover(P, m); w.classList.toggle("chbkx", !!(bh && bh.on === "x")); w.classList.toggle("chbkdrag", !!(bh && bh.on === "line")); }
     if (!e.buttons && chTool === "cursor" && !chDraft) { const hit = !chHidden && chHitTest(P, m.x, m.y); w.classList.toggle("chhover", !!hit); w.classList.toggle("chhandle", !!(hit && hit.h != null)); }
     if (!chDraft || chDraft.pane !== P.i) return;
     block(e);
@@ -8595,6 +8595,7 @@ function chBindPane(P) {
     if (T && T.n !== "multi" && moved) { if (chDraft.pts.length >= (T.n || 2)) chFinish(); else { chDraft.pts.push({ ...chDraft.pts.at(-1) }); chDirty = true; } }   // press-drag-release also works
     downAt = null; moved = false;
   }, true);
+  w.addEventListener("pointerleave", () => { if (typeof trHover === "function") trHover(P, null); });
   w.addEventListener("contextmenu", e => {
     const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P) || chHidden) return; const hit = chHitTest(P, m.x, m.y);
     if (!hit) { e.preventDefault(); const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; chDlgLayer().appendChild(a);
@@ -8629,8 +8630,22 @@ function chHitTest(P, x, y) {
   return null;
 }
 /* ---- painting ---- */
+const CH_RGB = new Map();
+function chRGB(c) {                              // any CSS colour → [r, g, b, a] (cached)
+  if (CH_RGB.has(c)) return CH_RGB.get(c); let v = null; const s = String(c || "").trim();
+  let m = s.match(/^#([0-9a-f]{3,8})$/i);
+  if (m) { let h = m[1]; if (h.length <= 4) h = h.split("").map(z => z + z).join(""); v = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)).concat(h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1); }
+  else if ((m = s.match(/^rgba?\(([^)]+)\)$/i))) { const p = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat); v = [p[0], p[1], p[2], p[3] == null ? 1 : p[3]]; }
+  if (CH_RGB.size > 400) CH_RGB.clear(); CH_RGB.set(c, v); return v;
+}
+const chLum = ([r, g, b]) => { const f = x => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+function chInk(bg, fg) {                         // keep the text readable on any label colour: the wanted ink if it contrasts enough, else dark or light
+  const B = chRGB(bg); if (!B || B[3] < 0.35) return fg; const F = chRGB(fg), lb = chLum(B);
+  if (F) { const lf = chLum(F), cr = (Math.max(lb, lf) + 0.05) / (Math.min(lb, lf) + 0.05); if (cr >= 3) return fg; }
+  return lb > 0.4 ? "#131722" : "#ffffff";
+}
 function chLabel(g, txt, x, y, bg, fg = "#fff", align = "left") {
-  g.font = "11px " + chFont(); const w = g.measureText(txt).width + 8, h = 16;
+  fg = chInk(bg, fg); g.font = "11px " + chFont(); const w = g.measureText(txt).width + 8, h = 16;
   const x0 = align === "right" ? x - w : align === "center" ? x - w / 2 : x;
   g.fillStyle = bg; g.fillRect(x0, y - h / 2, w, h); g.fillStyle = fg; g.textBaseline = "middle"; g.textAlign = "left"; g.fillText(txt, x0 + 4, y + 0.5);
 }
@@ -9706,32 +9721,32 @@ function trAbsSLTP(o, px, buy) {                  // a pending order's SL/TP as 
   const sl = +o.stopLoss || (o.relativeStopLoss ? px + (buy ? -1 : 1) * o.relativeStopLoss / 1e5 : 0), tp = +o.takeProfit || (o.relativeTakeProfit ? px + (buy ? 1 : -1) * o.relativeTakeProfit / 1e5 : 0);
   return { sl: sl || null, tp: tp || null };
 }
-function trChartOrders(sym) {                   // → [{ key, p, col, txt, dash, x (close/cancel), drag, it }]
-  const out = [], S = chCS(), money = v => `${v >= 0 ? "+" : ""}${(+v).toFixed(2)}`;
+function trChartOrders(sym) {                   // → [{ key, p, col, txt, parts (shown on hover), fill, arrow, dash, x, drag, it, role }]
+  const out = [], S = chCS();
   if (!S.trLines) return out;
   if (CTT.state === "ready" && (String(sym || "").startsWith("CT:") || trVenue(sym) === "ct")) {
     const x = cttSym(sym); if (!x) return out; const sp = CTT.specs[x.symbolId], ccy = CTT.info ? CTT.info.ccy || "" : "", dg = trDig(x);
     if (!sp && !CTT.specLoading) { CTT.specLoading = 1; cttSpec(x).finally(() => { CTT.specLoading = 0; chDirty = true; }); }
-    const size = v => sp ? `${(+v / sp.lotSize).toFixed(2)} lots` : `${+v / 100} units`, mine = o => +((o.tradeData || {}).symbolId) === +x.symbolId, pf = v => (+v).toFixed(dg);
-    CTT.positions.filter(mine).forEach(p => { const td = p.tradeData, buy = +td.tradeSide === 1, pl = CTT.pnl[p.positionId], k = "pos:" + p.positionId, it = { kind: "pos", ref: p, buy, x, dg };
-      if (p.price) out.push({ key: k + ":entry", p: +p.price, col: buy ? S.trBuyC : S.trSellC, txt: `${buy ? "Buy" : "Sell"} ${size(td.volume)}${pl != null ? ` · ${money(pl)} ${ccy}` : ""}`, x: true, drag: true, it, role: "entry" });
-      if (p.stopLoss) out.push({ key: k + ":sl", p: +p.stopLoss, col: S.trSLC, txt: `SL ${pf(p.stopLoss)}${trValTxt(x, buy, +p.price, +p.stopLoss, td.volume)}`, dash: 1, drag: true, it, role: "sl" });
-      if (p.takeProfit) out.push({ key: k + ":tp", p: +p.takeProfit, col: S.trTPC, txt: `TP ${pf(p.takeProfit)}${trValTxt(x, buy, +p.price, +p.takeProfit, td.volume)}`, dash: 1, drag: true, it, role: "tp" }); });
+    const size = v => sp ? `${(+v / sp.lotSize).toFixed(2)} Lots` : `${+v / 100} units`, mine = o => +((o.tradeData || {}).symbolId) === +x.symbolId;
+    CTT.positions.filter(mine).forEach(p => { const td = p.tradeData, buy = +td.tradeSide === 1, pl = CTT.pnl[p.positionId], k = "pos:" + p.positionId, it = { kind: "pos", ref: p, buy, x, dg }, en = +p.price, q = CTT.spots[x.symbolId] || {}, now = buy ? q.bid : q.ask;
+      if (en) out.push({ key: k + ":entry", p: en, col: buy ? S.trBuyC : S.trSellC, txt: size(td.volume), parts: [trPipsTxt(x, buy, en, now), pl != null ? trMoney(pl, ccy) : ""], fill: 1, arrow: buy ? "up" : "down", x: true, drag: true, it, role: "entry" });
+      if (p.stopLoss) out.push({ key: k + ":sl", p: +p.stopLoss, col: S.trSLC, txt: "SL", parts: trLevelParts(x, buy, en, +p.stopLoss, td.volume), dash: 1, x: true, drag: true, it, role: "sl" });
+      if (p.takeProfit) out.push({ key: k + ":tp", p: +p.takeProfit, col: S.trTPC, txt: "TP", parts: trLevelParts(x, buy, en, +p.takeProfit, td.volume), dash: 1, x: true, drag: true, it, role: "tp" }); });
     CTT.orders.filter(mine).forEach(o => { const td = o.tradeData, buy = +td.tradeSide === 1, ot = +o.orderType, px = +(ot === 3 || ot === 6 ? o.stopPrice || o.limitPrice : o.limitPrice || o.stopPrice) || 0; if (!px || ot === 4 || o.closingOrder) return;
-      const k = "ord:" + o.orderId, it = { kind: "ord", ref: o, buy, x, dg, px, ot }, a = trAbsSLTP(o, px, buy);
-      out.push({ key: k + ":entry", p: px, col: S.trPendC, txt: `${buy ? "Buy" : "Sell"} ${ot === 2 ? "limit" : ot === 3 ? "stop" : ot === 6 ? "stop limit" : "order"} ${size(td.volume)} · pending`, dash: 2, x: true, drag: true, it, role: "entry" });
-      if (a.sl) out.push({ key: k + ":sl", p: a.sl, col: S.trSLC, txt: `SL ${pf(a.sl)}${trValTxt(x, buy, px, a.sl, td.volume)} (pending)`, dash: 2, drag: true, it, role: "sl" });
-      if (a.tp) out.push({ key: k + ":tp", p: a.tp, col: S.trTPC, txt: `TP ${pf(a.tp)}${trValTxt(x, buy, px, a.tp, td.volume)} (pending)`, dash: 2, drag: true, it, role: "tp" }); });
+      const k = "ord:" + o.orderId, it = { kind: "ord", ref: o, buy, x, dg, px, ot }, a = trAbsSLTP(o, px, buy), q = CTT.spots[x.symbolId] || {}, now = buy ? q.ask : q.bid;
+      out.push({ key: k + ":entry", p: px, col: S.trPendC, txt: size(td.volume), parts: [`${buy ? "Buy" : "Sell"} ${ot === 2 ? "limit" : ot === 3 ? "stop" : ot === 6 ? "stop limit" : "order"}`, now ? `${trPipsTxt(x, true, 0, Math.abs(px - now) || 0).replace("Pips", "Distance")}` : ""], fill: 1, arrow: buy ? "up" : "down", dash: 2, x: true, drag: true, it, role: "entry" });
+      if (a.sl) out.push({ key: k + ":sl", p: a.sl, col: S.trSLC, txt: "SL", parts: trLevelParts(x, buy, px, a.sl, td.volume), dash: 1, x: true, drag: true, it, role: "sl" });
+      if (a.tp) out.push({ key: k + ":tp", p: a.tp, col: S.trTPC, txt: "TP", parts: trLevelParts(x, buy, px, a.tp, td.volume), dash: 1, x: true, drag: true, it, role: "tp" }); });
   } else if (mxtOn() && trVenue(sym) === "mx") { const ms = mxF(sym);
     MXT.positions.filter(p => p.symbol === ms).forEach(p => { const long = +p.positionType === 1, avg = +(p.holdAvgPrice || p.openAvgPrice || 0);
-      if (avg) out.push({ key: "mxp:" + p.positionId + ":entry", p: avg, col: long ? S.trBuyC : S.trSellC, txt: `${long ? "Long" : "Short"} ${p.holdVol} contracts${p.unrealised != null ? ` · ${money(+p.unrealised)} USDT` : ""}`, x: true, it: { kind: "mxp", ref: p, buy: long } }); });
-    MXT.orders.filter(o => o.symbol === ms).forEach(o => { if (+o.price) out.push({ key: "mxo:" + o.orderId + ":entry", p: +o.price, col: S.trPendC, txt: `${[1, 4].includes(+o.side) ? "Buy" : "Sell"} limit ${o.vol} contracts · pending`, dash: 2, x: true, it: { kind: "mxo", ref: o } }); });
+      if (avg) out.push({ key: "mxp:" + p.positionId + ":entry", p: avg, col: long ? S.trBuyC : S.trSellC, txt: `${p.holdVol} contracts`, parts: [p.unrealised != null ? trMoney(+p.unrealised, "USDT") : ""], fill: 1, arrow: long ? "up" : "down", x: true, it: { kind: "mxp", ref: p, buy: long } }); });
+    MXT.orders.filter(o => o.symbol === ms).forEach(o => { if (+o.price) out.push({ key: "mxo:" + o.orderId + ":entry", p: +o.price, col: S.trPendC, txt: `${o.vol} contracts`, parts: [`${[1, 4].includes(+o.side) ? "Buy" : "Sell"} limit`], fill: 1, arrow: [1, 4].includes(+o.side) ? "up" : "down", dash: 2, x: true, it: { kind: "mxo", ref: o } }); });
   }
   if (TW.drag) {                                 // the line you're dragging follows the mouse; dragging a position's entry makes a new SL or TP
     const d = TW.drag, l = out.find(z => z.key === d.key);
-    if (l && l.it.kind === "pos" && l.role === "entry") { const r = trEntryRole(l.it, d.p); out.push({ key: "ghost", p: d.p, col: r === "sl" ? S.trSLC : S.trTPC, txt: `${r.toUpperCase()} ${(+d.p).toFixed(l.it.dg)}${trValTxt(l.it.x, l.it.buy, +l.it.ref.price, d.p, l.it.ref.tradeData.volume)} · let go to set`, dash: 1 }); }
-    else if (l) { const dp = d.p - l.p; l.p = d.p; const it = l.it, en = it.kind === "pos" ? +it.ref.price : it.px, vol = it.ref.tradeData && it.ref.tradeData.volume;
-      l.txt = l.txt.replace(/^(SL|TP) [\d.]+( · [+−][\d.]+ ?[A-Z]*)?/, (m0, w) => `${w} ${(+d.p).toFixed(it.dg || 5)}${it.x && vol ? trValTxt(it.x, it.buy, en, d.p, vol) : ""}`) + (d.busy ? " · sending…" : "");
+    if (l && l.it.kind === "pos" && l.role === "entry") { const r = trEntryRole(l.it, d.p); out.push({ key: "ghost", p: d.p, col: r === "sl" ? S.trSLC : S.trTPC, txt: r.toUpperCase(), parts: [...trLevelParts(l.it.x, l.it.buy, +l.it.ref.price, d.p, l.it.ref.tradeData.volume), "let go to set"], show: 1, dash: 1 }); }
+    else if (l) { const dp = d.p - l.p; l.p = d.p; l.show = 1; const it = l.it, en = it.kind === "pos" ? +it.ref.price : it.px, vol = it.ref.tradeData && it.ref.tradeData.volume;
+      if (l.role !== "entry" && it.x && vol) l.parts = trLevelParts(it.x, it.buy, en, d.p, vol); if (d.busy) l.parts = [...(l.parts || []), "sending…"];
       if (l.it.kind === "ord" && l.role === "entry") out.forEach(z => { if (z !== l && z.it === l.it) z.p += dp; }); }   // a pending order's SL/TP move with it
   }
   return out;
@@ -9745,29 +9760,54 @@ function trValueAt(x, buy, entry, price, vol) {  // profit or loss if price reac
   let f = null; if (!Q || Q === A) f = 1; else if (B === A) f = 1 / price; else { const qa = trFx(Q + A), aq = trFx(A + Q); f = qa ? qa : aq ? 1 / aq : null; }
   return f == null ? { v: raw, ccy: Q } : { v: raw * f, ccy: A };
 }
-const trValTxt = (x, buy, entry, price, vol) => { if (!(entry > 0) || !(price > 0)) return ""; const m = trValueAt(x, buy, entry, price, vol); return ` · ${m.v >= 0 ? "+" : "−"}${Math.abs(m.v).toFixed(2)} ${m.ccy || ""}`.trimEnd(); };
+const TR_CCY = { USD: "$", EUR: "€", GBP: "£", JPY: "¥", AUD: "A$", CAD: "C$", NZD: "NZ$", CHF: "CHF" };
+const trMoney = (v, ccy) => { const s = TR_CCY[ccy]; return s && s.length === 1 ? `${s} ${(+v).toFixed(2)}` : `${(+v).toFixed(2)} ${ccy || ""}`.trim(); };
+function trPipsTxt(x, buy, from, to) { const sp = CTT.specs[x.symbolId]; if (!sp || sp.pip == null || !(to > 0)) return ""; return `Pips: ${((to - from) * (buy ? 1 : -1) / 10 ** -sp.pip).toFixed(1)}`; }
+function trLevelParts(x, buy, entry, price, vol) { if (!(entry > 0) || !(price > 0)) return []; const m = trValueAt(x, buy, entry, price, vol); return [trPipsTxt(x, buy, entry, price), trMoney(m.v, m.ccy)]; }
+const trValTxt = (x, buy, entry, price, vol) => trLevelParts(x, buy, entry, price, vol).filter(Boolean).join(" · ");
 const trEntryRole = (it, p) => (it.buy ? p < +it.ref.price : p > +it.ref.price) ? "sl" : "tp";
 function trChartLines(P, g, W, H, axis) {
   P.bk = []; const L = trChartOrders(CH.sym); if (!L.length) return; const S = chCS(), Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 4 : H;   // price area only
   g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > Hm) return; const yy = Math.round(y) + .5;
-    g.strokeStyle = l.col; g.lineWidth = l.dash ? 1 : 1.5; g.setLineDash(l.dash === 2 ? [6, 4] : l.dash ? [2, 3] : []); g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); g.setLineDash([]);
-    chLabel(g, l.txt, 6, y, l.col, "#fff", "left"); g.font = "11px " + chFont(); const w = g.measureText(l.txt).width + 8; let xb = null;
-    if (l.x && S.trX) { const armed = TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now(), t = armed ? (l.it.kind === "pos" || l.it.kind === "mxp" ? "Close?" : "Cancel?") : "×", bw = armed ? g.measureText(t).width + 10 : 16;
-      xb = [6 + w + 2, 6 + w + 2 + bw]; g.fillStyle = armed ? "#f23645" : "rgba(30,32,38,.95)"; g.fillRect(xb[0], y - 8, bw, 16); g.strokeStyle = l.col; g.lineWidth = 1; g.strokeRect(xb[0] + .5, y - 7.5, bw - 1, 15);
-      g.fillStyle = "#fff"; g.textBaseline = "middle"; g.textAlign = "center"; g.font = (armed ? "11px " : "14px ") + chFont(); g.fillText(t, (xb[0] + xb[1]) / 2, y + 0.5); g.textAlign = "left"; }
-    if (l.key !== "ghost") P.bk.push({ key: l.key, y, xb, drag: !!(l.drag && S.trDrag), l });
+    const armed = TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now(), hov = l.show || armed || (TW.hover && TW.hover.P === P && TW.hover.key === l.key);
+    g.strokeStyle = chHexA(l.col, 0.85); g.lineWidth = 1; g.setLineDash(l.dash === 2 ? [5, 4] : l.dash ? [2, 3] : []); g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); g.setLineDash([]);
+    const w = trPill(g, l, 26, y, hov); let xb = null;
+    if (l.x && S.trX && hov && l.key !== "ghost") {                  // the × shows when you hover the line (cTrader style)
+      const t = armed ? (l.role === "entry" ? (l.it.kind === "pos" || l.it.kind === "mxp" ? "Close?" : "Cancel?") : `Remove ${l.role.toUpperCase()}?`) : "×"; g.font = "11px " + chFont();
+      const bw = armed ? g.measureText(t).width + 12 : 18; xb = [26 + w + 4, 26 + w + 4 + bw];
+      trRound(g, xb[0] + .5, Math.round(y - 9) + .5, bw - 1, 18, 3); g.fillStyle = "#f23645"; g.fill();
+      g.fillStyle = "#fff"; g.textBaseline = "middle"; g.textAlign = "center"; g.font = (armed ? "11px " : "15px ") + chFont(); g.fillText(t, (xb[0] + xb[1]) / 2, y + (armed ? 0.5 : 0)); g.textAlign = "left"; }
+    if (l.key !== "ghost") P.bk.push({ key: l.key, y, xb, pr: [26, 26 + w], drag: !!(l.drag && S.trDrag), l });
     axis.push([y, chFmt(l.p, P.c.at(-1)), l.col]); });
   g.restore();
+}
+function trRound(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function trPill(g, l, x, y, hov) {               // cTrader-style tag: grip dots, label, arrow; on hover it also shows pips and money in their own cells → width
+  g.font = "11px " + chFont(); const parts = hov ? (l.parts || []).filter(Boolean) : [], pw = parts.map(t => g.measureText(t).width + 16), tw = g.measureText(l.txt).width, aw = l.arrow ? 14 : 0;
+  const w1 = 22 + tw + aw + 8, w = w1 + pw.reduce((a, b) => a + b, 0), h = 18, y0 = Math.round(y - h / 2) + .5;
+  const ink = l.fill ? chInk(l.col, "#fff") : chInk("#131722", l.col);
+  trRound(g, x + .5, y0, w, h, 3); g.fillStyle = l.fill ? l.col : "rgba(19,23,34,.92)"; g.fill(); g.strokeStyle = l.col; g.lineWidth = 1; g.stroke();
+  g.fillStyle = chHexA(ink, 0.7); for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) { g.beginPath(); g.arc(x + 9 + j * 4, y - 4 + i * 4, 1, 0, 7); g.fill(); }   // grip
+  g.fillStyle = ink; g.textBaseline = "middle"; g.textAlign = "left"; g.fillText(l.txt, x + 22, y + 0.5);
+  if (l.arrow) { const ax = x + 22 + tw + 8, up = l.arrow === "up"; g.strokeStyle = ink; g.fillStyle = ink; g.lineWidth = 1.5; g.beginPath(); g.moveTo(ax, y + (up ? 4 : -4)); g.lineTo(ax, y + (up ? -2 : 2)); g.stroke();
+    g.beginPath(); g.moveTo(ax - 3.5, y + (up ? -1 : 1)); g.lineTo(ax + 3.5, y + (up ? -1 : 1)); g.lineTo(ax, y + (up ? -5 : 5)); g.closePath(); g.fill(); g.lineWidth = 1; }
+  let cx = x + w1; parts.forEach((t, i) => { g.strokeStyle = chHexA(l.fill ? ink : l.col, 0.55); g.beginPath(); g.moveTo(Math.round(cx) + .5, y0 + 3); g.lineTo(Math.round(cx) + .5, y0 + h - 3); g.stroke();   // cell divider
+    g.fillStyle = ink; g.fillText(t, cx + 8, y + 0.5); cx += pw[i]; });
+  return w;
 }
 function trLineHit(P, m) {                       // → { b, on: "x" | "line" } for the chart's pointer handlers
   const tol = chTouch ? 12 : 5;
   for (const b of P.bk || []) { if (b.xb && m.x >= b.xb[0] - 2 && m.x <= b.xb[1] + 2 && Math.abs(m.y - b.y) <= 9) return { b, on: "x" }; }
-  for (const b of P.bk || []) if (b.drag && Math.abs(m.y - b.y) <= tol) return { b, on: "line" };
+  for (const b of P.bk || []) if (Math.abs(m.y - b.y) <= (m.x >= b.pr[0] && m.x <= b.pr[1] ? 9 : tol)) return { b, on: b.drag ? "line" : "hover" };
   return null;
 }
+function trHover(P, m) {                         // the hovered line shows its × and its pips / money
+  const h = m && trLineHit(P, m), k = h ? h.b.key : null, cur = TW.hover && TW.hover.P === P ? TW.hover.key : null;
+  if (k !== cur || (!k && TW.hover)) { TW.hover = k ? { P, key: k } : null; chDirty = true; } return h;
+}
 function trLineDown(P, m) {
-  const h = trLineHit(P, m); if (!h) return false;
+  const h = trLineHit(P, m); if (!h || h.on === "hover") return false;
   if (h.on === "x") { trLineX(h.b.l); return true; }
   TW.drag = { P, key: h.b.key, p: h.b.l.p, p0: h.b.l.p, l: h.b.l }; chDirty = true; return true;
 }
@@ -9795,7 +9835,15 @@ const trNowPx = (it, entry) => { const q = (it.x && CTT.spots[it.x.symbolId]) ||
 async function trLineX(l) {                     // × on a line: close the position or cancel the order (asks once when "confirm" is on)
   if (trCfg().confirm && !(TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now())) { TW.arm = { key: l.key, until: Date.now() + 4000 }; chDirty = true; setTimeout(() => { chDirty = true; }, 4100); return; }
   TW.arm = null; chDirty = true;
-  try { await trCloseIt(l.it.kind, l.it.ref); } catch (x) { toast(`Not done: ${chEsc(x.message)}`); trLog(`Couldn't close: ${x.message}`, true); }
+  try { if (l.role === "sl" || l.role === "tp") await trRemoveLevel(l); else await trCloseIt(l.it.kind, l.it.ref); } catch (x) { toast(`Not done: ${chEsc(x.message)}`); trLog(`Couldn't close: ${x.message}`, true); }
+}
+async function trRemoveLevel(l) {                // × on an SL or TP line: take that level off, keep the other
+  const it = l.it, id = CTT.acct.ctidTraderAccountId, R = v => cttRound(+v, it.dg);
+  if (it.kind === "pos") { const p = it.ref, keep = l.role === "sl" ? p.takeProfit : p.stopLoss;
+    await cttReq(2110, { ctidTraderAccountId: id, positionId: p.positionId, ...(keep ? { [l.role === "sl" ? "takeProfit" : "stopLoss"]: R(keep) } : {}) }); }
+  else if (it.kind === "ord") { const o = it.ref, a = trAbsSLTP(o, it.px, it.buy), keep = l.role === "sl" ? a.tp : a.sl;
+    await cttReq(2109, { ctidTraderAccountId: id, orderId: o.orderId, volume: +o.tradeData.volume, ...(it.ot === 3 || it.ot === 6 ? { stopPrice: R(it.px) } : { limitPrice: R(it.px) }), ...(keep ? { [l.role === "sl" ? "takeProfit" : "stopLoss"]: R(keep) } : {}) }); }
+  trLog(`cTrader: ${it.x.symbolName} ${l.role.toUpperCase()} removed`); await cttRefresh();
 }
 async function trCloseIt(kind, r) {              // shared by the chart's × and the trade watch
   const id = CTT.acct && CTT.acct.ctidTraderAccountId, nm = s => (CTT.byId[s] || {}).symbolName || "";

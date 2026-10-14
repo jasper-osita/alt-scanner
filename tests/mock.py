@@ -204,7 +204,7 @@ def ct_handler(opts):
                 for sid in p.get("symbolId", []):
                     n = CT_LIST[sid - 1]
                     out.append({"symbolId": sid, "digits": 2 if n.startswith("XAU") or not n.isupper() or n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 5,
-                                "lotSize": 10000 if n == "XAUUSD" else 100 if n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 10000000, "stepVolume": 100 if n in ("US500","NAS100","US30") else 1000, "minVolume": 100 if n in ("US500","NAS100","US30") else 1000})
+                                "lotSize": 10000 if n == "XAUUSD" else 100 if n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 10000000, "stepVolume": 100 if n in ("US500","NAS100","US30") else 1000, "minVolume": 100 if n in ("US500","NAS100","US30") else 1000, "pipPosition": 1 if n.startswith("XAU") else 2 if "JPY" in n else 4})
                 return reply(2117, {"ctidTraderAccountId": 4242, "symbol": out})
             if t == 2127:
                 reply(2128, {})
@@ -234,8 +234,9 @@ def ct_handler(opts):
             if t == 2109:
                 for x in CT_TRADE["ord"]:
                     if x["orderId"] == p["orderId"]:
-                        for k in ("limitPrice", "stopPrice", "stopLoss", "takeProfit", "volume"):
+                        for k in ("limitPrice", "stopPrice", "volume"):
                             if k in p: (x["tradeData"] if k == "volume" else x)[k] = p[k]
+                        x["stopLoss"] = p.get("stopLoss"); x["takeProfit"] = p.get("takeProfit")      # like cTrader: a level left out is removed
                 return reply(2126, {"executionType": 4})
             if t == 2133: return reply(2134, {"ctidTraderAccountId": p["ctidTraderAccountId"], "deal": [d for d in CT_TRADE["deals"] if p["fromTimestamp"] <= d["executionTimestamp"] <= p["toTimestamp"]], "hasMore": False})
             if t == 2110:

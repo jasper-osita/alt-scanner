@@ -122,6 +122,8 @@ async def main():
         n0 = len(CT_TRADE["log"]); await drag_line("sl", "ord", -20)
         print("42) drag pending SL:", [(t, p.get("stopLoss"), p.get("stopPrice")) for t, p in CT_TRADE["log"][n0:] if t == 2109])
         async def click_x(kind):
+            ln = await q(f"() => {{ const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => b.key.startsWith('{kind}:') && b.key.endsWith(':entry')); return b && [r.left + 200, r.top + b.y]; }}")
+            if ln: await pg.mouse.move(ln[0], ln[1]); await asyncio.sleep(0.3)
             bx = await q(f"() => {{ const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => b.key.startsWith('{kind}:') && b.xb); return b && [r.left + (b.xb[0] + b.xb[1]) / 2, r.top + b.y]; }}")
             if not bx: return "no ×"
             await pg.mouse.click(bx[0], bx[1]); await asyncio.sleep(0.3)
@@ -135,6 +137,17 @@ async def main():
         print("44) drag position line down → SL:", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t == 2110], "| lines:", await q("() => trChartOrders(CH.sym).map(l => l.txt).join(' | ')"))
         n0 = len(CT_TRADE["log"]); await drag_line("entry", "pos", -40)
         print("45) drag up → TP (SL kept):", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t == 2110])
+        hv = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => /:(sl|tp)$/.test(b.key)); return b && [r.left + 200, r.top + b.y, b.key]; }")
+        await pg.mouse.move(hv[0], hv[1] - 30); await asyncio.sleep(0.3); x_before = await q("() => chVis()[0].bk.filter(b => b.xb).length")
+        await pg.mouse.move(hv[0], hv[1]); await asyncio.sleep(0.3)
+        print("45a) hover a level: × before/after", x_before, await q("() => chVis()[0].bk.filter(b => b.xb).map(b => b.key.split(':').pop()).join()"), "| hovered:", await q("() => { const l = trChartOrders(CH.sym).find(l => l.key === TW.hover.key); return l && [l.txt, ...l.parts].join(' | '); }"))
+        await pg.screenshot(path=f"{OUT}/trade_hover.png")
+        n0 = len(CT_TRADE["log"])
+        for _ in range(2):
+            bx = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => /:(sl|tp)$/.test(b.key) && b.xb); return b && [r.left + (b.xb[0] + b.xb[1]) / 2, r.top + b.y]; }")
+            if bx: await pg.mouse.click(bx[0], bx[1]); await asyncio.sleep(0.6)
+        await asyncio.sleep(0.6)
+        print("45c) × on the level removes it:", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t in (2110, 2109)], "| lines:", await q("() => trChartOrders(CH.sym).map(l => l.txt).join(' ')"))
         print("45b) lines in the price area only:", await q("() => chVis().map(P => { const H = chPlotH(P), top = P.oscL && P.oscL.length ? P.oscL[0].top * H : H; return (P.bk || []).every(b => b.y <= top) + '/' + (P.bk || []).length; }).join(' ')"))
         await q("() => { CH.max = null; chApplyLayout(); }")
         # trade watch

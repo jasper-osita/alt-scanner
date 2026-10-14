@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2306">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2358">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4325,7 +4325,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.2306";
+const APP_VERSION = "2026.10.14.2358";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -8640,6 +8640,7 @@ function chPaintBody(P, g) {
         chLabel(g, `${dp >= 0 ? "+" : ""}${F(dp)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%) · ${bars} bars · ${dur}`, (xa + xb) / 2, Math.min(ya, yb) - 12, `rgba(${col},.95)`, "#fff", "center"); }
     }
   }
+  if (typeof trChartLines === "function") { g.save(); try { trChartLines(P, g, W, H, axis); } catch (e) { chPaintErr(e, "orders"); } g.restore(); g.setLineDash([]); }
   g.restore();
   axis.forEach(([y, txt, col]) => { if (y >= 0 && y <= H) chLabel(g, txt, W + 1, y, col, "#141517"); });
   const th = P.chart.timeScale().height(); ticks.forEach(([x, t, col]) => { if (x >= 0 && x <= W) chLabel(g, chTShort(t), x, H + th / 2, col, "#fff", "center"); });
@@ -9429,7 +9430,7 @@ async function cttWatch(x) { if (!x || CTT.spots[x.symbolId] || CTT.state !== "r
 async function cttRefresh() {
   if (CTT.state !== "ready") return; const id = CTT.acct.ctidTraderAccountId;
   try {
-    const r = await cttReq(2124, { ctidTraderAccountId: id }); CTT.positions = r.position || []; CTT.orders = r.order || [];
+    const r = await cttReq(2124, { ctidTraderAccountId: id }); CTT.positions = r.position || []; CTT.orders = r.order || []; if (typeof chDirty !== "undefined") chDirty = true;
     const tr = (await cttReq(2121, { ctidTraderAccountId: id })).trader || {}, md = tr.moneyDigits != null ? +tr.moneyDigits : 2;
     CTT.info = { balance: +(tr.balance || 0) / 10 ** md, md, ccy: (CT.assets || {})[tr.depositAssetId] || (CTT.info || {}).ccy || "USD", at: Date.now(), lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
     if (CTT.positions.length) { const u = await cttReq(2187, { ctidTraderAccountId: id }); const umd = u.moneyDigits != null ? +u.moneyDigits : md;
@@ -9642,6 +9643,41 @@ function trAcctPop() {
   if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
   if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
 }
+/* ---- your open positions and pending orders drawn on the chart (cTrader and MEXC) ---- */
+function trChartOrders(sym) {                   // → [{ p, col, txt, dash }]
+  const out = [], money = v => `${v >= 0 ? "+" : ""}${fmtNum(v)}`;
+  if (CTT.state === "ready" && (String(sym || "").startsWith("CT:") || trVenue(sym) === "ct")) {
+    const x = cttSym(sym); if (!x) return out; const sp = CTT.specs[x.symbolId], ccy = CTT.info ? CTT.info.ccy || "" : "";
+    if (!sp && !CTT.specLoading) { CTT.specLoading = 1; cttSpec(x).finally(() => { CTT.specLoading = 0; chDirty = true; }); }
+    const size = v => sp ? `${(+v / sp.lotSize).toFixed(2)} lots` : `${+v / 100} units`, mine = o => +((o.tradeData || {}).symbolId) === +x.symbolId;
+    CTT.positions.filter(mine).forEach(p => { const td = p.tradeData, buy = +td.tradeSide === 1, pl = CTT.pnl[p.positionId];
+      if (p.price) out.push({ p: +p.price, col: buy ? "#2962ff" : "#f23645", txt: `${buy ? "Buy" : "Sell"} ${size(td.volume)}${pl != null ? ` · ${money(pl)} ${ccy}` : ""}` });
+      if (p.stopLoss) out.push({ p: +p.stopLoss, col: "#f23645", txt: `SL ${fmtPrice(+p.stopLoss)}`, dash: 1 });
+      if (p.takeProfit) out.push({ p: +p.takeProfit, col: "#22ab94", txt: `TP ${fmtPrice(+p.takeProfit)}`, dash: 1 }); });
+    CTT.orders.filter(mine).forEach(o => { const td = o.tradeData, buy = +td.tradeSide === 1, px = +(o.limitPrice || o.stopPrice || 0); if (!px) return;
+      out.push({ p: px, col: "#f7a600", txt: `${buy ? "Buy" : "Sell"} ${+o.orderType === 2 ? "limit" : +o.orderType === 3 ? "stop" : "order"} ${size(td.volume)} · pending`, dash: 2 });
+      if (o.stopLoss) out.push({ p: +o.stopLoss, col: "#f23645", txt: `SL ${fmtPrice(+o.stopLoss)} (pending)`, dash: 2 });
+      if (o.takeProfit) out.push({ p: +o.takeProfit, col: "#22ab94", txt: `TP ${fmtPrice(+o.takeProfit)} (pending)`, dash: 2 }); });
+    return out;
+  }
+  if (mxtOn() && trVenue(sym) === "mx") { const ms = mxF(sym);
+    MXT.positions.filter(p => p.symbol === ms).forEach(p => { const long = +p.positionType === 1, avg = +(p.holdAvgPrice || p.openAvgPrice || 0);
+      if (avg) out.push({ p: avg, col: long ? "#2962ff" : "#f23645", txt: `${long ? "Long" : "Short"} ${p.holdVol} contracts${p.unrealised != null ? ` · ${money(+p.unrealised)} USDT` : ""}` }); });
+    MXT.orders.filter(o => o.symbol === ms).forEach(o => { if (+o.price) out.push({ p: +o.price, col: "#f7a600", txt: `${[1, 4].includes(+o.side) ? "Buy" : "Sell"} limit ${o.vol} contracts · pending`, dash: 2 }); });
+  }
+  return out;
+}
+function trChartLines(P, g, W, H, axis) {
+  const L = trChartOrders(CH.sym); if (!L.length) return;
+  L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > H) return; const yy = Math.round(y) + .5;
+    g.strokeStyle = l.col; g.lineWidth = l.dash ? 1 : 1.5; g.setLineDash(l.dash === 2 ? [6, 4] : l.dash ? [2, 3] : []); g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); g.setLineDash([]);
+    chLabel(g, l.txt, 6, y, l.col, "#fff", "left"); axis.push([y, chFmt(l.p, P.c.at(-1)), l.col]); });
+}
+setInterval(() => {                              // keep the lines and P&L fresh while you watch a chart with something open
+  if (page !== "charts" || document.visibilityState !== "visible") return;
+  if (CTT.state === "ready" && trVenue(CH.sym) === "ct") cttRefresh();
+  else if (mxtOn() && trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:")) mxtRefresh().then(() => { chDirty = true; }, () => {});
+}, 5000);
 function trPosAcct(d) {                         // for the settings box: where the account size comes from right now
   const c = TPS.get(d.id) || {}, v = c.val;
   return v ? `${fmtNum(v.bal)} ${v.bccy} · ${v.src === "manual" ? "typed" : v.src}` : c.err ? `Not synced: ${c.err}` : "Reading your account…";
@@ -9701,7 +9737,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     try {
       if (v === "ct") { if (CTT.live && !trCfg().live) throw new Error("this is a live account but live trading is off"); await cttPlace({ x: cttSym(sym), side, type, lots: size, price: e, sl, tp }); }
       else await mxtPlace({ sym, side, type, contracts: size, price: type === "market" ? ref : e, sl, tp, lev: +$("tpLev").value || 10, openType: +$("tpMargin").value || 1 });
-      trLog(`Chart order: ${side} ${size} ${unit} ${trName(sym)} (${type})`); trPosClose(); toast(`${side === "buy" ? "Buy" : "Sell"} order sent for ${chEsc(trName(sym))}. See it under Trade → Positions &amp; orders.`);
+      trLog(`Chart order: ${side} ${size} ${unit} ${trName(sym)} (${type})`); trPosClose(); toast(`${side === "buy" ? "Buy" : "Sell"} order sent for ${chEsc(trName(sym))}. It shows on the chart as a line, and under Trade → Positions &amp; orders.`);
     } catch (x) { warn("Order not sent: " + x.message); $("tpGo").disabled = false; $("tpGo").dataset.armed = ""; $("tpGo").textContent = "Place order"; }
   };
   try {

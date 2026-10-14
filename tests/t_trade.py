@@ -100,6 +100,9 @@ async def main():
         await q("() => document.getElementById('tpGo').click()"); await asyncio.sleep(1.5)
         sent2 = [p for t, p in CT_TRADE["log"] if t == 2106][-1]
         print("23) chart order:", [t for t, p in CT_TRADE["log"]].count(2106) - n06, {k: sent2.get(k) for k in ("tradeSide", "orderType", "limitPrice", "stopPrice", "stopLoss", "takeProfit", "volume")}, "| panel closed:", await q("() => !document.getElementById('trPosPanel') && TR.posId == null"))
+        await wait("() => trChartOrders(CH.sym).length > 0", 10)
+        print("23c) on the chart:", await q("() => trChartOrders(CH.sym).map(l => l.txt + ' @' + l.p).join(' | ')"))
+        await pg.screenshot(path=f"{OUT}/trade_lines.png")
         print("24) toolbar button:", await q("() => { chSel = 'pz'; chSelBar(); return !!document.querySelector('#chFloat [data-fl=\"trade\"]'); }"), "| menu:", await q("() => chMoreItems(CHD[CH.sym][0]).map(x => x.l).filter(Boolean).slice(0, 2).join(', ')"))
         # account size: synced from the account by default, or typed (manual); the risk % stays, the size follows the stop
         d0 = "CHD[CH.sym][0]"

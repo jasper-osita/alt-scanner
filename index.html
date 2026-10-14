@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0048">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0109">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -913,7 +913,8 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .chind.slhide{display:none}.chind.slnovals .vv{display:none}
 .chsetbtn span{margin-left:4px}
 .chacctw{position:relative;margin-left:auto}
-.chbkdrag,.chbkdrag *{cursor:ns-resize!important}.chbkx,.chbkx *{cursor:pointer!important}
+.chscb{position:absolute;right:0;bottom:0;z-index:4;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--mute);cursor:pointer;padding:0;opacity:.75}.chscb:hover{color:var(--text);opacity:1;background:var(--pill)}
+.chscmenu .mi{width:16px;text-align:center}.chbkdrag,.chbkdrag *{cursor:ns-resize!important}.chbkx,.chbkx *{cursor:pointer!important}
 .trw{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-top:8px;display:flex;flex-direction:column;position:relative;flex:none}.chdlg .trw{display:none}
 .trwgrip{position:absolute;left:0;right:0;top:-5px;height:9px;cursor:ns-resize;z-index:2}.trw.shut .trwgrip{display:none}
 .trwh{display:flex;align-items:center;gap:10px;padding:4px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}.trw.shut .trwh{border-bottom:0}.trw.shut .trwb{display:none}
@@ -4335,7 +4336,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.0048";
+const APP_VERSION = "2026.10.15.0109";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6712,6 +6713,7 @@ const CS_DEF = {
   bgType: "solid", bg: "", bg2: "#1e222d", vGrid: true, vGridC: "", hGrid: true, hGridC: "", xhC: "#9598a1", xhStyle: 3, wm: "off", wmC: "rgba(255,255,255,0.06)",
   textC: "", fontSize: 11, scaleC: "", mTop: 6, mBot: 6, rightBars: 8,
   alertLines: true, alertC: "#f7a600", sessBreaks: false, sbC: "#4c525e",
+  scMode: 0, scInv: false, bidAsk: false,
   trLines: true, trX: true, trDrag: true, trWatch: true, trBuyC: "#2962ff", trSellC: "#f23645", trPendC: "#f7a600", trSLC: "#f23645", trTPC: "#22ab94",
 };
 const chCS = () => ({ ...CS_DEF, ...(CH.cs || {}) });
@@ -6761,7 +6763,7 @@ function chApplyCS(P) {
       layout: { background: bg, textColor: S.textC || mute, fontSize: +S.fontSize || 11 },
       grid: { vertLines: { visible: S.vGrid, color: S.vGridC || line }, horzLines: { visible: S.hGrid, color: S.hGridC || line } },
       crosshair: { vertLine: xh, horzLine: xh },
-      rightPriceScale: { borderColor: S.scaleC || line }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
+      rightPriceScale: { borderColor: S.scaleC || line, mode: +S.scMode || 0, invertScale: !!S.scInv }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
       localization: { locale: "en-US", timeFormatter: chTimeFmt, priceFormatter: chPxFmt(P) },
       watermark: { visible: S.wm !== "off" && !!CH.sym, text: S.wm === "symtf" ? `${chName(CH.sym)}, ${CH_TFL[P.tf]}` : chName(CH.sym), color: S.wmC, fontSize: 52, horzAlign: "center", vertAlign: "center" } });
     P.cs.applyOptions({ upColor: S.body ? S.upC : "rgba(0,0,0,0)", downColor: S.body ? S.dnC : "rgba(0,0,0,0)", borderVisible: S.border, borderUpColor: S.upB, borderDownColor: S.dnB,
@@ -7891,7 +7893,7 @@ function chBuild() {
       </div>
       <div class="chgrid" id="chGrid"></div><div id="chHold" hidden>
         ${[0, 1, 2, 3].map(i => `<div class="chpane" data-i="${i}" id="chPane${i}"><div class="chph"><select class="chtf" data-i="${i}" aria-label="Timeframe">${tfOpts(CH.tfs[i])}</select><span class="cholc" id="chLeg${i}"></span><span class="chcd" id="chCd${i}" title="Time left on the current candle"></span><span class="chpb"><button data-fit="${i}" title="Reset zoom and price scale" aria-label="Fit chart">⟲</button><button data-max="${i}" title="Maximize this chart (click again to restore)" aria-label="Maximize chart">⤢</button></span></div>
-          <div class="chwrap" id="chWrap${i}"><div class="chcv" id="chCv${i}"></div><canvas class="chov" id="chOv${i}"></canvas><div class="chmsg" id="chMsg${i}"></div></div></div>`).join("")}
+          <div class="chwrap" id="chWrap${i}"><div class="chcv" id="chCv${i}"></div><canvas class="chov" id="chOv${i}"></canvas><div class="chmsg" id="chMsg${i}"></div><button class="chscb" data-scb="${i}" id="chScB${i}" title="Price scale settings" aria-label="Price scale settings" aria-haspopup="true">${chIco("gear", 14)}</button></div></div>`).join("")}
       </div>
       <aside class="chwl" id="chWL" aria-label="Chart watchlist"></aside>
     </div>`;
@@ -7907,6 +7909,7 @@ function chBuild() {
   document.addEventListener("click", e => { const p = $("chLayPop"); if (p && !p.hidden && !e.target.closest(".chlay")) { p.hidden = true; $("chLayBtn").setAttribute("aria-expanded", "false"); } });
   $("chFocus").onclick = () => chFocus(!document.body.classList.contains("chfocus"));
   el.querySelectorAll("[data-fit]").forEach(b => b.onclick = () => chFit(CHP[+b.dataset.fit]));
+  el.querySelectorAll("[data-scb]").forEach(b => { b.addEventListener("pointerdown", e => e.stopPropagation(), true); b.onclick = e => { e.stopPropagation(); chScaleMenu(CHP[+b.dataset.scb], b); }; });
   el.querySelectorAll("[data-max]").forEach(b => b.onclick = () => { const i = +b.dataset.max; CH.max = CH.max === i ? null : i; chSave(); chApplyLayout(); });
   el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
   $("chSync").onclick = () => { CH.sync = !CH.sync; chSave(); chIndicators(); };
@@ -7969,6 +7972,23 @@ function chBindGutter(gu, sizes) {
   gu.addEventListener("dblclick", () => { const fr = sizes[path], m = (fr[j - 1] + fr[j]) / 2; fr[j - 1] = fr[j] = m; const cs = cells(); cs[j - 1].style.flex = cs[j].style.flex = `${m} 1 0px`; chSave(); });
 }
 const chVis = () => chBuilt ? chLeaves(chTree()).map(i => CHP[i]).filter(Boolean) : [];
+function chScaleMenu(P, btn) {                   // the price scale menu: reset, auto, invert, regular / percent / indexed / log, labels and lines
+  if (!P || !P.chart) return; const S = chCS(), ps = P.chart.priceScale("right"), auto = ps.options().autoScale, ck = on => on ? "✓" : "", m = +S.scMode || 0;
+  const it = (l, k, on) => ({ l, k, on, ico: ck(on) });
+  chMenu(btn, [{ l: "Reset price scale", k: "reset", ico: chIco("M5 10.5a5.5 5.5 0 1 0 1.6-3.9M5 4v3h3", 15) }, { sep: 1 }, it("Auto (fits data to screen)", "auto", auto), it("Invert scale", "inv", !!S.scInv), { sep: 1 },
+    it("Regular", "m0", m === 0), it("Percent", "m2", m === 2), it("Indexed to 100", "m3", m === 3), it("Logarithmic", "m1", m === 1), { sep: 1 },
+    { hd: "Labels" }, it("Last price label", "lastLbl", S.lastLbl), it("Countdown to bar close", "cd", S.cd), { hd: "Lines" },
+    it("Price line", "lastLine", S.lastLine), it("Previous day close price line", "prevDay", S.prevDay), it("High and low price lines", "hiLo", S.hiLo), it("Bid and ask lines", "bidAsk", S.bidAsk), { sep: 1 },
+    { l: "More settings…", k: "more", ico: chIco("gear", 15) }], { cls: "chscmenu", onPick: k => {
+      const set = o => { CH.cs = { ...(CH.cs || {}), ...o }; chSave(); chApplyCSAll(); };
+      if (k === "reset") { ps.applyOptions({ autoScale: true }); chDirty = true; }
+      else if (k === "auto") { ps.applyOptions({ autoScale: !auto }); chDirty = true; }
+      else if (k === "inv") set({ scInv: !S.scInv });
+      else if (/^m\d$/.test(k)) set({ scMode: +k[1] });
+      else if (k === "more") chChartSettings("sc");
+      else set({ [k]: !S[k] }); } });
+  const mm = $("chMenu"); if (mm) { const r = btn.getBoundingClientRect(); mm.style.left = Math.max(6, r.right - mm.offsetWidth) + "px"; mm.style.top = Math.max(6, r.top - mm.offsetHeight - 4) + "px"; }
+}
 function chFit(P) {
   if (!P || !P.chart || !P.t.length) return;
   P.chart.priceScale("right").applyOptions({ autoScale: true }); P.chart.priceScale("rsi").applyOptions({ autoScale: true });
@@ -8632,6 +8652,8 @@ function chPaintBody(P, g) {
       for (let i = a; i <= b; i++) if (chDay(P.t[i]) !== chDay(P.t[i - 1])) { const x = chX(P, P.t[i]); if (x != null) { g.beginPath(); g.moveTo(Math.round(x) + .5, 0); g.lineTo(Math.round(x) + .5, H); g.stroke(); } }
       g.restore(); } }
   try { chIndPaint(g, P, { W, H, axis }); } catch (e) {}
+  const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, nAx = axis.length;   // drawings stay in the price area, off the indicator panes
+  g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   P.hits = [];
   const all = chHidden ? [] : chList().filter(d => CH_T[d.type] && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
   if (chDraft && chDraft.pane === P.i && CH_T[chDraft.type] && CH_T[chDraft.type].paint) all.push({ ...chDraft, id: "draft", draft: true, s: chDraft.type === "icon" ? { icon: CH.icon } : undefined });
@@ -8660,13 +8682,14 @@ function chPaintBody(P, g) {
     }
   }
   if (typeof trChartLines === "function") { g.save(); try { trChartLines(P, g, W, H, axis); } catch (e) { chPaintErr(e, "orders"); } g.restore(); g.setLineDash([]); }
-  g.restore();
-  axis.forEach(([y, txt, col]) => { if (y >= 0 && y <= H) chLabel(g, txt, W + 1, y, col, "#141517"); });
+  g.restore(); g.restore();
+  axis.forEach(([y, txt, col], j) => { if (y >= 0 && y <= (j < nAx ? H : Hm)) chLabel(g, txt, W + 1, y, col, "#141517"); });
   const th = P.chart.timeScale().height(); ticks.forEach(([x, t, col]) => { if (x >= 0 && x <= W) chLabel(g, chTShort(t), x, H + th / 2, col, "#fff", "center"); });
   { const left = P.t.at(-1) + CH_IV[P.tf] - Date.now(), yl = chY(P, ref), cd = fmtCountdown(left), S = chCS();   // candle countdown under the last-price label
     if (S.cd && S.lastLbl && yl != null && yl > 0 && yl < H - 18) chLabel(g, cd, W + 1, yl + 18, "rgba(40,42,48,.95)", "#c9ccd3");
     const hd = $("chCd" + P.i); if (hd) hd.textContent = S.cd ? "⏱ " + cd : ""; }
   if (P.oscL && P.oscL.length) chIndLegendPos(P);
+  { const b = $("chScB" + P.i); if (b) { const w = Math.round(P.chart.priceScale("right").width()), h = Math.round(P.chart.timeScale().height()), k = w + "x" + h; if (b.dataset.k !== k) { b.dataset.k = k; b.style.width = w + "px"; b.style.height = h + "px"; } } }
 }
 /* ---- floating toolbar on the selected drawing ---- */
 const chHas = (d, f) => ((CH_T[d.type] || {}).f || "").split(" ").includes(f);
@@ -9439,6 +9462,7 @@ async function cttConnect() {
         const list = (await cttReq(2114, { ctidTraderAccountId: a.ctidTraderAccountId })).symbol || [];
         CTT.symbols = {}; CTT.byId = {}; CTT.specs = {}; CTT.spots = {};
         list.forEach(x => { if (x.enabled === false) return; const k = ctNorm(x.symbolName); if (!CTT.symbols[k]) CTT.symbols[k] = x; CTT.byId[x.symbolId] = x; });
+        CTT.assets = Object.fromEntries(((await cttReq(2112, { ctidTraderAccountId: a.ctidTraderAccountId }).catch(() => ({}))).asset || []).map(z => [z.assetId, z.name || z.displayName]));
         CTT.acct = a; CTT.live = live; CTT.state = "ready"; await cttRefresh(); return CTT;
       }
       throw new Error("couldn't open the right cTrader server for this account");
@@ -9462,7 +9486,7 @@ async function cttRefresh() {
   try {
     const r = await cttReq(2124, { ctidTraderAccountId: id }); CTT.positions = r.position || []; CTT.orders = r.order || []; if (typeof chDirty !== "undefined") chDirty = true;
     const tr = (await cttReq(2121, { ctidTraderAccountId: id })).trader || {}, md = tr.moneyDigits != null ? +tr.moneyDigits : 2;
-    CTT.info = { balance: +(tr.balance || 0) / 10 ** md, md, ccy: (CT.assets || {})[tr.depositAssetId] || (CTT.info || {}).ccy || "USD", at: Date.now(), lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
+    CTT.info = { balance: +(tr.balance || 0) / 10 ** md, md, ccy: (CTT.assets || {})[tr.depositAssetId] || (CTT.info || {}).ccy || "USD", at: Date.now(), lev: tr.leverageInCents ? +tr.leverageInCents / 100 : null };
     if (CTT.positions.length) { const u = await cttReq(2187, { ctidTraderAccountId: id }); const umd = u.moneyDigits != null ? +u.moneyDigits : md;
       CTT.pnl = Object.fromEntries((u.positionUnrealizedPnL || []).map(x => [x.positionId, +(x.netUnrealizedPnL ?? x.grossUnrealizedPnL ?? 0) / 10 ** umd])); }
     [...CTT.positions, ...CTT.orders].forEach(o => cttWatch(CTT.byId[(o.tradeData || {}).symbolId]));
@@ -9691,13 +9715,13 @@ function trChartOrders(sym) {                   // → [{ key, p, col, txt, dash
     const size = v => sp ? `${(+v / sp.lotSize).toFixed(2)} lots` : `${+v / 100} units`, mine = o => +((o.tradeData || {}).symbolId) === +x.symbolId, pf = v => (+v).toFixed(dg);
     CTT.positions.filter(mine).forEach(p => { const td = p.tradeData, buy = +td.tradeSide === 1, pl = CTT.pnl[p.positionId], k = "pos:" + p.positionId, it = { kind: "pos", ref: p, buy, x, dg };
       if (p.price) out.push({ key: k + ":entry", p: +p.price, col: buy ? S.trBuyC : S.trSellC, txt: `${buy ? "Buy" : "Sell"} ${size(td.volume)}${pl != null ? ` · ${money(pl)} ${ccy}` : ""}`, x: true, drag: true, it, role: "entry" });
-      if (p.stopLoss) out.push({ key: k + ":sl", p: +p.stopLoss, col: S.trSLC, txt: `SL ${pf(p.stopLoss)}`, dash: 1, drag: true, it, role: "sl" });
-      if (p.takeProfit) out.push({ key: k + ":tp", p: +p.takeProfit, col: S.trTPC, txt: `TP ${pf(p.takeProfit)}`, dash: 1, drag: true, it, role: "tp" }); });
+      if (p.stopLoss) out.push({ key: k + ":sl", p: +p.stopLoss, col: S.trSLC, txt: `SL ${pf(p.stopLoss)}${trValTxt(x, buy, +p.price, +p.stopLoss, td.volume)}`, dash: 1, drag: true, it, role: "sl" });
+      if (p.takeProfit) out.push({ key: k + ":tp", p: +p.takeProfit, col: S.trTPC, txt: `TP ${pf(p.takeProfit)}${trValTxt(x, buy, +p.price, +p.takeProfit, td.volume)}`, dash: 1, drag: true, it, role: "tp" }); });
     CTT.orders.filter(mine).forEach(o => { const td = o.tradeData, buy = +td.tradeSide === 1, ot = +o.orderType, px = +(ot === 3 || ot === 6 ? o.stopPrice || o.limitPrice : o.limitPrice || o.stopPrice) || 0; if (!px || ot === 4 || o.closingOrder) return;
       const k = "ord:" + o.orderId, it = { kind: "ord", ref: o, buy, x, dg, px, ot }, a = trAbsSLTP(o, px, buy);
       out.push({ key: k + ":entry", p: px, col: S.trPendC, txt: `${buy ? "Buy" : "Sell"} ${ot === 2 ? "limit" : ot === 3 ? "stop" : ot === 6 ? "stop limit" : "order"} ${size(td.volume)} · pending`, dash: 2, x: true, drag: true, it, role: "entry" });
-      if (a.sl) out.push({ key: k + ":sl", p: a.sl, col: S.trSLC, txt: `SL ${pf(a.sl)} (pending)`, dash: 2, drag: true, it, role: "sl" });
-      if (a.tp) out.push({ key: k + ":tp", p: a.tp, col: S.trTPC, txt: `TP ${pf(a.tp)} (pending)`, dash: 2, drag: true, it, role: "tp" }); });
+      if (a.sl) out.push({ key: k + ":sl", p: a.sl, col: S.trSLC, txt: `SL ${pf(a.sl)}${trValTxt(x, buy, px, a.sl, td.volume)} (pending)`, dash: 2, drag: true, it, role: "sl" });
+      if (a.tp) out.push({ key: k + ":tp", p: a.tp, col: S.trTPC, txt: `TP ${pf(a.tp)}${trValTxt(x, buy, px, a.tp, td.volume)} (pending)`, dash: 2, drag: true, it, role: "tp" }); });
   } else if (mxtOn() && trVenue(sym) === "mx") { const ms = mxF(sym);
     MXT.positions.filter(p => p.symbol === ms).forEach(p => { const long = +p.positionType === 1, avg = +(p.holdAvgPrice || p.openAvgPrice || 0);
       if (avg) out.push({ key: "mxp:" + p.positionId + ":entry", p: avg, col: long ? S.trBuyC : S.trSellC, txt: `${long ? "Long" : "Short"} ${p.holdVol} contracts${p.unrealised != null ? ` · ${money(+p.unrealised)} USDT` : ""}`, x: true, it: { kind: "mxp", ref: p, buy: long } }); });
@@ -9705,16 +9729,28 @@ function trChartOrders(sym) {                   // → [{ key, p, col, txt, dash
   }
   if (TW.drag) {                                 // the line you're dragging follows the mouse; dragging a position's entry makes a new SL or TP
     const d = TW.drag, l = out.find(z => z.key === d.key);
-    if (l && l.it.kind === "pos" && l.role === "entry") { const r = trEntryRole(l.it, d.p); out.push({ key: "ghost", p: d.p, col: r === "sl" ? S.trSLC : S.trTPC, txt: `${r.toUpperCase()} ${(+d.p).toFixed(l.it.dg)} · let go to set`, dash: 1 }); }
-    else if (l) { const dp = d.p - l.p; l.p = d.p; l.txt = l.txt.replace(/^(SL|TP) [\d.]+/, (m0, w) => `${w} ${(+d.p).toFixed(l.it.dg || 5)}`) + (d.busy ? " · sending…" : "");
+    if (l && l.it.kind === "pos" && l.role === "entry") { const r = trEntryRole(l.it, d.p); out.push({ key: "ghost", p: d.p, col: r === "sl" ? S.trSLC : S.trTPC, txt: `${r.toUpperCase()} ${(+d.p).toFixed(l.it.dg)}${trValTxt(l.it.x, l.it.buy, +l.it.ref.price, d.p, l.it.ref.tradeData.volume)} · let go to set`, dash: 1 }); }
+    else if (l) { const dp = d.p - l.p; l.p = d.p; const it = l.it, en = it.kind === "pos" ? +it.ref.price : it.px, vol = it.ref.tradeData && it.ref.tradeData.volume;
+      l.txt = l.txt.replace(/^(SL|TP) [\d.]+( · [+−][\d.]+ ?[A-Z]*)?/, (m0, w) => `${w} ${(+d.p).toFixed(it.dg || 5)}${it.x && vol ? trValTxt(it.x, it.buy, en, d.p, vol) : ""}`) + (d.busy ? " · sending…" : "");
       if (l.it.kind === "ord" && l.role === "entry") out.forEach(z => { if (z !== l && z.it === l.it) z.p += dp; }); }   // a pending order's SL/TP move with it
   }
   return out;
 }
+function trFx(code) {                           // a conversion rate: the trading account's live price, else the scan's
+  const x = CTT.symbols[ctNorm(code)]; if (x) { const q = CTT.spots[x.symbolId]; if (q && q.bid) return q.ask ? (q.bid + q.ask) / 2 : q.bid; cttWatch(x); }
+  return typeof ctPx === "function" ? ctPx(code) : null;
+}
+function trValueAt(x, buy, entry, price, vol) {  // profit or loss if price reaches `price` → { v, ccy } in the account currency when we can convert
+  const A = (CTT.info || {}).ccy || "USD", Q = (CTT.assets || {})[x.quoteAssetId], B = (CTT.assets || {})[x.baseAssetId], raw = (price - entry) * (buy ? 1 : -1) * (+vol / 100);
+  let f = null; if (!Q || Q === A) f = 1; else if (B === A) f = 1 / price; else { const qa = trFx(Q + A), aq = trFx(A + Q); f = qa ? qa : aq ? 1 / aq : null; }
+  return f == null ? { v: raw, ccy: Q } : { v: raw * f, ccy: A };
+}
+const trValTxt = (x, buy, entry, price, vol) => { if (!(entry > 0) || !(price > 0)) return ""; const m = trValueAt(x, buy, entry, price, vol); return ` · ${m.v >= 0 ? "+" : "−"}${Math.abs(m.v).toFixed(2)} ${m.ccy || ""}`.trimEnd(); };
 const trEntryRole = (it, p) => (it.buy ? p < +it.ref.price : p > +it.ref.price) ? "sl" : "tp";
 function trChartLines(P, g, W, H, axis) {
-  P.bk = []; const L = trChartOrders(CH.sym); if (!L.length) return; const S = chCS();
-  L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > H) return; const yy = Math.round(y) + .5;
+  P.bk = []; const L = trChartOrders(CH.sym); if (!L.length) return; const S = chCS(), Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 4 : H;   // price area only
+  g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
+  L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > Hm) return; const yy = Math.round(y) + .5;
     g.strokeStyle = l.col; g.lineWidth = l.dash ? 1 : 1.5; g.setLineDash(l.dash === 2 ? [6, 4] : l.dash ? [2, 3] : []); g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); g.setLineDash([]);
     chLabel(g, l.txt, 6, y, l.col, "#fff", "left"); g.font = "11px " + chFont(); const w = g.measureText(l.txt).width + 8; let xb = null;
     if (l.x && S.trX) { const armed = TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now(), t = armed ? (l.it.kind === "pos" || l.it.kind === "mxp" ? "Close?" : "Cancel?") : "×", bw = armed ? g.measureText(t).width + 10 : 16;
@@ -9722,6 +9758,7 @@ function trChartLines(P, g, W, H, axis) {
       g.fillStyle = "#fff"; g.textBaseline = "middle"; g.textAlign = "center"; g.font = (armed ? "11px " : "14px ") + chFont(); g.fillText(t, (xb[0] + xb[1]) / 2, y + 0.5); g.textAlign = "left"; }
     if (l.key !== "ghost") P.bk.push({ key: l.key, y, xb, drag: !!(l.drag && S.trDrag), l });
     axis.push([y, chFmt(l.p, P.c.at(-1)), l.col]); });
+  g.restore();
 }
 function trLineHit(P, m) {                       // → { b, on: "x" | "line" } for the chart's pointer handlers
   const tol = chTouch ? 12 : 5;
@@ -9774,6 +9811,15 @@ setInterval(() => {                              // keep the lines, P&L and the 
   if (mxtOn() && ((trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:")) || open)) mxtRefresh().then(() => { chDirty = true; }, () => {});
 }, 5000);
 
+setInterval(() => {                              // bid and ask lines (price scale menu → Lines)
+  if (typeof chVis !== "function") return; const on = chCS().bidAsk;
+  if (on && CTT.state === "ready" && trVenue(CH.sym) === "ct") { const x = cttSym(CH.sym); if (x) cttWatch(x); }
+  const q = on && trLivePrice(CH.sym);
+  chVis().forEach(P => { if (!P.cs) return; ["bid", "ask"].forEach(k => { const key = "_ba" + k, L = P[key], v = q && q[k] && !(k === "ask" && q.ask === q.bid) ? q[k] : null;
+    if (!v) { if (L) { try { P.cs.removePriceLine(L); } catch (e) {} P[key] = null; } return; }
+    const o = { price: v, color: k === "bid" ? "#f23645" : "#2962ff", lineWidth: 1, lineStyle: 1, axisLabelVisible: true, title: k === "bid" ? "Bid" : "Ask" };
+    if (L) L.applyOptions(o); else P[key] = P.cs.createPriceLine(o); }); });
+}, 1000);
 /* ---- trade watch: positions, orders and history under the charts; pick the columns ---- */
 const TW_KEY = "finder-trwatch", TWS = () => ({ open: true, tab: "pos", h: 170, range: 30, cols: {}, sort: {}, ...(lsGet(TW_KEY, {}) || {}) }), twSave = o => lsSet(TW_KEY, { ...TWS(), ...o });
 const twTime = ms => { if (!ms) return ""; try { return new Intl.DateTimeFormat("en-GB", { timeZone: chCS().tz || "Asia/Manila", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(+ms)).replace(",", ""); } catch (e) { return new Date(+ms).toISOString().slice(0, 19).replace("T", " "); } };

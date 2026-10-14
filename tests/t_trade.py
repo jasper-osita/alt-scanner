@@ -108,6 +108,7 @@ async def main():
         await pg.screenshot(path=f"{OUT}/trade_lines.png")
         # broker lines: drag the pending order, its SL, × to cancel; a market position: drag its line to add a stop, × to close
         BK = "() => JSON.stringify((chVis()[0].bk || []).map(b => [b.key.replace(/:\\d+:/, ':'), Math.round(b.y), b.xb && b.xb.map(Math.round)]))"
+        await q("() => { CH.max = 0; chApplyLayout(); }"); await asyncio.sleep(1.5)
         print("40) hit list:", await q(BK))
         async def drag_line(role, kind, dy):
             bx = await q(f"() => {{ const P = chVis()[0], r = P.cv.getBoundingClientRect(), b = P.bk.find(b => b.key.startsWith('{kind}:') && b.key.endsWith(':{role}')); return b && [r.left, r.top, chPlotW(P), b.y]; }}")
@@ -134,6 +135,8 @@ async def main():
         print("44) drag position line down → SL:", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t == 2110], "| lines:", await q("() => trChartOrders(CH.sym).map(l => l.txt).join(' | ')"))
         n0 = len(CT_TRADE["log"]); await drag_line("entry", "pos", -40)
         print("45) drag up → TP (SL kept):", [(t, p.get("stopLoss"), p.get("takeProfit")) for t, p in CT_TRADE["log"][n0:] if t == 2110])
+        print("45b) lines in the price area only:", await q("() => chVis().map(P => { const H = chPlotH(P), top = P.oscL && P.oscL.length ? P.oscL[0].top * H : H; return (P.bk || []).every(b => b.y <= top) + '/' + (P.bk || []).length; }).join(' ')"))
+        await q("() => { CH.max = null; chApplyLayout(); }")
         # trade watch
         await asyncio.sleep(1.2)
         TWQ = "() => [document.querySelector('#trWatch .trwtabs').innerText.replace(/\\s+/g, ' '), document.getElementById('twSum').innerText, [...document.querySelectorAll('#twBody th')].map(t => t.innerText).join('|'), [...document.querySelectorAll('#twBody tbody tr')].slice(0, 3).map(r => r.innerText.replace(/\\s+/g, ' ')).join(' // ')]"
@@ -205,6 +208,15 @@ async def main():
         print("31) read-only sign-in:", await q("() => [document.getElementById('chAcctTxt').innerText, trPosAcct(CHD[CH.sym][0])]"))
         await q("() => { document.getElementById('chAcctPop').hidden = true; document.getElementById('chAcctBtn').click(); }"); await asyncio.sleep(0.4)
         print("32) menu read-only:", await q("() => document.getElementById('chAcctPop').innerText.replace(/\\s+/g, ' ').slice(0, 160)"))
+        # price scale menu in the bottom-right corner
+        sb = await q("() => { const b = document.getElementById('chScB0'), r = b.getBoundingClientRect(), P = chVis()[0]; return [Math.round(r.width), Math.round(r.height), Math.round(P.chart.priceScale('right').width()), Math.round(P.chart.timeScale().height())]; }")
+        await q("() => document.getElementById('chScB0').click()"); await asyncio.sleep(0.3)
+        print("50) scale button", sb, "menu:", await q("() => [...document.querySelectorAll('#chMenu button')].map(b => b.innerText.replace(/\\s+/g, ' ').trim()).join(' | ')"))
+        await pg.screenshot(path=f"{OUT}/trade_scale.png")
+        await q("() => document.querySelector('#chMenu [data-mk=\"m1\"]').click()"); await asyncio.sleep(0.3)
+        await q("() => { document.getElementById('chScB0').click(); }"); await asyncio.sleep(0.2); await q("() => document.querySelector('#chMenu [data-mk=\"bidAsk\"]').click()"); await asyncio.sleep(1.5)
+        print("51) log + bid/ask:", await q("() => { const P = chVis()[0], o = P.chart.priceScale('right').options(); return [o.mode, o.invertScale, !!P._babid, chCS().bidAsk]; }"))
+        await q("() => { CH.cs = { ...CH.cs, scMode: 0, bidAsk: false }; chApplyCSAll(); }")
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

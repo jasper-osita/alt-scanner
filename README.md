@@ -126,6 +126,10 @@ coins go to MEXC USDT perpetuals.
   the order (asks once when “confirm” is on). Drag a cTrader line to change it at the broker when you let go: a pending order's
   price (its SL/TP move with it), any SL or TP, or a position's own line to add a stop loss (towards the loss) or take profit.
   Colours, the ×, dragging and the trade watch are under chart Settings → Trading.
+- SL and TP lines show the money at that level in your account currency (from the trading account's own currency; other
+  quote currencies are converted with live prices). Lines and drawings stay in the price area, off the indicator panes.
+- **Price scale menu** (gear in each chart's bottom-right corner): reset, auto fit, invert, regular / percent / indexed to 100 /
+  logarithmic, last price label, countdown, price line, previous day close, high and low, bid and ask lines, more settings.
 - **Trade watch** (under the charts): Positions, Orders and History tabs with balance, equity and P&L; Close/Cancel per row;
   “Columns” picks what shows (saved); click a header to sort; drag the top edge to resize; double-click a row to open its chart.
   History reads cTrader closed deals (today to 1 year) and MEXC position history.

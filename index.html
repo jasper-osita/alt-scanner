@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1125">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.1146">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2212,7 +2212,7 @@ const ctConfigured = () => { const c = ctCfg(); return !!(c && c.clientId && c.c
 function ctErrText(p) {
   const code = (p && p.errorCode) || "", d = (p && p.description) || "";
   if (/CLIENT_AUTH|APP_AUTH|INVALID_CLIENT/i.test(code)) return "cTrader rejected the Client ID or Secret (or the app isn't approved yet)";
-  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Create a new one on your app's Sandbox page and paste it in Settings";
+  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Create a new access token and refresh token on your app's Sandbox page and paste both in Settings";
   if (/RATE|LIMIT|FREQUENCY/i.test(code)) return "cTrader is rate-limiting requests; try again in a minute";
   return `${code || "cTrader error"}${d ? ": " + d : ""}`;
 }
@@ -2232,18 +2232,26 @@ function ctOpen(url) {
 function ctBind(ws) {
   ws.onmessage = ev => {
     let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    CT.lastMsgAt = Date.now();
     if (m.payloadType === 2131) { if (CT.onSpot) CT.onSpot(m.payload || {}); return; }
-    if (m.payloadType === 2147 || m.payloadType === 2148) {
-      CT.state = "error"; CT.err = "your cTrader session ended (token expired or access removed). Paste a fresh access token in Settings";
+    if (m.payloadType === 2148 || (m.payloadType === 2147 && (ctCfg() || {}).refreshToken)) {      // cTrader dropped the session: reconnect (renewing the token if needed)
+      ctClose(); CT.state = "closed"; ctScheduleReconnect(true); if (typeof renderMacro === "function") renderMacro(); return; }
+    if (m.payloadType === 2147) {
+      CT.state = "error"; CT.err = "your cTrader access token was revoked or expired. Paste a fresh access token (and its refresh token) in Settings";
       ctClose(); if (typeof renderMacro === "function") renderMacro(); return; }
     const p = m.clientMsgId && CT.pending.get(m.clientMsgId); if (!p) return;
     CT.pending.delete(m.clientMsgId); clearTimeout(p.t);
     if (m.payloadType === 2142 || m.payloadType === 50) p.rej(Object.assign(new Error(ctErrText(m.payload)), { code: m.payload && m.payload.errorCode }));
     else p.res(m.payload || {});
   };
-  ws.onclose = () => { if (CT.ws !== ws) return; ctClose(); if (CT.state === "ready") CT.state = "closed"; if (typeof renderMacro === "function") renderMacro(); };
-  clearInterval(CT.hb);
-  CT.hb = setInterval(() => { try { ws.send(JSON.stringify({ payloadType: 51, payload: {} })); } catch (e) {} }, 10000);
+  ws.onclose = () => { if (CT.ws !== ws) return; const was = CT.state; ctClose(); if (was === "ready") { CT.state = "closed"; ctScheduleReconnect(); } if (typeof renderMacro === "function") renderMacro(); };
+  clearInterval(CT.hb); CT.lastMsgAt = Date.now();
+  CT.hb = setInterval(() => {
+    try { ws.send(JSON.stringify({ payloadType: 51, payload: {} })); } catch (e) {}
+    if (CT.state === "ready" && CT.ws === ws && Date.now() - CT.lastMsgAt > 60000 && !CT.probing) {      // quiet for a minute (sleep, Wi-Fi change): ask, and reconnect if no answer
+      CT.probing = true; ctReq(2104, {}, 10000).then(() => {}, () => { if (CT.ws === ws) { ctClose(); CT.state = "closed"; ctScheduleReconnect(true); } }).finally(() => { CT.probing = false; });
+    }
+  }, 10000);
 }
 function ctReq(type, payload, timeout = 20000) {
   return new Promise((res, rej) => {
@@ -2262,7 +2270,10 @@ async function ctConnect(cfg = ctCfg()) {
       for (let attempt = 0; attempt < 2; attempt++) {
         const ws = await ctOpen(CT_HOST(live)); CT.ws = ws; ctBind(ws);
         await ctReq(2100, { clientId: cfg.clientId, clientSecret: cfg.clientSecret });
-        const accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || [];
+        if (cfg.refreshToken && cfg.expAt && cfg.expAt - Date.now() < CT_RENEW_MS) cfg = await ctRenew(cfg);          // renew before it runs out
+        let accts;
+        try { accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || []; }
+        catch (e) { if (!cfg.refreshToken || !/token/i.test(e.message)) throw e; cfg = await ctRenew(cfg); accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || []; }
         if (!accts.length) throw new Error("this access token has no cTrader accounts attached");
         CT.accounts = accts;
         const a = accts.find(x => String(x.ctidTraderAccountId) === String(cfg.accountId)) || accts.find(x => !!x.isLive === live) || accts[0];
@@ -2273,12 +2284,44 @@ async function ctConnect(cfg = ctCfg()) {
         list.forEach(x => { if (x.enabled === false) return; const k = ctNorm(x.symbolName); if (!CT.symbols[k]) CT.symbols[k] = x; CT.byId[x.symbolId] = x; });
         CT.acct = a; CT.live = live; CT.broker = a.brokerTitleShort || "Broker"; CT.state = "ready"; if (typeof CT_SUBD !== "undefined") CT_SUBD.clear();
         ctSaveCfg({ ...cfg, accountId: a.ctidTraderAccountId, live });
+        CT.retry = 0; setTimeout(ctResubscribe, 0);                // whoever reconnected, live prices come back
         return CT;
       }
       throw new Error("couldn't match the account to a cTrader server");
     } catch (e) { CT.state = "error"; CT.err = e.message; ctClose(); throw e; }
   })();
   try { return await CT.connecting; } finally { CT.connecting = null; }
+}
+/* ---- staying connected: renew the token before it expires, reconnect after drops, resubscribe prices ---- */
+const CT_RENEW_MS = 5 * 864e5, CT_TOKEN_DAYS = 30;
+async function ctRenew(cfg) {                                // needs the app-authorised socket; cTrader issues a new access and refresh token
+  const r = await ctReq(2173, { refreshToken: cfg.refreshToken });
+  if (!r.accessToken) throw new Error("cTrader didn't renew the access token. Paste a fresh access and refresh token in Settings");
+  const next = { ...cfg, accessToken: r.accessToken, refreshToken: r.refreshToken || cfg.refreshToken, expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000 };
+  ctSaveCfg(next); return next;
+}
+const CT_STOP = /rejected the Client|invalid or expired|revoked|enter your|renew/i;   // errors a retry can't fix
+function ctScheduleReconnect(now) {
+  if (!ctConfigured() || CT.retryT || CT.connecting) return;
+  if (now) CT.retry = 0;
+  const wait = now ? 500 : [2, 5, 15, 30, 60][Math.min(CT.retry || 0, 4)] * 1000; CT.retry = (CT.retry || 0) + 1;
+  CT.retryT = setTimeout(async () => {
+    CT.retryT = null; if (CT.state === "ready" || !ctConfigured()) return;
+    try { await ctConnect(); }
+    catch (e) { if (!CT_STOP.test(e.message)) ctScheduleReconnect(); }
+    if (typeof renderMacro === "function") renderMacro();
+  }, wait);
+}
+function ctResubscribe() {
+  if (CT.state !== "ready") return;
+  const ids = new Set((CT.subRows || []).map(r => r.symbolId).filter(Boolean));
+  if (ids.size) ctReq(2127, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: [...ids] }).catch(() => {});
+  if (typeof chCtSub === "function" && typeof CH !== "undefined") chCtSub(CH.sym);
+}
+if (typeof window !== "undefined" && typeof document !== "undefined" && document.addEventListener) {
+  window.addEventListener("online", () => { if (CT.state !== "ready") ctScheduleReconnect(true); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && ctConfigured() && CT.state !== "ready" && CT.state !== "connecting" && CT.state !== "error") ctScheduleReconnect(true); });
+  setInterval(() => { const c = ctCfg(); if (CT.state === "ready" && c && c.refreshToken && c.expAt && c.expAt - Date.now() < CT_RENEW_MS) ctRenew(c).catch(() => {}); }, 3600e3);
 }
 let ctNextAt = 0;
 async function ctThrottle() { const now = Date.now(), at = Math.max(now, ctNextAt); ctNextAt = at + 230; if (at > now) await sleep(at - now); }   // history limit: 5 requests/s
@@ -2354,6 +2397,7 @@ function ctLots(spec, info, entry, stop, riskPct, price) {    // lots for a risk
   return { lots: cents / spec.lotSize, units: cents / 100, risk: cents / 100 * perUnit, riskAcct, f, conv, below: cents < spec.min, minLots: spec.min / spec.lotSize, stepLots: spec.step / spec.lotSize, unitsPerLot, ccy: f == null ? Q : A };
 }
 async function ctSubscribe(rows) {
+  if (rows.length) CT.subRows = rows;
   if (CT.state !== "ready" || !rows.length) return;
   try { await ctReq(2127, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: rows.map(r => r.symbolId) }); } catch (e) {}
 }
@@ -4201,7 +4245,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.1125";
+const APP_VERSION = "2026.10.14.1146";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6083,7 +6127,7 @@ function ctBarHTML() {
   const c = ctCfg();
   if (!c) return `<span>Connect your cTrader account to use your broker's prices for forex (28 pairs), gold, oil and the indices, on these boards and the charts.</span><button class="btn primary sm" id="ctOpen">Connect cTrader</button>`;
   if (CT.state === "connecting" || (MACRO.running && CT.state !== "error")) return `<span class="mute">Connecting to cTrader…</span><button class="btn sm" id="ctOpen">Settings</button>`;
-  if (CT.state === "ready" || (CT.state === "closed" && CT.acct)) return `<span><span class="${CT.state === "ready" ? "up" : "mute"}">●</span> cTrader · ${CT.broker} ${CT.live ? "live" : "demo"} account ${CT.acct.traderLogin || CT.acct.ctidTraderAccountId}${CT.state === "ready" ? (ctPrefer() ? ` · ${CT.broker} prices for forex, metals, energy and indices` : " · exchange prices first (change in Settings)") : " · reconnects on the next refresh"}</span><button class="btn sm" id="ctOpen">Settings</button>`;
+  if (CT.state === "ready" || (CT.state === "closed" && CT.acct)) return `<span><span class="${CT.state === "ready" ? "up" : "mute"}">●</span> cTrader · ${CT.broker} ${CT.live ? "live" : "demo"} account ${CT.acct.traderLogin || CT.acct.ctidTraderAccountId}${CT.state === "ready" ? (ctPrefer() ? ` · ${CT.broker} prices for forex, metals, energy and indices` : " · exchange prices first (change in Settings)") : " · reconnecting…"}</span><button class="btn sm" id="ctOpen">Settings</button>`;
   return `<span class="dn">cTrader: ${CT.err || "not connected"}.</span><button class="btn sm" id="ctOpen">Settings</button>`;
 }
 function etClock(ms) {                                // weekday and minutes after midnight in New York (handles daylight saving)
@@ -6420,23 +6464,27 @@ function openCTSettings() {
     <div class="ctform">
       <ol class="meta ctsteps">
         <li>On <b>openapi.ctrader.com → Applications</b>, open <b>Credentials</b> on your approved app and copy the Client ID and Secret.</li>
-        <li>Open <b>Sandbox</b> on the same app, choose the <b>accounts</b> (read-only) scope, sign in with your cTrader ID and copy the access token.</li>
-        <li>Paste all three here. A demo or live account both work; the right server is picked automatically.</li>
+        <li>Open <b>Sandbox</b> on the same app, choose the <b>accounts</b> (read-only) scope, sign in with your cTrader ID and copy the access token <b>and the refresh token</b>.</li>
+        <li>Paste them here. A demo or live account both work; the right server is picked automatically.</li>
       </ol>
       <label>Client ID<input id="ctId" autocomplete="off" spellcheck="false" value="${esc(c.clientId)}"></label>
       <label>Client Secret<input id="ctSecret" type="password" autocomplete="off" value="${esc(c.clientSecret)}"></label>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
+      <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label>
+      ${c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${a.brokerTitleShort || "Broker"} ${a.isLive ? "live" : "demo"} ${a.traderLogin || a.ctidTraderAccountId}</option>`).join("")}</select></label>` : ""}
       ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.map(x => x[0])].filter(n => !got.some(o => o.name === n));
         return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => o.group !== "Forex").map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => o.group === "Forex") ? `, plus ${got.filter(o => o.group === "Forex").length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
       <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
-      <p class="meta">Saved in this browser only and sent only to cTrader. The token gives read access to prices and your account list; the app never places orders.</p>
+      <p class="meta">Saved in this browser only and sent only to cTrader. Each address keeps its own copy (the Mac app at localhost and the Vercel site), and renewing on one can sign the other out, so connect cTrader in just one of them. The token gives read access to prices and your account list; the app never places orders.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
       <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
     </div>`;
   $("dlgClose").onclick = () => $("dlg").close();
   $("ctSave").onclick = async () => {
-    const cfg = { ...(ctCfg() || {}), clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: $("ctToken").value.trim(), prefer: $("ctPrefer").checked };
+    const old = ctCfg() || {}, tok = $("ctToken").value.trim();
+    const cfg = { ...old, clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: tok, refreshToken: $("ctRefresh").value.trim(), prefer: $("ctPrefer").checked };
+    if (tok !== old.accessToken) cfg.expAt = Date.now() + (CT_TOKEN_DAYS - 2) * 864e5;           // a freshly pasted token: assume about 30 days left
     if ($("ctAcct")) cfg.accountId = $("ctAcct").value;
     $("ctSave").disabled = true; $("ctMsg").textContent = "Connecting to cTrader…";
     try {

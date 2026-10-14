@@ -176,7 +176,7 @@ def ct_handler(opts):
             if t == 2100:
                 return reply(2101, {}) if p.get("clientSecret") == opts["secret"] else reply(2142, {"errorCode": "CH_CLIENT_AUTH_FAILURE", "description": "Client authentication failure"})
             if t == 2149:
-                if p.get("accessToken") != opts["token"]: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
+                if p.get("accessToken") not in (opts["token"], "tok-renewed"): return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
                 return reply(2150, {"accessToken": p["accessToken"], "permissionScope": "SCOPE_VIEW", "ctidTraderAccount": [
                     {"ctidTraderAccountId": 4242, "isLive": opts["live"], "traderLogin": 5150123, "brokerTitleShort": "Pepperstone"}]})
             if t == 2102: return reply(2103, {"ctidTraderAccountId": p["ctidTraderAccountId"]})
@@ -189,6 +189,9 @@ def ct_handler(opts):
                     lo = round(l * 1e5); bars.append({"volume": int(qv / 1000), "period": p["period"], "low": lo, "deltaOpen": round(o * 1e5) - lo,
                                                      "deltaClose": round(c * 1e5) - lo, "deltaHigh": round(h * 1e5) - lo, "utcTimestampInMinutes": tt // 60000})
                 return reply(2138, {"ctidTraderAccountId": p["ctidTraderAccountId"], "period": p["period"], "trendbar": bars})
+            if t == 2173 and p.get("refreshToken") not in (opts.get("refresh", "ref"), "ref-renewed"): return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid refresh token"})
+            if t == 2173: return reply(2174, {"accessToken": "tok-renewed", "refreshToken": "ref-renewed", "expiresIn": 2628000, "tokenType": "bearer"})
+            if t == 2104: return reply(2105, {"version": "mock"})
             if t == 2121: return reply(2122, {"ctidTraderAccountId": 4242, "trader": {"ctidTraderAccountId": 4242, "balance": 1852034, "moneyDigits": 2, "depositAssetId": 1, "leverageInCents": 50000}})
             if t == 2112: return reply(2113, {"ctidTraderAccountId": 4242, "asset": [{"assetId": 1, "name": "USD"}, {"assetId": 2, "name": "EUR"}, {"assetId": 3, "name": "JPY"}, {"assetId": 4, "name": "XAU"}, {"assetId": 5, "name": "GBP"}]})
             if t == 2116:

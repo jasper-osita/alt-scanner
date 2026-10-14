@@ -114,6 +114,24 @@ async def main():
         print("26) sync → manual 50,000 @1% → stop twice as far:", a1, "→", a2, "→", a3, "| label:", await q(f"() => chDS({d0}).am"))
         await q("() => document.querySelector('[data-am=\"sync\"]').click()"); await asyncio.sleep(1.5); print("27) back to sync:", await sz(), "| balance row:", await q("() => (document.getElementById('chAmV') || {}).innerText"))
         await pg.screenshot(path=f"{OUT}/trade_acct.png")
+        # reward:risk lock: the target follows the stop at the locked ratio
+        await q("() => { $('dlg').open && $('dlg').close(); }")
+        R = "(() => { const d = CHD[CH.sym][0], [e, s, t] = d.pts.map(x => x.p); return +((t - e) / (e - s)).toFixed(3); })()"
+        print("33) lock 1:2:", await q(f"() => {{ const d = CHD[CH.sym][0]; chRRSet(d, 2); const a = {R}; chPosDrag(d, 1, {{ t: d.pts[1].t, p: d.pts[0].p * 1.02 }}); const b = {R}; chPosDrag(d, 0, {{ t: d.pts[0].t, p: d.pts[0].p * 0.995 }}); return [a, b, {R}, chDS(d).rr]; }}"))
+        print("34) drag target to ~3.2R:", await q(f"() => {{ const d = CHD[CH.sym][0], e = d.pts[0].p, s = d.pts[1].p; chPosDrag(d, 2, {{ t: d.pts[2].t, p: e + 3.2 * (e - s) }}); return [chDS(d).rr, {R}]; }}"))
+        await q("() => chDrawSettings(CHD[CH.sym][0])"); await asyncio.sleep(0.5)
+        await q("() => document.querySelector('[data-rr=\"1\"]').click()"); r1 = await q(f"() => [{R}, [...document.querySelectorAll('[data-rr]')].map(b => b.innerText + (b.classList.contains('on') ? '*' : '')).join(' ')]")
+        await pg.fill("[data-rrv]", "2.5"); await pg.press("[data-rrv]", "Enter"); await asyncio.sleep(0.2)
+        print("35) settings: 1:1 →", r1, "| custom 2.5 →", await q(f"() => [{R}, chDS(CHD[CH.sym][0]).rr]"))
+        await pg.screenshot(path=f"{OUT}/trade_rr.png")
+        await q("() => { $('dlg').open && $('dlg').close(); document.querySelector('.chdsbox') && document.querySelector('.chdsbox').remove(); }")
+        await q("() => trFromPos(CHD[CH.sym][0])"); await wait("() => document.querySelector('#tpRR [data-rr]')", 10)
+        await q("() => document.querySelector('#tpRR [data-rr=\"3\"]').click()"); await asyncio.sleep(0.5)
+        box = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), d = CHD[CH.sym][0]; return [r.left, r.top, chPlotW(P), chY(P, d.pts[1].p)]; }")
+        x0 = box[0] + box[2] - 260; ys = box[1] + box[3]
+        await pg.mouse.move(x0, ys); await pg.mouse.down(); await pg.mouse.move(x0, ys - 30, steps=6); await pg.mouse.up(); await asyncio.sleep(0.8)
+        print("36) panel 1:3, drag stop line:", await q(f"() => [{R}, document.getElementById('tpLv').innerText.replace(/\\s+/g, ' '), [...document.querySelectorAll('#tpRR [data-rr]')].filter(b => b.classList.contains('on')).map(b => b.innerText).join()]"))
+        await q("() => { trPosClose(); chRRSet(CHD[CH.sym][0], 0); }")
         # account picker on the chart toolbar
         await q("() => { $('dlg').open && $('dlg').close(); document.querySelectorAll('.chdsbox,.chdrawdlg').forEach(x => x.remove()); }"); await asyncio.sleep(1.2)
         print("28) chip:", await q("() => document.getElementById('chAcctBtn').innerText.replace(/\\s+/g, ' ')"))

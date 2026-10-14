@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2242">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.14.2257">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -912,7 +912,8 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .chph.slbg .cholc{background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:6px;padding:1px 6px}
 .chind.slhide{display:none}.chind.slnovals .vv{display:none}
 .chsetbtn span{margin-left:4px}
-.chacctw{position:relative;margin-left:auto}.chacctbtn{max-width:260px}.chacctbtn #chAcctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chacctdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.chacctdot.demo{background:#22ab94}.chacctdot.live{background:#f23645}
+.chacctw{position:relative;margin-left:auto}
+.chrrseg button{padding:5px 8px}.chrrv{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:12.5px;color:var(--mute)}.chrrv input{width:52px}.chrrv.on input{border-color:var(--accent)}.tprr{display:flex;flex-direction:column;gap:4px}.tprr #tpRR{display:flex;align-items:center;flex-wrap:wrap}.chacctbtn{max-width:260px}.chacctbtn #chAcctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chacctdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.chacctdot.demo{background:#22ab94}.chacctdot.live{background:#f23645}
 .chacctpop{left:auto;right:0;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:6px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
 .chacctrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:6px 9px;font:12.5px var(--display);cursor:pointer}.chacctrow:hover:not(:disabled){background:var(--pill)}.chacctrow.on{border-color:var(--accent);background:var(--pill)}.chacctrow:disabled{opacity:.5;cursor:not-allowed}.chacctrow small{margin-left:auto;color:var(--mute)}
 .chmod.chmcs{width:min(720px,96vw);height:min(600px,90vh);display:flex;flex-direction:column}
@@ -4324,7 +4325,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.14.2242";
+const APP_VERSION = "2026.10.14.2257";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7646,7 +7647,7 @@ function chPosPaint(K, x, y) {
   const live = typeof trPosSize === "function" ? trPosSize(d, rp, man) : null;
   const risk = live ? live.risk : man * (rp || 0) / 100, qty = risk && R ? risk / R : 0;
   const q = (live ? ` · ${live.txt}` : qty ? ` · Qty ${qty >= 100 ? qty.toFixed(0) : qty.toPrecision(3)}` : s.am !== "manual" && typeof TPS !== "undefined" && (TPS.get(d.id) || {}).err ? " · no account size (see settings)" : "") + ` · ${rp}%`, cc = live && live.ccy ? " " + live.ccy : "";
-  K.lbl(`Target ${chPF(P, t0)} · ${pc(t0)} · ${rr.toFixed(2)}R${risk ? ` · +${(risk * rr).toFixed(2)}${cc}` : ""}`, (x0 + x1) / 2, yt + (yt < ye ? -9 : 9), "#1b8f7c");
+  K.lbl(`Target ${chPF(P, t0)} · ${pc(t0)} · ${rr.toFixed(2)}R${s.rr > 0 ? " 🔒" : ""}${risk ? ` · +${(risk * rr).toFixed(2)}${cc}` : ""}`, (x0 + x1) / 2, yt + (yt < ye ? -9 : 9), "#1b8f7c");
   K.lbl(`Stop ${chPF(P, s0)} · ${pc(s0)}${risk ? ` · −${risk.toFixed(2)}${cc}` : ""}`, (x0 + x1) / 2, ys2 + (ys2 > ye ? 9 : -9), "#c62f3d");
   K.lbl(`${d.type === "long" ? "Long" : "Short"} ${chPF(P, e0)}${q}`, x0, ye, "rgba(40,42,48,.92)", "#e0e3eb", "left");
   if (s.lbl) { K.axP(ye, e0, "#9a9ca1"); K.axP(yt, t0, "#1b8f7c"); K.axP(ys2, s0, "#c62f3d"); }
@@ -7654,7 +7655,7 @@ function chPosPaint(K, x, y) {
   if (typeof TR !== "undefined" && TR.posId === d.id) {          // order lines: full width, drag a line (or its label) to move that level
     const W = K.W, line = (yy, col, txt) => { K.seg(0, yy, W, yy, { c: col, w: 1.5, ls: 1, nohit: true }); K.lbl(txt, W - 8, yy, col, "#fff", "right"); };
     line(ys2, "#f23645", `SL ${chPF(P, s0)}${risk ? ` · −${risk.toFixed(2)}${cc}` : ""}`);
-    line(yt, "#22ab94", `TP ${chPF(P, t0)} · ${rr.toFixed(2)}R${risk ? ` · +${(risk * rr).toFixed(2)}${cc}` : ""}`);
+    line(yt, "#22ab94", `TP ${chPF(P, t0)} · ${rr.toFixed(2)}R${s.rr > 0 ? " 🔒" : ""}${risk ? ` · +${(risk * rr).toFixed(2)}${cc}` : ""}`);
     line(ye, "#2962ff", `${d.type === "long" ? "Buy" : "Sell"} ${chPF(P, e0)}${live ? ` · ${live.txt}` : ""}`);
     K.hl = [[ye, 0], [ys2, 1], [yt, 2]]; K.axP(ye, e0, "#2962ff"); K.axP(ys2, s0, "#f23645"); K.axP(yt, t0, "#22ab94");
   }
@@ -7662,14 +7663,32 @@ function chPosPaint(K, x, y) {
 function chPosFinish(d, P) {
   const e0 = d.pts[0].p; let s = d.pts[1].p; const sg = d.type === "long" ? 1 : -1;
   if (!(sg * (e0 - s) > 0)) s = e0 * (1 - sg * 0.01);
-  const t2 = Math.max(d.pts[1].t, d.pts[0].t + 12 * CH_IV[P.tf]); d.pts = [{ t: d.pts[0].t, p: e0 }, { t: t2, p: s }, { t: t2, p: e0 + 2 * (e0 - s) }];
+  const t2 = Math.max(d.pts[1].t, d.pts[0].t + 12 * CH_IV[P.tf]), rr = +chDS(d).rr || 2; d.pts = [{ t: d.pts[0].t, p: e0 }, { t: t2, p: s }, { t: t2, p: e0 + rr * (e0 - s) }];
 }
 function chPosDrag(d, h, pt) {
-  if (typeof TR !== "undefined" && TR.posId === d.id && h != null) { d.pts[h] = { t: d.pts[h].t, p: pt.p }; return; }   // order lines move one level at a time
+  const rr = +chDS(d).rr || 0;
+  if (h === 2 && rr > 0) {                       // reward:risk locked: dragging the target picks a new ratio (0.5R steps), the stop stays put
+    const R = d.pts[0].p - d.pts[1].p; if (R) chRRSet(d, Math.max(0.5, Math.round((pt.p - d.pts[0].p) / R * 2) / 2)); return; }
+  if (typeof TR !== "undefined" && TR.posId === d.id && h != null) { d.pts[h] = { t: d.pts[h].t, p: pt.p }; chPosLock(d); return; }   // order lines move one level at a time
   if (h === 0) { const dt = pt.t - d.pts[0].t, dp = pt.p - d.pts[0].p; d.pts = d.pts.map(q => ({ t: q.t + (h === 0 ? dt : 0), p: q.p + dp })); d.pts[1].t = d.pts[2].t = Math.max(d.pts[1].t, d.pts[0].t + 1); }
-  else if (h === 1) { d.pts[1] = { t: pt.t, p: pt.p }; d.pts[2].t = pt.t; } else d.pts[2] = { t: d.pts[1].t, p: pt.p }; }
-chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
-chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
+  else if (h === 1) { d.pts[1] = { t: pt.t, p: pt.p }; d.pts[2].t = pt.t; } else d.pts[2] = { t: d.pts[1].t, p: pt.p };
+  chPosLock(d); }
+function chPosLock(d) {                          // reward:risk lock: the target sits at entry ± ratio × the stop distance
+  const rr = +chDS(d).rr || 0; if (!(rr > 0) || !d.pts || d.pts.length < 3) return;
+  const e = d.pts[0].p, sl = d.pts[1].p; d.pts[2] = { t: d.pts[2].t, p: e + rr * (e - sl) };
+}
+function chRRSet(d, rr) { d.s = { ...(d.s || {}), rr: rr > 0 ? +(+rr).toFixed(2) : 0 }; chPosLock(d); chSaveDraw(); chDirty = true; }
+function chRRCtl(d) {                            // Off / 1:1 / 1:2 / 1:3 / any ratio
+  const rr = +chDS(d).rr || 0, pre = [0, 1, 2, 3];
+  return `<span class="chamseg chrrseg" role="group" aria-label="Lock reward to risk">${pre.map(v => `<button type="button" data-rr="${v}" class="${rr === v ? "on" : ""}" aria-pressed="${rr === v}">${v ? "1:" + v : "Off"}</button>`).join("")}</span>
+    <label class="chrrv ${rr > 0 && !pre.includes(rr) ? "on" : ""}">1 :<input type="number" min="0.1" step="0.1" data-rrv value="${rr > 0 && !pre.includes(rr) ? rr : ""}" placeholder="any" aria-label="Custom reward to risk"></label>`;
+}
+function chRRBind(root, d, after) {
+  root.querySelectorAll("[data-rr]").forEach(b => b.onclick = () => { chRRSet(d, +b.dataset.rr); if (after) after(); });
+  root.querySelectorAll("[data-rrv]").forEach(el => { el.onchange = () => { const v = parseFloat(el.value); if (v > 0) { chRRSet(d, v); if (after) after(); } }; });
+}
+chDef("long", { g: "forecast", name: "Long position", ico: "M4 4h13v7H4zM4 11h13v6H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, rr: 0, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
+chDef("short", { g: "forecast", name: "Short position", ico: "M4 4h13v6H4zM4 10h13v7H4z", hint: "Click the entry, then the stop. The target starts at 2R; drag it. Size is your risk % of the account balance (synced, or typed in settings); Trade sends it.", sd: { pc: "#22ab94", lc: "#f23645", am: "sync", acct: 0, risk: null, rr: 0, lbl: false }, f: "pos lbl", paint: chPosPaint, fin: chPosFinish, drag: chPosDrag });
 chDef("avwap", { g: "forecast", name: "Anchored VWAP", n: 1, ico: "M3 15c4 0 5-8 9-8s3 5 6 5M5 3v15", sd: { c: "#2962ff", w: 2 }, f: "c w ls", hint: "Click the candle to anchor the VWAP on.",
   paint(K, x, y) { const P = K.P, i0 = Math.max(0, Math.round(chLogical(P, K.d.pts[0].t))); if (i0 >= P.t.length) return; let pv = 0, vv = 0; const pts = [];
     for (let i = i0; i < P.t.length; i++) { const v = P.v && P.v[i] > 0 ? P.v[i] : 1, tp = (P.h[i] + P.l[i] + P.c[i]) / 3; pv += tp * v; vv += v; const xx = chLgX(P, i), yy = chY(P, pv / vv); if (xx != null && yy != null) pts.push([xx, yy]); }
@@ -8710,7 +8729,7 @@ function chDrawSettings(d) {
       if (f.includes("fiblbl")) h += `<div class="chsr sty"><input type="checkbox" data-b="lbl" ${s.lbl ? "checked" : ""}><label>Levels text</label><span class="ctl"></span></div><div class="chsr sty"><input type="checkbox" data-b="prices" ${s.prices ? "checked" : ""}><label>Prices</label><span class="ctl"></span></div>`;
       if (f.includes("dev")) h += row("Deviation", `<input type="number" step="0.1" min="0" data-n="dev" value="${s.dev ?? 2}">`);
       if (f.includes("pos")) h += row("Profit zone", chSwatch(s.pc, 1, 'data-col="pc"')) + row("Stop zone", chSwatch(s.lc, 1, 'data-col="lc"')) + row("Account size", `<span class="chamseg" role="group" aria-label="Account size">${[["sync", "Sync with account"], ["manual", "Manual"]].map(([k, l]) => `<button data-am="${k}" class="${(s.am === "manual" ? "manual" : "sync") === k ? "on" : ""}" aria-pressed="${(s.am === "manual" ? "manual" : "sync") === k}">${l}</button>`).join("")}</span>`)
-        + (s.am === "manual" ? row("Amount", `<input type="number" min="0" step="any" data-n="acct" value="${s.acct || ""}" placeholder="e.g. 10000">`) : row("Balance", `<span class="chamv" id="chAmV">${chEsc(typeof trPosAcct === "function" ? trPosAcct(d) : "Open the Trade page to link an account")}</span>`)) + row("Risk %", `<input type="number" min="0" step="0.1" data-n="risk" value="${s.risk ?? ""}" placeholder="${typeof trCfg === "function" ? trCfg().risk : 1} (default)" title="Leave empty to use the Trade page risk %">`);
+        + (s.am === "manual" ? row("Amount", `<input type="number" min="0" step="any" data-n="acct" value="${s.acct || ""}" placeholder="e.g. 10000">`) : row("Balance", `<span class="chamv" id="chAmV">${chEsc(typeof trPosAcct === "function" ? trPosAcct(d) : "Open the Trade page to link an account")}</span>`)) + row("Lock reward : risk", chRRCtl(d)) + row("Risk %", `<input type="number" min="0" step="0.1" data-n="risk" value="${s.risk ?? ""}" placeholder="${typeof trCfg === "function" ? trCfg().risk : 1} (default)" title="Leave empty to use the Trade page risk %">`);
       if (f.includes("vp")) h += row("Rows", `<input type="number" min="4" max="120" data-n="rows" value="${s.rows || 24}">`) + row("Value area %", `<input type="number" min="10" max="100" data-n="va" value="${s.va || 70}">`) + row("Up volume", chSwatch(s.up, 1, 'data-col="up"')) + row("Down volume", chSwatch(s.dn, 1, 'data-col="dn"'));
       if (f.includes("icon")) h += `<div class="chemogrid big">${CH_EMOJI.map(e => `<button data-emo="${e}" class="${s.icon === e ? "on" : ""}">${e}</button>`).join("")}</div>` + row("Size", `<input type="number" min="10" max="96" data-n="fs" value="${s.fs}">`);
       if (f.includes("lv")) { const def = { fib: CH_FIB_LV, fibext: CH_EXT_LV, fibchan: CH_FIB_LV, fibfan: CH_FAN_LV, fibcirc: CH_CIRC_LV, gbox: CH_GANN_LV }[d.type] || CH_FIB_LV, L = (s.lv || def).map(x => ({ ...x }));
@@ -8737,6 +8756,7 @@ function chDrawSettings(d) {
     B.querySelectorAll("[data-b]").forEach(el => el.onchange = () => set({ [el.dataset.b]: el.checked }));
     B.querySelectorAll("[data-n]").forEach(el => el.oninput = () => { const v = parseFloat(el.value); if (isFinite(v)) set({ [el.dataset.n]: v }); });
     B.querySelectorAll("[data-am]").forEach(el => el.onclick = () => { set({ am: el.dataset.am }); render(); });
+    chRRBind(B, d, render);
     if ($("chAmV")) { clearInterval(chAmT); chAmT = setInterval(() => { const el = $("chAmV"); if (!el || typeof trPosAcct !== "function") return clearInterval(chAmT); el.textContent = trPosAcct(d); }, 500); }
     B.querySelectorAll("[data-t]").forEach(el => el.oninput = () => set({ txt: el.value }));
     B.querySelectorAll("[data-tg]").forEach(el => el.onclick = () => { const k = el.dataset.tg, v = !chDS(d)[k]; set({ [k]: v }); el.classList.toggle("on", v); });
@@ -8748,7 +8768,7 @@ function chDrawSettings(d) {
     B.querySelectorAll("[data-lvx]").forEach(el => el.onclick = () => { const L = lvGet(); L.splice(+el.dataset.lvx, 1); set({ lv: L }); render(); });
     if ($("chLvAdd")) $("chLvAdd").onclick = () => { const L = lvGet(); L.push({ v: +(Math.max(...L.map(x => x.v), 0) + 0.5).toFixed(3), c: "#787b86", on: true }); set({ lv: L }); render(); };
     if ($("chLvReset")) $("chLvReset").onclick = () => { set({ lv: null }); render(); };
-    B.querySelectorAll("[data-cp]").forEach(el => el.oninput = () => { const v = parseFloat(el.value); if (!isFinite(v)) return; d.pts[+el.dataset.cp].p = v; chSaveDraw(); chDirty = true; });
+    B.querySelectorAll("[data-cp]").forEach(el => el.oninput = () => { const v = parseFloat(el.value); if (!isFinite(v)) return; d.pts[+el.dataset.cp].p = v; if ((d.type === "long" || d.type === "short") && +el.dataset.cp < 2) { chPosLock(d); const t = B.querySelector('[data-cp="2"]'); if (t && chDS(d).rr > 0) t.value = +d.pts[2].p.toPrecision(10); } chSaveDraw(); chDirty = true; });
     B.querySelectorAll("[data-ct]").forEach(el => el.onchange = () => { const t = Date.parse(el.value + ":00Z") - PHT_MS; if (!isFinite(t)) return; d.pts[+el.dataset.ct].t = t; chSaveDraw(); chDirty = true; });
     const setV = v => { set({ vis: v.length === CH_TFS.length ? null : v }); render(); };
     B.querySelectorAll("[data-tf]").forEach(el => el.onchange = () => setV([...B.querySelectorAll("[data-tf]")].filter(x => x.checked).map(x => x.dataset.tf)));
@@ -9632,6 +9652,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     <div class="meta" id="tpVenue">${v === "ct" ? "cTrader · connecting…" : "MEXC futures"}</div>
     <div class="meta">Drag the blue, red and green lines on the chart; the risk % stays fixed and the size follows the entry and stop.</div>
     <div class="trkv" id="tpLv"></div>
+    <div class="trrow tprr"><span>Lock reward : risk</span><span id="tpRR"></span></div>
     <label class="trrow">Order<select id="tpType"></select></label>
     <div class="trgrid"><label class="trrow">Risk %<input id="tpRisk" inputmode="decimal"></label><label class="trrow"><span>Size (${unit})</span><input id="tpSize" inputmode="decimal"></label></div>
     ${v === "mx" ? `<div class="trgrid"><label class="trrow">Leverage<input id="tpLev" inputmode="numeric" value="10"></label><label class="trrow">Margin<select id="tpMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>` : ""}
@@ -9656,7 +9677,8 @@ async function trFromPos(d) {                   // a Long/Short position on the 
       if (!manual) $("tpSize").value = r.qty; $("tpNote").textContent = r.note; $("tpWarn").dataset.size = r.below ? "That size is below the market's minimum." : ""; }
     catch (x) { $("tpWarn").dataset.size = x.message; } check(); };
   const sync = () => {                           // follow the lines as you drag them
-    const { e, sl, tp } = lv(), ds = chDS(d), key = [e, sl, tp, ds.am, ds.acct, ds.risk].join("|"); if (key === lastKey) return; lastKey = key; if (ds.risk > 0 && document.activeElement !== $("tpRisk")) $("tpRisk").value = ds.risk;
+    const { e, sl, tp } = lv(), ds = chDS(d), key = [e, sl, tp, ds.am, ds.acct, ds.risk, ds.rr].join("|"); if (key === lastKey) return; lastKey = key;
+    if (document.activeElement === null || !$("tpRR").contains(document.activeElement)) { $("tpRR").innerHTML = chRRCtl(d); chRRBind($("tpRR"), d, () => { lastKey = ""; sync(); }); } if (ds.risk > 0 && document.activeElement !== $("tpRisk")) $("tpRisk").value = ds.risk;
     $("tpLv").innerHTML = `<span>Entry</span><b>${f(e)}</b><span>Stop</span><b class="dn">${f(sl)}</b><span>Target</span><b class="up">${tp ? f(tp) : "—"}</b><span>Reward : risk</span><b>${tp ? (Math.abs(tp - e) / Math.abs(e - sl)).toFixed(2) + "R" : "—"}</b>`;
     types(); clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 120);
   };

@@ -54,6 +54,11 @@ async def main():
         print("9) chart:", await q("() => { const c = CHM.list[CHM.i], P = chVis()[0], r = P.chart.timeScale().getVisibleLogicalRange(), a = chLogical(P, c.opened), z = chLogical(P, c.closed); return { page, sym: CH.sym, tf: P.tf, inView: a >= r.from && z <= r.to, docked: document.querySelector('#chPage .chbody').classList.contains('trdock') }; }"))
         print("10) panel:", await q("() => document.getElementById('chStudy').innerText.replace(/\\s+/g, ' ').slice(0, 260)"))
         await q("() => { CH.layout = '1'; chApplyLayout(); }"); await asyncio.sleep(1); await q("() => chStudyGo()"); await asyncio.sleep(2)
+        # rebuild the studied trade from the chart's own candles (like a real bot fill): entry at a candle's close, exit at a later candle's high (stop on a short)
+        print("9b) anchored on candles:", await q("""() => { const P = chVis()[0], c = CHM.list[CHM.i], n = P.t.length, i = n - 30, j = n - 14, iv = CH_IV[P.tf];
+          c.dir = 'Short'; c.opened = P.t[i] + 60e3; c.entry = P.c[i]; c.closed = P.t[j] + 120e3; c.exit = P.h[j]; c.stop = c.exit; c.target = c.entry - (c.exit - c.entry) * 2; c.reason = 'Stop';
+          chStudyGo(); const ok = [P.l[i] <= c.entry && c.entry <= P.h[i], P.l[j] <= c.exit && c.exit <= P.h[j]]; return ok; }"""))
+        await asyncio.sleep(2)
         el = await pg.query_selector("#chPage"); await el.screenshot(path=f"{OUT}/botrev_chart.png")
         await q("() => document.getElementById('csNext').click()"); await asyncio.sleep(1.5)
         print("11) next:", await q("() => [CHM.i, CH.sym, document.querySelector('#chStudy .cstitle').innerText]"))

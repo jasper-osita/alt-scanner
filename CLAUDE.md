@@ -21,6 +21,8 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct, or via `/api/ct-token`: server.py on the Mac, `api/ct-token.js` on Vercel), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
 - Charts: `CHP` panes, `chLoad`, `chSetData`, `chLoadOlder` (history on scroll, max 5000), `chPaint`, `chIndPaint`, `IND` registry,
   `chIndBuild/Layout/Sync`, dialog mode `CHDLG`/`chDlgStart`, settings `CS_DEF`/`chCS()`.
+  Overview main charts borrow the same engine: `OVC`, `ovcHost`/`ovcPark` (Bitcoin on Overview; dollar + Nasdaq 100 side by side on the
+  forex overview, each pane its own symbol via `P.psym`/`chPS(P)`; the Charts page's own state is restored on park).
 - Trade page (`<script id="trade">`): cTrader trading on its own socket `CTT` (`cttConnect`, `cttPlace` 2106, reconcile 2124, close 2111,
   amend 2110, cancel 2108, P&L 2187; demo by default, live needs "Allow live" + typing LIVE); chart account picker `trAcctPop`/`trAcctChip`, position sizing `trSizeCalc`/`trPosSize` (Sync or Manual account size); MEXC futures `mxtReq` (HMAC signed in the
   browser, forwarded by `/proxy/mexc-priv`: server.py or a Vercel rewrite), `mxtPlace`. Never place real orders in tests; mocks only.

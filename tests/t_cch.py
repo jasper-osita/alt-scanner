@@ -12,10 +12,11 @@ async def main():
         q = lambda js: pg.evaluate(js)
         await q("() => goPage('overview')")
         for _ in range(60):
-            if await q("() => !CCH.busy && ['c_btc','c_eth','c_ethbtc'].every(k => XCH.charts[k])"): break
+            if await q("() => !CCH.busy && ['c_eth','c_ethbtc'].every(k => XCH.charts[k]) && OVC.on === 'c' && CHP[0].t.length > 50"): break
             await asyncio.sleep(0.5)
         st = "() => [...document.querySelectorAll('.cchsec .xch')].map(c => c.dataset.ck + ': ' + c.querySelector('.xchst').innerText.replace(/\\s+/g, ' ') + ((c.querySelector('.xchnote') || {}).innerText ? ' | ' + c.querySelector('.xchnote').innerText : '') + (c.querySelector('.empty') ? ' | ' + c.querySelector('.empty').innerText : '')).join('\\n')"
         print("cards:\n" + await q(st))
+        print("main chart:", await q("() => [OVC.on, CH.sym, CHP[0].tf, CHP[0].t.length, document.getElementById('ovBtcSt').innerText.replace(/\\s+/g, ' ')]"))
         await q("() => document.querySelector('#cchTf [data-tf=\"4h\"]').click()"); await asyncio.sleep(1)
         for _ in range(40):
             if await q("() => !CCH.busy"): break

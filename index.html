@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2120">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2228">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -584,6 +584,17 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .subline #title{color:var(--text);font-weight:500}
 .pg-off{display:none!important}
+.bfbar{display:flex;flex-direction:column;gap:7px;margin:12px 0}.bfrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.bfl{font-size:11px;color:var(--mute);min-width:58px;display:inline-flex;align-items:center;gap:6px}.bfl2{min-width:0;margin-left:12px}
+.bfc{height:26px;padding:0 9px;border:1px solid var(--pill-b);border-radius:7px;background:var(--pill);color:var(--text);font:500 12px var(--font);cursor:pointer;white-space:nowrap}.bfc.on{border-color:var(--accent);color:var(--accent)}
+.bfin{height:26px;width:110px;border:1px solid var(--pill-b);border-radius:7px;background:var(--pill);color:var(--text);padding:0 8px}
+.brwrap{display:flex;flex-direction:column;gap:12px;margin-bottom:6px}.brtiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.brt{border:1px solid var(--line);border-radius:10px;padding:8px 11px;display:flex;flex-direction:column;gap:2px}.brt span{font-size:11px;color:var(--mute)}.brt b{font:700 18px var(--display);color:var(--strong)}.brt b.up{color:var(--green)}.brt b.dn{color:var(--red)}
+.brgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.brh{margin-bottom:4px}
+.brv{display:grid;grid-template-columns:96px 1fr 62px 30px;gap:8px;align-items:center;font-size:12px;padding:3px 0}.brtr{height:9px;background:var(--pill);border-radius:3px}
+.brbar{height:9px;border-radius:3px;background:var(--green)}.brbar.dn{background:var(--red)}.brbar.gr{background:var(--mute)}
+.brnotes{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--line);padding-top:10px;font-size:12.5px}
+@media (max-width:900px){.brtiles{grid-template-columns:repeat(3,minmax(0,1fr))}.brgrid{grid-template-columns:1fr}}
 .edget td,.edget th{vertical-align:middle}.edgem td{border-top:1px solid var(--pill-b)}
 .edgesub{padding:4px 10px 8px 26px!important;border-top:0!important}
 .edgerule{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.edgeab{margin-left:auto;font-size:12.5px}
@@ -978,6 +989,9 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .qtset{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:7px}.qtsr{display:flex;align-items:center;justify-content:space-between;gap:8px}.qtsr>span:last-child{display:flex;align-items:center;gap:4px}
 #chQtBtn.on{border-color:var(--accent);color:var(--accent)}
 .trlevauto.on{border-color:var(--accent);color:var(--accent)}
+.csnav{display:flex;align-items:center;justify-content:space-between;gap:6px}.cstitle{font:700 16px var(--display);color:var(--strong)}
+.csnote{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mute)}.csnote textarea{resize:vertical;border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--text);padding:7px;font:inherit}
+.csrow{display:flex;gap:5px;flex-wrap:wrap}.csall{font-size:12px}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
 @media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
 /* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
@@ -4383,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.2120";
+const APP_VERSION = "2026.10.15.2228";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5433,6 +5447,55 @@ function botStats(k) {
   const unreal = b.positions.reduce((s, p) => { const px = botPrice(p.sym); return px == null ? s : s + (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; }, 0);
   return { n, wins, win: n ? wins / n * 100 : 0, avgR: n ? c.reduce((s, x) => s + x.r, 0) / n : 0, pf: gl ? gw / gl : (gw ? 99 : 0), ret: (b.bal - BOT.startBal) / BOT.startBal * 100, unreal };
 }
+/* ---- filters (setups, side, session, result, exit, period, coin) and the trade review ---- */
+const BOTF_KEY = "altscan-bot-filter", BOTF_DEF = { set: [], side: "all", sess: "all", res: "all", exit: "all", days: 30, coin: "" };
+let BOTF = (() => { try { return { ...BOTF_DEF, ...(JSON.parse(localStorage.getItem(BOTF_KEY)) || {}) }; } catch (e) { return { ...BOTF_DEF }; } })();
+const botfSave = () => { try { localStorage.setItem(BOTF_KEY, JSON.stringify(BOTF)); } catch (e) {} };
+const sessName = s => String(s || "").replace(/^\S+\s/, "");
+const BOT_SESS = ["Asia", "London", "Lunch", "Pre-NY", "NY AM", "NY PM"];
+const botKey = c => `${c.model}|${c.sym}|${c.opened}`;
+function botMatch(c, closed) {
+  const f = BOTF; if (f.set.length && !f.set.includes(c.model)) return false;
+  if (f.side !== "all" && c.dir !== f.side) return false;
+  if (f.sess !== "all" && sessName(c.session) !== f.sess) return false;
+  if (f.coin && !coin(c.sym).toUpperCase().includes(f.coin.toUpperCase())) return false;
+  if (closed) { if (f.res === "win" && !(c.pnl > 0)) return false; if (f.res === "loss" && !(c.pnl < 0)) return false;
+    if (f.exit !== "all" && c.reason !== f.exit) return false; if (f.days && c.closed < Date.now() - f.days * 864e5) return false; }
+  return true;
+}
+const botClosedF = () => BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => botMatch(c, true)).sort((a, b) => b.closed - a.closed);
+const botAllClosed = sym => BOT ? BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => c.sym === sym) : [];
+const botHeld = ms => { const m = Math.round(ms / 60e3); return m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`; };
+function botFilterHTML() {
+  const f = BOTF, c = (k, v, l, on) => `<button class="bfc ${on ? "on" : ""}" data-bf="${k}" data-v="${v}" aria-pressed="${!!on}">${l}</button>`, one = (k, opts) => opts.map(([v, l]) => c(k, v, l, String(f[k]) === String(v))).join("");
+  return `<div class="bfbar" role="group" aria-label="Filter the bots and their trades">
+    <div class="bfrow"><span class="bfl">Setups</span>${c("set", "", "All", !f.set.length)}${BOT_STRATS().map(k => c("set", k, `${MODELS[k].icon} ${k}`, f.set.includes(k))).join("")}</div>
+    <div class="bfrow"><span class="bfl">Side</span>${one("side", [["all", "All"], ["Long", "Long"], ["Short", "Short"]])}<span class="bfl bfl2">Session</span>${one("sess", [["all", "All"], ...BOT_SESS.map(x => [x, x])])}</div>
+    <div class="bfrow"><span class="bfl">Result</span>${one("res", [["all", "All"], ["win", "Winners"], ["loss", "Losers"]])}<span class="bfl bfl2">Ended by</span>${one("exit", [["all", "All"], ["Target", "Target"], ["Stop", "Stop"], ["Time limit", "Time limit"]])}
+      <span class="bfl bfl2">Period</span>${one("days", [[7, "7 days"], [30, "30 days"], [0, "All"]])}<label class="bfl bfl2">Coin <input id="bfCoin" class="bfin" placeholder="Any coin" value="${(f.coin || "").replace(/"/g, "&quot;")}" autocomplete="off"></label>
+      <button class="bfc" id="bfClear">Clear filters</button></div>
+    <div class="meta">Filters apply to the bot table, open positions and the trade review. Saved for next time.</div></div>`;
+}
+function botGroups(list, keyFn) { const m = new Map(); list.forEach(c => { const k = keyFn(c); const g = m.get(k) || { k, n: 0, r: 0, w: 0 }; g.n++; g.r += c.r; if (c.pnl > 0) g.w++; m.set(k, g); }); return [...m.values()].map(g => ({ ...g, avgR: g.r / g.n, win: g.w / g.n * 100 })); }
+function botReviewHTML(list) {
+  if (!list.length) return `<div class="empty">No closed trades match these filters yet.</div>`;
+  const n = list.length, wins = list.filter(c => c.pnl > 0).length, gw = list.filter(c => c.pnl > 0).reduce((a, c) => a + c.pnl, 0), gl = -list.filter(c => c.pnl < 0).reduce((a, c) => a + c.pnl, 0);
+  const avgR = list.reduce((a, c) => a + c.r, 0) / n, per = list.reduce((a, c) => a + c.pnl, 0) / n, hold = list.reduce((a, c) => a + (c.closed - c.opened), 0) / n;
+  const tile = (l, v, cls = "") => `<div class="brt"><span>${l}</span><b class="${cls}">${v}</b></div>`;
+  const bars = (title, rows, fmt) => { const mx = Math.max(...rows.map(r => Math.abs(r.v)), 1e-9);
+    return `<div><div class="meta brh">${title}</div>${rows.map(r => `<div class="brv"><span>${r.l}</span><div class="brtr"><div class="brbar ${r.v < 0 ? "dn" : ""} ${r.grey ? "gr" : ""}" style="width:${Math.round(Math.abs(r.v) / mx * 100)}%"></div></div><span class="${r.grey ? "mute" : r.v < 0 ? "dn" : "up"}">${fmt(r.v)}</span><span class="mute">${r.n}</span></div>`).join("")}</div>`; };
+  const bySess = botGroups(list, c => sessName(c.session)).sort((a, b) => BOT_SESS.indexOf(a.k) - BOT_SESS.indexOf(b.k)).map(g => ({ l: g.k, v: g.avgR, n: g.n }));
+  const bySet = botGroups(list, c => `${c.model} ${c.dir.toLowerCase()}`).sort((a, b) => b.n - a.n).slice(0, 8).map(g => ({ l: g.k, v: g.avgR, n: g.n }));
+  const byEnd = ["Target", "Stop", "Time limit"].map(k => { const x = list.filter(c => c.reason === k); return { l: k, v: x.length / n * 100, n: x.length, grey: k === "Time limit" }; }).filter(r => r.n);
+  const spots = botGroups(list, c => `${c.model} ${c.dir.toLowerCase()}s in ${sessName(c.session)}`).filter(g => g.n >= 10), best = spots.filter(g => g.avgR > 0).sort((a, b) => b.avgR - a.avgR)[0], worst = spots.filter(g => g.avgR < 0).sort((a, b) => a.avgR - b.avgR)[0];
+  const tl = list.filter(c => c.reason === "Time limit"), tlR = tl.length ? tl.reduce((a, c) => a + c.r, 0) / tl.length : 0;
+  const notes = [best ? `<div><b class="up">Best spot:</b> ${best.k}, ${best.n} trades, ${best.win.toFixed(0)}% won, ${fmtR(best.avgR)} on average.</div>` : "",
+    worst ? `<div><b class="dn">Weak spot:</b> ${worst.k}, ${worst.n} trades, ${worst.win.toFixed(0)}% won, ${fmtR(worst.avgR)} on average. Consider pausing them then.</div>` : "",
+    tl.length >= 10 ? `<div><b style="color:var(--accent)">Time limit:</b> ${tl.length} trades ran out of time and averaged ${fmtR(tlR)}${tlR < 0 ? "; when a setup doesn't move in its hold window it rarely comes back" : ""}.</div>` : ""].filter(Boolean);
+  return `<div class="brtiles">${tile("Trades", n)}${tile("Win rate", (wins / n * 100).toFixed(0) + "%")}${tile("Average result", fmtR(avgR), rCls(avgR))}${tile("Per trade", (per >= 0 ? "+" : "−") + "$" + Math.abs(per).toFixed(2), per >= 0 ? "up" : "dn")}${tile("Profit factor", gl ? (gw / gl).toFixed(2) : gw ? "∞" : "—")}${tile("Average hold", botHeld(hold))}</div>
+    <div class="brgrid">${bars("By session · average R", bySess, fmtR)}${bars("By setup and side · average R", bySet, fmtR)}${bars("By how it ended", byEnd, v => v.toFixed(0) + "%")}</div>
+    <div class="brnotes"><b>What stands out</b>${notes.length ? notes.join("") : `<div class="mute">Nothing stands out yet: groups need at least 10 trades before they're worth reading.</div>`}<div class="meta">Groups with fewer than 10 trades are left out of these notes; small samples mislead.</div></div>`;
+}
 let botChart = null;
 async function drawBotEquity() {
   const el = $("botEq"); if (!el) return;
@@ -5460,7 +5523,8 @@ async function drawBotEquity() {
 function renderBot() {
   const el = $("botSim"); if (!el || !BOT) return;
   const strats = BOT_STRATS(), allOpen = strats.flatMap(k => BOT.bots[k].positions.map(p => ({ k, p })));
-  const recent = strats.flatMap(k => BOT.bots[k].closed).sort((a, b) => b.closed - a.closed).slice(0, 15);
+  const shown = BOTF.set.length ? strats.filter(k => BOTF.set.includes(k)) : strats, openF = allOpen.filter(({ p }) => botMatch(p, false)), closedF = botClosedF();
+  const foc = document.activeElement && document.activeElement.id === "bfCoin" ? document.activeElement.selectionStart : null;
   el.innerHTML = `
     <div class="schead"><h2>Bot Simulator <span class="meta">forward test · paper money</span></h2>
       <span class="meta">${BOT.running ? `<span class="up">● Running</span> since ${fmtPHT(new Date(BOT.started + PHT_MS))}` : "Paused"} · each strategy trades its own $${BOT.startBal.toLocaleString()} account</span>
@@ -5472,22 +5536,24 @@ function renderBot() {
       <label class="pill"><span>Fees %</span><input id="botFee" type="number" step="0.01" value="${BOT.fee}"></label>
       <label class="pill"><span>Slippage %</span><input id="botSlip" type="number" step="0.01" value="${BOT.slip}"></label>
       <label class="tog"><input type="checkbox" id="botNotify" ${BOT.notify ? "checked" : ""}> Notify me of bot trades</label>
-    </div>
+    </div>${botFilterHTML()}
     <div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">On</th><th>Balance</th><th>Return</th><th>Trades</th><th>Win rate</th><th>Avg R</th><th>Profit factor</th><th>Max drawdown</th><th>Open</th><th>Open P&L</th></tr></thead><tbody>${
-      strats.map(k => { const b = BOT.bots[k], s = botStats(k);
+      shown.map(k => { const b = BOT.bots[k], s = botStats(k);
         return `<tr><td class="l">${MODELS[k].icon} ${k}${["Leader", "Reset20"].includes(k) ? ' <span class="tag">Claude</span>' : ""}</td><td class="l"><input type="checkbox" data-bon="${k}" ${b.on ? "checked" : ""} aria-label="Run the ${k} bot"></td>
           <td><b>$${b.bal.toFixed(2)}</b></td><td class="${rCls(s.ret / 10)}">${s.ret >= 0 ? "+" : ""}${s.ret.toFixed(1)}%</td><td>${s.n}</td><td>${s.n ? s.win.toFixed(0) + "%" : "—"}</td>
           <td class="${s.n ? rCls(s.avgR) : "mute"}">${s.n ? fmtR(s.avgR) : "—"}</td><td>${s.n ? (s.pf >= 99 ? "∞" : s.pf.toFixed(2)) : "—"}</td><td class="dn">${b.dd ? "−" + b.dd.toFixed(1) + "%" : "—"}</td>
           <td>${b.positions.length}</td><td class="${s.unreal >= 0 ? "up" : "dn"}">${b.positions.length ? (s.unreal >= 0 ? "+" : "−") + "$" + Math.abs(s.unreal).toFixed(2) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
-    <h3 class="pbh3">Open Positions <span class="meta">${allOpen.length}</span></h3>
-    ${allOpen.length ? `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th>Entry</th><th>Stop</th><th>Target</th><th>Price</th><th>P&L</th><th class="l">Opened</th></tr></thead><tbody>${
-      allOpen.map(({ k, p }) => { const px = botPrice(p.sym), pnl = px == null ? 0 : (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty;
+    <h3 class="pbh3">Open Positions <span class="meta">${openF.length}${openF.length !== allOpen.length ? ` of ${allOpen.length}` : ""}</span></h3>
+    ${openF.length ? `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th>Entry</th><th>Stop</th><th>Target</th><th>Price</th><th>P&L</th><th class="l">Opened</th></tr></thead><tbody>${
+      openF.map(({ k, p }) => { const px = botPrice(p.sym), pnl = px == null ? 0 : (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty;
         return `<tr data-s="${p.sym}"><td class="l">${MODELS[k].icon} ${k}</td><td class="l"><b>${coin(p.sym)}</b></td><td class="l">${biasTag(p.dir)}</td><td>${fmtPrice(p.entry)}</td><td class="dn">${fmtPrice(p.stop)}</td><td class="up">${fmtPrice(p.target)}</td>
           <td><span class="lp" data-sym="${p.sym}">${px == null ? "—" : fmtPrice(px)}</span></td><td class="${pnl >= 0 ? "up" : "dn"}">${(pnl >= 0 ? "+" : "−") + "$" + Math.abs(pnl).toFixed(2)} <span class="mute">${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R</span></td>
-          <td class="l mute">${fmtPHT(new Date(p.opened + PHT_MS)).replace(/^\w+, /, "")}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty">No open positions. ${BOT.running ? "The bots enter as soon as a setup triggers." : "Press Start Bots."}</div>`}
-    ${recent.length ? `<h3 class="pbh3">Recent Bot Trades</h3><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Closed (PHT)</th><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th class="l">Exit</th><th>P&L</th><th>R</th></tr></thead><tbody>${
-      recent.map(c => `<tr><td class="l mute">${fmtPHT(new Date(c.closed + PHT_MS))}</td><td class="l">${MODELS[c.model].icon} ${c.model}</td><td class="l">${coin(c.sym)}</td><td class="l">${biasTag(c.dir)}</td><td class="l">${c.reason}</td>
-        <td class="${c.pnl >= 0 ? "up" : "dn"}">${(c.pnl >= 0 ? "+" : "−") + "$" + Math.abs(c.pnl).toFixed(2)}</td><td class="${rCls(c.r)}">${fmtR(c.r)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+          <td class="l mute">${fmtPHT(new Date(p.opened + PHT_MS)).replace(/^\w+, /, "")}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty">${allOpen.length ? "No open positions match the filters." : `No open positions. ${BOT.running ? "The bots enter as soon as a setup triggers." : "Press Start Bots."}`}</div>`}
+    <h3 class="pbh3">Trade review <span class="meta">${closedF.length} closed trade${closedF.length === 1 ? "" : "s"} · your filters</span></h3><div class="brwrap">${botReviewHTML(closedF)}</div>
+    ${closedF.length ? `<h3 class="pbh3">Closed trades <span class="meta">newest first · “Chart” marks the trade on the chart to study it</span></h3><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Closed (PHT)</th><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th class="l">Session</th><th>Entry</th><th>Exit</th><th>P&L</th><th>R</th><th class="l">Ended by</th><th>Held</th><th></th></tr></thead><tbody>${
+      closedF.slice(0, 60).map(c => `<tr><td class="l mute">${fmtPHT(new Date(c.closed + PHT_MS))}</td><td class="l">${MODELS[c.model].icon} ${c.model}</td><td class="l"><b>${coin(c.sym)}</b></td><td class="l">${biasTag(c.dir)}</td><td class="l">${sessName(c.session) || "—"}</td>
+        <td>${fmtPrice(c.entry)}</td><td>${fmtPrice(c.exit)}</td><td class="${c.pnl >= 0 ? "up" : "dn"}">${(c.pnl >= 0 ? "+" : "−") + "$" + Math.abs(c.pnl).toFixed(2)}</td><td class="${rCls(c.r)}">${fmtR(c.r)}</td><td class="l">${c.reason}</td><td>${botHeld(c.closed - c.opened)}</td>
+        <td><button class="btn sm" data-bstudy="${botKey(c).replace(/"/g, "&quot;")}">Chart</button></td></tr>`).join("")}</tbody></table></div>${closedF.length > 60 ? `<p class="meta">Showing the newest 60 of ${closedF.length}; narrow the filters to see others.</p>` : ""}` : ""}
     <h3 class="pbh3">Bot Equity</h3><div id="botEq" class="bteq"></div><div class="clegend bteql" id="botEqLegend"></div>
     <p class="meta">Paper trading only. Each bot takes its strategy's triggered setups (ORB and AMD excluded) on coins with $10M+ volume: up to ${BOT.maxOpen} at a time, one per coin, no re-entry on a coin for 6 hours, and no chasing (it skips a setup once price has run more than half the risk past the entry). Fills are at the live price plus slippage; targets fill at the target. Exits: stop, target, or time limit (48 hours, 10 days for the Daily 20 Reset). The bots run while the app is open; every 2 minutes they check the 15m candles so a wick to the stop or target between checks still counts, and when you reopen the app they settle anything that happened while it was closed (new entries can't be made while it's closed). While running, the scanner refreshes every 15 minutes so new setups are found.</p>`;
   if ($("botRun")) $("botRun").onclick = () => {
@@ -5504,6 +5570,13 @@ function renderBot() {
   $("botNotify").onchange = () => { BOT.notify = $("botNotify").checked; botSave(); };
   el.querySelectorAll("[data-bon]").forEach(c => c.onchange = () => { BOT.bots[c.dataset.bon].on = c.checked; botSave(); });
   el.querySelectorAll("tr[data-s]").forEach(tr => tr.onclick = () => openDetail(tr.dataset.s));
+  el.querySelectorAll("[data-bf]").forEach(bt => bt.onclick = () => { const k = bt.dataset.bf, v = bt.dataset.v;
+    if (k === "set") BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; else BOTF[k] = k === "days" ? +v : v;
+    botfSave(); renderBotLight(); });
+  if ($("bfCoin")) { $("bfCoin").oninput = () => { BOTF.coin = $("bfCoin").value.trim(); botfSave(); clearTimeout(BOTF.t); BOTF.t = setTimeout(renderBotLight, 250); };
+    if (foc != null) { const i = $("bfCoin"); i.focus(); i.setSelectionRange(foc, foc); } }
+  if ($("bfClear")) $("bfClear").onclick = () => { BOTF = { ...BOTF_DEF }; botfSave(); renderBotLight(); };
+  el.querySelectorAll("[data-bstudy]").forEach(bt => bt.onclick = () => { const list = botClosedF(), i = list.findIndex(c => botKey(c) === bt.dataset.bstudy); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
   drawBotEquity();
 }
 setInterval(() => { if (BOT && BOT.running && data) { botCheckExits(); if (Date.now() - BOT.lastRecon > 120e3) botReconcile(); if (document.visibilityState === "visible" && $("botSim")) renderBotLight(); } }, 30000);
@@ -6733,6 +6806,7 @@ let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSD
 const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: chLoadJSON("finder-ovch", {}) };   // the overview pages borrowing this chart (see ovcHost)
 const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
 const CHP = [];                                              // the four panes
+let CHM = null;                                              // bot trades marked on the chart: { list (your filters), i (the one you're studying), all (every trade on the coin) }
 const chPS = P => P.psym || CH.sym;                          // the symbol a pane shows: its own on the forex overview, else the chart's
 let chBuilt = false, chOn = false, chTool = "cursor", chSel = null, chDraft = null, chDrag = null, chMeasure = null, chHidden = false, chLocked = false;
 let chUndo = [], chSyncing = false, chDirty = true, chClearArm = 0, chWLAdd = false, chWLQ = "";
@@ -8272,6 +8346,76 @@ function ovcPick(sym) {                            // a small overview chart cli
   chSetSym(sym); return true;
 }
 window.ovcHost = ovcHost; window.ovcPick = ovcPick;
+
+/* ---- bot trades marked on the chart, cTrader style: ▲/▼ at the entry and the exit, a thin line between, tags; a docked panel to study them ---- */
+const BOTN_KEY = "altscan-bot-notes", botNotes = () => chLoadJSON(BOTN_KEY, {});
+function chTri(g, x, y, up, col, sz) { g.beginPath(); if (up) { g.moveTo(x, y); g.lineTo(x - sz, y + sz * 1.6); g.lineTo(x + sz, y + sz * 1.6); } else { g.moveTo(x, y); g.lineTo(x - sz, y - sz * 1.6); g.lineTo(x + sz, y - sz * 1.6); } g.closePath(); g.fillStyle = col; g.fill(); }
+function chMarkPaint(P, g, W, H) {
+  const cur = CHM && CHM.list[CHM.i], sym = chPS(P); if (!cur || !P.t.length) return;
+  const trades = (CHM.all ? botAllClosed(sym) : [cur]).filter(c => c.sym === sym); if (!trades.length) return;
+  const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, iv = CH_IV[P.tf] || 36e5, snap = t => Math.floor(t / iv) * iv, S = chCS(), F = v => chFmt(v, P.c.at(-1));
+  g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
+  trades.forEach(c => {
+    const me = c === cur || (c.opened === cur.opened && c.model === cur.model), long = c.dir === "Long";
+    const x1 = chX(P, snap(c.opened)), x2 = chX(P, snap(c.closed)), y1 = chY(P, c.entry), y2 = chY(P, c.exit); if (x1 == null || x2 == null || y1 == null || y2 == null) return;
+    const col = me ? "#f7a600" : c.pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
+    if (me) { g.save(); g.setLineDash([3, 3]); g.lineWidth = 1;                      // where the stop and target were while it was open
+      [[c.stop, S.trSLC], [c.target, S.trTPC]].forEach(([p, cl]) => { const y = chY(P, p); if (y == null) return; g.strokeStyle = chHexA(cl, 0.7); g.beginPath(); g.moveTo(x1, Math.round(y) + .5); g.lineTo(x2, Math.round(y) + .5); g.stroke(); }); g.restore(); }
+    g.strokeStyle = col; g.lineWidth = me ? 1.4 : 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+    chTri(g, x1, y1, long, col, me ? 5 : 4); chTri(g, x2, y2, !long, col, me ? 5 : 4);
+    if (!me || typeof trPill !== "function") return;
+    const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.reason, col: c.pnl >= 0 ? S.trTPC : S.trSLC, parts: [F(c.exit), `Net ${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)}`, `${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R`] };
+    g.save(); g.globalAlpha = 0; const wi = trPill(g, tagIn, 0, -100, true), wo = trPill(g, tagOut, 0, -100, true); g.restore();   // measure first, then keep both tags on the chart
+    const xi = x1 - wi - 10 >= 2 ? x1 - wi - 10 : x1 + 10, xo = x2 + 10 + wo <= W - 4 ? x2 + 10 : Math.max(2, x2 - wo - 10);
+    trPill(g, tagIn, xi, Math.min(Hm - 12, Math.max(12, y1 + (long ? 16 : -16))), true); trPill(g, tagOut, xo, Math.min(Hm - 12, Math.max(12, y2 + (long ? -16 : 16))), true);
+  });
+}
+async function chStudy(list, i) { CHM = { list, i, all: CHM ? CHM.all : false }; await chStudyGo(); }
+async function chStudyGo() {
+  const c = CHM && CHM.list[CHM.i]; if (!c) return;
+  if (page !== "charts") goPage("charts");
+  for (let k = 0; k < 40 && !(chBuilt && chOn && chVis().length); k++) await new Promise(r => setTimeout(r, 150));
+  if (CH.sym !== c.sym) chSetSym(c.sym);
+  const age = Date.now() - c.opened, dur = c.closed - c.opened, tf = age < 4 * 864e5 && dur < 864e5 ? "15m" : age < 18 * 864e5 ? "1h" : "4h", P = chVis()[0];   // a timeframe whose 500 bars reach back to the trade
+  if (P.tf !== tf) { P.tf = CH.tfs[P.i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; chSave(); chLoad(P); }
+  for (let k = 0; k < 100 && !(P.sym === c.sym && P.t.length && P.tf === tf); k++) await new Promise(r => setTimeout(r, 150));
+  for (let k = 0; k < 8 && P.t.length && P.t[0] > c.opened && !P.noOlder; k++) await chLoadOlder(P);
+  chStudyPanel();
+  if (P.t.length && P.chart) { const a = chLogical(P, c.opened), b = chLogical(P, c.closed), pad = Math.max(25, (b - a) * 1.5); P.userAt = Date.now(); P.chart.timeScale().setVisibleLogicalRange({ from: a - pad, to: b + pad }); }
+  chDirty = true;
+}
+function chStudyPanel() {
+  const body = document.querySelector("#chPage .chbody"), c = CHM && CHM.list[CHM.i]; if (!body || !c) return;
+  if ($("trPosPanel") && typeof trPosClose === "function") trPosClose();
+  let el = $("chStudy");
+  if (!el) { el = document.createElement("div"); el.id = "chStudy"; el.className = "trpospanel chstudy"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Study a bot trade");
+    ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation())); body.appendChild(el); body.classList.add("trdock"); window.dispatchEvent(new Event("resize")); }
+  const long = c.dir === "Long", R0 = Math.abs(c.entry - c.stop) || 1e-9, P = chVis().find(Q => Q.sym === c.sym && Q.t.length), key = botKey(c), note = botNotes()[key] || {}, F = v => fmtPrice(v);
+  let best = null, worst = null;                   // how far it went for and against you while it was open, in R
+  if (P) { const iv = CH_IV[P.tf] || 36e5; let hi = -Infinity, lo = Infinity; P.t.forEach((t, j) => { if (t + iv > c.opened && t <= c.closed) { hi = Math.max(hi, P.h[j]); lo = Math.min(lo, P.l[j]); } });
+    if (isFinite(hi)) { best = long ? (hi - c.entry) / R0 : (c.entry - lo) / R0; worst = long ? (lo - c.entry) / R0 : (c.entry - hi) / R0; } }
+  const tags = [["good", "Good trade"], ["entry", "Bad entry"], ["skip", "Skip next time"]];
+  el.innerHTML = `<div class="trpph"><b>Study bot trades</b><button class="chx" id="csClose" aria-label="Close">${chIco("x", 15)}</button></div>
+    <div class="csnav"><button class="btn sm" id="csPrev" aria-label="Previous trade" ${CHM.i <= 0 ? "disabled" : ""}>‹ Newer</button><span class="meta">Trade ${CHM.i + 1} of ${CHM.list.length} · your filters</span><button class="btn sm" id="csNext" aria-label="Next trade" ${CHM.i >= CHM.list.length - 1 ? "disabled" : ""}>Older ›</button></div>
+    <div class="cstitle">${chEsc(c.model)} ${long ? "long" : "short"} on ${chEsc(coin(c.sym))} <b class="${c.r >= 0 ? "up" : "dn"}">${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R</b></div>
+    <div class="trkv"><span>Result</span><b class="${c.pnl >= 0 ? "up" : "dn"}">${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)} · ${chEsc(c.reason.toLowerCase())}</b><span>Session</span><b>${chEsc(sessName(c.session) || "—")}</b>${c.env ? `<span>Market</span><b>${chEsc(c.env)}</b>` : ""}
+      <span>Entry</span><b>${F(c.entry)} · ${fmtPHT(new Date(c.opened + PHT_MS)).replace(/^\w+, /, "")}</b><span>Stop</span><b class="dn">${F(c.stop)} (${(R0 / c.entry * 100).toFixed(2)}%)</b><span>Target</span><b class="up">${F(c.target)}</b>
+      <span>Exit</span><b>${F(c.exit)} · ${fmtPHT(new Date(c.closed + PHT_MS)).replace(/^\w+, /, "")}</b><span>Held</span><b>${botHeld(c.closed - c.opened)}</b>
+      <span>Best it got</span><b class="up">${best == null ? "—" : (best >= 0 ? "+" : "") + best.toFixed(2) + "R"}</b><span>Worst it got</span><b class="dn">${worst == null ? "—" : (worst >= 0 ? "+" : "") + worst.toFixed(2) + "R"}</b></div>
+    <label class="csnote">Your notes<textarea id="csNote" rows="3" placeholder="What did you see? Would you take it?">${chEsc(note.text || "")}</textarea></label>
+    <div class="csrow">${tags.map(([k, l]) => `<button class="bfc ${note.tag === k ? "on" : ""}" data-cst="${k}" aria-pressed="${note.tag === k}">${l}</button>`).join("")}</div>
+    <label class="chk csall"><input type="checkbox" id="csAll" ${CHM.all ? "checked" : ""}> Show every bot trade on ${chEsc(coin(c.sym))}</label>
+    <p class="meta">“Best” and “worst” show how far it went for and against you before it ended (on this chart's candles).</p>`;
+  const save = o => { const n = botNotes(); n[key] = { ...(n[key] || {}), ...o }; chSaveJSON(BOTN_KEY, n); };
+  $("csClose").onclick = chStudyClose;
+  $("csPrev").onclick = () => { CHM.i = Math.max(0, CHM.i - 1); chStudyGo(); };
+  $("csNext").onclick = () => { CHM.i = Math.min(CHM.list.length - 1, CHM.i + 1); chStudyGo(); };
+  $("csNote").oninput = () => save({ text: $("csNote").value });
+  el.querySelectorAll("[data-cst]").forEach(b => b.onclick = () => { save({ tag: note.tag === b.dataset.cst ? null : b.dataset.cst }); chStudyPanel(); });
+  $("csAll").onchange = () => { CHM.all = $("csAll").checked; chDirty = true; };
+}
+function chStudyClose() { CHM = null; const el = $("chStudy"); if (el) el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b && !$("trPosPanel")) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } chDirty = true; }
+window.chStudy = chStudy;
 if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
 if ($("ovcLink")) $("ovcLink").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.link = !o.link; chSaveJSON("finder-ovch", OVC.st); ovcTgSync();
   if (OVC.on === "x") { CHP.forEach(P => P.sessKey = null); ovcSessApply(true); if (o.link) ovcTfPicked(CHP[OVC.act]); } };
@@ -8845,6 +8989,7 @@ function chPaintBody(P, g) {
         chLabel(g, `${dp >= 0 ? "+" : ""}${F(dp)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%) · ${bars} bars · ${dur}`, (xa + xb) / 2, Math.min(ya, yb) - 12, `rgba(${col},.95)`, "#fff", "center"); }
     }
   }
+  if (CHM) { g.save(); try { chMarkPaint(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
   if (typeof trChartLines === "function") { g.save(); try { trChartLines(P, g, W, H, axis); } catch (e) { chPaintErr(e, "orders"); } g.restore(); g.setLineDash([]); }
   g.restore(); g.restore();
   axis.forEach(([y, txt, col], j) => { if (y >= 0 && y <= (j < nAx ? H : Hm)) chLabel(g, txt, W + 1, y, col, "#141517"); });
@@ -10337,7 +10482,7 @@ function trPosAcct(d) {                         // for the settings box: where t
 }
 function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
 async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
-  trPosClose();
+  trPosClose(); if ($("chStudy") && typeof chStudyClose === "function") chStudyClose();
   const sym = CH.sym, v = trVenue(sym); let side = d.type === "long" ? "buy" : "sell"; const unit = v === "mx" ? "contracts" : "lots";
   const dg = x => x >= 100 ? 2 : x >= 1 ? 5 : 6, f = x => +(+x).toFixed(dg(d.pts[0].p));
   const host = document.querySelector("#chPage .chbody") || $("chPage") || document.body, el = document.createElement("div");   // docked in its own column right of the charts

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1948">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2045">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -663,7 +663,7 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .trticket .xseg{display:flex;width:100%}.trticket .xseg button{flex:1}
 .trrow input,.trrow select{width:100%;box-sizing:border-box}
 .chfloat .chfltr{background:#2962ff;color:#fff;border-radius:6px;padding:0 10px;font-weight:600}
-.trpospanel{position:absolute;right:220px;top:120px;z-index:40;width:300px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.trpospanel{position:absolute;left:58px;top:90px;z-index:40;width:300px;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .trpph{display:flex;justify-content:space-between;align-items:center}.trppf{display:flex;gap:6px;align-items:center}.trpospanel .trgo{padding:7px 12px;font-size:13px}
 .trpospanel .trkv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}.trpospanel .trkv span{color:var(--mute)}
 @media (max-width:900px){.trpospanel{right:10px;left:10px;width:auto;top:auto;bottom:10px;position:fixed}}
@@ -4380,7 +4380,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.1948";
+const APP_VERSION = "2026.10.15.2045";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -10285,6 +10285,16 @@ function trPosAcct(d) {                         // for the settings box: where t
   const c = TPS.get(d.id) || {}, v = c.val;
   return v ? `${fmtNum(v.bal)} ${v.bccy} · ${v.src === "manual" ? "typed" : v.src}` : c.err ? `Not synced: ${c.err}` : "Reading your account…";
 }
+function trPosPlace() {                         // hover over the top left of the chart that holds the position (under the quick trade box if it's there)
+  const el = $("trPosPanel"), host = $("chPage"); if (!el || !host || el.parentNode !== host) return;
+  if (matchMedia("(max-width:900px)").matches) { el.style.left = el.style.top = el.style.maxHeight = ""; return; }   // small screens keep the bottom sheet
+  const P = CHP[chSelPane] && chVis().includes(CHP[chSelPane]) ? CHP[chSelPane] : chVis()[0]; if (!P) return;
+  const hr = host.getBoundingClientRect(), pr = P.cv.getBoundingClientRect(), qb = $("qtBox"), qr = qb && qb.getBoundingClientRect();
+  let x = pr.left - hr.left + 10, y = pr.top - hr.top + 58;
+  if (qr && qr.width && qr.left < pr.left + 320 && qr.right > pr.left && qr.top < pr.top + 320) y = Math.max(y, qr.bottom - hr.top + 8);   // under the quick trade box, still on the left, clear of the position
+  const px = Math.round(x) + "px", py = Math.round(y) + "px", mh = Math.max(200, Math.round(pr.bottom - hr.top - y - 10)) + "px";
+  if (el.style.left !== px) el.style.left = px; if (el.style.top !== py) el.style.top = py; if (el.style.maxHeight !== mh) el.style.maxHeight = mh;
+}
 function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
 async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
   trPosClose();
@@ -10303,15 +10313,18 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     <div class="meta" id="tpNote"></div><div class="dn meta" id="tpWarn" aria-live="polite"></div>
     <div class="trppf"><button class="btn sm" id="tpTicket">Open in ticket</button><span style="flex:1"></span><button class="btn sm" id="tpCancel">Cancel</button><button class="btn trgo ${side}" id="tpGo" disabled>Place order</button></div>`;
   ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation()));
-  host.appendChild(el); TR.posId = d.id; chSel = d.id; chDirty = true; if (typeof chSelBar === "function") chSelBar();
+  host.appendChild(el); TR.posId = d.id; chSel = d.id; chDirty = true; if (typeof chSelBar === "function") chSelBar(); trPosPlace();
   $("tpRisk").value = chDS(d).risk > 0 ? chDS(d).risk : trCfg().risk;
   const warn = t => { $("tpWarn").textContent = t || ""; }, lv = () => ({ e: d.pts[0].p, sl: d.pts[1].p, tp: d.pts[2] ? d.pts[2].p : null });
   let manual = false, lastKey = "", seq = 0;
   const now = () => { const q = trLivePrice(sym) || {}; return side === "buy" ? (q.ask || q.bid) : q.bid; };
   const types = () => { const { e } = lv(), n = now(), near = n && Math.abs(e - n) / n < 0.0005, better = n && (side === "buy" ? e < n : e > n);
     const opts = [["market", `Market now${n ? " (" + fmtPrice(n) + ")" : ""}`], ["limit", `Limit at ${f(e)}`], ...(v === "ct" ? [["stop", `Stop at ${f(e)}`]] : [])];
-    const def = near ? "market" : better ? "limit" : v === "ct" ? "stop" : "market", cur = $("tpType").dataset.user ? $("tpType").value : def;
-    $("tpType").innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === cur ? "selected" : ""}>${l}</option>`).join(""); };
+    const def = near ? "market" : better ? "limit" : v === "ct" ? "stop" : "market", sel = $("tpType"), cur = sel.dataset.user ? sel.value : def;
+    if (document.activeElement === sel) return;      // never touch the list while it's open: rebuilding it closed it before you could pick
+    if ([...sel.options].map(o => o.value).join() !== opts.map(o => o[0]).join()) sel.innerHTML = opts.map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+    else opts.forEach(([, l], i) => { if (sel.options[i].textContent !== l) sel.options[i].textContent = l; });   // the live price in "Market now" updates in place
+    if (sel.value !== cur) sel.value = cur; };
   const check = () => { const { e, sl, tp } = lv(), q = parseFloat($("tpSize").value), type = $("tpType").value, ref = type === "market" ? now() : e;
     let w = ""; if (ref && (side === "buy" ? sl >= ref : sl <= ref)) w = `The stop is on the wrong side of the ${type === "market" ? "current price" : "entry"} for a ${side}.`;
     else if (ref && tp && (side === "buy" ? tp <= ref : tp >= ref)) w = `The target is on the wrong side for a ${side}.`;
@@ -10350,7 +10363,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
   } catch (x) { $("tpWarn").dataset.size = x.message; warn(x.message); if ($("tpVenue")) $("tpVenue").textContent = v === "ct" ? "cTrader: not ready" : "MEXC: not ready"; }
   if (!$("trPosPanel")) return;
   sync(); clearInterval(TR.posTimer);
-  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } sync(); if (!$("tpType").dataset.user) types(); check(); }, 250);
+  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } trPosPlace(); sync(); if (!$("tpType").dataset.user) types(); check(); }, 250);
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $("trPosPanel")) { e.stopPropagation(); trPosClose(); } }, true);
 async function trSizeFromRisk() {

@@ -88,10 +88,19 @@ async def main():
         n06 = [t for t, p in CT_TRADE["log"]].count(2106)
         await q("() => trFromPos(CHD[CH.sym][0])"); await wait("() => document.getElementById('tpSize') && +document.getElementById('tpSize').value > 0", 15)
         print("21) panel:", await q("() => [TR.posId, document.getElementById('tpVenue').innerText, document.getElementById('tpType').value, document.getElementById('tpSize').value, document.getElementById('tpLv').innerText.replace(/\\s+/g, ' ')]"))
+        # the order list must not be rebuilt under you (it closed the list before you could pick Market or Stop)
+        await q("() => { window._opt0 = document.getElementById('tpType').options[0]; }"); await asyncio.sleep(1.2)
+        print("21b) list kept:", await q("() => document.getElementById('tpType').options[0] === window._opt0"), "| options:", await q("() => [...document.getElementById('tpType').options].map(o => o.value).join(',')"))
+        t0 = await q("() => document.getElementById('tpType').value")
+        for k in ("market", "stop"):
+            await pg.select_option("#tpType", k); await asyncio.sleep(1.2)
+            print(f"21c) picked {k}:", await q("() => document.getElementById('tpType').value"))
+        await pg.select_option("#tpType", t0)
+        print("21d) placed top-left:", await q("() => { const a = document.getElementById('trPosPanel').getBoundingClientRect(), p = chVis()[0].cv.getBoundingClientRect(); return [Math.round(a.left - p.left), Math.round(a.top - p.top), a.left >= p.left && a.left - p.left < 420 && a.top - p.top < 140]; }"))
         # drag the red stop line with the mouse: the size follows
         box = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), d = CHD[CH.sym][0]; return [r.left, r.top, chPlotW(P), chY(P, d.pts[1].p), chY(P, d.pts[0].p)]; }")
-        x0 = box[0] + box[2] - 260; ys = box[1] + box[3]
-        hit = await q(f"() => JSON.stringify(chHitTest(chVis()[0], {box[2] - 260}, {box[3]}))"); s0 = await q("() => [CHD[CH.sym][0].pts[1].p, document.getElementById('tpSize').value]")
+        x0 = box[0] + box[2] - 40; ys = box[1] + box[3]          # near the right edge, where the position sits (the order panel hovers top-left)
+        hit = await q(f"() => JSON.stringify(chHitTest(chVis()[0], {box[2] - 40}, {box[3]}))"); s0 = await q("() => [CHD[CH.sym][0].pts[1].p, document.getElementById('tpSize').value]")
         await pg.mouse.move(x0, ys); await pg.mouse.down(); await pg.mouse.move(x0, ys - 25, steps=6); await pg.mouse.up(); await asyncio.sleep(1.2)
         s1 = await q("() => [CHD[CH.sym][0].pts[1].p, document.getElementById('tpSize').value, document.getElementById('tpLv').innerText.replace(/\\s+/g, ' ')]")
         print("22) drag stop line:", hit, "|", s0, "→", s1)

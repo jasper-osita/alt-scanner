@@ -86,9 +86,10 @@ async def main():
         await q("() => { CH.layout = '3L'; chApplyLayout(); }"); await wait("() => chVis().length === 3 && chVis().every(P => P.t.length > 20)", 30); await asyncio.sleep(1)
         await q("() => { const P = chVis()[0], n = P.t.length, e = P.c.at(-1); CHD[CH.sym] = [{ id: 'lp', type: 'long', pts: [{ t: P.t[n - 6], p: e * 0.998 }, { t: P.t[n - 1], p: e * 0.988 }, { t: P.t[n - 1], p: e * 1.018 }], s: {} }]; chSelPane = 0; chSaveDraw(); chDirty = true; trFromPos(CHD[CH.sym][0]); }")
         await wait("() => !!document.getElementById('trPosPanel')", 10); await asyncio.sleep(1.5)
-        print("15b) order panel:", await q("() => { const a = document.getElementById('trPosPanel').getBoundingClientRect(), p = chVis()[0].cv.getBoundingClientRect(), b = document.getElementById('qtBox').getBoundingClientRect(); return { fromChartLeft: Math.round(a.left - p.left), fromChartTop: Math.round(a.top - p.top), underQuickTrade: a.top >= b.bottom - 1, leftOfPosition: a.right < p.left + chX(chVis()[0], CHD[CH.sym][0].pts[0].t) }; }"))
+        print("15b) order panel:", await q("() => { const a = document.getElementById('trPosPanel').getBoundingClientRect(), panes = chVis().map(P => P.cv.getBoundingClientRect()), b = document.getElementById('qtBox').getBoundingClientRect(); return { overlapsChart: panes.some(p => a.left < p.right && a.right > p.left && a.top < p.bottom && a.bottom > p.top), overlapsQuickTrade: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top }; }"))
         el = await pg.query_selector("#chPage"); await el.screenshot(path=f"{OUT}/qt_panels.png")
-        await q("() => trPosClose()")
+        await q("() => trPosClose()"); await asyncio.sleep(0.3)
+        print("15c) closed:", await q("() => [document.querySelector('#chPage .chbody').classList.contains('trdock'), getComputedStyle(document.getElementById('chWL')).visibility]"))
         # close the box: lines gone
         await q("() => document.getElementById('qtX').click()"); await asyncio.sleep(0.6)
         print("16) closed:", await q("() => [!!document.getElementById('qtBox'), qtLines(CH.sym, chCS()).length, document.getElementById('chQtBtn').getAttribute('aria-pressed')]"))

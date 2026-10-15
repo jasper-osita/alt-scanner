@@ -93,6 +93,11 @@ async def main():
         await q("() => { twSave({ open: true, tab: 'pos' }); twRender(); }"); await wait("() => document.querySelector('#twBody tbody tr td')", 10); await asyncio.sleep(1.2)
         print("17d) trade watch row:", await q("() => [...document.querySelectorAll('#twBody tbody tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ')).join(' / ')"), "| summary:", await q("() => document.getElementById('twSum').innerText"))
         print("17e) columns line up:", await q("() => { const th = [...document.querySelectorAll('#twBody thead th')], td = [...document.querySelector('#twBody tbody tr').children]; return th.slice(0, -1).every((h, i) => Math.abs(h.getBoundingClientRect().left - td[i].getBoundingClientRect().left) < 2 && getComputedStyle(td[i]).textAlign === getComputedStyle(h).textAlign); }"))
+        # the trade watch shows only the chart's account: on a cTrader chart no MEXC rows or balance
+        await q("() => chSetSym('CT:XAUUSD')"); await wait("() => chVis()[0].sym === 'CT:XAUUSD'", 20); await asyncio.sleep(1.2)
+        print("17f) cTrader chart:", await q("() => [twVenue(), [...document.querySelectorAll('#twBody tbody tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ')).join(' / '), document.getElementById('twSum').innerText.includes('MEXC')]"))
+        await q("() => chSetSym('BTCUSDT')"); await wait("() => chVis()[0].sym === 'BTCUSDT'", 20); await asyncio.sleep(1.2)
+        print("17g) back on BTC:", await q("() => [twVenue(), document.querySelectorAll('#twBody tbody tr td.trwact').length, document.getElementById('twSum').innerText.includes('MEXC'), document.getElementById('twSum').innerText.includes('Balance')]"))
         await q("() => goPage('trade')"); await wait("() => !!document.querySelector('#trBook tr[data-mx] [data-a=\"mxclose\"]')", 15)
         for _ in range(2): await q("() => document.querySelector('#trBook tr[data-mx] [data-a=\"mxclose\"]').click()"); await asyncio.sleep(0.4)
         await wait("() => MXT.positions.length === 0", 10); print("18) mexc close:", {k: MX["log"][-1].get(k) for k in ("side", "type", "vol", "positionId")})

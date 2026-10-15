@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2232">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2334">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.2232";
+const APP_VERSION = "2026.10.15.2334";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -8454,7 +8454,13 @@ async function chLoad(P) {
   P.msg.textContent = `Loading ${chName(sym)} ${CH_TFL[tf]}…`; P.msg.hidden = false;
   try {
     await ensureLWC(); if (!P.chart) chMakeChart(P);
-    const why = chSourceOK(sym); if (why) throw new Error(why);
+    const why = chSourceOK(sym);
+    if (why && sym.startsWith("CT:") && typeof ctConfigured === "function" && ctConfigured() && (P.ctTries = (P.ctTries || 0) + 1) <= 12) {   // forex needs the cTrader price link: start it and load once it's up
+      P.msg.textContent = `Connecting to cTrader for ${chName(sym)}…`; if (CT.state !== "ready" && !CT.connecting) ctConnect().catch(() => {});
+      setTimeout(() => { if (tok === P.tok) chLoad(P); }, 2500); return;
+    }
+    if (why) throw new Error(why); P.ctTries = 0;
+    if (sym.startsWith("CT:") && !CT_SYMS.has(sym) && CT.state === "ready") { if (!CT.symbols[ctNorm(sym.slice(3))]) throw new Error(`${sym.slice(3)} isn't available on this cTrader account`); CT_SYMS.add(sym); }
     if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
     const k = await klines(sym, tf, 500); if (tok !== P.tok) return;
     let fb = null; try { fb = await formingBar(sym, tf); } catch (e) {}
@@ -10048,7 +10054,7 @@ function trAcctPop() {
     <button class="btn sm" data-aa="settings">Trade settings…</button><p class="meta">App version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"}</p>`;
   const done = () => { TPS.clear(); chDirty = true; trAcctChip(); if (!p.hidden) trAcctPop(); };
   p.querySelectorAll("[data-ag]").forEach(b => b.onclick = e => { e.stopPropagation(); TRA.open = TRA.open === b.dataset.ag ? null : b.dataset.ag; trAcctPop(); });
-  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (b.dataset.acct === cur && CTT.state === "ready") return; trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; done(); cttConnect().then(done, done); });
+  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (b.dataset.acct === cur && CTT.state === "ready") return; trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; TW.hist = []; TW.histAt = 0; done(); cttConnect().then(done, done); });
   p.querySelectorAll("[data-aa]").forEach(b => b.onclick = () => { const k = b.dataset.aa; p.hidden = true;
     if (k === "refresh") { p.hidden = false; cttRefresh().then(() => trAcctPop()); return; }
     if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else openCTSettings(); });
@@ -10384,6 +10390,7 @@ const TW_COLS = {                                // [key, label, value (for sort
     ["net", "Net", r => r.net, r => twMoney(r.net), 1], ["pips", "Pips", r => r.pips, r => r.pips == null ? "" : twMoney(r.pips), 1], ["bal", "Balance", r => r.bal, r => r.bal == null ? "" : fmtNum(r.bal), 0], ["id", "Deal ID", r => r.id, null, 0]],
 };
 const twCols = tab => { const c = TWS().cols[tab]; return TW_COLS[tab].filter(([k, , , , on]) => c ? c.includes(k) : on); };
+const twVenue = () => trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:") ? "MEXC" : "cTrader";   // the chart's account (as on the account button): only its trades show
 function twRows(tab) {
   const rows = [], live = CTT.state === "ready";
   if (tab === "pos") {
@@ -10401,6 +10408,7 @@ function twRows(tab) {
         price: px, priceS: px ? px.toFixed(dg) : "", dist: now && px ? twPip(sp, Math.abs(px - now)) : null, sl: a.sl, slS: a.sl ? a.sl.toFixed(dg) : "", tp: a.tp, tpS: a.tp ? a.tp.toFixed(dg) : "", created: +td.openTimestamp || +o.utcLastUpdateTimestamp || null, id: String(o.orderId) }); });
     if (mxtOn()) MXT.orders.forEach(o => rows.push({ kind: "mxo", ref: o, venue: "MEXC", sym: o.symbol.replace("_", ""), type: "Limit", dir: [1, 4].includes(+o.side) ? "Buy" : "Sell", qtyN: +o.vol, qty: o.vol + " contracts", price: +o.price, priceS: fmtPrice(+o.price), dist: null, sl: null, slS: "", tp: null, tpS: "", created: +o.createTime || null, id: String(o.orderId) }));
   } else rows.push(...TW.hist);
+  const vn = twVenue(); for (let i = rows.length - 1; i >= 0; i--) if (rows[i].venue !== vn) rows.splice(i, 1);
   const so = TWS().sort[tab], col = so && TW_COLS[tab].find(c => c[0] === so[0]);
   if (col) rows.sort((a, b) => { const va = col[2](a), vb = col[2](b); return (va == null) - (vb == null) || (va < vb ? -1 : va > vb ? 1 : 0) * so[1]; });
   else if (tab === "hist") rows.sort((a, b) => (b.closed || 0) - (a.closed || 0));
@@ -10454,12 +10462,12 @@ function twColPop() {
 }
 function twRender() {
   const el = $("trWatch"); if (!el) return; const st = TWS(), tab = st.tab, ccy = CTT.info ? CTT.info.ccy || "" : "";
-  const nPos = (CTT.state === "ready" ? CTT.positions.length : 0) + (mxtOn() ? MXT.positions.length : 0), nOrd = (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) + (mxtOn() ? MXT.orders.length : 0);
+  const ctV = twVenue() === "cTrader", nPos = ctV ? (CTT.state === "ready" ? CTT.positions.length : 0) : (mxtOn() ? MXT.positions.length : 0), nOrd = ctV ? (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) : (mxtOn() ? MXT.orders.length : 0);
   el.classList.toggle("shut", !st.open); $("twToggle").innerHTML = chIco(st.open ? "M5 8l5 5 5-5" : "M5 12l5-5 5 5", 15); $("twToggle").title = st.open ? "Hide" : "Show";
   el.querySelector(".trwtabs").innerHTML = [["pos", "Positions", nPos], ["ord", "Orders", nOrd], ["hist", "History"]].map(([k, l, n]) => `<button role="tab" data-twt="${k}" class="${k === tab ? "on" : ""}" aria-selected="${k === tab}">${l}${n ? ` <i>${n}</i>` : ""}</button>`).join("");
   el.querySelectorAll("[data-twt]").forEach(b => b.onclick = () => { twSave({ tab: b.dataset.twt, open: true }); $("twColPop").hidden = true; if (b.dataset.twt === "hist") twLoadHist(); twRender(); window.dispatchEvent(new Event("resize")); });
   const pnl = CTT.positions.reduce((a, p) => a + (CTT.pnl[p.positionId] || 0), 0), bal = CTT.info ? CTT.info.balance : null, mx = MXT.asset;
-  $("twSum").innerHTML = [CTT.state === "ready" && bal != null ? `cTrader ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", mxtOn() && mx ? `MEXC equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>${MXT.positions.length ? ` · P&amp;L ${twMoney(MXT.positions.reduce((a, p) => a + (mxtUpnl(p) || 0), 0))}` : ""}` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader or add a MEXC key to see your trades here");
+  $("twSum").innerHTML = [ctV && CTT.state === "ready" && bal != null ? `${chEsc(trTitle(CTT.acct.brokerTitleShort || "cTrader"))} ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} ${chEsc(String(CTT.acct.traderLogin || ""))} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", !ctV && mxtOn() && mx ? `MEXC futures · equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>${MXT.positions.length ? ` · P&amp;L ${twMoney(MXT.positions.reduce((a, p) => a + (mxtUpnl(p) || 0), 0))}` : ""}` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctV ? (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader to see this account's trades here") : "Add a MEXC key in Trade settings to see your MEXC trades here");
   $("twRange").hidden = $("twReload").hidden = tab !== "hist"; $("twRange").value = st.range;
   const B = $("twBody"); B.style.height = st.h + "px"; if (!st.open) return;
   if (TW.arm && TW.arm.until < Date.now()) TW.arm = null;

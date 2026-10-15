@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2228">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2232">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.2228";
+const APP_VERSION = "2026.10.15.2232";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -8358,10 +8358,10 @@ function chMarkPaint(P, g, W, H) {
   trades.forEach(c => {
     const me = c === cur || (c.opened === cur.opened && c.model === cur.model), long = c.dir === "Long";
     const x1 = chX(P, snap(c.opened)), x2 = chX(P, snap(c.closed)), y1 = chY(P, c.entry), y2 = chY(P, c.exit); if (x1 == null || x2 == null || y1 == null || y2 == null) return;
-    const col = me ? "#f7a600" : c.pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
+    const col = me ? "rgba(247,166,0,.9)" : c.pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
     if (me) { g.save(); g.setLineDash([3, 3]); g.lineWidth = 1;                      // where the stop and target were while it was open
       [[c.stop, S.trSLC], [c.target, S.trTPC]].forEach(([p, cl]) => { const y = chY(P, p); if (y == null) return; g.strokeStyle = chHexA(cl, 0.7); g.beginPath(); g.moveTo(x1, Math.round(y) + .5); g.lineTo(x2, Math.round(y) + .5); g.stroke(); }); g.restore(); }
-    g.strokeStyle = col; g.lineWidth = me ? 1.4 : 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+    g.strokeStyle = col; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();   // thin, like cTrader
     chTri(g, x1, y1, long, col, me ? 5 : 4); chTri(g, x2, y2, !long, col, me ? 5 : 4);
     if (!me || typeof trPill !== "function") return;
     const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.reason, col: c.pnl >= 0 ? S.trTPC : S.trSLC, parts: [F(c.exit), `Net ${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)}`, `${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R`] };

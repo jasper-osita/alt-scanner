@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.0129">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1153">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -954,6 +954,20 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .chdlg .chbar{padding:0 0 6px}
 .chdlg .chbody,.chdlg .chbody.nowl{grid-template-columns:40px minmax(0,1fr)!important}
 @media (max-width:1000px){.dleft .dchbox{min-height:520px}}
+/* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
+.ovhero{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;margin-top:10px}
+.ovside{display:flex;flex-direction:column;gap:10px;min-width:0}.ovside .xchc{height:170px}
+.xchsec h3{margin:0;font:600 14px var(--display);color:var(--strong)}.xchsec .ovsub{margin-top:14px}
+.xcharts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ovchost{height:620px;min-width:0;display:flex;flex-direction:column}.ovchost.x{height:560px;margin-top:10px}
+.ovchost>.empty{flex:1;display:flex;align-items:center;justify-content:center}
+.ovchost .chpage.chovh,.ovchost .chpage.chovh.pg-off{display:flex!important;height:auto;flex:1;min-height:0}
+.chovh .chcats,.chovh .chlay:not(.chacctw),.chovh .chfocusb,.chovh .chhint,.chovh .chwl,.chovh [data-max],.chovh .trw,.chov-c .chseg{display:none!important}
+.chovh .chbar{padding:0 0 6px}
+.chovh .chbody,.chovh .chbody.nowl{grid-template-columns:40px minmax(0,1fr)!important}
+.chov-x .chpane.act{box-shadow:inset 0 0 0 1px var(--accent)}
+@media (max-width:1100px){.ovhero,.xcharts.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.ovchost,.ovchost.x{height:auto}.chovh .chbody,.chovh .chbody.nowl{grid-template-columns:minmax(0,1fr)!important}.chovh .chgrid .chleaf{height:min(62vh,520px)!important}}
 @media (max-width:760px){.chdlg .chbody,.chdlg .chbody.nowl{grid-template-columns:minmax(0,1fr)!important}.dleft .dchbox{min-height:0}.chdlg .chgrid .chleaf:only-child{height:min(62vh,560px)!important}}
 </style>
 </head>
@@ -1029,12 +1043,15 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   </section>
 
   <section class="card xchsec cchsec" data-page="overview">
-    <div class="xmh"><h2>What's driving crypto <span class="meta">EMA 20 / 50 / 100 · click a chart to open it</span></h2>
-      <div class="xseg" id="cchTf" role="group" aria-label="Chart timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
-    <div class="xcharts">
-      <div class="xch" data-ck="btc"><div class="xchh"><b>Bitcoin</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Bitcoin chart"></div></div>
-      <div class="xch" data-ck="eth"><div class="xchh"><b>Ethereum</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Ethereum chart"></div></div>
+    <div class="xmh"><h2>Bitcoin <span class="meta">draw, change the timeframe or pick another symbol, same as Charts</span></h2><div class="xchst" id="ovBtcSt"></div></div>
+    <div class="ovhero">
+    <div class="ovchost" id="ovChartC"><div class="empty">Loading the chart…</div></div>
+    <aside class="ovside" aria-label="What's driving crypto">
+      <div class="xmh"><h3>What's driving crypto <span class="meta">EMA 20 / 50 / 100</span></h3>
+      <div class="xseg" id="cchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
+      <div class="xch" data-ck="eth"><div class="xchh"><b>Ethereum</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Ethereum chart: click to show it in the main chart" title="Show in the main chart"></div></div>
       <div class="xch" data-ck="ethbtc"><div class="xchh"><b>ETH / BTC</b><span class="meta xchsrc">the alt-season gauge</span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="ETH against BTC chart"></div><div class="xchnote meta"></div></div>
+    </aside>
     </div>
   </section>
 
@@ -1107,10 +1124,11 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="mcard xstatcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
   </section>
   <section class="card xchsec" data-page="macroov">
-    <div class="xmh"><h2>Dollar · Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click a chart to open it</span></h2>
-      <div class="xseg" id="xchTf" role="group" aria-label="Chart timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
-    <div class="xcharts">
-      <div class="xch" data-xk="usd"><div class="xchh"><b>US Dollar</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="US Dollar chart"></div></div>
+    <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2></div>
+    <div class="ovchost x" id="ovChartX"><div class="empty">Loading the charts…</div></div>
+    <div class="xmh ovsub"><h3>Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click one to show it in the chart you last clicked</span></h3>
+      <div class="xseg" id="xchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
+    <div class="xcharts two">
       <div class="xch" data-xk="gold"><div class="xchh"><b>Gold</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Gold chart"></div></div>
       <div class="xch" data-xk="idx"><div class="xchh"><div class="xseg" id="xchIdx" role="group" aria-label="Index"></div><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Index chart"></div><div class="xchidx"></div></div>
     </div>
@@ -2406,7 +2424,7 @@ function ctResubscribe() {
   if (CT.state !== "ready") return;
   const ids = new Set((CT.subRows || []).map(r => r.symbolId).filter(Boolean));
   if (ids.size) ctReq(2127, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: [...ids] }).catch(() => {});
-  if (typeof chCtSub === "function" && typeof CH !== "undefined") chCtSub(CH.sym);
+  if (typeof chCtSub === "function" && typeof CH !== "undefined") { chCtSub(CH.sym); chVis().forEach(P => chCtSub(chPS(P))); }
 }
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.addEventListener) {
   window.addEventListener("online", () => { if (CT.state !== "ready") ctScheduleReconnect(true); });
@@ -4336,7 +4354,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.0129";
+const APP_VERSION = "2026.10.15.1153";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6683,8 +6701,10 @@ if (typeof CH.layout === "number" || !CH_LAYOUTS[CH.layout]) CH.layout = { 1: "1
 CH.sizes = CH.sizes || {};
 let CHD = chLoadJSON(CHD_KEY, {});                          // symbol → drawings, stored in time (ms) and price so every timeframe can draw them
 let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSDT", "XAGUSDT", "CLUSDT", "QQQUSDT", "SPYUSDT"];
-const chSave = () => chSaveJSON(CH_KEY, CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
+const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: chLoadJSON("finder-ovch", {}) };   // the overview pages borrowing this chart (see ovcHost)
+const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
 const CHP = [];                                              // the four panes
+const chPS = P => P.psym || CH.sym;                          // the symbol a pane shows: its own on the forex overview, else the chart's
 let chBuilt = false, chOn = false, chTool = "cursor", chSel = null, chDraft = null, chDrag = null, chMeasure = null, chHidden = false, chLocked = false;
 let chUndo = [], chSyncing = false, chDirty = true, chClearArm = 0, chWLAdd = false, chWLQ = "";
 const CHQ = {};                                              // quotes fetched for watchlist symbols the scan doesn't cover
@@ -6698,8 +6718,8 @@ function chCtSub(sym) {
   CT_SUBD.add(x.symbolId); ctReq(2127, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: [x.symbolId] }).catch(e => { if (!/ALREADY/i.test(e.code || e.message)) CT_SUBD.delete(x.symbolId); });
 }
 function chCtSpot(x, price) {
-  if (!chOn || !isFinite(price) || CH.sym !== "CT:" + x.symbolName) return;
-  chVis().forEach(P => { if (!P.t.length || P.sym !== CH.sym) return;
+  const sym = "CT:" + x.symbolName; if (!chOn || !isFinite(price)) return;
+  chVis().forEach(P => { if (!P.t.length || P.sym !== sym || chPS(P) !== sym) return;
     const iv = CH_IV[P.tf], n = P.t.length, last = P.t[n - 1];
     if (iv < 864e5 && Date.now() >= last + iv) { const t = Math.floor(Date.now() / iv) * iv; chBar(P, { t, o: price, h: price, l: price, c: price, v: 0 }); }
     else chBar(P, { t: last, o: P.o[n - 1], h: Math.max(P.h[n - 1], price), l: Math.min(P.l[n - 1], price), c: price }); });
@@ -6765,7 +6785,7 @@ function chApplyCS(P) {
       crosshair: { vertLine: xh, horzLine: xh },
       rightPriceScale: { borderColor: S.scaleC || line, mode: +S.scMode || 0, invertScale: !!S.scInv }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
       localization: { locale: "en-US", timeFormatter: chTimeFmt, priceFormatter: chPxFmt(P) },
-      watermark: { visible: S.wm !== "off" && !!CH.sym, text: S.wm === "symtf" ? `${chName(CH.sym)}, ${CH_TFL[P.tf]}` : chName(CH.sym), color: S.wmC, fontSize: 52, horzAlign: "center", vertAlign: "center" } });
+      watermark: { visible: S.wm !== "off" && !!chPS(P), text: S.wm === "symtf" ? `${chName(chPS(P))}, ${CH_TFL[P.tf]}` : chName(chPS(P)), color: S.wmC, fontSize: 52, horzAlign: "center", vertAlign: "center" } });
     P.cs.applyOptions({ upColor: S.body ? S.upC : "rgba(0,0,0,0)", downColor: S.body ? S.dnC : "rgba(0,0,0,0)", borderVisible: S.border, borderUpColor: S.upB, borderDownColor: S.dnB,
       wickVisible: S.wick, wickUpColor: S.upW, wickDownColor: S.dnW, lastValueVisible: S.lastLbl, priceLineVisible: S.lastLine });
   } catch (e) {}
@@ -6785,14 +6805,14 @@ function chLevelLines(P) {                                   // previous day clo
   if (S.hiLo) { const r = P.chart.timeScale().getVisibleLogicalRange(); const a = Math.max(0, Math.floor(r ? r.from : 0)), b = Math.min(n - 1, Math.ceil(r ? r.to : n - 1));
     for (let i = a; i <= b; i++) { if (hi == null || P.h[i] > hi) hi = P.h[i]; if (lo == null || P.l[i] < lo) lo = P.l[i]; } }
   put("plHi", S.hiLo, hi, S.hiLoC, "High", 1); put("plLo", S.hiLo, lo, S.hiLoC, "Low", 1);
-  const al = S.alertLines && typeof WL !== "undefined" ? WL.alerts.filter(a => a.sym === CH.sym && !a.fired) : [], sig = al.map(a => a.price + a.dir).join(",") + S.alertC;
+  const al = S.alertLines && typeof WL !== "undefined" ? WL.alerts.filter(a => a.sym === chPS(P) && !a.fired) : [], sig = al.map(a => a.price + a.dir).join(",") + S.alertC;
   if (P.alSig !== sig || (P.alLines || []).length !== al.length) {
     (P.alLines || []).forEach(L => { try { P.cs.removePriceLine(L); } catch (e) {} });
     P.alLines = al.map(a => P.cs.createPriceLine({ price: a.price, color: S.alertC, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: `🔔 ${a.dir}` })); P.alSig = sig;
   }
 }
 function chApplyCSAll(reData) {
-  CHP.forEach(P => { if (!P.chart) return; chApplyCS(P); chIndLayout(P); if (reData && P.t.length && P.sym === CH.sym) chSetData(P); else chLevelLines(P); chIndLegendBuild(P); chLegend(P, null); });
+  CHP.forEach(P => { if (!P.chart) return; chApplyCS(P); chIndLayout(P); if (reData && P.t.length && P.sym === chPS(P)) chSetData(P); else chLevelLines(P); chIndLegendBuild(P); chLegend(P, null); });
   chHeader(); chDirty = true;
 }
 setInterval(() => { if (chOn) chVis().forEach(P => { if (P.chart && P.t.length) chLevelLines(P); }); }, 4000);   // alerts added or fired elsewhere
@@ -7911,7 +7931,7 @@ function chBuild() {
   el.querySelectorAll("[data-fit]").forEach(b => b.onclick = () => chFit(CHP[+b.dataset.fit]));
   el.querySelectorAll("[data-scb]").forEach(b => { b.addEventListener("pointerdown", e => e.stopPropagation(), true); b.onclick = e => { e.stopPropagation(); chScaleMenu(CHP[+b.dataset.scb], b); }; });
   el.querySelectorAll("[data-max]").forEach(b => b.onclick = () => { const i = +b.dataset.max; CH.max = CH.max === i ? null : i; chSave(); chApplyLayout(); });
-  el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
+  el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); if (OVC.on) ovcRemember(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
   $("chSync").onclick = () => { CH.sync = !CH.sync; chSave(); chIndicators(); };
   for (let i = 0; i < 4; i++) CHP.push({ i, pane: $("chPane" + i), tf: CH.tfs[i], t: [], o: [], h: [], l: [], c: [], tok: 0, chart: null, wrap: $("chWrap" + i), cv: $("chCv" + i), ov: $("chOv" + i), msg: $("chMsg" + i), sym: null, lastPoll: 0, sig: "", progUntil: 0 });
   CHP.forEach(P => chBindPane(P));
@@ -7954,7 +7974,7 @@ function chApplyLayout() {
   g.querySelectorAll(".chgut").forEach(gu => chBindGutter(gu, sizes));
   CHP.forEach(P => { const b = P.pane.querySelector("[data-max]"); if (b) { b.classList.toggle("on", CH.max === P.i); b.textContent = CH.max === P.i ? "⤡" : "⤢"; } });
   const lb = $("chLayBtn"); if (lb) lb.innerHTML = `${chLayIcon(CH.layout)}<span>▾</span>`;
-  chVis().forEach(P => { if (P.sym !== CH.sym || !P.chart) chLoad(P); });
+  chVis().forEach(P => { if (P.sym !== chPS(P) || !P.chart) chLoad(P); });
   if (typeof liveSync === "function") liveSync();
   requestAnimationFrame(() => { chResizeAll(); chDirty = true; });
 }
@@ -8000,6 +8020,7 @@ function chIndicators() {
   chIndSyncAll(); chToolbarState(); chDirty = true;
 }
 async function chPageShown(on) {
+  if (on && OVC.on) ovcPark();
   document.body.classList.toggle("pg-charts", on);
   chOn = on;
   if (!on) { if (document.body.classList.contains("chfocus")) chFocus(false); if (typeof liveSync === "function") liveSync(); return; }
@@ -8013,7 +8034,8 @@ function chSetSym(sym) {
   const why = chSourceOK(sym); if (why) { toast(why); return; }
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
   CH.sym = sym; CH.recent = [sym, ...(CH.recent || []).filter(x => x !== sym)].slice(0, 12); chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
-  chVis().forEach(P => chLoad(P)); chHeader(); chWLRender(); chSelBar();
+  (OVC.on === "x" ? [CHP[OVC.act]] : chVis()).forEach(P => { if (OVC.on === "x") P.psym = sym; chLoad(P); }); chHeader(); chWLRender(); chSelBar();
+  if (OVC.on) ovcRemember(sym);
   if (typeof liveSync === "function") liveSync();
 }
 /* ---- market picklists by category ---- */
@@ -8097,6 +8119,7 @@ async function chDlgStart(host, sym, tf) {
   try { await ensureLWC(); } catch (e) { host.innerHTML = `<div class="meta cload">Couldn't load the chart library.</div>`; return; }
   if (!host.isConnected || $("dlgBody").dataset.sym !== sym) return;
   chBuild();
+  if (OVC.on) { OVC.resume = OVC.on; ovcPark(); }
   const el = $("chPage");
   if (!CHDLG.on) { CHDLG.prev = { sym: CH.sym, max: CH.max, tf0: CH.tfs[0] }; CHDLG.home = [el.parentNode, el.nextSibling]; }
   CHDLG.on = true;
@@ -8126,14 +8149,83 @@ function chDlgEnd(nextSym) {
   chOn = page === "charts";
   if (chOn) { chIndicators(); chApplyLayout(); chHeader(); chWLRender(); }
   if (typeof liveSync === "function") liveSync();
+  { const m = OVC.resume; OVC.resume = null; if (m && page === OVC_PAGE[m]) ovcHost(m); }
 }
 window.chDlgStart = chDlgStart; window.chDlgEnd = chDlgEnd;
+/* ---- the overview pages borrow this chart too: Bitcoin on the crypto overview, the dollar and Nasdaq 100 side by side on the forex one ---- */
+const OVC_PAGE = { c: "overview", x: "macroov" };
+function ovcRemember(picked) {                     // the overview's own symbols and timeframes, kept apart from the Charts page's
+  if (!OVC.on) return; const k = OVC.on, o = OVC.st[k] = OVC.st[k] || {};
+  o.tfs = (k === "c" ? [0] : [0, 1]).map(i => CHP[i].tf); o.act = OVC.act;
+  if (picked) { o.syms = o.syms || []; o.syms[OVC.act] = picked; }
+  chSaveJSON("finder-ovch", OVC.st);
+}
+function ovcSyms(mode) {                           // your last pick, else Bitcoin; the dollar index (EUR/USD when none is listed) and Nasdaq 100
+  const saved = (OVC.st[mode] && OVC.st[mode].syms) || [];
+  if (mode === "c") return [saved[0] || "BTCUSDT"];
+  const rows = xRows(), nm = n => { const r = xFind(rows, n); return r && r.symbol; };
+  const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
+  return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
+}
+function ovcMarkAct() { CHP.forEach(P => P.pane.classList.toggle("act", OVC.on === "x" && P.i === OVC.act)); }
+function ovcActivate(i) {
+  OVC.act = i; CH.sym = CHP[i].psym; chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
+  ovcMarkAct(); chHeader(); chSelBar(); chDirty = true; ovcRemember();
+}
+async function ovcHost(mode) {
+  const host = $(mode === "c" ? "ovChartC" : "ovChartX"); if (!host || CHDLG.on || page !== OVC_PAGE[mode]) return;
+  const syms = ovcSyms(mode);
+  if (OVC.on === mode && host.contains($("chPage"))) {          // already here: follow a default that changed (cTrader came online) and wake it up
+    if (mode === "x") syms.forEach((sym, i) => { const P = CHP[i]; if (sym && P.psym !== sym) { P.psym = sym; if (i === OVC.act) CH.sym = sym; chLoad(P); } });
+    if (!chOn) { chOn = true; if (typeof liveSync === "function") liveSync(); }
+    requestAnimationFrame(() => { chResizeAll(); chDirty = true; }); return;
+  }
+  if (!syms.every(Boolean)) { if (!host.querySelector(".chpage")) host.innerHTML = `<div class="empty">Waiting for the markets list…</div>`; return; }
+  try { await ensureLWC(); } catch (e) { host.innerHTML = `<div class="empty">Couldn't load the chart library.</div>`; return; }
+  if (page !== OVC_PAGE[mode] || CHDLG.on || OVC.on === mode) return;
+  if (OVC.on) ovcPark();
+  chBuild(); const el = $("chPage");
+  OVC.prev = { sym: CH.sym, tfs: CH.tfs.slice(), layout: CH.layout, max: CH.max }; OVC.home = [el.parentNode, el.nextSibling]; OVC.on = mode;
+  chModalClose(); chMenuClose(); chColorClose(); chPickClose();
+  host.innerHTML = ""; host.appendChild(el); el.classList.add("chovh", "chov-" + mode);
+  const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
+  CH.layout = mode === "c" ? "1" : "2c"; CH.max = null;
+  syms.forEach((sym, i) => { const P = CHP[i]; P.psym = mode === "x" ? sym : null; P.sym = null;
+    P.tf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+  OVC.act = mode === "x" ? Math.min(1, +(OVC.st.x && OVC.st.x.act) || 0) : 0; CH.sym = syms[OVC.act];
+  chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
+  ovcMarkAct(); chOn = true; chIndicators(); chApplyLayout(); chHeader(); chSelBar();
+  if (!OVC.ro && window.ResizeObserver) OVC.ro = new ResizeObserver(() => { if (OVC.on) { chResizeAll(); chDirty = true; } });
+  if (OVC.ro) { OVC.ro.disconnect(); OVC.ro.observe(host); }
+  if (typeof liveSync === "function") liveSync();
+}
+function ovcPark() {                               // hand the chart back to the Charts page exactly as it was
+  if (!OVC.on) return; ovcRemember();
+  const pv = OVC.prev, el = $("chPage");
+  if (OVC.ro) OVC.ro.disconnect();
+  chModalClose(); chMenuClose(); chColorClose(); chPickClose();
+  el.classList.remove("chovh", "chov-c", "chov-x");
+  CHP.forEach(P => { if (P.psym) P.sym = null; P.psym = null; });
+  OVC.on = null; ovcMarkAct();
+  CH.sym = pv.sym; CH.layout = pv.layout; CH.max = pv.max;
+  pv.tfs.forEach((tf, i) => { const P = CHP[i]; CH.tfs[i] = tf; if (P && P.tf !== tf) { P.tf = tf; P.sym = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; } });
+  chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor"); chSelBar();
+  const [par, nx] = OVC.home || []; if (par) par.insertBefore(el, nx && nx.parentNode === par ? nx : null);
+  document.querySelectorAll(".ovchost").forEach(h => { if (!h.children.length) h.innerHTML = `<div class="empty">Loading the chart…</div>`; });
+  chOn = page === "charts";
+  if (typeof liveSync === "function") liveSync();
+}
+function ovcPick(sym) {                            // a small overview chart clicked: show it in the main chart (on the forex page, the one you last clicked)
+  if (!OVC.on || page !== OVC_PAGE[OVC.on] || !sym) return false;
+  chSetSym(sym); return true;
+}
+window.ovcHost = ovcHost; window.ovcPick = ovcPick;
 // Esc inside the dialog first cancels a drawing, a tool, a selection or an open menu; only a plain Esc closes the dialog
 document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
   CHDLG.escBusy = CHDLG.on && !!(chDraft || chMeasure || chSel || chTool !== "cursor" || $("chModBg") || $("chMenu") || $("chColPop") || ($("chPick") && !$("chPick").hidden));
   if (CHDLG.escBusy) e.preventDefault(); }, true);       // a handled Esc never reaches the dialog (the chart's own handlers still see it)
 $("dlg").addEventListener("cancel", e => { if (CHDLG.escBusy) { e.preventDefault(); CHDLG.escBusy = false; } });
-window.openInCharts = sym => { if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
+window.openInCharts = sym => { if (OVC.on) ovcPark(); if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
 
 /* ---- a pane: data, MAs, RSI ---- */
 function chMakeChart(P) {
@@ -8158,7 +8250,7 @@ function chResize(P) {
 }
 const chResizeAll = () => chVis().forEach(chResize);
 async function chLoad(P) {
-  const sym = CH.sym, tf = P.tf, tok = ++P.tok;
+  const sym = chPS(P), tf = P.tf, tok = ++P.tok;
   P.msg.textContent = `Loading ${chName(sym)} ${CH_TFL[tf]}…`; P.msg.hidden = false;
   try {
     await ensureLWC(); if (!P.chart) chMakeChart(P);
@@ -8194,7 +8286,7 @@ async function chOlderBars(sym, tf, endMs, limit) {           // candles that cl
   return K((await getJSON(`${base}?${qs({ symbol: sym, interval: tf, endTime: endMs - 1, limit })}`, 1)).map(k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]]));
 }
 async function chLoadOlder(P) {
-  if (P.older || P.noOlder || !P.t.length || P.t.length >= CH_MAXBARS || P.sym !== CH.sym) return;
+  if (P.older || P.noOlder || !P.t.length || P.t.length >= CH_MAXBARS || P.sym !== chPS(P)) return;
   const tok = P.tok, sym = P.sym, tf = P.tf; P.older = true;
   try {
     const k = await chOlderBars(sym, tf, P.t[0], 500); if (tok !== P.tok || P.sym !== sym || P.tf !== tf) return;
@@ -8229,11 +8321,11 @@ function chBar(P, bar) {                                     // live update of t
   if (!P.hover) chLegend(P, null); else chIndLegendVals(P, null);
   chDirty = true;
 }
-function chOnKline(sym, iv, bar) { if (!chOn || sym !== CH.sym) return; chVis().forEach(P => { if (P.tf === iv && P.sym === sym) { P.lastWs = Date.now(); chBar(P, bar); } }); }
+function chOnKline(sym, iv, bar) { if (!chOn) return; chVis().forEach(P => { if (P.tf === iv && P.sym === sym && chPS(P) === sym) { P.lastWs = Date.now(); chBar(P, bar); } }); }
 function chStreams() {
   if (!chOn || !chBuilt) return [];
-  const s = CH.sym, out = [];
-  chVis().forEach(P => {
+  const out = [];
+  chVis().forEach(P => { const s = chPS(P);
     if (s.startsWith("CT:") || (isMX(s) && LIVE.kind !== "mexc")) return;          // MEXC TradFi on another exchange's stream: the chart polls instead
     if (LIVE.kind === "binance") { if (!TRADFI_SYMS.has(s) || (data && data.mode === "futures")) out.push(s.toLowerCase() + "@kline_" + P.tf); }
     else if (LIVE.kind === "mexc") { if (!TRADFI_SYMS.has(s) && MXF_IV[P.tf]) out.push(`kline.${MXF_IV[P.tf]}.${mxF(s)}`); }
@@ -8245,10 +8337,10 @@ setInterval(() => {                                          // poll the forming
   if (!chOn || document.visibilityState !== "visible") return;
   const now = Date.now();
   chVis().forEach((P, k) => {
-    if (!P.chart || P.sym !== CH.sym || !P.t.length || now - P.lastPoll < 3000 + k * 250) return;
+    if (!P.chart || P.sym !== chPS(P) || !P.t.length || now - P.lastPoll < 3000 + k * 250) return;
     if (P.lastWs && now - P.lastWs < 15000) return;
     P.lastPoll = now; const tok = P.tok;
-    formingBar(CH.sym, P.tf).then(b => { if (b && tok === P.tok) chBar(P, b); }).catch(() => {});
+    formingBar(P.sym, P.tf).then(b => { if (b && tok === P.tok) chBar(P, b); }).catch(() => {});
   });
 }, 1000);
 
@@ -8257,9 +8349,9 @@ function chLegend(P, prm) {
   const el = $("chLeg" + P.i); if (!el || !P.t.length) return;
   let i = P.t.length - 1;
   if (prm && prm.time != null) { const t = prm.time * 1000; i = chIdx(P, t); if (i < 0) i = P.t.length - 1; }
-  const o = P.o[i], h = P.h[i], l = P.l[i], c = P.c[i], ch = o ? (c - o) / o * 100 : 0, f = chPxFmt(P), S = chCS(), fd = chFeed(CH.sym), up = S.prevClose && i ? c >= P.c[i - 1] : c >= o;
+  const o = P.o[i], h = P.h[i], l = P.l[i], c = P.c[i], ch = o ? (c - o) / o * 100 : 0, f = chPxFmt(P), S = chCS(), fd = chFeed(chPS(P)), up = S.prevClose && i ? c >= P.c[i - 1] : c >= o;
   chIndLegendVals(P, prm && prm.time != null ? i : null);
-  el.innerHTML = `${S.slTitle ? `<b>${chName(CH.sym)}</b> · ${CH_TFL[P.tf]}` : ""}${S.slSrc && fd.s ? ` · <span class="chfeed" title="${chEsc(fd.l)}">${chEsc(fd.s)}</span>` : ""}`
+  el.innerHTML = `${S.slTitle ? `<b>${chName(chPS(P))}</b> · ${CH_TFL[P.tf]}` : ""}${S.slSrc && fd.s ? ` · <span class="chfeed" title="${chEsc(fd.l)}">${chEsc(fd.s)}</span>` : ""}`
     + (S.slOHLC ? ` <span class="mute">O</span> ${f(o)} <span class="mute">H</span> ${f(h)} <span class="mute">L</span> ${f(l)} <span class="mute">C</span> <span class="${up ? "up" : "dn"}">${f(c)}</span>` : "")
     + (S.slChg ? ` <span class="${up ? "up" : "dn"}">${S.slOHLC ? "" : f(c) + " "}(${ch >= 0 ? "+" : ""}${ch.toFixed(2)}%)</span>` : "")
     + (S.slVol && P.v && P.v[i] != null ? ` <span class="mute">Vol</span> ${chIndNum(+P.v[i])}` : "");
@@ -8334,7 +8426,7 @@ const chPlotW = P => P.chart.timeScale().width(), chPlotH = P => P.cv.clientHeig
 
 /* ---- drawings ---- */
 /* ---- drawing state, undo/redo ---- */
-const chList = () => (CHD[CH.sym] = CHD[CH.sym] || []);
+const chList = (s = CH.sym) => (CHD[s] = CHD[s] || []);
 const chUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 let chRedo = [], chClip = null, chSelPane = 0;
 function chPush() { chUndo.push(JSON.stringify(chList())); if (chUndo.length > 80) chUndo.shift(); chRedo = []; }
@@ -8444,7 +8536,7 @@ function chKey(e) {
   if (e.key === "Escape" && $("chPick") && !$("chPick").hidden) { chPickClose(); return; }
   if (e.key === "Escape" && !chDraft && !chMeasure && !chSel && chTool === "cursor" && document.body.classList.contains("chfocus")) { chFocus(false); return; }
   if (e.altKey && !e.metaKey && !e.ctrlKey) { const m = CH_KEYS.find(([c, sh]) => c === e.code && sh === e.shiftKey); if (m) { e.preventDefault(); chPickTool(m[2]); return; } }
-  if (e.key === "/" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); chIndDialog(); return; }
+  if (e.key === "/" && !e.metaKey && !e.ctrlKey && !OVC.on) { e.preventDefault(); chIndDialog(); return; }
   if (e.key === "Escape") { if (chDraft && (chDraft.type === "path" || chDraft.type === "poly") && chDraft.pts.length > 2) { chDraft.pts.pop(); chFinish(); } else { chDraft = null; chMeasure = null; chSel = null; chSetTool("cursor"); chSelBar(); } }
   else if (e.key === "Enter" && chDraft && (chDraft.type === "path" || chDraft.type === "poly")) { chDraft.pts.pop(); chFinish(); }
   else if ((e.key === "Delete" || e.key === "Backspace") && chSel) { e.preventDefault(); chDelete(); }
@@ -8452,7 +8544,7 @@ function chKey(e) {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") { e.preventDefault(); chRedoDo(); }
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "c" && chSel) { const d = chSelD(); if (d) { chClip = JSON.parse(JSON.stringify(d)); toast("Drawing copied. Paste with ⌘V / Ctrl+V."); } }
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "v" && chClip) { e.preventDefault(); chPaste(chClip); }
-  else if (!CHDLG.on && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp") && document.activeElement === document.body) {
+  else if (!CHDLG.on && !OVC.on && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp") && document.activeElement === document.body) {   // on an overview page the arrows scroll the page
     const L = chWLItems().map(x => x.sym), i = L.indexOf(CH.sym); if (i < 0 || !L.length) return;
     e.preventDefault(); chSetSym(L[(i + (e.key === "ArrowDown" ? 1 : L.length - 1)) % L.length]);
   }
@@ -8516,6 +8608,7 @@ function chShiftPt(P, d, idx, pt, other) {
 }
 /* ---- pointer handling ---- */
 function chBindPane(P) {
+  P.pane.addEventListener("pointerdown", () => { if (OVC.on === "x" && OVC.act !== P.i && P.psym) ovcActivate(P.i); }, true);
   const w = P.wrap, local = e => { const r = P.cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
   const block = e => { e.stopPropagation(); e.preventDefault(); };
   let lastDown = 0, lastPt = null, downAt = null, moved = false;
@@ -8654,7 +8747,7 @@ function chPaint(P) {
   const cv = P.ov, g = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
   if (g.reset) g.reset(); else { g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }   // a fresh state every frame: no clip, alpha or blend left over can stop the wipe
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  if (!P.chart || !P.t.length || P.sym !== CH.sym) { P.hits = []; return; }
+  if (!P.chart || !P.t.length || P.sym !== chPS(P)) { P.hits = []; return; }
   g.save(); try { chPaintBody(P, g); } catch (e) { chPaintErr(e, "chart"); } finally { g.restore(); }
 }
 let chPaintErrAt = 0;
@@ -8670,7 +8763,7 @@ function chPaintBody(P, g) {
   const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, nAx = axis.length;   // drawings stay in the price area, off the indicator panes
   g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   P.hits = [];
-  const all = chHidden ? [] : chList().filter(d => CH_T[d.type] && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
+  const all = chHidden ? [] : chList(chPS(P)).filter(d => CH_T[d.type] && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
   if (chDraft && chDraft.pane === P.i && CH_T[chDraft.type] && CH_T[chDraft.type].paint) all.push({ ...chDraft, id: "draft", draft: true, s: chDraft.type === "icon" ? { icon: CH.icon } : undefined });
   for (const d of all) { try {
     const T = CH_T[d.type]; if (!T.paint || !Array.isArray(d.pts) || !d.pts.length) continue;
@@ -9298,25 +9391,9 @@ setTimeout(() => { try { ctOAuthReturn(); } catch (e) {} }, 0);
 /* ===================== Overview: dollar, gold and index charts ===================== */
 const XCH = { tf: lsGet("finder-xch-tf", "1h"), idx: lsGet("finder-xch-idx", "Nasdaq 100"), charts: {}, sig: {}, at: 0, busy: false };
 const XCH_IDX = ["Nasdaq 100", "S&P 500", "Dow Jones", "DAX 40"];
-const XCH_DXY = [["EURUSD", -0.576], ["USDJPY", 0.136], ["GBPUSD", -0.119], ["USDCAD", 0.091], ["USDSEK", 0.042], ["USDCHF", 0.036]];
 const xchStack = st => st ? `<span class="tag ${/bull/i.test(st) ? "long" : /bear/i.test(st) ? "short" : ""}">${st.replace(" stack", "").replace("Pullback in ", "pullback · ")}</span>` : "";
 function xchRows(rows) {
-  const fx = p => rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p);
-  return { usdx: xFind(rows, "US Dollar Index"), gold: xFind(rows, "Gold"), idx: xFind(rows, XCH.idx), fx };
-}
-async function xchDollar(rows, tf) {             // the broker's dollar index when it lists one; otherwise ICE's DXY formula from its pairs
-  const R = xchRows(rows);
-  if (R.usdx) return { k: await klines(R.usdx.symbol, tf, 300), sym: R.usdx.symbol, src: R.usdx.ct ? CT.broker : (R.usdx.src || "exchange") };
-  const legs = XCH_DXY.map(([p, w]) => ({ p, w, r: R.fx(p) })), have = legs.filter(l => l.r);
-  if (!["EURUSD", "USDJPY", "GBPUSD"].every(p => have.some(l => l.p === p))) return null;
-  const ks = await Promise.all(have.map(l => klines(l.r.symbol, tf, 300)));
-  const maps = ks.map(k => new Map(k.t.map((t, i) => [t, i]))), ts = ks[0].t.filter(t => maps.every(m => m.has(t)));
-  const sek = have.some(l => l.p === "USDSEK") ? null : 9.6;            // no USD/SEK listed: hold it near its recent level (small weight)
-  const f = (pick) => ts.map(t => { let v = 50.14348112 * (sek ? Math.pow(sek, 0.042) : 1);
-    have.forEach((l, j) => { const i = maps[j].get(t), k = ks[j]; v *= Math.pow(pick(k, i, l.w), l.w); }); return v; });
-  const k = { t: ts, o: f((k, i) => k.o[i]), c: f((k, i) => k.c[i]),
-    h: f((k, i, w) => w > 0 ? k.h[i] : k.l[i]), l: f((k, i, w) => w > 0 ? k.l[i] : k.h[i]), qv: ts.map(() => 0) };
-  return { k, sym: R.fx("EURUSD").symbol, src: `built from ${have.length} pairs (ICE formula${sek ? ", SEK held" : ""})` };
+  return { gold: xFind(rows, "Gold"), idx: xFind(rows, XCH.idx) };
 }
 function xchDraw(key, el, k, opts = {}) {
   let C = XCH.charts[key];
@@ -9334,7 +9411,7 @@ function xchDraw(key, el, k, opts = {}) {
   C.cs.setData(ts.map((t, i) => ({ time: t, open: k.o[i], high: k.h[i], low: k.l[i], close: k.c[i] })));
   [20, 50, 100].forEach((n, j) => { const m = ema(k.c, n); C.ln[j].setData(ts.map((t, i) => m[i] == null ? { time: t } : { time: t, value: m[i] }).filter((p, i) => m[i] != null)); });
   C.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, ts.length - 120), to: ts.length + 2 });
-  el.onclick = opts.sym ? () => openDetail(opts.sym) : null;
+  el.onclick = opts.sym ? () => { if (!ovcPick(opts.sym)) openDetail(opts.sym); } : null;
 }
 function xchStatus(k, extra, tf = XCH.tf) {
   const s = k.c.length >= 110 ? structure(k, ema) : null, chg = k.c.length > 1 ? (k.c.at(-1) / k.c[Math.max(0, k.c.length - 1 - Math.round(864e5 / (CH_IV[tf] || 36e5)))] - 1) * 100 : null;
@@ -9342,6 +9419,7 @@ function xchStatus(k, extra, tf = XCH.tf) {
 }
 async function renderXCharts(rows, force) {
   const sec = document.querySelector(".xchsec:not(.cchsec)"); if (!sec || page !== "macroov" || !rows || !rows.length) return;
+  ovcHost("x");
   $("xchTf").querySelectorAll("button").forEach(b => { const on = b.dataset.tf === XCH.tf; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
   const idxNames = XCH_IDX.filter(n => xFind(rows, n)); if (!idxNames.includes(XCH.idx) && idxNames.length) XCH.idx = idxNames[0];
   $("xchIdx").innerHTML = idxNames.map(n => `<button data-ix="${n}" class="${n === XCH.idx ? "on" : ""}" aria-pressed="${n === XCH.idx}">${n.replace(" 100", "").replace(" Jones", "").replace(" 40", "")}</button>`).join("");
@@ -9349,12 +9427,9 @@ async function renderXCharts(rows, force) {
   if (XCH.busy || (!force && XCH.lastSig === sig && Date.now() - XCH.at < 55e3)) return;
   XCH.busy = true; XCH.lastSig = sig; XCH.at = Date.now();
   try { await ensureLWC(); } catch (e) { XCH.busy = false; return; }
-  const tf = XCH.tf, card = k => sec.querySelector(`.xch[data-xk="${k}"]`), R = xchRows(rows), c24 = xCcy(rows, "24h");
+  const tf = XCH.tf, card = k => sec.querySelector(`.xch[data-xk="${k}"]`), R = xchRows(rows);
   const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts[key]; c.querySelector(".xchst").innerHTML = ""; };
   await Promise.all([
-    (async () => { try { const d = await xchDollar(rows, tf); if (!d || !d.k.t.length) return fail("usd", "Needs EUR/USD, USD/JPY and GBP/USD");
-        const c = card("usd"); c.querySelector(".xchsrc").textContent = d.src; xchDraw("usd", c.querySelector(".xchc"), d.k, { sym: d.sym });
-        c.querySelector(".xchst").innerHTML = xchStatus(d.k, c24.USD != null ? ` <span class="mute">· vs others 24h</span> ${sgn(c24.USD)}` : ""); } catch (e) { fail("usd", "Couldn't load the dollar"); } })(),
     (async () => { try { if (!R.gold) return fail("gold", "Gold isn't listed here"); const k = await klines(R.gold.symbol, tf, 300); const c = card("gold");
         c.querySelector(".xchsrc").textContent = R.gold.ct ? CT.broker : (R.gold.src || ""); xchDraw("gold", c.querySelector(".xchc"), k, { sym: R.gold.symbol });
         const t = macroTrend(R.gold); c.querySelector(".xchst").innerHTML = xchStatus(k, t ? ` <span class="mute">· 4H+D</span> <b class="${t === "Uptrend" ? "up" : t === "Downtrend" ? "dn" : ""}">${t}</b>` : ""); } catch (e) { fail("gold", "Couldn't load gold"); } })(),
@@ -9363,7 +9438,7 @@ async function renderXCharts(rows, force) {
         const t = macroTrend(r); c.querySelector(".xchst").innerHTML = xchStatus(k, t ? ` <span class="mute">· 4H+D</span> <b class="${t === "Uptrend" ? "up" : t === "Downtrend" ? "dn" : ""}">${t}</b>` : "");
         c.querySelector(".xchidx").innerHTML = ["S&P 500", "Nasdaq 100", "Dow Jones", "Russell 2000", "DAX 40", "Nikkei 225"].map(n => xFind(rows, n)).filter(Boolean).map(x => { const tt = macroTrend(x);
           return `<div class="xi" data-s="${x.symbol}" role="button" tabindex="0"><b>${x.name}</b>${pctCell(x.chg24h)} <span class="${tt === "Uptrend" ? "up" : tt === "Downtrend" ? "dn" : "mute"}">${tt === "Uptrend" ? "▲" : tt === "Downtrend" ? "▼" : "◆"} ${tt || ""}</span></div>`; }).join("");
-        c.querySelectorAll(".xi").forEach(e => e.onclick = () => openDetail(e.dataset.s)); } catch (e) { fail("idx", "Couldn't load " + XCH.idx); } })(),
+        c.querySelectorAll(".xi").forEach(e => e.onclick = () => { if (!ovcPick(e.dataset.s)) openDetail(e.dataset.s); }); } catch (e) { fail("idx", "Couldn't load " + XCH.idx); } })(),
   ]);
   XCH.busy = false;
 }
@@ -9375,6 +9450,7 @@ setInterval(() => { if (page === "macroov" && document.visibilityState === "visi
 const CCH = { tf: lsGet("finder-cch-tf", "1h"), at: 0, busy: false, sig: "" };
 async function renderCCharts(force) {
   const sec = document.querySelector(".cchsec"); if (!sec || page !== "overview") return;
+  ovcHost("c");
   $("cchTf").querySelectorAll("button").forEach(b => { const on = b.dataset.tf === CCH.tf; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
   const sig = CCH.tf + "|" + EXCHANGE;
   if (CCH.busy || (!force && CCH.sig === sig && Date.now() - CCH.at < 55e3)) return;
@@ -9384,8 +9460,7 @@ async function renderCCharts(force) {
   const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts["c_" + key]; c.querySelector(".xchst").innerHTML = ""; };
   const [kb, ke] = await Promise.all(["BTCUSDT", "ETHUSDT"].map(s => klines(s, tf, 300).catch(() => null)));
   const g = EXT.global, regime = $("regime") ? $("regime").textContent.trim() : "";
-  if (kb && kb.t.length) { const c = card("btc"); c.querySelector(".xchsrc").textContent = src; xchDraw("c_btc", c.querySelector(".xchc"), kb, { sym: "BTCUSDT" });
-    c.querySelector(".xchst").innerHTML = xchStatus(kb, `${g ? ` <span class="mute">· dominance</span> <b>${g.btcDom.toFixed(1)}%</b>` : ""}${regime && regime !== "–" ? ` <span class="mute">· regime</span> <b>${regime}</b>` : ""}`, tf); } else fail("btc", "Couldn't load Bitcoin");
+  { const st = $("ovBtcSt"); if (st) st.innerHTML = kb && kb.t.length ? xchStatus(kb, `${g ? ` <span class="mute">· dominance</span> <b>${g.btcDom.toFixed(1)}%</b>` : ""}${regime && regime !== "–" ? ` <span class="mute">· regime</span> <b>${regime}</b>` : ""}`, tf) : ""; }
   if (ke && ke.t.length) { const c = card("eth"); c.querySelector(".xchsrc").textContent = src; xchDraw("c_eth", c.querySelector(".xchc"), ke, { sym: "ETHUSDT" });
     c.querySelector(".xchst").innerHTML = xchStatus(ke, g ? ` <span class="mute">· dominance</span> <b>${g.ethDom.toFixed(1)}%</b>` : "", tf); } else fail("eth", "Couldn't load Ethereum");
   if (kb && ke) {
@@ -9767,7 +9842,7 @@ function trLevelParts(x, buy, entry, price, vol) { if (!(entry > 0) || !(price >
 const trValTxt = (x, buy, entry, price, vol) => trLevelParts(x, buy, entry, price, vol).filter(Boolean).join(" · ");
 const trEntryRole = (it, p) => (it.buy ? p < +it.ref.price : p > +it.ref.price) ? "sl" : "tp";
 function trChartLines(P, g, W, H, axis) {
-  P.bk = []; const L = trChartOrders(CH.sym); if (!L.length) return; const S = chCS(), Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 4 : H;   // price area only
+  P.bk = []; const L = trChartOrders(chPS(P)); if (!L.length) return; const S = chCS(), Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 4 : H;   // price area only
   g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > Hm) return; const yy = Math.round(y) + .5;
     const armed = TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now(), hov = l.show || armed || (TW.hover && TW.hover.P === P && TW.hover.key === l.key);

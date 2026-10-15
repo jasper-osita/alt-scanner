@@ -30,7 +30,7 @@ async def main():
         print("saved:", await q("() => [lsGet('finder-xch-tf'), lsGet('finder-xch-idx')]"))
         el = await pg.query_selector(".xchsec:not(.cchsec)"); await el.screenshot(path=f"{OUT}/xcharts.png")
         await q("() => document.querySelector('.xch[data-xk=\"gold\"] .xchc').click()"); await asyncio.sleep(2)
-        print("click opens:", await q("() => [document.getElementById('dlg').open, CH.sym]"))
+        print("click shows it in the main chart:", await q("() => [document.getElementById('dlg').open, OVC.on, chName(CHP[OVC.act].psym)]"))
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

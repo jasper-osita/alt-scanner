@@ -76,6 +76,17 @@ async def main():
         await pg.fill("#trLev", "5"); await q("() => document.getElementById('trGo').click()"); await asyncio.sleep(0.2); await q("() => document.getElementById('trGo').click()"); await wait("() => MXT.positions.length > 0", 10)
         print("16) mexc order:", {k: MX["log"][-1].get(k) for k in ("symbol", "side", "type", "vol", "leverage", "openType", "stopLossPrice")}, "| bad signatures:", MX["badsig"])
         print("17) mexc book:", await q("() => document.getElementById('trBook').innerText.replace(/\\s+/g, ' ').slice(0, 200)"))
+        # the MEXC position on the coin's chart (cTrader connected too), live P&L, and the trade watch columns line up
+        await q("() => { cttConnect().catch(() => {}); goPage('charts'); CH.layout = '1'; chApplyLayout(); chSetSym('BTCUSDT'); }")
+        await wait("() => CTT.state === 'ready' && chVis()[0].sym === 'BTCUSDT' && chVis()[0].t.length > 5", 30)
+        print("17b) mexc line on chart:", await wait("() => trChartOrders('BTCUSDT').some(l => l.key.startsWith('mxp:'))", 15),
+              await q("() => trChartOrders('BTCUSDT').filter(l => l.key.startsWith('mxp:')).map(l => l.txt + ' | ' + l.parts.join(' ')).join(', ')"))
+        await wait("() => MXT.detail['BTC_USDT'] && mxtPx('BTC_USDT')", 10)
+        print("17c) live P&L:", await q("() => { const p = MXT.positions[0], q = mxtPx(p.symbol), v = mxtUpnl(p), want = ((+p.positionType === 1 ? q.bid : q.ask) - p.holdAvgPrice) * p.holdVol * MXT.detail[p.symbol].contractSize * (+p.positionType === 1 ? 1 : -1); return [v != null, Math.abs(v - want) < 1e-6]; }"))
+        await q("() => { twSave({ open: true, tab: 'pos' }); twRender(); }"); await wait("() => document.querySelector('#twBody tbody tr td')", 10); await asyncio.sleep(1.2)
+        print("17d) trade watch row:", await q("() => [...document.querySelectorAll('#twBody tbody tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ')).join(' / ')"), "| summary:", await q("() => document.getElementById('twSum').innerText"))
+        print("17e) columns line up:", await q("() => { const th = [...document.querySelectorAll('#twBody thead th')], td = [...document.querySelector('#twBody tbody tr').children]; return th.slice(0, -1).every((h, i) => Math.abs(h.getBoundingClientRect().left - td[i].getBoundingClientRect().left) < 2 && getComputedStyle(td[i]).textAlign === getComputedStyle(h).textAlign); }"))
+        await q("() => goPage('trade')"); await asyncio.sleep(1)
         for _ in range(2): await q("() => document.querySelector('#trBook tr[data-mx] [data-a=\"mxclose\"]').click()"); await asyncio.sleep(0.4)
         await wait("() => MXT.positions.length === 0", 10); print("18) mexc close:", {k: MX["log"][-1].get(k) for k in ("side", "type", "vol", "positionId")})
         print("19) activity:", await q("() => document.getElementById('trLog').innerText.split('\\n').slice(0, 4).join(' | ')"))

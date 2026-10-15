@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1904">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1912">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -964,7 +964,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .ovside{display:flex;flex-direction:column;gap:10px;min-width:0}.ovside .xchc{height:140px}
 .xchsec h3{margin:0;font:600 14px var(--display);color:var(--strong)}.xchsec .ovsub{margin-top:14px}
 .xcharts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-.ovregime .status{font-size:12px}.ovtgs{display:flex;gap:6px;flex-wrap:wrap}.ovtg.on{border-color:var(--accent);color:var(--accent)}
+.ovregime{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}.ovregime .status{font-size:12px}.ovtgs{display:flex;gap:6px;flex-wrap:wrap}.ovtg.on{border-color:var(--accent);color:var(--accent)}
 .ovchost{height:620px;min-width:0;display:flex;flex-direction:column}.ovchost.x{height:560px;margin-top:10px}
 .ovchost>.empty{flex:1;display:flex;align-items:center;justify-content:center}
 .ovchost .chpage.chovh,.ovchost .chpage.chovh.pg-off{display:flex!important;height:auto;flex:1;min-height:0}
@@ -1047,7 +1047,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="ovhero">
     <div class="ovchost" id="ovChartC"><div class="empty">Loading the chart…</div></div>
     <aside class="ovside" aria-label="What's driving crypto">
-      <div class="xch ovregime" aria-live="polite">
+      <div class="ovregime" aria-live="polite">
         <div class="btcline"><span class="meta">BTC Regime</span><span class="regime" id="regime">–</span></div>
         <div class="meta" id="regimeDetail">Run a scan to read BTC's 1H and 4H stacks.</div>
         <div class="status" id="status">Ready. A full scan takes about 1–2 minutes.</div>
@@ -4361,7 +4361,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.1904";
+const APP_VERSION = "2026.10.15.1912";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update

@@ -81,7 +81,7 @@ async def main():
         print("19) activity:", await q("() => document.getElementById('trLog').innerText.split('\\n').slice(0, 4).join(' | ')"))
         await pg.screenshot(path=f"{OUT}/trade.png")
         # trade straight from a Short position drawn on the chart: sized from the account and risk %
-        await q("() => { const c = ctCfg(); c.scope = 'trading'; ctSaveCfg(c); goPage('charts'); chSetSym('CT:XAUUSD'); }"); await asyncio.sleep(4)
+        await q("() => { const c = ctCfg(); c.scope = 'trading'; ctSaveCfg(c); goPage('charts'); chSetSym('CT:XAUUSD'); }"); await wait("() => chVis().length && chVis()[0].sym === 'CT:XAUUSD' && chVis()[0].t.length > 5", 30); await asyncio.sleep(1)
         await q("""() => { const P = chVis()[0], n = P.t.length, e = P.c.at(-1); CHD[CH.sym] = [{ id: 'pz', type: 'short', pts: [{ t: P.t[n - 5], p: e * 1.002 }, { t: P.t[n - 1], p: e * 1.012 }, { t: P.t[n - 1], p: e * 0.982 }], s: {} }]; chSaveDraw(); chDirty = true; }""")
         await wait("() => { const d = CHD[CH.sym][0]; return !!trPosSize(d, 0.5); }", 20)
         print("20) chart size:", await q("() => JSON.stringify(trPosSize(CHD[CH.sym][0], 0.5))"))

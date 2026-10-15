@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1155">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1948">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -959,11 +959,31 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .chdlg .chbar{padding:0 0 6px}
 .chdlg .chbody,.chdlg .chbody.nowl{grid-template-columns:40px minmax(0,1fr)!important}
 @media (max-width:1000px){.dleft .dchbox{min-height:520px}}
+/* quick trade box on the chart */
+.chbody{position:relative}
+.qtbox{position:absolute;left:58px;top:40px;z-index:6;display:flex;flex-direction:column;gap:7px;padding:9px;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--pill-b);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:min(440px,calc(100% - 70px));font-size:12px}
+.qtbar{display:flex;align-items:stretch;gap:6px}
+.qtb{min-width:108px;border:0;border-radius:8px;padding:5px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;cursor:pointer;color:#fff;font:600 11px/1.15 var(--font)}
+.qtb b{font:700 15px/1.1 var(--display)}.qtb.sell{background:#d42f3c}.qtb.buy{background:#2962ff;align-items:flex-end}.qtb:disabled{opacity:.5;cursor:default}
+.qtsz{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--mute)}.qtsz input{width:84px;height:30px;border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--strong);text-align:center;font:600 14px var(--display)}
+.qtic{width:30px;border:1px solid var(--pill-b);border-radius:8px;background:transparent;color:var(--mute);cursor:pointer;display:flex;align-items:center;justify-content:center}.qtic:hover{color:var(--text)}
+.qtrow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.qtsw{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px 0 6px;border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--text);font:500 12px var(--font);cursor:pointer}
+.qtsw i{width:26px;height:16px;border-radius:9px;background:var(--pill-b);position:relative;flex:none}.qtsw i::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--mute)}
+.qtsw.on i{background:var(--green)}.qtsw.sl.on i{background:var(--red)}.qtsw.on i::after{left:12px;background:#fff}
+.qtchip{height:24px;padding:0 8px;border:1px solid var(--pill-b);border-radius:7px;background:transparent;color:var(--text);font:600 11.5px var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:4px}.qtchip.on{border-color:var(--accent);color:var(--accent)}
+.qtrrc{width:46px;height:24px;border:1px solid var(--pill-b);border-radius:7px;background:var(--pill);color:var(--text);text-align:center}
+.qtpt{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:7px;background:rgba(41,98,255,.15);color:#8fb0ff;font-weight:600}
+.qtset{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:7px}.qtsr{display:flex;align-items:center;justify-content:space-between;gap:8px}.qtsr>span:last-child{display:flex;align-items:center;gap:4px}
+#chQtBtn.on{border-color:var(--accent);color:var(--accent)}
+.chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
+@media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
 /* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
 .ovhero{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;margin-top:10px}
-.ovside{display:flex;flex-direction:column;gap:10px;min-width:0}.ovside .xchc{height:170px}
+.ovside{display:flex;flex-direction:column;gap:10px;min-width:0}.ovside .xchc{height:140px}
 .xchsec h3{margin:0;font:600 14px var(--display);color:var(--strong)}.xchsec .ovsub{margin-top:14px}
 .xcharts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ovregime{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}.ovregime .status{font-size:12px}.ovtgs{display:flex;gap:6px;flex-wrap:wrap}.ovtg.on{border-color:var(--accent);color:var(--accent)}
 .ovchost{height:620px;min-width:0;display:flex;flex-direction:column}.ovchost.x{height:560px;margin-top:10px}
 .ovchost>.empty{flex:1;display:flex;align-items:center;justify-content:center}
 .ovchost .chpage.chovh,.ovchost .chpage.chovh.pg-off{display:flex!important;height:auto;flex:1;min-height:0}
@@ -1033,12 +1053,6 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <div class="ticks"><span>12 AM</span><span>4 AM</span><span>8 AM</span><span>12 NN</span><span>4 PM</span><span>8 PM</span><span>12 AM</span></div>
       <div class="ribbon-note" id="sessNote"></div>
     </div>
-    <div class="card" aria-live="polite">
-      <div class="btcline"><span class="meta">BTC Regime</span><span class="regime" id="regime">–</span></div>
-      <div class="meta" id="regimeDetail">Run a scan to read BTC's 1H and 4H stacks.</div>
-      <div class="status" id="status">Ready. A full scan takes about 1–2 minutes.</div>
-      <div class="progress"><i id="prog"></i></div>
-    </div>
   </section>
 
   <section class="mrow" data-page="overview">
@@ -1052,6 +1066,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="ovhero">
     <div class="ovchost" id="ovChartC"><div class="empty">Loading the chart…</div></div>
     <aside class="ovside" aria-label="What's driving crypto">
+      <div class="ovregime" aria-live="polite">
+        <div class="btcline"><span class="meta">BTC Regime</span><span class="regime" id="regime">–</span></div>
+        <div class="meta" id="regimeDetail">Run a scan to read BTC's 1H and 4H stacks.</div>
+        <div class="status" id="status">Ready. A full scan takes about 1–2 minutes.</div>
+        <div class="progress"><i id="prog"></i></div>
+      </div>
       <div class="xmh"><h3>What's driving crypto <span class="meta">EMA 20 / 50 / 100</span></h3>
       <div class="xseg" id="cchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
       <div class="xch" data-ck="eth"><div class="xchh"><b>Ethereum</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Ethereum chart: click to show it in the main chart" title="Show in the main chart"></div></div>
@@ -1129,7 +1149,8 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="mcard xstatcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
   </section>
   <section class="card xchsec" data-page="macroov">
-    <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2></div>
+    <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2>
+      <div class="ovtgs" role="group" aria-label="Chart options"><button class="btn sm ovtg" id="ovcAuto" aria-pressed="true" title="Nasdaq 100 switches to 1m for the US open (9:30 PM to 12 AM) and Gold to 5m for London (12 to 6 PM) on weekdays, then back to your own pick">Session timeframes</button><button class="btn sm ovtg" id="ovcLink" aria-pressed="false" title="Change one chart's timeframe and the other follows">Same timeframe</button></div></div>
     <div class="ovchost x" id="ovChartX"><div class="empty">Loading the charts…</div></div>
     <div class="xmh ovsub"><h3>Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click one to show it in the chart you last clicked</span></h3>
       <div class="xseg" id="xchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
@@ -4359,7 +4380,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.1155";
+const APP_VERSION = "2026.10.15.1948";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7905,6 +7926,7 @@ function chBuild() {
       </div>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <button class="chindbtn" id="chIndBtn" title="Indicators (/)" aria-label="Indicators">${chIco("fx", 17)} Indicators</button>
+      <button class="chindbtn" id="chQtBtn" aria-pressed="false" title="Quick trade: buy or sell at market from the chart, with stop and target lines">${chIco("M4 12h10M10 6l6 6-6 6M19 5v14", 17)}<span>Quick trade</span></button>
       <button class="chindbtn chsetbtn" id="chSetBtn" title="Chart settings and templates" aria-label="Chart settings">${chIco("gear", 17)}<span>Settings</span></button>
       <div class="chund"><button id="chUndoB" title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 17)}</button><button id="chRedoB" title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo">${chIco("M13 6l4 4-4 4M17 10H8a4 4 0 0 0 0 8h2", 17)}</button></div>
       <div class="chfavbar" id="chFavBar" aria-label="Favorite drawing tools"></div>
@@ -7936,7 +7958,7 @@ function chBuild() {
   el.querySelectorAll("[data-fit]").forEach(b => b.onclick = () => chFit(CHP[+b.dataset.fit]));
   el.querySelectorAll("[data-scb]").forEach(b => { b.addEventListener("pointerdown", e => e.stopPropagation(), true); b.onclick = e => { e.stopPropagation(); chScaleMenu(CHP[+b.dataset.scb], b); }; });
   el.querySelectorAll("[data-max]").forEach(b => b.onclick = () => { const i = +b.dataset.max; CH.max = CH.max === i ? null : i; chSave(); chApplyLayout(); });
-  el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); if (OVC.on) ovcRemember(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
+  el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); if (OVC.on === "x") ovcTfPicked(P); if (OVC.on) ovcRemember(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
   $("chSync").onclick = () => { CH.sync = !CH.sync; chSave(); chIndicators(); };
   for (let i = 0; i < 4; i++) CHP.push({ i, pane: $("chPane" + i), tf: CH.tfs[i], t: [], o: [], h: [], l: [], c: [], tok: 0, chart: null, wrap: $("chWrap" + i), cv: $("chCv" + i), ov: $("chOv" + i), msg: $("chMsg" + i), sym: null, lastPoll: 0, sig: "", progUntil: 0 });
   CHP.forEach(P => chBindPane(P));
@@ -8161,7 +8183,7 @@ window.chDlgStart = chDlgStart; window.chDlgEnd = chDlgEnd;
 const OVC_PAGE = { c: "overview", x: "macroov" };
 function ovcRemember(picked) {                     // the overview's own symbols and timeframes, kept apart from the Charts page's
   if (!OVC.on) return; const k = OVC.on, o = OVC.st[k] = OVC.st[k] || {};
-  o.tfs = (k === "c" ? [0] : [0, 1]).map(i => CHP[i].tf); o.act = OVC.act;
+  o.tfs = (k === "c" ? [0] : [0, 1]).map(i => (k === "x" && CHP[i].manTf) || CHP[i].tf); o.act = OVC.act;
   if (picked) { o.syms = o.syms || []; o.syms[OVC.act] = picked; }
   chSaveJSON("finder-ovch", OVC.st);
 }
@@ -8172,6 +8194,27 @@ function ovcSyms(mode) {                           // your last pick, else Bitco
   const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
   return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
 }
+function ovcSessTf(sym) {                         // the timeframe a session asks for (PHT, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
+  if (!sym) return null; const d = new Date(Date.now() + PHT_MS), wd = d.getUTCDay(), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  if (wd < 1 || wd > 5) return null; const n = chName(sym);
+  if (/Nasdaq 100/.test(n) && h >= 21.5) return "1m";
+  if (/^Gold/.test(n) && h >= 12 && h < 18) return "5m";
+  return null;
+}
+function ovcSessApply(load) {                     // switch on entering or leaving a session window only, so your own pick inside the window stands
+  if (OVC.on !== "x") return; const o = OVC.st.x || {}, ps = [CHP[0], CHP[1]];
+  let want = ps.map(P => o.auto !== false ? ovcSessTf(P.psym) : null);
+  if (o.link) { const w = want.find(Boolean) || null; want = want.map(() => w); }
+  ps.forEach((P, i) => { const key = (want[i] || "") + "|" + P.psym; if (P.sessKey === key) return; P.sessKey = key;
+    const tf = want[i] || P.manTf || P.tf; if (P.tf === tf) return;
+    P.tf = CH.tfs[i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; if (load) chLoad(P); });
+}
+function ovcTfPicked(P) {                          // your own timeframe pick; with "Same timeframe" on, the other chart follows
+  const inSess = !!(P.sessKey && P.sessKey.split("|")[0]); if (!inSess) P.manTf = P.tf;
+  if ((OVC.st.x || {}).link) [CHP[0], CHP[1]].forEach(Q => { if (Q === P || Q.tf === P.tf) return; Q.tf = CH.tfs[Q.i] = P.tf; if (!inSess) Q.manTf = P.tf;
+    const sel = Q.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; chLoad(Q); });
+}
+function ovcTgSync() { const o = OVC.st.x || {}; [["ovcAuto", o.auto !== false], ["ovcLink", !!o.link]].forEach(([id, on]) => { const b = $(id); if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); } }); }
 function ovcMarkAct() { CHP.forEach(P => P.pane.classList.toggle("act", OVC.on === "x" && P.i === OVC.act)); }
 function ovcActivate(i) {
   OVC.act = i; CH.sym = CHP[i].psym; chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
@@ -8181,7 +8224,7 @@ async function ovcHost(mode) {
   const host = $(mode === "c" ? "ovChartC" : "ovChartX"); if (!host || CHDLG.on || page !== OVC_PAGE[mode]) return;
   const syms = ovcSyms(mode);
   if (OVC.on === mode && host.contains($("chPage"))) {          // already here: follow a default that changed (cTrader came online) and wake it up
-    if (mode === "x") syms.forEach((sym, i) => { const P = CHP[i]; if (sym && P.psym !== sym) { P.psym = sym; if (i === OVC.act) CH.sym = sym; chLoad(P); } });
+    if (mode === "x") { syms.forEach((sym, i) => { const P = CHP[i]; if (sym && P.psym !== sym) { P.psym = sym; if (i === OVC.act) CH.sym = sym; chLoad(P); } }); ovcSessApply(true); }
     if (!chOn) { chOn = true; if (typeof liveSync === "function") liveSync(); }
     requestAnimationFrame(() => { chResizeAll(); chDirty = true; }); return;
   }
@@ -8196,7 +8239,8 @@ async function ovcHost(mode) {
   const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
   CH.layout = mode === "c" ? "1" : "2c"; CH.max = null;
   syms.forEach((sym, i) => { const P = CHP[i]; P.psym = mode === "x" ? sym : null; P.sym = null;
-    P.tf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+    P.tf = P.manTf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; P.sessKey = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+  ovcSessApply(false);
   OVC.act = mode === "x" ? Math.min(1, +(OVC.st.x && OVC.st.x.act) || 0) : 0; CH.sym = syms[OVC.act];
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
   ovcMarkAct(); chOn = true; chIndicators(); chApplyLayout(); chHeader(); chSelBar();
@@ -8210,7 +8254,7 @@ function ovcPark() {                               // hand the chart back to the
   if (OVC.ro) OVC.ro.disconnect();
   chModalClose(); chMenuClose(); chColorClose(); chPickClose();
   el.classList.remove("chovh", "chov-c", "chov-x");
-  CHP.forEach(P => { if (P.psym) P.sym = null; P.psym = null; });
+  CHP.forEach(P => { if (P.psym) P.sym = null; P.psym = null; P.manTf = null; P.sessKey = null; });
   OVC.on = null; ovcMarkAct();
   CH.sym = pv.sym; CH.layout = pv.layout; CH.max = pv.max;
   pv.tfs.forEach((tf, i) => { const P = CHP[i]; CH.tfs[i] = tf; if (P && P.tf !== tf) { P.tf = tf; P.sym = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; } });
@@ -8225,6 +8269,10 @@ function ovcPick(sym) {                            // a small overview chart cli
   chSetSym(sym); return true;
 }
 window.ovcHost = ovcHost; window.ovcPick = ovcPick;
+if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
+if ($("ovcLink")) $("ovcLink").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.link = !o.link; chSaveJSON("finder-ovch", OVC.st); ovcTgSync();
+  if (OVC.on === "x") { CHP.forEach(P => P.sessKey = null); ovcSessApply(true); if (o.link) ovcTfPicked(CHP[OVC.act]); } };
+ovcTgSync();
 // Esc inside the dialog first cancels a drawing, a tool, a selection or an open menu; only a plain Esc closes the dialog
 document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
   CHDLG.escBusy = CHDLG.on && !!(chDraft || chMeasure || chSel || chTool !== "cursor" || $("chModBg") || $("chMenu") || $("chColPop") || ($("chPick") && !$("chPick").hidden));
@@ -9431,7 +9479,8 @@ async function renderXCharts(rows, force) {
   const sig = XCH.tf + "|" + XCH.idx + "|" + rows.length;
   if (XCH.busy || (!force && XCH.lastSig === sig && Date.now() - XCH.at < 55e3)) return;
   XCH.busy = true; XCH.lastSig = sig; XCH.at = Date.now();
-  try { await ensureLWC(); } catch (e) { XCH.busy = false; return; }
+  try {                                           // a failed load must never leave the cards stuck blank: busy always clears
+  try { await ensureLWC(); } catch (e) { return; }
   const tf = XCH.tf, card = k => sec.querySelector(`.xch[data-xk="${k}"]`), R = xchRows(rows);
   const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts[key]; c.querySelector(".xchst").innerHTML = ""; };
   await Promise.all([
@@ -9445,7 +9494,7 @@ async function renderXCharts(rows, force) {
           return `<div class="xi" data-s="${x.symbol}" role="button" tabindex="0"><b>${x.name}</b>${pctCell(x.chg24h)} <span class="${tt === "Uptrend" ? "up" : tt === "Downtrend" ? "dn" : "mute"}">${tt === "Uptrend" ? "▲" : tt === "Downtrend" ? "▼" : "◆"} ${tt || ""}</span></div>`; }).join("");
         c.querySelectorAll(".xi").forEach(e => e.onclick = () => { if (!ovcPick(e.dataset.s)) openDetail(e.dataset.s); }); } catch (e) { fail("idx", "Couldn't load " + XCH.idx); } })(),
   ]);
-  XCH.busy = false;
+  } catch (e) { console.warn("[Finder] overview charts:", e); } finally { XCH.busy = false; }
 }
 $("xchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; XCH.tf = b.dataset.tf; try { localStorage.setItem("finder-xch-tf", JSON.stringify(XCH.tf)); } catch (x) {} renderXCharts(xRows(), true); });
 $("xchIdx").addEventListener("click", e => { const b = e.target.closest("[data-ix]"); if (!b) return; XCH.idx = b.dataset.ix; try { localStorage.setItem("finder-xch-idx", JSON.stringify(XCH.idx)); } catch (x) {} renderXCharts(xRows(), true); });
@@ -9460,7 +9509,8 @@ async function renderCCharts(force) {
   const sig = CCH.tf + "|" + EXCHANGE;
   if (CCH.busy || (!force && CCH.sig === sig && Date.now() - CCH.at < 55e3)) return;
   CCH.busy = true; CCH.sig = sig; CCH.at = Date.now();
-  try { await ensureLWC(); } catch (e) { CCH.busy = false; return; }
+  try {                                           // a failed load must never leave the cards stuck blank: busy always clears
+  try { await ensureLWC(); } catch (e) { return; }
   const tf = CCH.tf, card = k => sec.querySelector(`.xch[data-ck="${k}"]`), src = { binance: "Binance", bybit: "Bybit", mexc: "MEXC" }[EXCHANGE] || "";
   const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts["c_" + key]; c.querySelector(".xchst").innerHTML = ""; };
   const [kb, ke] = await Promise.all(["BTCUSDT", "ETHUSDT"].map(s => klines(s, tf, 300).catch(() => null)));
@@ -9482,7 +9532,7 @@ async function renderCCharts(force) {
         : dn ? "<b class=\"dn\">BTC is leading.</b> Money is staying in Bitcoin; alts tend to lag until this turns." : "No clear leader between ETH and BTC on this timeframe.";
     } else fail("ethbtc", "Not enough shared candles");
   } else fail("ethbtc", "Needs both charts");
-  CCH.busy = false;
+  } catch (e) { console.warn("[Finder] crypto overview charts:", e); } finally { CCH.busy = false; }
 }
 $("cchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; CCH.tf = b.dataset.tf; try { localStorage.setItem("finder-cch-tf", JSON.stringify(CCH.tf)); } catch (x) {} renderCCharts(true); });
 setInterval(() => { if (page === "overview" && document.visibilityState === "visible") renderCCharts(true); }, 60e3);
@@ -9847,7 +9897,7 @@ function trChartOrders(sym) {                   // → [{ key, p, col, txt, part
   if (TW.drag) {                                 // the line you're dragging follows the mouse; dragging a position's entry makes a new SL or TP
     const d = TW.drag, l = out.find(z => z.key === d.key);
     if (l && l.it.kind === "pos" && l.role === "entry") { const r = trEntryRole(l.it, d.p); out.push({ key: "ghost", p: d.p, col: r === "sl" ? S.trSLC : S.trTPC, txt: r.toUpperCase(), parts: [...trLevelParts(l.it.x, l.it.buy, +l.it.ref.price, d.p, l.it.ref.tradeData.volume), "let go to set"], show: 1, dash: 1 }); }
-    else if (l) { const dp = d.p - l.p; l.p = d.p; l.show = 1; const it = l.it, en = it.kind === "pos" ? +it.ref.price : it.px, vol = it.ref.tradeData && it.ref.tradeData.volume;
+    else if (l && l.it.kind !== "qt") { const dp = d.p - l.p; l.p = d.p; l.show = 1; const it = l.it, en = it.kind === "pos" ? +it.ref.price : it.px, vol = it.ref.tradeData && it.ref.tradeData.volume;
       if (l.role !== "entry" && it.x && vol) l.parts = trLevelParts(it.x, it.buy, en, d.p, vol); if (d.busy) l.parts = [...(l.parts || []), "sending…"];
       if (l.it.kind === "ord" && l.role === "entry") out.forEach(z => { if (z !== l && z.it === l.it) z.p += dp; }); }   // a pending order's SL/TP move with it
   }
@@ -9869,18 +9919,18 @@ function trLevelParts(x, buy, entry, price, vol) { if (!(entry > 0) || !(price >
 const trValTxt = (x, buy, entry, price, vol) => trLevelParts(x, buy, entry, price, vol).filter(Boolean).join(" · ");
 const trEntryRole = (it, p) => (it.buy ? p < +it.ref.price : p > +it.ref.price) ? "sl" : "tp";
 function trChartLines(P, g, W, H, axis) {
-  P.bk = []; const L = trChartOrders(chPS(P)); if (!L.length) return; const S = chCS(), Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 4 : H;   // price area only
+  P.bk = []; const L = trChartOrders(chPS(P)).concat(qtLines(chPS(P), chCS())); if (!L.length) return; const S = chCS(), Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 4 : H;   // price area only
   g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   L.forEach(l => { const y = chY(P, l.p); if (y == null || y < 0 || y > Hm) return; const yy = Math.round(y) + .5;
     const armed = TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now(), hov = l.show || armed || (TW.hover && TW.hover.P === P && TW.hover.key === l.key);
     g.strokeStyle = chHexA(l.col, 0.85); g.lineWidth = 1; g.setLineDash(l.dash === 2 ? [5, 4] : l.dash ? [2, 3] : []); g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); g.setLineDash([]);
-    const w = trPill(g, l, 26, y, hov); let xb = null;
+    const x0 = l.it && l.it.kind === "qt" ? Math.round(W * 0.5) : 26, w = trPill(g, l, x0, y, hov); let xb = null;   // quick-trade tags sit mid-chart, clear of the quick trade box
     if (l.x && S.trX && hov && l.key !== "ghost") {                  // the × shows when you hover the line (cTrader style)
       const t = armed ? (l.role === "entry" ? (l.it.kind === "pos" || l.it.kind === "mxp" ? "Close?" : "Cancel?") : `Remove ${l.role.toUpperCase()}?`) : "×"; g.font = "11px " + chFont();
-      const bw = armed ? g.measureText(t).width + 12 : 18; xb = [26 + w + 4, 26 + w + 4 + bw];
+      const bw = armed ? g.measureText(t).width + 12 : 18; xb = [x0 + w + 4, x0 + w + 4 + bw];
       trRound(g, xb[0] + .5, Math.round(y - 9) + .5, bw - 1, 18, 3); g.fillStyle = "#f23645"; g.fill();
       g.fillStyle = "#fff"; g.textBaseline = "middle"; g.textAlign = "center"; g.font = (armed ? "11px " : "15px ") + chFont(); g.fillText(t, (xb[0] + xb[1]) / 2, y + (armed ? 0.5 : 0)); g.textAlign = "left"; }
-    if (l.key !== "ghost") P.bk.push({ key: l.key, y, xb, pr: [26, 26 + w], drag: !!(l.drag && S.trDrag), l });
+    if (l.key !== "ghost") P.bk.push({ key: l.key, y, xb, pr: [x0, x0 + w], drag: !!(l.drag && S.trDrag), l });
     axis.push([y, chFmt(l.p, P.c.at(-1)), l.col]); });
   g.restore();
 }
@@ -9916,6 +9966,7 @@ function trLineDown(P, m) {
 function trLineMove(P, m) { const pt = chPt(P, m.x, m.y, false); if (!pt || !TW.drag || TW.drag.busy) return; const dg = TW.drag.l.it.dg || 5; TW.drag.p = +(+pt.p).toFixed(dg); chDirty = true; }
 async function trLineUp() {
   const d = TW.drag; if (!d || d.busy) return; const l = d.l, it = l.it;
+  if (it.kind === "qt") { if (d.p !== d.p0) qtDrop(l.role, d.p); TW.drag = null; chDirty = true; return; }   // the quick trade's own lines: nothing is sent
   if (Math.abs(d.p - d.p0) < 10 ** -(it.dg || 5) / 2) { TW.drag = null; chDirty = true; return; }   // a click, not a drag
   d.busy = true; chDirty = true;
   try {
@@ -9934,6 +9985,154 @@ async function trLineUp() {
   TW.drag = null; chDirty = true;
 }
 const trNowPx = (it, entry) => { const q = (it.x && CTT.spots[it.x.symbolId]) || {}; return (it.buy ? q.bid : q.ask) || (entry ? +it.ref.price : NaN); };
+
+/* ---- quick trade: Buy / Sell at market from the chart, stop and target lines you can switch off, a locked reward : risk;
+        drag the entry off the price and it becomes a limit or stop order (the bracket moves with it) ---- */
+const QT_KEY = "finder-qt";
+const QT = { side: "buy", lv: {}, armed: null, sz: null, timer: 0, ...{ size: 0.5, sizeBy: "lots", risk: 0.5, sl: true, tp: true, rr: 2, rrC: 2.5, atr: 1, drag: true, cfDemo: false, cfLive: true, lev: 10 }, ...(lsGet(QT_KEY, {}) || {}) };
+const qtSave = () => { const { size, sizeBy, risk, sl, tp, rr, rrC, atr, drag, cfDemo, cfLive, lev } = QT; try { localStorage.setItem(QT_KEY, JSON.stringify({ size, sizeBy, risk, sl, tp, rr, rrC, atr, drag, cfDemo, cfLive, lev })); } catch (e) {} };
+const qtOn = () => !!(typeof CH !== "undefined" && CH.qt) && !!$("qtBox") && !CHDLG.on;
+const qtRR = () => QT.rr === "c" ? +QT.rrC || 0 : +QT.rr || 0;
+function qtTick(sym) {
+  if (trVenue(sym) === "ct") { const x = cttSym(sym); if (x) return 10 ** -trDig(x); }
+  const d = MXT.detail[mxF(sym)]; if (d && +d.priceUnit) return +d.priceUnit;
+  const q = trLivePrice(sym) || {}, p = q.bid || 1; return 10 ** -(p >= 100 ? 2 : p >= 1 ? 4 : 6);
+}
+function qtAtr(sym) {                            // 14-bar average range on the chart you're looking at: the default stop distance
+  const P = chVis().find(P => P.sym === sym && P.t.length > 15); if (!P) return null; const n = P.t.length; let s = 0;
+  for (let i = n - 14; i < n; i++) s += Math.max(P.h[i] - P.l[i], Math.abs(P.h[i] - P.c[i - 1]), Math.abs(P.l[i] - P.c[i - 1]));
+  return s / 14;
+}
+function qtType(buy, e, q, tick) {               // market unless the entry sits more than 2 ticks off the price; then limit (better price) or stop (breakout)
+  const ref = buy ? q.ask || q.bid : q.bid || q.ask; if (e == null || !(ref > 0) || Math.abs(e - ref) <= 2 * tick + 1e-12) return "market";
+  return buy ? (e < ref ? "limit" : "stop") : (e > ref ? "limit" : "stop");
+}
+function qtLevels(sym, side, ov) {               // → { buy, e, sl, tp, slD, tpD, type, live, q, tick } for one side; ov = a line being dragged
+  const q = trLivePrice(sym) || {}, buy = side !== "sell", live = buy ? q.ask || q.bid : q.bid || q.ask; if (!(live > 0)) return null;
+  const st = QT.lv[sym] = QT.lv[sym] || {}, tick = qtTick(sym), rr = qtRR();
+  if (!(st.slD > 0)) { const a = qtAtr(sym); st.slD = a ? a * (+QT.atr || 1) : live * 0.002; }
+  let e = st.e != null ? st.e : live, slD = st.slD, tpD = rr ? slD * rr : (st.tpD > 0 ? st.tpD : slD * 2);
+  if (ov) { if (ov.role === "entry") e = ov.p; else if (ov.role === "sl") { slD = Math.abs(e - ov.p) || tick; if (rr) tpD = slD * rr; } else if (ov.role === "tp") { tpD = Math.abs(ov.p - e) || tick; if (rr) slD = tpD / rr; } }
+  const k = buy ? 1 : -1, type = qtType(buy, e, q, tick); if (type === "market" && !ov) e = live;
+  return { buy, e, sl: e - k * slD, tp: e + k * tpD, slD, tpD, type, live, q, tick };
+}
+function qtDrop(role, p) {                       // let go of a quick-trade line: keep the new distances; a dropped entry near the price snaps back to market
+  const sym = CH.sym, L = qtLevels(sym, QT.side, { role, p }); if (!L) return; const st = QT.lv[sym];
+  if (role === "entry") st.e = L.type === "market" ? null : L.e; st.slD = L.slD; if (!qtRR()) st.tpD = L.tpD;
+  QT.armed = null; qtUpdate();
+}
+function qtMoney(sym, L, size, to) {             // what a move from the entry to `to` is worth for this size → "$ 200.00" or ""
+  if (!(size > 0)) return "";
+  if (trVenue(sym) === "ct") { const x = CTT.state === "ready" && cttSym(sym), sp = x && CTT.specs[x.symbolId]; if (!sp) { if (x && !CTT.specLoading) { CTT.specLoading = 1; cttSpec(x).finally(() => { CTT.specLoading = 0; chDirty = true; }); } return ""; }
+    const m = trValueAt(x, L.buy, L.e, to, size * sp.lotSize); return trMoney(Math.abs(m.v), m.ccy); }
+  const d = MXT.detail[mxF(sym)]; if (!d) { mxtDetail(sym).catch(() => {}); return ""; } return `${fmtNum(size * (+d.contractSize || 1) * Math.abs(to - L.e))} USDT`;
+}
+function qtSize(sym, L) {                        // the size the buttons will send: typed, or worked out from risk % and the stop
+  if (QT.sizeBy !== "risk") return +QT.size || 0;
+  if (!QT.sl || !L) return 0;
+  const key = [sym, L.e.toFixed(8), L.sl.toFixed(8), QT.risk].join("|");
+  if (!QT.sz || QT.sz.key !== key) { const n = QT.sz = { key, val: QT.sz && QT.sz.val, err: "" }; clearTimeout(QT.szT);
+    QT.szT = setTimeout(() => trSizeCalc(sym, L.e, L.sl, +QT.risk).then(r => { if (QT.sz === n) { n.val = r.qty; n.err = r.below ? "below the smallest size" : ""; qtUpdate(); } }, x => { if (QT.sz === n) { n.val = 0; n.err = x.message; qtUpdate(); } }), 250); }
+  return QT.sz.val || 0;
+}
+function qtLines(sym, S) {                       // the preview lines (dashed) for the side you last pointed at
+  if (!qtOn() || sym !== CH.sym) return [];
+  const d = TW.drag && TW.drag.l.it.kind === "qt" ? TW.drag : null, L = qtLevels(sym, QT.side, d ? { role: d.l.role, p: d.p } : null); if (!L) return [];
+  const size = qtSize(sym, L), unit = trVenue(sym) === "ct" ? "lots" : "contracts", F = v => chFmt(v, L.live), it = { kind: "qt", dg: Math.max(0, Math.round(-Math.log10(L.tick))), buy: L.buy };
+  const typeTxt = L.type === "market" ? "market" : `${L.type} ${F(L.e)}`, show = d ? 1 : 0, out = [];
+  out.push({ key: "qt:entry", p: L.e, col: L.buy ? S.trBuyC : S.trSellC, txt: `${L.buy ? "Buy" : "Sell"} ${size > 0 ? size : "?"} · ${typeTxt}`, parts: [L.type === "market" ? (QT.drag ? "drag for a limit or stop" : "") : `${F(Math.abs(L.e - L.live))} from price`], dash: 1, arrow: L.buy ? "up" : "down", drag: QT.drag, it, role: "entry", show });
+  if (QT.sl) out.push({ key: "qt:sl", p: L.sl, col: S.trSLC, txt: "SL", parts: [`${F(L.slD)} away`, qtMoney(sym, L, size, L.sl) && "−" + qtMoney(sym, L, size, L.sl)], dash: 1, drag: true, it, role: "sl", show });
+  if (QT.tp) out.push({ key: "qt:tp", p: L.tp, col: S.trTPC, txt: `TP${qtRR() ? " 1:" + qtRR() : ""}`, parts: [`${F(L.tpD)} away`, qtMoney(sym, L, size, L.tp) && "+" + qtMoney(sym, L, size, L.tp)], dash: 1, drag: true, it, role: "tp", show });
+  return out;
+}
+function qtBuild() {                             // the box, once per chart: the buttons, the switches and the ratio stay put; qtUpdate fills in the numbers
+  const body = document.querySelector("#chPage .chbody"); if (!body) return; let el = $("qtBox");
+  if (!CH.qt) { if (el) el.remove(); clearInterval(QT.timer); QT.timer = 0; chDirty = true; return; }
+  if (!el) { el = document.createElement("div"); el.id = "qtBox"; el.className = "qtbox"; el.setAttribute("role", "group"); el.setAttribute("aria-label", "Quick trade"); body.appendChild(el);
+    ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation())); }
+  const rrs = [[0, "Off"], [1, "1:1"], [2, "1:2"], [3, "1:3"], ["c", "Custom"]];
+  el.innerHTML = `<div class="qtbar"><button class="qtb sell" data-qs="sell"><span id="qtSellL">Sell</span><b id="qtSellP">—</b></button>
+      <label class="qtsz"><span id="qtSzL">Lots</span><input id="qtSize" inputmode="decimal" aria-label="Size"></label>
+      <button class="qtb buy" data-qs="buy"><span id="qtBuyL">Buy</span><b id="qtBuyP">—</b></button>
+      <button class="qtic" id="qtGear" aria-label="Quick trade settings" aria-expanded="false">${chIco("gear", 15)}</button><button class="qtic" id="qtX" aria-label="Close quick trade">${chIco("x", 14)}</button></div>
+    <div class="qtrow"><button class="qtsw sl ${QT.sl ? "on" : ""}" data-qt="sl" aria-pressed="${QT.sl}"><i></i>Stop loss <b id="qtSlD"></b></button><button class="qtsw ${QT.tp ? "on" : ""}" data-qt="tp" aria-pressed="${QT.tp}"><i></i>Take profit <b id="qtTpD"></b></button></div>
+    <div class="qtrow"><span class="mute">Lock reward : risk</span>${rrs.map(([k, l]) => `<button class="qtchip ${String(QT.rr) === String(k) ? "on" : ""}" data-rr="${k}" aria-pressed="${String(QT.rr) === String(k)}">${l}</button>`).join("")}${QT.rr === "c" ? `<input id="qtRrC" class="qtrrc" inputmode="decimal" aria-label="Custom reward for 1 risk" value="${QT.rrC}">` : ""}</div>
+    <div class="qtrow qtpend" id="qtPend" hidden><span class="qtpt" id="qtPendT"></span><button class="qtchip" id="qtMkt">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 13)} Back to market</button></div>
+    <div class="meta" id="qtNote"></div><div class="meta dn" id="qtWarn" aria-live="polite"></div>
+    <div class="qtset" id="qtSet" hidden>
+      <div class="qtsr"><span>Size by</span><span><button class="qtchip ${QT.sizeBy !== "risk" ? "on" : ""}" data-sb="lots">Lots</button><button class="qtchip ${QT.sizeBy === "risk" ? "on" : ""}" data-sb="risk">Risk %</button>${QT.sizeBy === "risk" ? `<input id="qtRisk" class="qtrrc" inputmode="decimal" aria-label="Risk percent" value="${QT.risk}">` : ""}</span></div>
+      <div class="qtsr"><span>Default stop</span><span><input id="qtAtr" class="qtrrc" inputmode="decimal" aria-label="Stop distance in ATRs" value="${QT.atr}"> × ATR (14)</span></div>
+      <div class="qtsr"><span>Drag the entry for a limit or stop</span><button class="qtchip ${QT.drag ? "on" : ""}" data-qx="drag" aria-pressed="${QT.drag}">${QT.drag ? "On" : "Off"}</button></div>
+      <div class="qtsr"><span>Ask to confirm on</span><span><button class="qtchip ${QT.cfDemo ? "on" : ""}" data-qx="cfDemo" aria-pressed="${QT.cfDemo}">Demo</button><button class="qtchip ${QT.cfLive ? "on" : ""}" data-qx="cfLive" aria-pressed="${QT.cfLive}">Live and MEXC</button></span></div>
+      <div class="qtsr"><span>MEXC leverage</span><span><input id="qtLev" class="qtrrc" inputmode="numeric" aria-label="MEXC leverage" value="${QT.lev}">×</span></div>
+      <div class="meta">Pending orders stay until filled or cancelled (good till cancelled).</div></div>`;
+  const re = () => { qtSave(); qtBuild(); chDirty = true; };
+  $("qtSize").value = QT.size; $("qtSize").oninput = () => { const v = parseFloat($("qtSize").value); if (v > 0) { QT.size = v; qtSave(); QT.armed = null; qtUpdate(); chDirty = true; } };
+  el.querySelectorAll("[data-qs]").forEach(b => { b.onmouseenter = b.onfocus = () => { if (QT.side !== b.dataset.qs) { QT.side = b.dataset.qs; QT.armed = null; chDirty = true; qtUpdate(); } }; b.onclick = () => qtPlace(b.dataset.qs); });
+  el.querySelectorAll("[data-qt]").forEach(b => b.onclick = () => { QT[b.dataset.qt] = !QT[b.dataset.qt]; QT.armed = null; re(); });
+  el.querySelectorAll("[data-rr]").forEach(b => b.onclick = () => { const k = b.dataset.rr; QT.rr = k === "c" ? "c" : +k; if (QT.rr) QT.tp = true; QT.armed = null; re(); });
+  el.querySelectorAll("[data-sb]").forEach(b => b.onclick = () => { QT.sizeBy = b.dataset.sb; if (QT.sizeBy === "risk") QT.sl = true; QT.sz = null; re(); $("qtSet").hidden = false; });
+  el.querySelectorAll("[data-qx]").forEach(b => b.onclick = () => { QT[b.dataset.qx] = !QT[b.dataset.qx]; re(); $("qtSet").hidden = false; });
+  const num = (id, k, min) => { const i = $(id); if (i) i.oninput = () => { const v = parseFloat(i.value); if (v >= min) { QT[k] = v; if (k === "atr") Object.values(QT.lv).forEach(st => { st.slD = 0; }); QT.sz = null; qtSave(); chDirty = true; qtUpdate(); } }; };
+  num("qtRrC", "rrC", 0.1); num("qtRisk", "risk", 0.01); num("qtAtr", "atr", 0.1); num("qtLev", "lev", 1);
+  $("qtGear").onclick = () => { const p = $("qtSet"); p.hidden = !p.hidden; $("qtGear").setAttribute("aria-expanded", !p.hidden); };
+  $("qtX").onclick = () => { CH.qt = false; chSave(); qtBuild(); qtBtnSync(); };
+  $("qtMkt").onclick = () => { const st = QT.lv[CH.sym]; if (st) st.e = null; QT.armed = null; chDirty = true; qtUpdate(); };
+  if (!QT.timer) QT.timer = setInterval(() => { if (qtOn() && document.visibilityState === "visible") { qtUpdate(); chDirty = true; } }, 500);
+  qtPrep(); qtUpdate(); chDirty = true;
+}
+function qtBtnSync() { const b = $("chQtBtn"); if (b) { b.classList.toggle("on", !!CH.qt); b.setAttribute("aria-pressed", !!CH.qt); } }
+async function qtPrep() {                        // live bid/ask for the chart's market
+  const sym = CH.sym; if (!sym) return;
+  try { if (trVenue(sym) === "ct") { if (CTT.state !== "ready" && cttMayTrade()) await cttConnect(); const x = cttSym(sym); if (x) { await cttWatch(x); cttSpec(x).catch(() => {}); } } else { await mxtTick(sym); mxtDetail(sym).catch(() => {}); } } catch (e) {}
+}
+function qtUpdate() {                            // the numbers in the box: prices, order types, distances, money, warnings
+  if (!$("qtBox")) return; const sym = CH.sym, v = trVenue(sym), set = (id, t) => { const e = $(id); if (e && e.textContent !== t) e.textContent = t; };
+  if (v === "mx" && !QT.tickBusy && Date.now() - ((MXT.tick[mxF(sym)] || {}).at || 0) > 3000) { QT.tickBusy = true; mxtTick(sym).finally(() => { QT.tickBusy = false; }); }
+  const Lb = qtLevels(sym, "buy"), Ls = qtLevels(sym, "sell"), L = QT.side === "sell" ? Ls : Lb, unit = v === "ct" ? "Lots" : "Contracts";
+  if (!L) { set("qtNote", "Waiting for a live price…"); return; }
+  const F = x => chFmt(x, L.live), name = (lv, sd) => lv.type === "market" ? `${sd} market` : `${sd} ${lv.type}`, size = qtSize(sym, L), armed = QT.armed && QT.armed.until > Date.now() ? QT.armed.side : null;
+  set("qtBuyL", armed === "buy" ? "Click again to send" : name(Lb, "Buy")); set("qtBuyP", F(Lb.type === "market" ? Lb.live : Lb.e));
+  set("qtSellL", armed === "sell" ? "Click again to send" : name(Ls, "Sell")); set("qtSellP", F(Ls.type === "market" ? Ls.live : Ls.e));
+  set("qtSzL", QT.sizeBy === "risk" ? `${unit} · ${QT.risk}% risk` : `${unit} · spread ${F(Math.abs((L.q.ask || 0) - (L.q.bid || 0)))}`);
+  const inp = $("qtSize"); if (QT.sizeBy === "risk") { inp.readOnly = true; if (document.activeElement !== inp) inp.value = size > 0 ? size : "—"; } else inp.readOnly = false;
+  set("qtSlD", QT.sl ? F(L.slD) : ""); set("qtTpD", QT.tp ? F(L.tpD) : "");
+  const pend = L.type !== "market", pe = $("qtPend"); if (pe) pe.hidden = !pend;
+  if (pend) set("qtPendT", `${L.buy ? "Buy" : "Sell"} ${L.type} · ${F(Math.abs(L.e - L.live))} ${L.e < L.live ? "below" : "above"} price`);
+  const rk = QT.sl ? qtMoney(sym, L, size, L.sl) : "", rw = QT.tp ? qtMoney(sym, L, size, L.tp) : "";
+  set("qtNote", !QT.sl ? "" : `Risk ${rk || "…"}${QT.tp ? ` · reward ${rw || "…"}` : ""} · drag the lines to adjust`);
+  let w = ""; if (!QT.sl) w = "No stop: the risk on this trade isn't capped.";
+  if (QT.sizeBy === "risk" && QT.sz && QT.sz.err) w = "Size: " + QT.sz.err;
+  if (v === "mx" && L.type === "stop") w = "MEXC takes market and limit entries here; drag the entry to the other side of the price or back to market.";
+  if (QT.err) w = QT.err; set("qtWarn", w);
+}
+async function qtPlace(side) {
+  const sym = CH.sym, v = trVenue(sym), L = qtLevels(sym, side); QT.err = "";
+  if (!L) { QT.err = "No live price yet."; qtUpdate(); return; }
+  const size = qtSize(sym, L), live = v === "ct" ? CTT.live : true, ask = live ? QT.cfLive : QT.cfDemo;
+  if (!(size > 0)) { QT.err = QT.sizeBy === "risk" ? "Size isn't worked out yet: turn on the stop, or wait a second." : "Type a size first."; qtUpdate(); return; }
+  if (v === "mx" && L.type === "stop") { qtUpdate(); return; }
+  if (ask && !(QT.armed && QT.armed.side === side && QT.armed.until > Date.now())) { QT.armed = { side, until: Date.now() + 5000 }; qtUpdate(); setTimeout(qtUpdate, 5100); return; }
+  QT.armed = null; const o = { side, type: L.type, price: L.e, sl: QT.sl ? L.sl : null, tp: QT.tp ? L.tp : null }, unit = v === "ct" ? "lots" : "contracts";
+  qtBusy(true);
+  try {
+    if (v === "ct") { if (CTT.state !== "ready") await cttConnect(); const x = cttSym(sym); if (!x) throw new Error(`${trName(sym)} isn't on the trading account`);
+      if (CTT.live && !trCfg().live) throw new Error("this is a live account and live trading is off (Trade settings)"); await cttPlace({ ...o, x, lots: size }); }
+    else await mxtPlace({ ...o, sym, contracts: size, price: L.type === "market" ? L.live : L.e, lev: +QT.lev || 10, openType: 1 });
+    trLog(`Quick trade: ${side} ${size} ${unit} ${trName(sym)} (${L.type})`);
+    toast(`${side === "buy" ? "Buy" : "Sell"} ${L.type === "market" ? "at market" : L.type + " order"} sent for ${chEsc(trName(sym))}. It shows on the chart as a line.`);
+    const st = QT.lv[sym]; if (st) st.e = null;
+    if (v === "ct") cttRefresh().catch(() => {}); else mxtRefresh();
+  } catch (x) { QT.err = "Not sent: " + x.message; trLog(`Quick trade not sent: ${x.message}`, true); }
+  qtBusy(false); qtUpdate(); chDirty = true;
+}
+function qtBusy(on) { document.querySelectorAll("#qtBox [data-qs]").forEach(b => b.disabled = on); }
+document.addEventListener("click", e => { if (!e.target.closest("#chQtBtn")) return; CH.qt = !CH.qt; chSave(); qtBtnSync(); qtBuild(); });
+setInterval(() => {                              // keep the box with the chart: built when the chart shows, rebuilt for a new symbol
+  const body = document.querySelector("#chPage .chbody"); if (!body) return; qtBtnSync();
+  if (CH.qt && !$("qtBox")) qtBuild(); else if (!CH.qt && $("qtBox")) qtBuild();
+  if ($("qtBox") && QT.sym !== CH.sym) { QT.sym = CH.sym; QT.armed = null; QT.err = ""; QT.sz = null; qtPrep(); qtUpdate(); }
+}, 400);
 async function trLineX(l) {                     // × on a line: close the position or cancel the order (asks once when "confirm" is on)
   if (trCfg().confirm && !(TW.arm && TW.arm.key === l.key && TW.arm.until > Date.now())) { TW.arm = { key: l.key, until: Date.now() + 4000 }; chDirty = true; setTimeout(() => { chDirty = true; }, 4100); return; }
   TW.arm = null; chDirty = true;

@@ -73,8 +73,15 @@ async def main():
         print("14) mexc venue:", await q("() => [trVenue(TR.sym), document.getElementById('trVenue').innerText, document.getElementById('trMx').hidden, document.getElementById('trUnit').innerText]"))
         e2 = await q("() => trEntry()"); await pg.fill("#trSL", str(round(e2 * 0.98, 2))); await pg.fill("#trTP", "")
         await q("() => document.getElementById('trRiskBtn').click()"); await asyncio.sleep(1.5); print("15) mexc size:", await q("() => [document.getElementById('trSize').value, document.getElementById('trSizeNote').innerText]"))
-        await pg.fill("#trLev", "5"); await q("() => document.getElementById('trGo').click()"); await asyncio.sleep(0.2); await q("() => document.getElementById('trGo').click()"); await wait("() => MXT.positions.length > 0", 10)
-        print("16) mexc order:", {k: MX["log"][-1].get(k) for k in ("symbol", "side", "type", "vol", "leverage", "openType", "stopLossPrice")}, "| bad signatures:", MX["badsig"])
+        # auto leverage: lowest that keeps margin under 20% of the balance, liquidation at least 3x the stop away, isolated
+        await wait("() => /Auto: \\d+×/.test(document.getElementById('trLevNote').textContent)", 15)
+        lv = await q("() => { const r = mxtLev(TR.sym, trEntry(), trNum('trSL'), trNum('trSize')); return { lev: r.lev, input: document.getElementById('trLev').value, ro: document.getElementById('trLev').readOnly, margin: Math.round(r.margin), capOk: r.margin <= 0.2 * MXT.asset.equity + 1e-6, liqVsStop: +(r.liqPct / r.stopPct).toFixed(1), isolatedLocked: document.getElementById('trMargin').value === '1' && document.getElementById('trMargin').disabled, note: document.getElementById('trLevNote').textContent }; }")
+        print("15b) auto leverage:", lv)
+        await q("() => document.getElementById('trLevAuto').click()"); await pg.fill("#trLev", "7"); await q("() => trPreview()")
+        print("15c) manual:", await q("() => [document.getElementById('trLev').value, document.getElementById('trLev').readOnly, trCfg().levAuto, document.getElementById('trMargin').disabled]"))
+        await q("() => document.getElementById('trLevAuto').click()"); await q("() => trPreview()")
+        await q("() => document.getElementById('trGo').click()"); await asyncio.sleep(0.2); await q("() => document.getElementById('trGo').click()"); await wait("() => MXT.positions.length > 0", 10)
+        print("16) mexc order:", {k: MX["log"][-1].get(k) for k in ("symbol", "side", "type", "vol", "leverage", "openType", "stopLossPrice")}, "| sent auto leverage:", MX["log"][-1].get("leverage") == lv["lev"], "| bad signatures:", MX["badsig"])
         print("17) mexc book:", await q("() => document.getElementById('trBook').innerText.replace(/\\s+/g, ' ').slice(0, 200)"))
         # the MEXC position on the coin's chart (cTrader connected too), live P&L, and the trade watch columns line up
         await q("() => { cttConnect().catch(() => {}); goPage('charts'); CH.layout = '1'; chApplyLayout(); chSetSym('BTCUSDT'); }")
@@ -107,7 +114,7 @@ async def main():
             await pg.select_option("#tpType", k); await asyncio.sleep(1.2)
             print(f"21c) picked {k}:", await q("() => document.getElementById('tpType').value"))
         await pg.select_option("#tpType", t0)
-        print("21d) placed top-left:", await q("() => { const a = document.getElementById('trPosPanel').getBoundingClientRect(), p = chVis()[0].cv.getBoundingClientRect(); return [Math.round(a.left - p.left), Math.round(a.top - p.top), a.left >= p.left && a.left - p.left < 420 && a.top - p.top < 140]; }"))
+        print("21d) docked beside the charts:", await q("() => { const a = document.getElementById('trPosPanel').getBoundingClientRect(), panes = chVis().map(P => P.cv.getBoundingClientRect()); return { overlapsChart: panes.some(p => a.left < p.right && a.right > p.left && a.top < p.bottom && a.bottom > p.top), rightOfCharts: panes.every(p => a.left >= p.right - 1), docked: document.querySelector('#chPage .chbody').classList.contains('trdock') }; }"))
         # drag the red stop line with the mouse: the size follows
         box = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), d = CHD[CH.sym][0]; return [r.left, r.top, chPlotW(P), chY(P, d.pts[1].p), chY(P, d.pts[0].p)]; }")
         x0 = box[0] + box[2] - 40; ys = box[1] + box[3]          # near the right edge, where the position sits (the order panel hovers top-left)

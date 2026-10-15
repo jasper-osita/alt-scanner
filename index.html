@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2051">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2120">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -663,10 +663,11 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .trticket .xseg{display:flex;width:100%}.trticket .xseg button{flex:1}
 .trrow input,.trrow select{width:100%;box-sizing:border-box}
 .chfloat .chfltr{background:#2962ff;color:#fff;border-radius:6px;padding:0 10px;font-weight:600}
-.trpospanel{position:absolute;left:58px;top:90px;z-index:40;width:300px;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.trpospanel{position:absolute;right:0;top:0;bottom:0;z-index:40;width:300px;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .trpph{display:flex;justify-content:space-between;align-items:center}.trppf{display:flex;gap:6px;align-items:center}.trpospanel .trgo{padding:7px 12px;font-size:13px}
 .trpospanel .trkv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}.trpospanel .trkv span{color:var(--mute)}
-@media (max-width:900px){.trpospanel{right:10px;left:10px;width:auto;top:auto;bottom:10px;position:fixed}}
+@media (max-width:900px){.trpospanel{right:10px;left:10px;width:auto;top:auto;bottom:10px;position:fixed;max-height:70vh}}
+@media (min-width:901px){.chbody.trdock,.chovh .chbody.trdock,.chdlg .chbody.trdock{grid-template-columns:40px minmax(0,1fr) 300px!important}.chbody.trdock .chwl{visibility:hidden}}
 .trpos{display:flex;flex-direction:column;gap:10px;min-width:320px}.trpos .trkv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}.trpos .trkv span:nth-child(odd){color:var(--mute)}
 .trrow input,.trrow select,.trin{background:var(--bg);border:1px solid var(--pill-b);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit;min-width:0}
 .trin{padding:4px 6px;width:90px}.trinl{display:flex;gap:6px}.trinl input{flex:1}
@@ -976,6 +977,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .qtpt{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:7px;background:rgba(41,98,255,.15);color:#8fb0ff;font-weight:600}
 .qtset{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:7px}.qtsr{display:flex;align-items:center;justify-content:space-between;gap:8px}.qtsr>span:last-child{display:flex;align-items:center;gap:4px}
 #chQtBtn.on{border-color:var(--accent);color:var(--accent)}
+.trlevauto.on{border-color:var(--accent);color:var(--accent)}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
 @media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
 /* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
@@ -1208,8 +1210,9 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <div class="trgrid"><label class="trrow"><span>Size (<span id="trUnit">lots</span>)</span><input id="trSize" inputmode="decimal" autocomplete="off"></label>
         <label class="trrow">Risk % <span class="trinl"><input id="trRisk" inputmode="decimal" autocomplete="off"><button class="btn sm" id="trRiskBtn" type="button">Size it</button></span></label></div>
       <div class="meta" id="trSizeNote"></div>
-      <div class="trgrid" id="trMx" hidden><label class="trrow">Leverage <input id="trLev" inputmode="numeric" value="10"></label>
+      <div class="trgrid" id="trMx" hidden><label class="trrow">Leverage <span class="trinl"><input id="trLev" inputmode="numeric" value="10"><button class="btn sm trlevauto" id="trLevAuto" type="button" aria-pressed="true" title="Pick the leverage for me">Auto</button></span></label>
         <label class="trrow">Margin <select id="trMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>
+      <div class="meta" id="trLevNote" hidden></div>
       <button class="btn trgo buy" id="trGo" type="button">Buy</button>
       <div class="dn meta" id="trWarn" aria-live="polite"></div>
     </div>
@@ -4380,7 +4383,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.2051";
+const APP_VERSION = "2026.10.15.2120";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9539,7 +9542,7 @@ setInterval(() => { if (page === "overview" && document.visibilityState === "vis
 </script>
 <script id="trade">/* ===================== Trade page: order ticket, positions and orders — cTrader (demo first) and MEXC futures ===================== */
 const TR_KEY = "finder-trade", MXT_KEY = "finder-mexc-trade";
-const trCfg = () => ({ live: false, acct: null, confirm: true, risk: 0.5, ...(lsGet(TR_KEY, {}) || {}) });
+const trCfg = () => ({ live: false, acct: null, confirm: true, risk: 0.5, levAuto: true, levCap: 20, levBuf: 3, ...(lsGet(TR_KEY, {}) || {}) });
 const trSave = c => { try { localStorage.setItem(TR_KEY, JSON.stringify(c)); } catch (e) {} };
 const TR = { sym: null, side: "buy", type: "market", armed: 0, log: [], busy: false, poll: null };
 const trEsc = v => String(v ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -9697,6 +9700,32 @@ async function mxtPlace(o) {                   // o: { sym, side, type, contract
   setTimeout(mxtRefresh, 800); return d;
 }
 
+/* ---- MEXC auto leverage: the lowest that keeps this trade's margin under a share of the balance, never so high that
+        liquidation comes within a few stop-distances. Leverage doesn't change the loss at the stop (size does); it sets margin and liquidation. ---- */
+function mxtLev(sym, entry, stop, contracts) {    // → { lev, margin, liqPct, stopPct, warn, block } or null while MEXC's details load
+  if (!sym) return null; const ms = mxF(sym), d = MXT.detail[ms], a = MXT.asset;
+  if (!d) { mxtDetail(sym).catch(() => {}); return null; }
+  if (!a) { if (mxtOn() && !MXT.assetBusy) { MXT.assetBusy = 1; mxtRefresh().finally(() => { MXT.assetBusy = 0; }); } return null; }
+  const tc = trCfg(), cap = Math.min(100, Math.max(1, +tc.levCap || 20)) / 100, buf = Math.max(1, +tc.levBuf || 3), bal = +(a.equity || a.availableBalance || 0), free = +(a.availableBalance != null ? a.availableBalance : bal);
+  const mmr = +d.maintenanceMarginRate || 0.004, max = Math.max(1, Math.floor(+d.maxLeverage || 125)), min = Math.max(1, Math.ceil(+d.minLeverage || 1));
+  const notional = (+contracts || 0) * (+d.contractSize || 1) * entry; if (!(notional > 0) || !(bal > 0) || !(entry > 0)) return null;
+  const sp = stop > 0 ? Math.abs(entry - stop) / entry : null, safe = sp ? Math.max(1, Math.floor(1 / (buf * sp + mmr))) : max;
+  const want = Math.max(min, Math.ceil(notional / (cap * bal))), lev = Math.max(min, Math.min(want, safe, max)), margin = notional / lev, liqPct = Math.max(0, 1 / lev - mmr);
+  let warn = "", block = false;
+  if (margin > free) { warn = `This needs ${fmtNum(margin)} USDT of margin and ${fmtNum(free)} is free: lower the size or the risk %.`; block = true; }
+  else if (want > lev) warn = `Margin is ${Math.round(margin / bal * 100)}% of your balance: ${lev === max ? "MEXC's maximum is " + max + "×" : "a higher leverage would put liquidation within " + buf + "× your stop"}.`;
+  else if (!sp) warn = "No stop: leverage is set from margin only.";
+  return { lev, margin, liqPct, stopPct: sp, warn, block };
+}
+const mxtLevTxt = r => r ? `${r.lev}× · margin ${fmtNum(r.margin)} USDT · liquidation about ${(r.liqPct * 100).toFixed(1)}% away${r.stopPct ? ` (stop ${(r.stopPct * 100).toFixed(2)}%)` : ""}` : "Working out the leverage…";
+function mxtLevUi(levId, autoId, marginId, noteId, r) {   // shared by the ticket, the chart's order panel and the quick trade
+  const auto = trCfg().levAuto !== false, inp = $(levId), b = $(autoId), m = marginId && $(marginId), n = $(noteId); if (!inp) return;
+  if (b) { b.classList.toggle("on", auto); b.setAttribute("aria-pressed", auto); }
+  inp.readOnly = auto; if (auto && r && document.activeElement !== inp && inp.value !== String(r.lev)) inp.value = r.lev;
+  if (m) { if (auto && m.value !== "1") m.value = "1"; m.disabled = auto; }
+  if (n) { const t = auto ? `Auto: ${mxtLevTxt(r)}${r && r.warn ? " · " + r.warn : ""}` : (r && r.warn && r.block ? r.warn : ""); if (n.textContent !== t) n.textContent = t; n.classList.toggle("dn", !!(r && r.block)); }
+}
+function mxtLevToggle() { const c = trCfg(); trSave({ ...c, levAuto: c.levAuto === false }); }
 function mxtPx(ms) {                           // MEXC's own bid/ask for a MEXC symbol (BTC_USDT); never the broker's price for the same coin
   const t = MXT.tick[ms]; if (t && Date.now() - t.at < 30e3) return t;
   const r = typeof bySym !== "undefined" && bySym[mxBack(ms)]; return r && EXCHANGE === "mexc" ? { bid: r.price, ask: r.price } : null;
@@ -9780,6 +9809,7 @@ function trPreview() {
   b.className = `btn trgo ${TR.side}`; b.disabled = !!err || TR.busy;
   b.textContent = TR.armed > Date.now() ? `Confirm ${TR.side} ${size || ""} ${unit}` : `${TR.side === "buy" ? "Buy" : "Sell"} ${size || ""} ${unit} ${TR.sym ? trName(TR.sym) : ""} ${TR.type === "market" ? "at market" : TR.type === "limit" ? "limit" : "stop"}`;
   $("trWarn").textContent = err || "";
+  const ln = $("trLevNote"); if (ln) { ln.hidden = !TR.sym || v !== "mx"; if (TR.sym && v === "mx") mxtLevUi("trLev", "trLevAuto", "trMargin", "trLevNote", mxtLev(TR.sym, e, sl, size)); }
 }
 async function trSizeCalc(sym, e, sl, risk, man) {   // → { qty, unit, txt, risk, ccy, below, bal, bccy, src }; man > 0 = a typed account size, else the account's own balance
   if (!(risk > 0)) throw new Error("set a risk %");
@@ -10073,13 +10103,13 @@ function qtBuild() {                             // the box, once per chart: the
     <div class="qtrow"><button class="qtsw sl ${QT.sl ? "on" : ""}" data-qt="sl" aria-pressed="${QT.sl}"><i></i>Stop loss <b id="qtSlD"></b></button><button class="qtsw ${QT.tp ? "on" : ""}" data-qt="tp" aria-pressed="${QT.tp}"><i></i>Take profit <b id="qtTpD"></b></button></div>
     <div class="qtrow"><span class="mute">Lock reward : risk</span>${rrs.map(([k, l]) => `<button class="qtchip ${String(QT.rr) === String(k) ? "on" : ""}" data-rr="${k}" aria-pressed="${String(QT.rr) === String(k)}">${l}</button>`).join("")}${QT.rr === "c" ? `<input id="qtRrC" class="qtrrc" inputmode="decimal" aria-label="Custom reward for 1 risk" value="${QT.rrC}">` : ""}</div>
     <div class="qtrow qtpend" id="qtPend" hidden><span class="qtpt" id="qtPendT"></span><button class="qtchip" id="qtMkt">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 13)} Back to market</button></div>
-    <div class="meta" id="qtNote"></div><div class="meta dn" id="qtWarn" aria-live="polite"></div>
+    <div class="meta" id="qtNote"></div><div class="meta" id="qtLevNote" hidden></div><div class="meta dn" id="qtWarn" aria-live="polite"></div>
     <div class="qtset" id="qtSet" hidden>
       <div class="qtsr"><span>Size by</span><span><button class="qtchip ${QT.sizeBy !== "risk" ? "on" : ""}" data-sb="lots">Lots</button><button class="qtchip ${QT.sizeBy === "risk" ? "on" : ""}" data-sb="risk">Risk %</button>${QT.sizeBy === "risk" ? `<input id="qtRisk" class="qtrrc" inputmode="decimal" aria-label="Risk percent" value="${QT.risk}">` : ""}</span></div>
       <div class="qtsr"><span>Default stop</span><span><input id="qtAtr" class="qtrrc" inputmode="decimal" aria-label="Stop distance in ATRs" value="${QT.atr}"> × ATR (14)</span></div>
       <div class="qtsr"><span>Drag the entry for a limit or stop</span><button class="qtchip ${QT.drag ? "on" : ""}" data-qx="drag" aria-pressed="${QT.drag}">${QT.drag ? "On" : "Off"}</button></div>
       <div class="qtsr"><span>Ask to confirm on</span><span><button class="qtchip ${QT.cfDemo ? "on" : ""}" data-qx="cfDemo" aria-pressed="${QT.cfDemo}">Demo</button><button class="qtchip ${QT.cfLive ? "on" : ""}" data-qx="cfLive" aria-pressed="${QT.cfLive}">Live and MEXC</button></span></div>
-      <div class="qtsr"><span>MEXC leverage</span><span><input id="qtLev" class="qtrrc" inputmode="numeric" aria-label="MEXC leverage" value="${QT.lev}">×</span></div>
+      <div class="qtsr"><span>MEXC leverage</span><span><button class="qtchip trlevauto" id="qtLevAuto" aria-pressed="true">Auto</button><input id="qtLev" class="qtrrc" inputmode="numeric" aria-label="MEXC leverage" value="${QT.lev}">×</span></div>
       <div class="meta">Pending orders stay until filled or cancelled (good till cancelled).</div></div>`;
   const re = () => { qtSave(); qtBuild(); chDirty = true; };
   $("qtSize").value = QT.size; $("qtSize").oninput = () => { const v = parseFloat($("qtSize").value); if (v > 0) { QT.size = v; qtSave(); QT.armed = null; qtUpdate(); chDirty = true; } };
@@ -10116,6 +10146,7 @@ function qtUpdate() {                            // the numbers in the box: pric
   if (pend) set("qtPendT", `${L.buy ? "Buy" : "Sell"} ${L.type} · ${F(Math.abs(L.e - L.live))} ${L.e < L.live ? "below" : "above"} price`);
   const rk = QT.sl ? qtMoney(sym, L, size, L.sl) : "", rw = QT.tp ? qtMoney(sym, L, size, L.tp) : "";
   set("qtNote", !QT.sl ? "" : `Risk ${rk || "…"}${QT.tp ? ` · reward ${rw || "…"}` : ""} · drag the lines to adjust`);
+  const ln = $("qtLevNote"); if (ln) { ln.hidden = v !== "mx"; if (v === "mx") mxtLevUi("qtLev", "qtLevAuto", null, "qtLevNote", mxtLev(sym, L.e, QT.sl ? L.sl : null, size)); }
   let w = ""; if (!QT.sl) w = "No stop: the risk on this trade isn't capped.";
   if (QT.sizeBy === "risk" && QT.sz && QT.sz.err) w = "Size: " + QT.sz.err;
   if (v === "mx" && L.type === "stop") w = "MEXC takes market and limit entries here; drag the entry to the other side of the price or back to market.";
@@ -10133,7 +10164,9 @@ async function qtPlace(side) {
   try {
     if (v === "ct") { if (CTT.state !== "ready") await cttConnect(); const x = cttSym(sym); if (!x) throw new Error(`${trName(sym)} isn't on the trading account`);
       if (CTT.live && !trCfg().live) throw new Error("this is a live account and live trading is off (Trade settings)"); await cttPlace({ ...o, x, lots: size }); }
-    else await mxtPlace({ ...o, sym, contracts: size, price: L.type === "market" ? L.live : L.e, lev: +QT.lev || 10, openType: 1 });
+    else { const r = mxtLev(sym, L.e, o.sl, size), auto = trCfg().levAuto !== false;
+      if (auto && !r) throw new Error("still working out the leverage; try again in a second"); if (auto && r.block) throw new Error(r.warn);
+      await mxtPlace({ ...o, sym, contracts: size, price: L.type === "market" ? L.live : L.e, lev: auto ? r.lev : +QT.lev || 10, openType: 1 }); }
     trLog(`Quick trade: ${side} ${size} ${unit} ${trName(sym)} (${L.type})`);
     toast(`${side === "buy" ? "Buy" : "Sell"} ${L.type === "market" ? "at market" : L.type + " order"} sent for ${chEsc(trName(sym))}. It shows on the chart as a line.`);
     const st = QT.lv[sym]; if (st) st.e = null;
@@ -10142,6 +10175,8 @@ async function qtPlace(side) {
   qtBusy(false); qtUpdate(); chDirty = true;
 }
 function qtBusy(on) { document.querySelectorAll("#qtBox [data-qs]").forEach(b => b.disabled = on); }
+document.addEventListener("click", e => { const b = e.target.closest(".trlevauto"); if (!b) return; e.preventDefault(); mxtLevToggle();
+  if (typeof trPreview === "function" && $("trLev")) trPreview(); if ($("qtBox")) qtUpdate(); });
 document.addEventListener("click", e => { if (!e.target.closest("#chQtBtn")) return; CH.qt = !CH.qt; chSave(); qtBtnSync(); qtBuild(); });
 setInterval(() => {                              // keep the box with the chart: built when the chart shows, rebuilt for a new symbol
   const body = document.querySelector("#chPage .chbody"); if (!body) return; qtBtnSync();
@@ -10300,22 +10335,12 @@ function trPosAcct(d) {                         // for the settings box: where t
   const c = TPS.get(d.id) || {}, v = c.val;
   return v ? `${fmtNum(v.bal)} ${v.bccy} · ${v.src === "manual" ? "typed" : v.src}` : c.err ? `Not synced: ${c.err}` : "Reading your account…";
 }
-function trPosPlace() {                         // hover over the top left of the chart that holds the position (under the quick trade box if it's there)
-  const el = $("trPosPanel"), host = $("chPage"); if (!el || !host || el.parentNode !== host) return;
-  if (matchMedia("(max-width:900px)").matches) { el.style.left = el.style.top = el.style.maxHeight = ""; return; }   // small screens keep the bottom sheet
-  const P = CHP[chSelPane] && chVis().includes(CHP[chSelPane]) ? CHP[chSelPane] : chVis()[0]; if (!P) return;
-  const hr = host.getBoundingClientRect(), pr = P.cv.getBoundingClientRect(), qb = $("qtBox"), qr = qb && qb.getBoundingClientRect();
-  let x = pr.left - hr.left + 10, y = pr.top - hr.top + 58;
-  if (qr && qr.width && qr.left < pr.left + 320 && qr.right > pr.left && qr.top < pr.top + 320) y = Math.max(y, qr.bottom - hr.top + 8);   // under the quick trade box, still on the left, clear of the position
-  const px = Math.round(x) + "px", py = Math.round(y) + "px", mh = Math.max(200, Math.round(pr.bottom - hr.top - y - 10)) + "px";
-  if (el.style.left !== px) el.style.left = px; if (el.style.top !== py) el.style.top = py; if (el.style.maxHeight !== mh) el.style.maxHeight = mh;
-}
-function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
+function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
 async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
   trPosClose();
   const sym = CH.sym, v = trVenue(sym); let side = d.type === "long" ? "buy" : "sell"; const unit = v === "mx" ? "contracts" : "lots";
   const dg = x => x >= 100 ? 2 : x >= 1 ? 5 : 6, f = x => +(+x).toFixed(dg(d.pts[0].p));
-  const host = $("chPage") || document.body, el = document.createElement("div");
+  const host = document.querySelector("#chPage .chbody") || $("chPage") || document.body, el = document.createElement("div");   // docked in its own column right of the charts
   el.id = "trPosPanel"; el.className = "trpospanel"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Order from the chart");
   el.innerHTML = `<div class="trpph"><b id="tpHead">${side === "buy" ? "Buy" : "Sell"} ${chEsc(trName(sym))}</b><button class="chx" id="tpClose" aria-label="Close">${chIco("x", 15)}</button></div>
     <div class="meta" id="tpVenue">${v === "ct" ? "cTrader · connecting…" : "MEXC futures"}</div>
@@ -10324,11 +10349,11 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     <div class="trrow tprr"><span>Lock reward : risk</span><span id="tpRR"></span></div>
     <label class="trrow">Order<select id="tpType"></select></label>
     <div class="trgrid"><label class="trrow">Risk %<input id="tpRisk" inputmode="decimal"></label><label class="trrow"><span>Size (${unit})</span><input id="tpSize" inputmode="decimal"></label></div>
-    ${v === "mx" ? `<div class="trgrid"><label class="trrow">Leverage<input id="tpLev" inputmode="numeric" value="10"></label><label class="trrow">Margin<select id="tpMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>` : ""}
-    <div class="meta" id="tpNote"></div><div class="dn meta" id="tpWarn" aria-live="polite"></div>
+    ${v === "mx" ? `<div class="trgrid"><label class="trrow">Leverage<span class="trinl"><input id="tpLev" inputmode="numeric" value="10"><button class="btn sm trlevauto" id="tpLevAuto" type="button" aria-pressed="true" title="Pick the leverage for me">Auto</button></span></label><label class="trrow">Margin<select id="tpMargin"><option value="1">Isolated</option><option value="2">Cross</option></select></label></div>` : ""}
+    ${v === "mx" ? `<div class="meta" id="tpLevNote"></div>` : ""}<div class="meta" id="tpNote"></div><div class="dn meta" id="tpWarn" aria-live="polite"></div>
     <div class="trppf"><button class="btn sm" id="tpTicket">Open in ticket</button><span style="flex:1"></span><button class="btn sm" id="tpCancel">Cancel</button><button class="btn trgo ${side}" id="tpGo" disabled>Place order</button></div>`;
   ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation()));
-  host.appendChild(el); TR.posId = d.id; chSel = d.id; chDirty = true; if (typeof chSelBar === "function") chSelBar(); trPosPlace();
+  host.appendChild(el); host.classList.add("trdock"); window.dispatchEvent(new Event("resize")); TR.posId = d.id; chSel = d.id; chDirty = true; if (typeof chSelBar === "function") chSelBar();
   $("tpRisk").value = chDS(d).risk > 0 ? chDS(d).risk : trCfg().risk;
   const warn = t => { $("tpWarn").textContent = t || ""; }, lv = () => ({ e: d.pts[0].p, sl: d.pts[1].p, tp: d.pts[2] ? d.pts[2].p : null });
   let manual = false, lastKey = "", seq = 0;
@@ -10367,7 +10392,9 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     $("tpGo").disabled = true; warn("");
     try {
       if (v === "ct") { if (CTT.live && !trCfg().live) throw new Error("this is a live account but live trading is off"); await cttPlace({ x: cttSym(sym), side, type, lots: size, price: e, sl, tp }); }
-      else await mxtPlace({ sym, side, type, contracts: size, price: type === "market" ? ref : e, sl, tp, lev: +$("tpLev").value || 10, openType: +$("tpMargin").value || 1 });
+      else { const r = mxtLev(sym, type === "market" ? ref : e, sl, size), auto = trCfg().levAuto !== false;
+        if (auto && !r) throw new Error("still working out the leverage; try again in a second"); if (auto && r.block) throw new Error(r.warn);
+        await mxtPlace({ sym, side, type, contracts: size, price: type === "market" ? ref : e, sl, tp, lev: auto ? r.lev : +$("tpLev").value || 10, openType: auto ? 1 : +$("tpMargin").value || 1 }); }
       trLog(`Chart order: ${side} ${size} ${unit} ${trName(sym)} (${type})`); trPosClose(); toast(`${side === "buy" ? "Buy" : "Sell"} order sent for ${chEsc(trName(sym))}. It shows on the chart as a line, and under Trade → Positions &amp; orders.`);
     } catch (x) { warn("Order not sent: " + x.message); $("tpGo").disabled = false; $("tpGo").dataset.armed = ""; $("tpGo").textContent = "Place order"; }
   };
@@ -10378,7 +10405,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
   } catch (x) { $("tpWarn").dataset.size = x.message; warn(x.message); if ($("tpVenue")) $("tpVenue").textContent = v === "ct" ? "cTrader: not ready" : "MEXC: not ready"; }
   if (!$("trPosPanel")) return;
   sync(); clearInterval(TR.posTimer);
-  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } trPosPlace(); sync(); if (!$("tpType").dataset.user) types(); check(); }, 250);
+  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } sync(); if (v === "mx") { const { e, sl } = lv(); mxtLevUi("tpLev", "tpLevAuto", "tpMargin", "tpLevNote", mxtLev(sym, e, sl, parseFloat($("tpSize").value))); } if (!$("tpType").dataset.user) types(); check(); }, 250);
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $("trPosPanel")) { e.stopPropagation(); trPosClose(); } }, true);
 async function trSizeFromRisk() {
@@ -10397,7 +10424,9 @@ async function trSubmit() {
   try {
     if (trVenue(s) === "ct") { if (CTT.state !== "ready") await cttConnect(); const x = cttSym(s); if (!x) throw new Error(`${trName(s)} isn't on this trading account`);
       if (CTT.live && !tc.live) throw new Error("this is a live account but live trading is off"); await cttPlace({ ...o, x, lots: size }); }
-    else { const e = o.type === "market" ? trEntry() : o.price; await mxtPlace({ ...o, sym: s, contracts: size, price: e, lev: +$("trLev").value || 10, openType: +$("trMargin").value || 1 }); }
+    else { const e = o.type === "market" ? trEntry() : o.price, r = mxtLev(s, e, o.sl, size), auto = tc.levAuto !== false;
+      if (auto && !r) throw new Error("still working out the leverage; try again in a second"); if (auto && r.block) throw new Error(r.warn);
+      await mxtPlace({ ...o, sym: s, contracts: size, price: e, lev: auto ? r.lev : +$("trLev").value || 10, openType: auto ? 1 : +$("trMargin").value || 1 }); }
   } catch (e) { trLog(`Order not sent: ${e.message}`, true); $("trWarn").textContent = e.message; }
   TR.busy = false; trPreview();
 }
@@ -10457,6 +10486,10 @@ function trSettings() {
       <label>Secret key<input id="tsMxSec" type="password" autocomplete="off" value="${trEsc(mc.secret)}"></label>
       <h4>Order ticket</h4>
       <label class="chk"><input type="checkbox" id="tsConfirm" ${tc.confirm ? "checked" : ""}> Ask me to confirm each order (a second click)</label>
+      <h4>MEXC auto leverage</h4>
+      <p class="meta">Your loss at the stop comes from the size, not the leverage. Auto picks the lowest leverage that keeps a trade's margin under the cap, and never one that puts liquidation closer than the buffer × your stop distance. Always isolated margin.</p>
+      <label>Margin cap (% of your futures balance per trade)<input id="tsLevCap" inputmode="decimal" value="${trEsc(tc.levCap)}"></label>
+      <label>Liquidation at least this many times the stop distance away<input id="tsLevBuf" inputmode="decimal" value="${trEsc(tc.levBuf)}"></label>
       <div class="meta" id="tsMsg" aria-live="polite"></div>
       <div class="ctacts"><button class="btn primary" id="tsSave">Save</button>${mc.key ? '<button class="btn" id="tsMxForget">Remove MEXC key</button>' : ""}</div>
     </div>`;
@@ -10468,7 +10501,8 @@ function trSettings() {
     const wantLive = $("tsLive").checked;
     if (wantLive && !tc.live && $("tsLiveTxt").value.trim().toUpperCase() !== "LIVE") { $("tsMsg").innerHTML = '<span class="dn">Type LIVE to allow live accounts.</span>'; return; }
     const acct = $("tsAcct").value, changed = acct !== String(tc.acct) || wantLive !== tc.live;
-    trSave({ ...tc, acct, live: wantLive, confirm: $("tsConfirm").checked });
+    const cap = parseFloat($("tsLevCap").value), buf = parseFloat($("tsLevBuf").value);
+    trSave({ ...trCfg(), acct, live: wantLive, confirm: $("tsConfirm").checked, levCap: cap > 0 && cap <= 100 ? cap : 20, levBuf: buf >= 1 ? buf : 3 });
     const k = $("tsMxKey").value.trim(), sc = $("tsMxSec").value.trim();
     if (k && sc) { try { localStorage.setItem(MXT_KEY, JSON.stringify({ key: k, secret: sc })); } catch (e) {} }
     $("dlg").close(); if (changed) { cttClose(); CTT.state = "off"; } goPage("trade"); trStart();

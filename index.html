@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1155">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.1904">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -961,9 +961,10 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 @media (max-width:1000px){.dleft .dchbox{min-height:520px}}
 /* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
 .ovhero{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;margin-top:10px}
-.ovside{display:flex;flex-direction:column;gap:10px;min-width:0}.ovside .xchc{height:170px}
+.ovside{display:flex;flex-direction:column;gap:10px;min-width:0}.ovside .xchc{height:140px}
 .xchsec h3{margin:0;font:600 14px var(--display);color:var(--strong)}.xchsec .ovsub{margin-top:14px}
 .xcharts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ovregime .status{font-size:12px}.ovtgs{display:flex;gap:6px;flex-wrap:wrap}.ovtg.on{border-color:var(--accent);color:var(--accent)}
 .ovchost{height:620px;min-width:0;display:flex;flex-direction:column}.ovchost.x{height:560px;margin-top:10px}
 .ovchost>.empty{flex:1;display:flex;align-items:center;justify-content:center}
 .ovchost .chpage.chovh,.ovchost .chpage.chovh.pg-off{display:flex!important;height:auto;flex:1;min-height:0}
@@ -1033,12 +1034,6 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <div class="ticks"><span>12 AM</span><span>4 AM</span><span>8 AM</span><span>12 NN</span><span>4 PM</span><span>8 PM</span><span>12 AM</span></div>
       <div class="ribbon-note" id="sessNote"></div>
     </div>
-    <div class="card" aria-live="polite">
-      <div class="btcline"><span class="meta">BTC Regime</span><span class="regime" id="regime">–</span></div>
-      <div class="meta" id="regimeDetail">Run a scan to read BTC's 1H and 4H stacks.</div>
-      <div class="status" id="status">Ready. A full scan takes about 1–2 minutes.</div>
-      <div class="progress"><i id="prog"></i></div>
-    </div>
   </section>
 
   <section class="mrow" data-page="overview">
@@ -1052,6 +1047,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="ovhero">
     <div class="ovchost" id="ovChartC"><div class="empty">Loading the chart…</div></div>
     <aside class="ovside" aria-label="What's driving crypto">
+      <div class="xch ovregime" aria-live="polite">
+        <div class="btcline"><span class="meta">BTC Regime</span><span class="regime" id="regime">–</span></div>
+        <div class="meta" id="regimeDetail">Run a scan to read BTC's 1H and 4H stacks.</div>
+        <div class="status" id="status">Ready. A full scan takes about 1–2 minutes.</div>
+        <div class="progress"><i id="prog"></i></div>
+      </div>
       <div class="xmh"><h3>What's driving crypto <span class="meta">EMA 20 / 50 / 100</span></h3>
       <div class="xseg" id="cchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
       <div class="xch" data-ck="eth"><div class="xchh"><b>Ethereum</b><span class="meta xchsrc"></span></div><div class="xchst"></div><div class="xchc" role="img" aria-label="Ethereum chart: click to show it in the main chart" title="Show in the main chart"></div></div>
@@ -1129,7 +1130,8 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="mcard xstatcard"><h2>Market Status</h2><div id="xStat" class="xstat"><div class="empty">Loading…</div></div></div>
   </section>
   <section class="card xchsec" data-page="macroov">
-    <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2></div>
+    <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2>
+      <div class="ovtgs" role="group" aria-label="Chart options"><button class="btn sm ovtg" id="ovcAuto" aria-pressed="true" title="Nasdaq 100 switches to 1m for the US open (9:30 PM to 12 AM) and Gold to 5m for London (12 to 6 PM) on weekdays, then back to your own pick">Session timeframes</button><button class="btn sm ovtg" id="ovcLink" aria-pressed="false" title="Change one chart's timeframe and the other follows">Same timeframe</button></div></div>
     <div class="ovchost x" id="ovChartX"><div class="empty">Loading the charts…</div></div>
     <div class="xmh ovsub"><h3>Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click one to show it in the chart you last clicked</span></h3>
       <div class="xseg" id="xchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
@@ -4359,7 +4361,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.1155";
+const APP_VERSION = "2026.10.15.1904";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7936,7 +7938,7 @@ function chBuild() {
   el.querySelectorAll("[data-fit]").forEach(b => b.onclick = () => chFit(CHP[+b.dataset.fit]));
   el.querySelectorAll("[data-scb]").forEach(b => { b.addEventListener("pointerdown", e => e.stopPropagation(), true); b.onclick = e => { e.stopPropagation(); chScaleMenu(CHP[+b.dataset.scb], b); }; });
   el.querySelectorAll("[data-max]").forEach(b => b.onclick = () => { const i = +b.dataset.max; CH.max = CH.max === i ? null : i; chSave(); chApplyLayout(); });
-  el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); if (OVC.on) ovcRemember(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
+  el.querySelectorAll(".chtf").forEach(s => s.onchange = () => { const P = CHP[+s.dataset.i]; P.tf = CH.tfs[P.i] = s.value; chSave(); if (OVC.on === "x") ovcTfPicked(P); if (OVC.on) ovcRemember(); chLoad(P); if (typeof liveSync === "function") liveSync(); });
   $("chSync").onclick = () => { CH.sync = !CH.sync; chSave(); chIndicators(); };
   for (let i = 0; i < 4; i++) CHP.push({ i, pane: $("chPane" + i), tf: CH.tfs[i], t: [], o: [], h: [], l: [], c: [], tok: 0, chart: null, wrap: $("chWrap" + i), cv: $("chCv" + i), ov: $("chOv" + i), msg: $("chMsg" + i), sym: null, lastPoll: 0, sig: "", progUntil: 0 });
   CHP.forEach(P => chBindPane(P));
@@ -8161,7 +8163,7 @@ window.chDlgStart = chDlgStart; window.chDlgEnd = chDlgEnd;
 const OVC_PAGE = { c: "overview", x: "macroov" };
 function ovcRemember(picked) {                     // the overview's own symbols and timeframes, kept apart from the Charts page's
   if (!OVC.on) return; const k = OVC.on, o = OVC.st[k] = OVC.st[k] || {};
-  o.tfs = (k === "c" ? [0] : [0, 1]).map(i => CHP[i].tf); o.act = OVC.act;
+  o.tfs = (k === "c" ? [0] : [0, 1]).map(i => (k === "x" && CHP[i].manTf) || CHP[i].tf); o.act = OVC.act;
   if (picked) { o.syms = o.syms || []; o.syms[OVC.act] = picked; }
   chSaveJSON("finder-ovch", OVC.st);
 }
@@ -8172,6 +8174,27 @@ function ovcSyms(mode) {                           // your last pick, else Bitco
   const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
   return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
 }
+function ovcSessTf(sym) {                         // the timeframe a session asks for (PHT, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
+  if (!sym) return null; const d = new Date(Date.now() + PHT_MS), wd = d.getUTCDay(), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  if (wd < 1 || wd > 5) return null; const n = chName(sym);
+  if (/Nasdaq 100/.test(n) && h >= 21.5) return "1m";
+  if (/^Gold/.test(n) && h >= 12 && h < 18) return "5m";
+  return null;
+}
+function ovcSessApply(load) {                     // switch on entering or leaving a session window only, so your own pick inside the window stands
+  if (OVC.on !== "x") return; const o = OVC.st.x || {}, ps = [CHP[0], CHP[1]];
+  let want = ps.map(P => o.auto !== false ? ovcSessTf(P.psym) : null);
+  if (o.link) { const w = want.find(Boolean) || null; want = want.map(() => w); }
+  ps.forEach((P, i) => { const key = (want[i] || "") + "|" + P.psym; if (P.sessKey === key) return; P.sessKey = key;
+    const tf = want[i] || P.manTf || P.tf; if (P.tf === tf) return;
+    P.tf = CH.tfs[i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; if (load) chLoad(P); });
+}
+function ovcTfPicked(P) {                          // your own timeframe pick; with "Same timeframe" on, the other chart follows
+  const inSess = !!(P.sessKey && P.sessKey.split("|")[0]); if (!inSess) P.manTf = P.tf;
+  if ((OVC.st.x || {}).link) [CHP[0], CHP[1]].forEach(Q => { if (Q === P || Q.tf === P.tf) return; Q.tf = CH.tfs[Q.i] = P.tf; if (!inSess) Q.manTf = P.tf;
+    const sel = Q.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; chLoad(Q); });
+}
+function ovcTgSync() { const o = OVC.st.x || {}; [["ovcAuto", o.auto !== false], ["ovcLink", !!o.link]].forEach(([id, on]) => { const b = $(id); if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); } }); }
 function ovcMarkAct() { CHP.forEach(P => P.pane.classList.toggle("act", OVC.on === "x" && P.i === OVC.act)); }
 function ovcActivate(i) {
   OVC.act = i; CH.sym = CHP[i].psym; chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
@@ -8181,7 +8204,7 @@ async function ovcHost(mode) {
   const host = $(mode === "c" ? "ovChartC" : "ovChartX"); if (!host || CHDLG.on || page !== OVC_PAGE[mode]) return;
   const syms = ovcSyms(mode);
   if (OVC.on === mode && host.contains($("chPage"))) {          // already here: follow a default that changed (cTrader came online) and wake it up
-    if (mode === "x") syms.forEach((sym, i) => { const P = CHP[i]; if (sym && P.psym !== sym) { P.psym = sym; if (i === OVC.act) CH.sym = sym; chLoad(P); } });
+    if (mode === "x") { syms.forEach((sym, i) => { const P = CHP[i]; if (sym && P.psym !== sym) { P.psym = sym; if (i === OVC.act) CH.sym = sym; chLoad(P); } }); ovcSessApply(true); }
     if (!chOn) { chOn = true; if (typeof liveSync === "function") liveSync(); }
     requestAnimationFrame(() => { chResizeAll(); chDirty = true; }); return;
   }
@@ -8196,7 +8219,8 @@ async function ovcHost(mode) {
   const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
   CH.layout = mode === "c" ? "1" : "2c"; CH.max = null;
   syms.forEach((sym, i) => { const P = CHP[i]; P.psym = mode === "x" ? sym : null; P.sym = null;
-    P.tf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+    P.tf = P.manTf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; P.sessKey = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+  ovcSessApply(false);
   OVC.act = mode === "x" ? Math.min(1, +(OVC.st.x && OVC.st.x.act) || 0) : 0; CH.sym = syms[OVC.act];
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
   ovcMarkAct(); chOn = true; chIndicators(); chApplyLayout(); chHeader(); chSelBar();
@@ -8210,7 +8234,7 @@ function ovcPark() {                               // hand the chart back to the
   if (OVC.ro) OVC.ro.disconnect();
   chModalClose(); chMenuClose(); chColorClose(); chPickClose();
   el.classList.remove("chovh", "chov-c", "chov-x");
-  CHP.forEach(P => { if (P.psym) P.sym = null; P.psym = null; });
+  CHP.forEach(P => { if (P.psym) P.sym = null; P.psym = null; P.manTf = null; P.sessKey = null; });
   OVC.on = null; ovcMarkAct();
   CH.sym = pv.sym; CH.layout = pv.layout; CH.max = pv.max;
   pv.tfs.forEach((tf, i) => { const P = CHP[i]; CH.tfs[i] = tf; if (P && P.tf !== tf) { P.tf = tf; P.sym = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; } });
@@ -8225,6 +8249,10 @@ function ovcPick(sym) {                            // a small overview chart cli
   chSetSym(sym); return true;
 }
 window.ovcHost = ovcHost; window.ovcPick = ovcPick;
+if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
+if ($("ovcLink")) $("ovcLink").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.link = !o.link; chSaveJSON("finder-ovch", OVC.st); ovcTgSync();
+  if (OVC.on === "x") { CHP.forEach(P => P.sessKey = null); ovcSessApply(true); if (o.link) ovcTfPicked(CHP[OVC.act]); } };
+ovcTgSync();
 // Esc inside the dialog first cancels a drawing, a tool, a selection or an open menu; only a plain Esc closes the dialog
 document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
   CHDLG.escBusy = CHDLG.on && !!(chDraft || chMeasure || chSel || chTool !== "cursor" || $("chModBg") || $("chMenu") || $("chColPop") || ($("chPick") && !$("chPick").hidden));
@@ -9431,7 +9459,8 @@ async function renderXCharts(rows, force) {
   const sig = XCH.tf + "|" + XCH.idx + "|" + rows.length;
   if (XCH.busy || (!force && XCH.lastSig === sig && Date.now() - XCH.at < 55e3)) return;
   XCH.busy = true; XCH.lastSig = sig; XCH.at = Date.now();
-  try { await ensureLWC(); } catch (e) { XCH.busy = false; return; }
+  try {                                           // a failed load must never leave the cards stuck blank: busy always clears
+  try { await ensureLWC(); } catch (e) { return; }
   const tf = XCH.tf, card = k => sec.querySelector(`.xch[data-xk="${k}"]`), R = xchRows(rows);
   const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts[key]; c.querySelector(".xchst").innerHTML = ""; };
   await Promise.all([
@@ -9445,7 +9474,7 @@ async function renderXCharts(rows, force) {
           return `<div class="xi" data-s="${x.symbol}" role="button" tabindex="0"><b>${x.name}</b>${pctCell(x.chg24h)} <span class="${tt === "Uptrend" ? "up" : tt === "Downtrend" ? "dn" : "mute"}">${tt === "Uptrend" ? "▲" : tt === "Downtrend" ? "▼" : "◆"} ${tt || ""}</span></div>`; }).join("");
         c.querySelectorAll(".xi").forEach(e => e.onclick = () => { if (!ovcPick(e.dataset.s)) openDetail(e.dataset.s); }); } catch (e) { fail("idx", "Couldn't load " + XCH.idx); } })(),
   ]);
-  XCH.busy = false;
+  } catch (e) { console.warn("[Finder] overview charts:", e); } finally { XCH.busy = false; }
 }
 $("xchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; XCH.tf = b.dataset.tf; try { localStorage.setItem("finder-xch-tf", JSON.stringify(XCH.tf)); } catch (x) {} renderXCharts(xRows(), true); });
 $("xchIdx").addEventListener("click", e => { const b = e.target.closest("[data-ix]"); if (!b) return; XCH.idx = b.dataset.ix; try { localStorage.setItem("finder-xch-idx", JSON.stringify(XCH.idx)); } catch (x) {} renderXCharts(xRows(), true); });
@@ -9460,7 +9489,8 @@ async function renderCCharts(force) {
   const sig = CCH.tf + "|" + EXCHANGE;
   if (CCH.busy || (!force && CCH.sig === sig && Date.now() - CCH.at < 55e3)) return;
   CCH.busy = true; CCH.sig = sig; CCH.at = Date.now();
-  try { await ensureLWC(); } catch (e) { CCH.busy = false; return; }
+  try {                                           // a failed load must never leave the cards stuck blank: busy always clears
+  try { await ensureLWC(); } catch (e) { return; }
   const tf = CCH.tf, card = k => sec.querySelector(`.xch[data-ck="${k}"]`), src = { binance: "Binance", bybit: "Bybit", mexc: "MEXC" }[EXCHANGE] || "";
   const fail = (key, msg) => { const c = card(key); c.querySelector(".xchc").innerHTML = `<div class="empty">${msg}</div>`; delete XCH.charts["c_" + key]; c.querySelector(".xchst").innerHTML = ""; };
   const [kb, ke] = await Promise.all(["BTCUSDT", "ETHUSDT"].map(s => klines(s, tf, 300).catch(() => null)));
@@ -9482,7 +9512,7 @@ async function renderCCharts(force) {
         : dn ? "<b class=\"dn\">BTC is leading.</b> Money is staying in Bitcoin; alts tend to lag until this turns." : "No clear leader between ETH and BTC on this timeframe.";
     } else fail("ethbtc", "Not enough shared candles");
   } else fail("ethbtc", "Needs both charts");
-  CCH.busy = false;
+  } catch (e) { console.warn("[Finder] crypto overview charts:", e); } finally { CCH.busy = false; }
 }
 $("cchTf").addEventListener("click", e => { const b = e.target.closest("[data-tf]"); if (!b) return; CCH.tf = b.dataset.tf; try { localStorage.setItem("finder-cch-tf", JSON.stringify(CCH.tf)); } catch (x) {} renderCCharts(true); });
 setInterval(() => { if (page === "overview" && document.visibilityState === "visible") renderCCharts(true); }, 60e3);

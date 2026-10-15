@@ -88,6 +88,27 @@ async def main():
         print("crypto from macro:", await q("() => [OVC.on, CH.sym, CH.layout, chVis().length]"))
         await q("() => goPage('macroov')"); await wait("() => OVC.on === 'x' && CHP[1].t.length > 50", 30)
         print("macro again:", await q("() => [OVC.act, chName(CHP[0].psym), chName(CHP[1].psym)]"))
+        # session timeframes: pretend it's London, so Gold goes to 5m; your own pick inside the window stands; after London it's back to yours
+        tfs = "() => [CHP[0].tf, CHP[1].tf, CHP[0].manTf, CHP[1].manTf]"
+        await q("() => { window._sessReal = ovcSessTf; ovcSessTf = sym => /^Gold/.test(chName(sym)) ? '5m' : null; ovcSessApply(true); }")
+        await wait("() => CHP[1].tf === '5m' && CHP[1].t.length > 50", 20)
+        print("london:", await q(tfs))
+        await q("() => { const s = CHP[1].pane.querySelector('.chtf'); s.value = '15m'; s.onchange(); }"); await asyncio.sleep(0.5)
+        await q("() => ovcSessApply(true)")
+        print("own pick in london:", await q(tfs))
+        await q("() => { ovcSessTf = () => null; ovcSessApply(true); }"); await asyncio.sleep(0.5)
+        print("after london:", await q(tfs), "| saved:", await q("() => JSON.stringify(lsGet('finder-ovch').x.tfs)"))
+        # session timeframes off: nothing switches
+        await q("() => document.getElementById('ovcAuto').click()")
+        await q("() => { ovcSessTf = sym => /^Gold/.test(chName(sym)) ? '5m' : null; CHP.forEach(P => P.sessKey = null); ovcSessApply(true); }"); await asyncio.sleep(0.3)
+        print("auto off:", await q(tfs), await q("() => [document.getElementById('ovcAuto').getAttribute('aria-pressed'), lsGet('finder-ovch').x.auto]"))
+        await q("() => { document.getElementById('ovcAuto').click(); ovcSessTf = window._sessReal; CHP.forEach(P => P.sessKey = null); ovcSessApply(true); }")
+        # same timeframe: change one, the other follows
+        await q("() => document.getElementById('ovcLink').click()"); await asyncio.sleep(0.3)
+        await q("() => { const s = CHP[0].pane.querySelector('.chtf'); s.value = '4h'; s.onchange(); }")
+        await wait("() => CHP[0].tf === '4h' && CHP[1].tf === '4h' && CHP[1].t.length > 50", 20)
+        print("linked:", await q(tfs), await q("() => document.getElementById('ovcLink').getAttribute('aria-pressed')"))
+        await q("() => document.getElementById('ovcLink').click()")
         await q("() => goPage('charts')"); await wait("() => chVis().length === 4 && chVis().every(P => P.sym === 'SOLUSDT')", 30)
         print("charts page end:", await q("() => [OVC.on, CH.sym, CH.layout, CH.tfs.join(','), chVis().map(P => P.psym || '-').join(',')]"))
         print("errors:", errs or "none")

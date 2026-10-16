@@ -16,7 +16,7 @@ async def mexc_priv(route):
     elif "/order/list/open_orders" in path: d = MX["orders"]
     elif path.endswith("/order/create"):
         b = json.loads(rq.post_data); MX["log"].append(b)
-        if b["side"] in (1, 3): MX["pos"].append({"positionId": 70 + len(MX["pos"]), "symbol": b["symbol"], "positionType": 1 if b["side"] == 1 else 2, "holdVol": b["vol"], "holdAvgPrice": b["price"], "leverage": b.get("leverage"), "openType": b["openType"]})
+        if b["side"] in (1, 3): MX["pos"].append({"positionId": 70 + len(MX["pos"]), "symbol": b["symbol"], "positionType": 1 if b["side"] == 1 else 2, "holdVol": b["vol"], "holdAvgPrice": b["price"], "leverage": b.get("leverage"), "openType": b["openType"], "createTime": int(__import__("time").time() * 1000) - 3 * 3600e3})
         else: MX["pos"] = [p for p in MX["pos"] if p["positionId"] != b.get("positionId")]
         d = {"orderId": "mx" + str(len(MX["log"])), "ts": 1}
     await route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "code": 0, "data": d}))
@@ -98,6 +98,11 @@ async def main():
         print("17f) cTrader chart:", await q("() => [twVenue(), [...document.querySelectorAll('#twBody tbody tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ')).join(' / '), document.getElementById('twSum').innerText.includes('MEXC')]"))
         await q("() => chSetSym('BTCUSDT')"); await wait("() => chVis()[0].sym === 'BTCUSDT'", 20); await asyncio.sleep(1.2)
         print("17g) back on BTC:", await q("() => [twVenue(), document.querySelectorAll('#twBody tbody tr td.trwact').length, document.getElementById('twSum').innerText.includes('MEXC'), document.getElementById('twSum').innerText.includes('Balance')]"))
+        # click a position in the trade watch: the chart jumps to its entry and marks the trade
+        await q("() => document.querySelector('#twBody tbody tr[data-twi] td').click()")
+        print("17h) row → chart:", await wait("() => CHM && CHM.tw && CHM.list[0].open && chVis()[0].sym === 'BTCUSDT' && chVis()[0].t.length > 5", 20),
+              await q("() => { const P = chVis()[0], c = CHM.list[0], r = P.chart.timeScale().getVisibleLogicalRange(), a = chLogical(P, c.opened); return [c.model, c.dir, a >= r.from && a <= r.to, !document.getElementById('chStudy')]; }"))
+        await q("() => chSetSym('CT:XAUUSD')"); await asyncio.sleep(0.5); print("17i) mark cleared on another symbol:", await q("() => CHM === null")); await q("() => chSetSym('BTCUSDT')"); await asyncio.sleep(1)
         await q("() => goPage('trade')"); await wait("() => !!document.querySelector('#trBook tr[data-mx] [data-a=\"mxclose\"]')", 15)
         for _ in range(2): await q("() => document.querySelector('#trBook tr[data-mx] [data-a=\"mxclose\"]').click()"); await asyncio.sleep(0.4)
         await wait("() => MXT.positions.length === 0", 10); print("18) mexc close:", {k: MX["log"][-1].get(k) for k in ("side", "type", "vol", "positionId")})

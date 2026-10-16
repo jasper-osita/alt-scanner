@@ -13,7 +13,9 @@ SEED = """() => {
   for (let i = 0; i < 12; i++) T.push(mk('NBB', A, i % 3 ? 'Long' : 'Short', 6 + i * 5, 3, i % 4 === 0 ? -1 : 1.8, i % 4 === 0 ? 'Stop' : 'Target'));
   for (let i = 0; i < 8; i++) T.push(mk('Pullback', B, 'Short', 8 + i * 7, 5, i % 2 ? -1 : -0.4, i % 2 ? 'Stop' : 'Time limit'));
   for (let i = 0; i < 4; i++) T.push(mk('OB', B, 'Long', 30 + i * 9, 2, 1.2, 'Target'));
-  botLoad(); BOT_STRATS().forEach(k => { BOT.bots[k].closed = T.filter(t => t.model === k); }); botSave();
+  botLoad(); BOT_STRATS().forEach(k => { BOT.bots[k].closed = T.filter(t => t.model === k); });
+  const px = bySym[A].price, o = now - 5 * H; BOT.bots.NBB.positions = [{ id: 'op1', sym: A, dir: 'Long', model: 'NBB', entry: px * 0.995, stop: px * 0.985, target: px * 1.02, qty: 10 / (px * 0.01), risk: 10, feeIn: 0, opened: o, until: now + 40 * H, checked: now, env: 'Risk-off', session: sessOf(o) }];
+  botSave();
   localStorage.removeItem('altscan-bot-filter'); BOTF = { ...BOTF_DEF }; return T.length; }"""
 async def main():
     serve()
@@ -68,6 +70,14 @@ async def main():
         print("13) all on coin:", await q("() => [CHM.all, botAllClosed(CH.sym).length]"))
         await q("() => document.getElementById('csClose').click()"); await asyncio.sleep(0.5)
         print("14) closed:", await q("() => [CHM, !!document.getElementById('chStudy'), document.querySelector('#chPage .chbody').classList.contains('trdock')]"))
+        # an open position: click its row and the chart shows it from the entry to now, with a live panel
+        await q("() => { goPage('bots'); renderBot(); }"); await asyncio.sleep(0.5)
+        await q("() => document.querySelector('#botSim [data-bopen] td').click()")
+        print("15) open trade:", await wait("() => !!document.getElementById('chStudy') && CHM && CHM.list[CHM.i].open && chVis()[0].sym === CHM.list[CHM.i].sym && chVis()[0].t.length > 20", 30))
+        await asyncio.sleep(1.5)
+        print("16) open on chart:", await q("() => { const c = CHM.list[CHM.i], P = chVis()[0], r = P.chart.timeScale().getVisibleLogicalRange(), a = chLogical(P, c.opened); return { inView: a >= r.from && a <= r.to, panel: document.getElementById('chStudy').innerText.replace(/\\s+/g, ' ').slice(0, 200) }; }"))
+        el = await pg.query_selector("#chPage"); await el.screenshot(path=f"{OUT}/botrev_open.png")
+        await q("() => document.getElementById('csClose').click()")
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

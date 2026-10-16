@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.15.2334">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.16.1309">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.15.2334";
+const APP_VERSION = "2026.10.16.1309";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5464,6 +5464,8 @@ function botMatch(c, closed) {
   return true;
 }
 const botClosedF = () => BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => botMatch(c, true)).sort((a, b) => b.closed - a.closed);
+const botOpenStudy = () => BOT_STRATS().flatMap(k => BOT.bots[k].positions).filter(p => botMatch(p, false)).sort((a, b) => b.opened - a.opened)
+  .map(p => { const px = botPrice(p.sym) ?? p.entry, pnl = (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; return { ...p, open: true, exit: px, closed: Date.now(), pnl, r: pnl / (p.risk || 1), reason: "Open" }; });
 const botAllClosed = sym => BOT ? BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => c.sym === sym) : [];
 const botHeld = ms => { const m = Math.round(ms / 60e3); return m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`; };
 function botFilterHTML() {
@@ -5543,17 +5545,17 @@ function renderBot() {
           <td><b>$${b.bal.toFixed(2)}</b></td><td class="${rCls(s.ret / 10)}">${s.ret >= 0 ? "+" : ""}${s.ret.toFixed(1)}%</td><td>${s.n}</td><td>${s.n ? s.win.toFixed(0) + "%" : "—"}</td>
           <td class="${s.n ? rCls(s.avgR) : "mute"}">${s.n ? fmtR(s.avgR) : "—"}</td><td>${s.n ? (s.pf >= 99 ? "∞" : s.pf.toFixed(2)) : "—"}</td><td class="dn">${b.dd ? "−" + b.dd.toFixed(1) + "%" : "—"}</td>
           <td>${b.positions.length}</td><td class="${s.unreal >= 0 ? "up" : "dn"}">${b.positions.length ? (s.unreal >= 0 ? "+" : "−") + "$" + Math.abs(s.unreal).toFixed(2) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
-    <h3 class="pbh3">Open Positions <span class="meta">${openF.length}${openF.length !== allOpen.length ? ` of ${allOpen.length}` : ""}</span></h3>
+    <h3 class="pbh3">Open Positions <span class="meta">${openF.length}${openF.length !== allOpen.length ? ` of ${allOpen.length}` : ""}${openF.length ? " · click one to see it on the chart" : ""}</span></h3>
     ${openF.length ? `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th>Entry</th><th>Stop</th><th>Target</th><th>Price</th><th>P&L</th><th class="l">Opened</th></tr></thead><tbody>${
       openF.map(({ k, p }) => { const px = botPrice(p.sym), pnl = px == null ? 0 : (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty;
-        return `<tr data-s="${p.sym}"><td class="l">${MODELS[k].icon} ${k}</td><td class="l"><b>${coin(p.sym)}</b></td><td class="l">${biasTag(p.dir)}</td><td>${fmtPrice(p.entry)}</td><td class="dn">${fmtPrice(p.stop)}</td><td class="up">${fmtPrice(p.target)}</td>
+        return `<tr data-bopen="${botKey(p).replace(/"/g, "&quot;")}" title="Show this trade on the chart"><td class="l">${MODELS[k].icon} ${k}</td><td class="l"><b>${coin(p.sym)}</b></td><td class="l">${biasTag(p.dir)}</td><td>${fmtPrice(p.entry)}</td><td class="dn">${fmtPrice(p.stop)}</td><td class="up">${fmtPrice(p.target)}</td>
           <td><span class="lp" data-sym="${p.sym}">${px == null ? "—" : fmtPrice(px)}</span></td><td class="${pnl >= 0 ? "up" : "dn"}">${(pnl >= 0 ? "+" : "−") + "$" + Math.abs(pnl).toFixed(2)} <span class="mute">${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R</span></td>
           <td class="l mute">${fmtPHT(new Date(p.opened + PHT_MS)).replace(/^\w+, /, "")}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty">${allOpen.length ? "No open positions match the filters." : `No open positions. ${BOT.running ? "The bots enter as soon as a setup triggers." : "Press Start Bots."}`}</div>`}
     <h3 class="pbh3">Trade review <span class="meta">${closedF.length} closed trade${closedF.length === 1 ? "" : "s"} · your filters</span></h3><div class="brwrap">${botReviewHTML(closedF)}</div>
-    ${closedF.length ? `<h3 class="pbh3">Closed trades <span class="meta">newest first · “Chart” marks the trade on the chart to study it</span></h3><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Closed (PHT)</th><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th class="l">Session</th><th>Entry</th><th>Exit</th><th>P&L</th><th>R</th><th class="l">Ended by</th><th>Held</th><th></th></tr></thead><tbody>${
-      closedF.slice(0, 60).map(c => `<tr><td class="l mute">${fmtPHT(new Date(c.closed + PHT_MS))}</td><td class="l">${MODELS[c.model].icon} ${c.model}</td><td class="l"><b>${coin(c.sym)}</b></td><td class="l">${biasTag(c.dir)}</td><td class="l">${sessName(c.session) || "—"}</td>
+    ${closedF.length ? `<h3 class="pbh3">Closed trades <span class="meta">newest first · click a trade to mark it on the chart and study it</span></h3><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Closed (PHT)</th><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th class="l">Session</th><th>Entry</th><th>Exit</th><th>P&L</th><th>R</th><th class="l">Ended by</th><th>Held</th><th></th></tr></thead><tbody>${
+      closedF.slice(0, 60).map(c => `<tr data-bstudy="${botKey(c).replace(/"/g, "&quot;")}" title="Show this trade on the chart"><td class="l mute">${fmtPHT(new Date(c.closed + PHT_MS))}</td><td class="l">${MODELS[c.model].icon} ${c.model}</td><td class="l"><b>${coin(c.sym)}</b></td><td class="l">${biasTag(c.dir)}</td><td class="l">${sessName(c.session) || "—"}</td>
         <td>${fmtPrice(c.entry)}</td><td>${fmtPrice(c.exit)}</td><td class="${c.pnl >= 0 ? "up" : "dn"}">${(c.pnl >= 0 ? "+" : "−") + "$" + Math.abs(c.pnl).toFixed(2)}</td><td class="${rCls(c.r)}">${fmtR(c.r)}</td><td class="l">${c.reason}</td><td>${botHeld(c.closed - c.opened)}</td>
-        <td><button class="btn sm" data-bstudy="${botKey(c).replace(/"/g, "&quot;")}">Chart</button></td></tr>`).join("")}</tbody></table></div>${closedF.length > 60 ? `<p class="meta">Showing the newest 60 of ${closedF.length}; narrow the filters to see others.</p>` : ""}` : ""}
+        <td><button class="btn sm" tabindex="-1">Chart</button></td></tr>`).join("")}</tbody></table></div>${closedF.length > 60 ? `<p class="meta">Showing the newest 60 of ${closedF.length}; narrow the filters to see others.</p>` : ""}` : ""}
     <h3 class="pbh3">Bot Equity</h3><div id="botEq" class="bteq"></div><div class="clegend bteql" id="botEqLegend"></div>
     <p class="meta">Paper trading only. Each bot takes its strategy's triggered setups (ORB and AMD excluded) on coins with $10M+ volume: up to ${BOT.maxOpen} at a time, one per coin, no re-entry on a coin for 6 hours, and no chasing (it skips a setup once price has run more than half the risk past the entry). Fills are at the live price plus slippage; targets fill at the target. Exits: stop, target, or time limit (48 hours, 10 days for the Daily 20 Reset). The bots run while the app is open; every 2 minutes they check the 15m candles so a wick to the stop or target between checks still counts, and when you reopen the app they settle anything that happened while it was closed (new entries can't be made while it's closed). While running, the scanner refreshes every 15 minutes so new setups are found.</p>`;
   if ($("botRun")) $("botRun").onclick = () => {
@@ -5577,6 +5579,7 @@ function renderBot() {
     if (foc != null) { const i = $("bfCoin"); i.focus(); i.setSelectionRange(foc, foc); } }
   if ($("bfClear")) $("bfClear").onclick = () => { BOTF = { ...BOTF_DEF }; botfSave(); renderBotLight(); };
   el.querySelectorAll("[data-bstudy]").forEach(bt => bt.onclick = () => { const list = botClosedF(), i = list.findIndex(c => botKey(c) === bt.dataset.bstudy); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
+  el.querySelectorAll("[data-bopen]").forEach(tr => tr.onclick = () => { const list = botOpenStudy(), i = list.findIndex(c => botKey(c) === tr.dataset.bopen); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
   drawBotEquity();
 }
 setInterval(() => { if (BOT && BOT.running && data) { botCheckExits(); if (Date.now() - BOT.lastRecon > 120e3) botReconcile(); if (document.visibilityState === "visible" && $("botSim")) renderBotLight(); } }, 30000);
@@ -8137,6 +8140,7 @@ function chSetSym(sym) {
   if (!sym) return; sym = ctEquiv(sym) || sym;
   const why = chSourceOK(sym); if (why) { toast(why); return; }
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
+  if (CHM && CHM.tw && CHM.list[0].sym !== sym) CHM = null;
   CH.sym = sym; CH.recent = [sym, ...(CH.recent || []).filter(x => x !== sym)].slice(0, 12); chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
   (OVC.on === "x" ? [CHP[OVC.act]] : chVis()).forEach(P => { if (OVC.on === "x") P.psym = sym; chLoad(P); }); chHeader(); chWLRender(); chSelBar();
   if (OVC.on) ovcRemember(sym);
@@ -8352,19 +8356,21 @@ const BOTN_KEY = "altscan-bot-notes", botNotes = () => chLoadJSON(BOTN_KEY, {});
 function chTri(g, x, y, up, col, sz) { g.beginPath(); if (up) { g.moveTo(x, y); g.lineTo(x - sz, y + sz * 1.6); g.lineTo(x + sz, y + sz * 1.6); } else { g.moveTo(x, y); g.lineTo(x - sz, y - sz * 1.6); g.lineTo(x + sz, y - sz * 1.6); } g.closePath(); g.fillStyle = col; g.fill(); }
 function chMarkPaint(P, g, W, H) {
   const cur = CHM && CHM.list[CHM.i], sym = chPS(P); if (!cur || !P.t.length) return;
-  const trades = (CHM.all ? botAllClosed(sym) : [cur]).filter(c => c.sym === sym); if (!trades.length) return;
+  const trades = (CHM.all ? [...botAllClosed(sym), ...(cur.open ? [cur] : [])] : [cur]).filter(c => c.sym === sym); if (!trades.length) return;
   const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, iv = CH_IV[P.tf] || 36e5, snap = t => Math.floor(t / iv) * iv, S = chCS(), F = v => chFmt(v, P.c.at(-1));
   g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   trades.forEach(c => {
     const me = c === cur || (c.opened === cur.opened && c.model === cur.model), long = c.dir === "Long";
-    const x1 = chX(P, snap(c.opened)), x2 = chX(P, snap(c.closed)), y1 = chY(P, c.entry), y2 = chY(P, c.exit); if (x1 == null || x2 == null || y1 == null || y2 == null) return;
-    const col = me ? "rgba(247,166,0,.9)" : c.pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
+    const px = c.open ? P.c.at(-1) : c.exit;        // an open trade runs to the last candle at the live price
+    const x1 = chX(P, snap(c.opened)), x2 = chX(P, c.open ? P.t.at(-1) : snap(c.closed)), y1 = chY(P, c.entry), y2 = chY(P, px); if (x1 == null || x2 == null || y1 == null || y2 == null) return;
+    const pnl = c.open ? (c.qty ? (long ? px - c.entry : c.entry - px) * c.qty : null) : c.pnl, r = c.open ? (pnl != null && c.risk ? pnl / c.risk : null) : c.r;
+    const col = me ? "rgba(247,166,0,.9)" : pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
     if (me) { g.save(); g.setLineDash([3, 3]); g.lineWidth = 1;                      // where the stop and target were while it was open
-      [[c.stop, S.trSLC], [c.target, S.trTPC]].forEach(([p, cl]) => { const y = chY(P, p); if (y == null) return; g.strokeStyle = chHexA(cl, 0.7); g.beginPath(); g.moveTo(x1, Math.round(y) + .5); g.lineTo(x2, Math.round(y) + .5); g.stroke(); }); g.restore(); }
+      [[c.stop, S.trSLC], [c.target, S.trTPC]].forEach(([p, cl]) => { const y = p ? chY(P, p) : null; if (y == null) return; g.strokeStyle = chHexA(cl, 0.7); g.beginPath(); g.moveTo(x1, Math.round(y) + .5); g.lineTo(x2, Math.round(y) + .5); g.stroke(); }); g.restore(); }
     g.strokeStyle = col; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();   // thin, like cTrader
-    chTri(g, x1, y1, long, col, me ? 5 : 4); chTri(g, x2, y2, !long, col, me ? 5 : 4);
+    chTri(g, x1, y1, long, col, me ? 5 : 4); if (c.open) { g.beginPath(); g.arc(x2, y2, 3.5, 0, 7); g.fillStyle = col; g.fill(); } else chTri(g, x2, y2, !long, col, me ? 5 : 4);
     if (!me || typeof trPill !== "function") return;
-    const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.reason, col: c.pnl >= 0 ? S.trTPC : S.trSLC, parts: [F(c.exit), `Net ${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)}`, `${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R`] };
+    const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.open ? "Open now" : c.reason, col: (pnl ?? 0) >= 0 ? S.trTPC : S.trSLC, parts: [F(px), ...(pnl != null ? [`${c.open ? "" : "Net "}${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}`] : []), ...(r != null ? [`${r >= 0 ? "+" : ""}${r.toFixed(2)}R`] : [])] };
     g.save(); g.globalAlpha = 0; const wi = trPill(g, tagIn, 0, -100, true), wo = trPill(g, tagOut, 0, -100, true); g.restore();   // measure first, then keep both tags on the chart
     const xi = x1 - wi - 10 >= 2 ? x1 - wi - 10 : x1 + 10, xo = x2 + 10 + wo <= W - 4 ? x2 + 10 : Math.max(2, x2 - wo - 10);
     trPill(g, tagIn, xi, Math.min(Hm - 12, Math.max(12, y1 + (long ? 16 : -16))), true); trPill(g, tagOut, xo, Math.min(Hm - 12, Math.max(12, y2 + (long ? -16 : 16))), true);
@@ -8376,11 +8382,13 @@ async function chStudyGo() {
   if (page !== "charts") goPage("charts");
   for (let k = 0; k < 40 && !(chBuilt && chOn && chVis().length); k++) await new Promise(r => setTimeout(r, 150));
   if (CH.sym !== c.sym) chSetSym(c.sym);
-  const age = Date.now() - c.opened, dur = c.closed - c.opened, tf = age < 4 * 864e5 && dur < 864e5 ? "15m" : age < 18 * 864e5 ? "1h" : "4h", P = chVis()[0];   // a timeframe whose 500 bars reach back to the trade
+  const P = chVis()[0], age = Date.now() - c.opened, dur = c.closed - c.opened, iv0 = CH_IV[P.tf] || 36e5;
+  const tf = CHM.tw && age / iv0 < 4000 && dur / iv0 < 400 ? P.tf : age < 4 * 864e5 && dur < 864e5 ? "15m" : age < 18 * 864e5 ? "1h" : "4h";   // a timeframe that reaches back to the trade (a trade watch row keeps yours when it does)
   if (P.tf !== tf) { P.tf = CH.tfs[P.i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; chSave(); chLoad(P); }
   for (let k = 0; k < 100 && !(P.sym === c.sym && P.t.length && P.tf === tf); k++) await new Promise(r => setTimeout(r, 150));
   for (let k = 0; k < 8 && P.t.length && P.t[0] > c.opened && !P.noOlder; k++) await chLoadOlder(P);
-  chStudyPanel();
+  if (CHM.tw) { const el = $("chStudy"); if (el) { el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b && !$("trPosPanel")) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } } }
+  else chStudyPanel();
   if (P.t.length && P.chart) { const a = chLogical(P, c.opened), b = chLogical(P, c.closed), pad = Math.max(25, (b - a) * 1.5); P.userAt = Date.now(); P.chart.timeScale().setVisibleLogicalRange({ from: a - pad, to: b + pad }); }
   chDirty = true;
 }
@@ -8391,21 +8399,22 @@ function chStudyPanel() {
   if (!el) { el = document.createElement("div"); el.id = "chStudy"; el.className = "trpospanel chstudy"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Study a bot trade");
     ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation())); body.appendChild(el); body.classList.add("trdock"); window.dispatchEvent(new Event("resize")); }
   const long = c.dir === "Long", R0 = Math.abs(c.entry - c.stop) || 1e-9, P = chVis().find(Q => Q.sym === c.sym && Q.t.length), key = botKey(c), note = botNotes()[key] || {}, F = v => fmtPrice(v);
+  if (c.open) { c.exit = P ? P.c.at(-1) : (typeof botPrice === "function" && botPrice(c.sym)) || c.exit; c.closed = Date.now(); c.pnl = (long ? c.exit - c.entry : c.entry - c.exit) * c.qty; c.r = c.pnl / (c.risk || 1); }
   let best = null, worst = null;                   // how far it went for and against you while it was open, in R
   if (P) { const iv = CH_IV[P.tf] || 36e5; let hi = -Infinity, lo = Infinity; P.t.forEach((t, j) => { if (t + iv > c.opened && t <= c.closed) { hi = Math.max(hi, P.h[j]); lo = Math.min(lo, P.l[j]); } });
     if (isFinite(hi)) { best = long ? (hi - c.entry) / R0 : (c.entry - lo) / R0; worst = long ? (lo - c.entry) / R0 : (c.entry - hi) / R0; } }
   const tags = [["good", "Good trade"], ["entry", "Bad entry"], ["skip", "Skip next time"]];
   el.innerHTML = `<div class="trpph"><b>Study bot trades</b><button class="chx" id="csClose" aria-label="Close">${chIco("x", 15)}</button></div>
-    <div class="csnav"><button class="btn sm" id="csPrev" aria-label="Previous trade" ${CHM.i <= 0 ? "disabled" : ""}>‹ Newer</button><span class="meta">Trade ${CHM.i + 1} of ${CHM.list.length} · your filters</span><button class="btn sm" id="csNext" aria-label="Next trade" ${CHM.i >= CHM.list.length - 1 ? "disabled" : ""}>Older ›</button></div>
+    <div class="csnav"><button class="btn sm" id="csPrev" aria-label="Previous trade" ${CHM.i <= 0 ? "disabled" : ""}>‹ Newer</button><span class="meta">${c.open ? "Open trade" : "Trade"} ${CHM.i + 1} of ${CHM.list.length} · your filters</span><button class="btn sm" id="csNext" aria-label="Next trade" ${CHM.i >= CHM.list.length - 1 ? "disabled" : ""}>Older ›</button></div>
     <div class="cstitle">${chEsc(c.model)} ${long ? "long" : "short"} on ${chEsc(coin(c.sym))} <b class="${c.r >= 0 ? "up" : "dn"}">${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R</b></div>
-    <div class="trkv"><span>Result</span><b class="${c.pnl >= 0 ? "up" : "dn"}">${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)} · ${chEsc(c.reason.toLowerCase())}</b><span>Session</span><b>${chEsc(sessName(c.session) || "—")}</b>${c.env ? `<span>Market</span><b>${chEsc(c.env)}</b>` : ""}
+    <div class="trkv"><span>Result</span><b class="${c.pnl >= 0 ? "up" : "dn"}">${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)} · ${c.open ? "still open" : chEsc(c.reason.toLowerCase())}</b><span>Session</span><b>${chEsc(sessName(c.session) || "—")}</b>${c.env ? `<span>Market</span><b>${chEsc(c.env)}</b>` : ""}
       <span>Entry</span><b>${F(c.entry)} · ${fmtPHT(new Date(c.opened + PHT_MS)).replace(/^\w+, /, "")}</b><span>Stop</span><b class="dn">${F(c.stop)} (${(R0 / c.entry * 100).toFixed(2)}%)</b><span>Target</span><b class="up">${F(c.target)}</b>
-      <span>Exit</span><b>${F(c.exit)} · ${fmtPHT(new Date(c.closed + PHT_MS)).replace(/^\w+, /, "")}</b><span>Held</span><b>${botHeld(c.closed - c.opened)}</b>
+      <span>${c.open ? "Price now" : "Exit"}</span><b>${F(c.exit)}${c.open ? "" : " · " + fmtPHT(new Date(c.closed + PHT_MS)).replace(/^\w+, /, "")}</b><span>${c.open ? "Open for" : "Held"}</span><b>${botHeld(c.closed - c.opened)}</b>
       <span>Best it got</span><b class="up">${best == null ? "—" : (best >= 0 ? "+" : "") + best.toFixed(2) + "R"}</b><span>Worst it got</span><b class="dn">${worst == null ? "—" : (worst >= 0 ? "+" : "") + worst.toFixed(2) + "R"}</b></div>
     <label class="csnote">Your notes<textarea id="csNote" rows="3" placeholder="What did you see? Would you take it?">${chEsc(note.text || "")}</textarea></label>
     <div class="csrow">${tags.map(([k, l]) => `<button class="bfc ${note.tag === k ? "on" : ""}" data-cst="${k}" aria-pressed="${note.tag === k}">${l}</button>`).join("")}</div>
     <label class="chk csall"><input type="checkbox" id="csAll" ${CHM.all ? "checked" : ""}> Show every bot trade on ${chEsc(coin(c.sym))}</label>
-    <p class="meta">“Best” and “worst” show how far it went for and against you before it ended (on this chart's candles).</p>`;
+    <p class="meta">“Best” and “worst” show how far it went for and against you ${c.open ? "so far" : "before it ended"} (on this chart's candles).</p>`;
   const save = o => { const n = botNotes(); n[key] = { ...(n[key] || {}), ...o }; chSaveJSON(BOTN_KEY, n); };
   $("csClose").onclick = chStudyClose;
   $("csPrev").onclick = () => { CHM.i = Math.max(0, CHM.i - 1); chStudyGo(); };
@@ -8414,6 +8423,7 @@ function chStudyPanel() {
   el.querySelectorAll("[data-cst]").forEach(b => b.onclick = () => { save({ tag: note.tag === b.dataset.cst ? null : b.dataset.cst }); chStudyPanel(); });
   $("csAll").onchange = () => { CHM.all = $("csAll").checked; chDirty = true; };
 }
+setInterval(() => { const c = CHM && !CHM.tw && CHM.list[CHM.i], el = $("chStudy"); if (c && c.open && el && page === "charts" && !el.contains(document.activeElement)) chStudyPanel(); }, 5000);   // an open trade's numbers stay live
 function chStudyClose() { CHM = null; const el = $("chStudy"); if (el) el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b && !$("trPosPanel")) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } chDirty = true; }
 window.chStudy = chStudy;
 if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
@@ -10474,14 +10484,22 @@ function twRender() {
   const cols = twCols(tab), rows = twRows(tab), so = st.sort[tab];
   const head = `<tr>${cols.map(([k, l]) => `<th data-tws="${k}" class="${so && so[0] === k ? "srt" : ""}">${trEsc(l)}${so && so[0] === k ? (so[1] > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}${tab !== "hist" ? "<th></th>" : ""}</tr>`;
   const act = r => { const k = r.kind + ":" + r.id, armed = TW.arm && TW.arm.key === k; return `<td class="trwact"><button class="btn sm ${armed ? "trwsure" : ""}" data-twx="${trEsc(k)}">${armed ? "Sure?" : r.kind === "pos" || r.kind === "mxp" ? "Close" : "Cancel"}</button></td>`; };
-  const body = rows.map(r => `<tr data-twsym="${trEsc(r.venue === "MEXC" ? r.sym : "CT:" + r.sym)}">${cols.map(c => `<td>${c[3] ? c[3](r) : trEsc(c[2](r) ?? "")}</td>`).join("")}${tab !== "hist" ? act(r) : ""}</tr>`).join("");
+  const body = rows.map((r, i) => `<tr data-twi="${i}" title="${tab === "ord" ? "Show this market on the chart" : "Show this trade on the chart"}">${cols.map(c => `<td>${c[3] ? c[3](r) : trEsc(c[2](r) ?? "")}</td>`).join("")}${tab !== "hist" ? act(r) : ""}</tr>`).join("");
   const empty = tab === "hist" ? (TW.histBusy ? "Loading history…" : TW.histErr ? "Couldn't load history: " + trEsc(TW.histErr) : "No closed trades in this range.") : tab === "pos" ? "No open positions." : "No pending orders.";
   B.innerHTML = `<table class="trwt"><thead>${head}</thead><tbody>${body || `<tr><td colspan="${cols.length + 1}" class="mute">${empty}</td></tr>`}</tbody></table>`;
   B.querySelectorAll("[data-tws]").forEach(th => th.onclick = () => { const k = th.dataset.tws, s0 = TWS().sort[tab]; twSave({ sort: { ...TWS().sort, [tab]: s0 && s0[0] === k ? (s0[1] > 0 ? [k, -1] : null) : [k, 1] } }); twRender(); });
   B.querySelectorAll("[data-twx]").forEach(b => b.onclick = async e => { e.stopPropagation(); const k = b.dataset.twx, [kind, id] = [k.slice(0, k.indexOf(":")), k.slice(k.indexOf(":") + 1)], r = rows.find(z => z.kind === kind && z.id === id); if (!r) return;
     if (trCfg().confirm && !(TW.arm && TW.arm.key === k && TW.arm.until > Date.now())) { TW.arm = { key: k, until: Date.now() + 4000 }; twRender(); setTimeout(twRender, 4100); return; }
     TW.arm = null; b.disabled = true; try { await trCloseIt(kind, r.ref); } catch (x) { toast(`Not done: ${chEsc(x.message)}`); } twRender(); });
-  B.querySelectorAll("tr[data-twsym]").forEach(tr => tr.ondblclick = () => { const s = tr.dataset.twsym; if (s && s !== CH.sym && typeof chSetSym === "function") chSetSym(s); });
+  B.querySelectorAll("tr[data-twi]").forEach(tr => tr.onclick = () => { const r = rows[+tr.dataset.twi]; if (r) twShow(r, tab); });
+}
+function twShow(r, tab) {                        // a row clicked: the chart jumps to the trade's entry and marks it (a pending order just opens its market)
+  const raw = r.venue === "MEXC" ? r.sym : "CT:" + r.sym, sym = (typeof ctEquiv === "function" && ctEquiv(raw)) || raw;
+  if (tab === "ord" || !r.opened || !r.entry || typeof chStudyGo !== "function") { if (sym !== CH.sym && typeof chSetSym === "function") chSetSym(sym); return; }
+  const hist = tab === "hist";
+  CHM = { tw: true, all: false, i: 0, list: [{ sym, dir: r.dir === "Buy" || r.dir === "Long" ? "Long" : "Short", model: r.venue, entry: r.entry, exit: hist ? r.close : r.cur, opened: r.opened, closed: hist ? r.closed || Date.now() : Date.now(),
+    stop: null, target: null, pnl: hist ? r.net : null, r: null, reason: "Closed", open: !hist }] };
+  chStudyGo();
 }
 setInterval(() => { if (page !== "charts" || document.visibilityState !== "visible") return; const el = twMount(); if (el && !(TW.arm && TW.arm.until > Date.now()) && !el.contains(document.activeElement)) twRender(); }, 1000);
 function trPosAcct(d) {                         // for the settings box: where the account size comes from right now

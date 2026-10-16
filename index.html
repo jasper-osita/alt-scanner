@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.16.2253">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.0002">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -937,7 +937,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .trwt{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.trwt th{position:sticky;top:0;background:var(--panel);color:var(--mute);font-weight:500;text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}.trwt th.srt{color:var(--text)}
 .trwt td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.trwt td.trwact{text-align:right}.trwt tr:hover td{background:var(--pill)}.trwact{text-align:right;width:1%}.trwsure{background:#f23645!important;color:#fff!important;border-color:#f23645!important}
 .chrrseg button{padding:5px 8px}.chrrv{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:12.5px;color:var(--mute)}.chrrv input{width:52px}.chrrv.on input{border-color:var(--accent)}.tprr{display:flex;flex-direction:column;gap:4px}.tprr #tpRR{display:flex;align-items:center;flex-wrap:wrap}.chacctbtn{max-width:260px}.chacctbtn #chAcctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chacctdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.chacctdot.demo{background:#22ab94}.chacctdot.live{background:#f23645}
-.chacctpop{left:auto;right:0;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:6px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
+.chacctpop{left:auto;right:0;min-width:300px;max-width:360px;max-height:80vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px}.acbots{display:flex;flex-wrap:wrap;gap:4px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
 .chacctn{display:flex;align-items:baseline;gap:6px;min-width:0;overflow:hidden;white-space:nowrap}.chacctn b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .chacctk{font-size:11px;font-weight:600;border-radius:5px;padding:1px 6px;margin-left:auto}.chacctk.demo{color:var(--green);background:rgba(34,171,148,.12)}.chacctk.live{color:var(--red);background:rgba(242,54,69,.12)}.chacctrow .chacctk+small{margin-left:8px}
 .chacctseg{display:flex;gap:4px;margin:8px 0 4px}.chacctseg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:6px 8px;font:12.5px var(--display);cursor:pointer}
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.16.2253";
+const APP_VERSION = "2026.10.17.0002";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5448,7 +5448,7 @@ function botStats(k) {
   return { n, wins, win: n ? wins / n * 100 : 0, avgR: n ? c.reduce((s, x) => s + x.r, 0) / n : 0, pf: gl ? gw / gl : (gw ? 99 : 0), ret: (b.bal - BOT.startBal) / BOT.startBal * 100, unreal };
 }
 /* ---- filters (setups, side, session, result, exit, period, coin) and the trade review ---- */
-const BOTF_KEY = "altscan-bot-filter", BOTF_DEF = { set: [], side: "all", sess: "all", res: "all", exit: "all", days: 30, coin: "" };
+const BOTF_KEY = "altscan-bot-filter", BOTF_DEF = { set: [], side: "all", sess: "all", res: "all", exit: "all", days: 30, coin: "", chart: false };   // chart: show the bots' trades on the chart (account menu)
 let BOTF = (() => { try { return { ...BOTF_DEF, ...(JSON.parse(localStorage.getItem(BOTF_KEY)) || {}) }; } catch (e) { return { ...BOTF_DEF }; } })();
 const botfSave = () => { try { localStorage.setItem(BOTF_KEY, JSON.stringify(BOTF)); } catch (e) {} };
 const sessName = s => String(s || "").replace(/^\S+\s/, "");
@@ -5577,7 +5577,7 @@ function renderBot() {
     botfSave(); renderBotLight(); });
   if ($("bfCoin")) { $("bfCoin").oninput = () => { BOTF.coin = $("bfCoin").value.trim(); botfSave(); clearTimeout(BOTF.t); BOTF.t = setTimeout(renderBotLight, 250); };
     if (foc != null) { const i = $("bfCoin"); i.focus(); i.setSelectionRange(foc, foc); } }
-  if ($("bfClear")) $("bfClear").onclick = () => { BOTF = { ...BOTF_DEF }; botfSave(); renderBotLight(); };
+  if ($("bfClear")) $("bfClear").onclick = () => { BOTF = { ...BOTF_DEF, chart: BOTF.chart }; botfSave(); renderBotLight(); };
   el.querySelectorAll("[data-bstudy]").forEach(bt => bt.onclick = () => { const list = botClosedF(), i = list.findIndex(c => botKey(c) === bt.dataset.bstudy); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
   el.querySelectorAll("[data-bopen]").forEach(tr => tr.onclick = () => { const list = botOpenStudy(), i = list.findIndex(c => botKey(c) === tr.dataset.bopen); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
   drawBotEquity();
@@ -8354,20 +8354,20 @@ window.ovcHost = ovcHost; window.ovcPick = ovcPick;
 /* ---- bot trades marked on the chart, cTrader style: ▲/▼ at the entry and the exit, a thin line between, tags; a docked panel to study them ---- */
 const BOTN_KEY = "altscan-bot-notes", botNotes = () => chLoadJSON(BOTN_KEY, {});
 function chTri(g, x, y, up, col, sz) { g.beginPath(); if (up) { g.moveTo(x, y); g.lineTo(x - sz, y + sz * 1.6); g.lineTo(x + sz, y + sz * 1.6); } else { g.moveTo(x, y); g.lineTo(x - sz, y - sz * 1.6); g.lineTo(x + sz, y - sz * 1.6); } g.closePath(); g.fillStyle = col; g.fill(); }
-function chMarkPaint(P, g, W, H) {
-  const cur = CHM && CHM.list[CHM.i], sym = chPS(P); if (!cur || !P.t.length) return;
-  const trades = (CHM.all ? [...botAllClosed(sym), ...(cur.open ? [cur] : [])] : [cur]).filter(c => c.sym === sym); if (!trades.length) return;
+function chTradeMarks(P, g, W, H) {
+  const cur = CHM && CHM.list[CHM.i], sym = chPS(P); if (!P.t.length) return;
+  const trades = cur ? (CHM.all ? [...botAllClosed(sym), ...(cur.open ? [cur] : [])] : [cur]).filter(c => c.sym === sym) : chBotTrades(sym); if (!trades.length) return;
   const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, iv = CH_IV[P.tf] || 36e5, snap = t => Math.floor(t / iv) * iv, S = chCS(), F = v => chFmt(v, P.c.at(-1));
   g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   trades.forEach(c => {
-    const me = c === cur || (c.opened === cur.opened && c.model === cur.model), long = c.dir === "Long";
+    const me = !!cur && (c === cur || (c.opened === cur.opened && c.model === cur.model)), long = c.dir === "Long";
     const px = c.open ? P.c.at(-1) : c.exit;        // an open trade runs to the last candle at the live price
     const x1 = chX(P, snap(c.opened)), x2 = chX(P, c.open ? P.t.at(-1) : snap(c.closed)), y1 = chY(P, c.entry), y2 = chY(P, px); if (x1 == null || x2 == null || y1 == null || y2 == null) return;
     const pnl = c.open ? (c.qty ? (long ? px - c.entry : c.entry - px) * c.qty : null) : c.pnl, r = c.open ? (pnl != null && c.risk ? pnl / c.risk : null) : c.r;
     const col = me ? "rgba(247,166,0,.9)" : pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
     if (me) { g.save(); g.setLineDash([3, 3]); g.lineWidth = 1;                      // where the stop and target were while it was open
       [[c.stop, S.trSLC], [c.target, S.trTPC]].forEach(([p, cl]) => { const y = p ? chY(P, p) : null; if (y == null) return; g.strokeStyle = chHexA(cl, 0.7); g.beginPath(); g.moveTo(x1, Math.round(y) + .5); g.lineTo(x2, Math.round(y) + .5); g.stroke(); }); g.restore(); }
-    g.strokeStyle = col; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();   // thin, like cTrader
+    g.strokeStyle = col; g.lineWidth = 1; g.setLineDash(c.open && !me ? [4, 3] : []); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.setLineDash([]);   // thin, like cTrader; dashed while still open
     chTri(g, x1, y1, long, col, me ? 5 : 4); if (c.open) { g.beginPath(); g.arc(x2, y2, 3.5, 0, 7); g.fillStyle = col; g.fill(); } else chTri(g, x2, y2, !long, col, me ? 5 : 4);
     if (!me || typeof trPill !== "function") return;
     const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.open ? "Open now" : c.reason, col: (pnl ?? 0) >= 0 ? S.trTPC : S.trSLC, parts: [F(px), ...(pnl != null ? [`${c.open ? "" : "Net "}${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}`] : []), ...(r != null ? [`${r >= 0 ? "+" : ""}${r.toFixed(2)}R`] : [])] };
@@ -8375,6 +8375,10 @@ function chMarkPaint(P, g, W, H) {
     const xi = x1 - wi - 10 >= 2 ? x1 - wi - 10 : x1 + 10, xo = x2 + 10 + wo <= W - 4 ? x2 + 10 : Math.max(2, x2 - wo - 10);
     trPill(g, tagIn, xi, Math.min(Hm - 12, Math.max(12, y1 + (long ? 16 : -16))), true); trPill(g, tagOut, xo, Math.min(Hm - 12, Math.max(12, y2 + (long ? -16 : 16))), true);
   });
+}
+function chBotTrades(sym) {                      // the bots' trades on this coin (account menu → "Show bot trades on the chart"), with your Bot Simulator filters
+  if (!BOTF.chart || typeof BOT === "undefined" || !BOT || String(sym).startsWith("CT:")) return [];
+  return [...botOpenStudy(), ...botClosedF()].filter(c => c.sym === sym);
 }
 async function chStudy(list, i) { CHM = { list, i, all: CHM ? CHM.all : false }; await chStudyGo(); }
 async function chStudyGo() {
@@ -9005,7 +9009,7 @@ function chPaintBody(P, g) {
         chLabel(g, `${dp >= 0 ? "+" : ""}${F(dp)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%) · ${bars} bars · ${dur}`, (xa + xb) / 2, Math.min(ya, yb) - 12, `rgba(${col},.95)`, "#fff", "center"); }
     }
   }
-  if (CHM) { g.save(); try { chMarkPaint(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
+  if (CHM || BOTF.chart) { g.save(); try { chTradeMarks(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
   if (typeof trChartLines === "function") { g.save(); try { trChartLines(P, g, W, H, axis); } catch (e) { chPaintErr(e, "orders"); } g.restore(); g.setLineDash([]); }
   g.restore(); g.restore();
   axis.forEach(([y, txt, col], j) => { if (y >= 0 && y <= (j < nAx ? H : Hm)) chLabel(g, txt, W + 1, y, col, "#141517"); });
@@ -10048,6 +10052,15 @@ function trAcctGroups(accts, cur, tc) {          // the account in use on top; t
     + `<div class="chacctseg" role="group" aria-label="Other accounts">${seg("on", "Active", on)}${seg("off", "Inactive", off)}</div>`
     + (list ? `<div class="chacctlist">${list.map(x => trAcctRow(x, cur, tc)).join("")}${TRA.open === "off" ? `<p class="meta">Live accounts stay off until you allow them in Trade settings.</p>` : ""}</div>` : "");
 }
+function trAcctBots() {                         // the Bot Simulator's paper trades: which setups, and whether they show on the chart
+  if (typeof BOT === "undefined" || !BOT || typeof BOTF === "undefined") return "";
+  const c = (v, l, on) => `<button class="bfc ${on ? "on" : ""}" data-abs="${v}" aria-pressed="${!!on}">${l}</button>`, nO = botOpenStudy().length, nC = botClosedF().length;
+  return `<div class="chsgh">Bot Simulator (paper money)</div>
+    <p class="meta">${BOT.running ? "Running" : "Paused"} · ${nO} open, ${nC} closed${BOTF.days ? ` in ${BOTF.days} days` : ""} match your filters</p>
+    <label class="chk"><input type="checkbox" id="aaBotShow" ${BOTF.chart ? "checked" : ""}> Show bot trades on the chart</label>
+    <div class="acbots" role="group" aria-label="Bot setups to show">${c("", "All", !BOTF.set.length)}${BOT_STRATS().map(k => c(k, `${MODELS[k].icon} ${k}`, BOTF.set.includes(k))).join("")}</div>
+    <p class="meta">Setups filter the Bot Simulator page too. Click a trade there to study it on the chart.</p><button class="btn sm" data-aa="bots">Open Bot Simulator</button>`;
+}
 function trAcctPop() {
   const p = $("chAcctPop"); if (!p) return;
   const tc = trCfg(), accts = CTT.accounts.length ? CTT.accounts : (CT.accounts || []), cur = CTT.state === "ready" ? String(CTT.acct.ctidTraderAccountId) : String(tc.acct || "");
@@ -10061,13 +10074,16 @@ function trAcctPop() {
     <div class="chsgh">MEXC futures (crypto)</div>
     <p class="meta">${mxtOn() ? `Linked${a ? ` · ${fmtNum(+(a.equity || a.availableBalance || 0))} USDT` : ""}` : "Add an API key in Trade settings to size crypto from your balance."}</p>
     <p class="meta">The chart's market picks the venue: cTrader symbols use the account above, crypto uses MEXC.</p>
-    <button class="btn sm" data-aa="settings">Trade settings…</button><p class="meta">App version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"}</p>`;
+    <button class="btn sm" data-aa="settings">Trade settings…</button>${trAcctBots()}<p class="meta">App version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"}</p>`;
   const done = () => { TPS.clear(); chDirty = true; trAcctChip(); if (!p.hidden) trAcctPop(); };
   p.querySelectorAll("[data-ag]").forEach(b => b.onclick = e => { e.stopPropagation(); TRA.open = TRA.open === b.dataset.ag ? null : b.dataset.ag; trAcctPop(); });
   p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (b.dataset.acct === cur && CTT.state === "ready") return; trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; TW.hist = []; TW.histAt = 0; done(); cttConnect().then(done, done); });
   p.querySelectorAll("[data-aa]").forEach(b => b.onclick = () => { const k = b.dataset.aa; p.hidden = true;
     if (k === "refresh") { p.hidden = false; cttRefresh().then(() => trAcctPop()); return; }
-    if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else openCTSettings(); });
+    if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else if (k === "bots") goPage("bots"); else openCTSettings(); });
+  p.querySelectorAll("[data-abs]").forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.abs;
+    BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; botfSave(); chDirty = true; trAcctPop(); });
+  if ($("aaBotShow")) $("aaBotShow").onchange = () => { BOTF.chart = $("aaBotShow").checked; botfSave(); chDirty = true; trAcctPop(); };
   if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
   if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
 }

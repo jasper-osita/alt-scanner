@@ -14,21 +14,22 @@ async def main():
         print("1) bot:", await q("""() => { botLoad(); BOT.running = true; BOT.fee = 0; BOT.slip = 0; BOT.notify = false; BOT.bots.NBB.positions = []; BOT.bots.NBB.closed = [];
           const r = data.all.filter(x => !x.macro)[0], sym = r.symbol, m = { model: 'NBB', dir: 'Long', state: 'Breakout', entry: 100, stop: 99, t2: 103 };
           const res = [];
-          for (const path of [[101.5, 102.5, 103.1], [102.2, 98.9], [100.5, 98.9]]) {
+          for (const path of [[101.5, 102.5, 103.1], [102.2, 98.9], [100.5, 98.9], [101.2, 99.9, 98.9], [102.4, 100.8, 98.9], [101.15, 100.3]]) {
             bySym[sym].price = 100; r.price = 100; botOpen('NBB', r, m); const p = BOT.bots.NBB.positions.at(-1);
             for (const px of path) { bySym[sym].price = px; botCheckExits(); }
-            const c = BOT.bots.NBB.closed.at(-1); res.push([p.t2r, c.reason, +c.r.toFixed(2), +c.r2.toFixed(2)]);
+            if (BOT.bots.NBB.positions.includes(p)) { p.until = 0; botCheckExits(); }
+            const c = BOT.bots.NBB.closed.at(-1); res.push([p.t2r, c.reason, +c.r.toFixed(2), +c.r2.toFixed(2), +c.rBe.toFixed(2), +c.rLock.toFixed(2), +c.mfe.toFixed(2)]);
           }
           return res; }"""))
-        print("   expect: [102,Target,3,2] [102,Stop,-1,2] [102,Stop,-1,-1]")
+        print("   expect [t2r, reason, r, r2, rBe, rLock, best]: [..Target,3,2,3,3] [..Stop,-1,2,0,1] [..Stop,-1,-1,-1,-1] [..Stop,-1,-1,0,0] [..Stop,-1,2,0,1] [..Time limit,0.3,0.3,0.3,0.3,1.15]")
         await q("() => { goPage('bots'); renderBot(); }"); await asyncio.sleep(0.5)
-        print("2) review:", await q("() => [...document.querySelectorAll('#botSim .brnotes')].map(x => x.innerText.replace(/\\s+/g, ' ')).find(t => /2R target instead/.test(t))"))
+        print("2) review:", await q("() => [...document.querySelectorAll('#botSim .brnotes')].map(x => x.innerText.replace(/\\s+/g, ' ')).find(t => /Ways to exit/.test(t))"))
         print("3) V-Trade (2R target) gets no shadow:", await q("""() => { const r = data.all.filter(x => !x.macro)[1]; bySym[r.symbol].price = 100; r.price = 100;
           botOpen('V-Trade', r, { model: 'V-Trade', dir: 'Long', state: 'x', entry: 100, stop: 99, t2: 102 }); return BOT.bots['V-Trade'].positions.at(-1).t2r === undefined; }"""))
         # backtest variant: candles reach 2R, then fall to the stop
         print("4) btVariants t2:", await q("""() => { const k = { t: [], o: [], h: [], l: [], c: [] }; const add = (h, l, c) => { k.t.push(k.t.length * 36e5); k.o.push(100); k.h.push(h); k.l.push(l); k.c.push(c); };
           add(100, 100, 100); add(101, 99.5, 100.8); add(102.1, 100.5, 101.5); add(101, 98.8, 99);
-          return btVariants(k, 0, { dir: 'Long', entry: 100, stop: 99, t2: 103 }, 48, null, 0); }"""), "expect t2: 2")
+          return btVariants(k, 0, { dir: 'Long', entry: 100, stop: 99, t2: 103 }, 48, null, 0); }"""), "expect t2 2, be 0, lock 1")
         print("5) NBB Watch:", await q("""() => { const k = { t: [1, 2, 3], h: [101, 102.2, 100], l: [99.5, 100.5, 98.9], c: [100.5, 101.8, 99] };
           return [nbbOutcome({ dir: 'Long', entry: 100, stop: 99, tClose: 0 }, k), nbbOutcome({ dir: 'Long', entry: 100, stop: 99, tClose: 0 }, { t: [1], h: [100.5], l: [99.5], c: [100.2] })]; }"""))
         print("errors:", errs or "none")

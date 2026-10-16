@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.16.2344">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.0102">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.16.2344";
+const APP_VERSION = "2026.10.17.0102";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4902,7 +4902,7 @@ function btVariants(k, i, m, maxBars, hardCloseMs, feePct) {   // the same entry
   const long = m.dir === "Long", sg = long ? 1 : -1, R = Math.abs(m.entry - m.stop); if (!(R > 0)) return null;
   const at = x => m.entry + sg * x * R, tgtR = m.t2 != null ? Math.abs(m.t2 - m.entry) / R : 2;
   const hit = (j, lvl) => long ? k.h[j] >= lvl : k.l[j] <= lvl, under = (j, lvl) => long ? k.l[j] <= lvl : k.h[j] >= lvl, rAt = j => sg * (k.c[j] - m.entry) / R;
-  const v = { t1: null, t15: null, t2: null, pbe: null }; let pbePhase = 0, last = i;
+  const v = { t1: null, t15: null, t2: null, pbe: null, be: null, lock: null }; let pbePhase = 0, last = i, best = 0;
   for (let j = i + 1; j < k.c.length && j <= i + maxBars; j++) {
     if (hardCloseMs && k.t[j] >= hardCloseMs) break;
     last = j;
@@ -4911,12 +4911,17 @@ function btVariants(k, i, m, maxBars, hardCloseMs, feePct) {   // the same entry
       if (pbePhase === 0) { if (under(j, m.stop)) v.pbe = -1; else if (hit(j, at(1))) { pbePhase = 1; if (hit(j, at(tgtR))) v.pbe = 0.5 + 0.5 * tgtR; } }
       else if (under(j, m.entry)) v.pbe = 0.5; else if (hit(j, at(tgtR))) v.pbe = 0.5 + 0.5 * tgtR;
     }
-    if (v.t1 != null && v.t15 != null && v.t2 != null && v.pbe != null) break;
+    for (const key of ["be", "lock"]) if (v[key] == null) {           // the stop moves up once the trade is in profit (checked before this candle can raise it)
+      const s = best >= 2 && key === "lock" ? 1 : best >= 1 ? 0 : -1;
+      if (under(j, at(s))) v[key] = s; else if (hit(j, at(tgtR))) v[key] = tgtR;
+    }
+    best = Math.max(best, sg * ((long ? k.h[j] : k.l[j]) - m.entry) / R);
+    if (["t1", "t15", "t2", "pbe", "be", "lock"].every(x => v[x] != null)) break;
   }
   if (last === i) return null;
   const end = rAt(last);
-  if (v.t1 == null) v.t1 = end; if (v.t15 == null) v.t15 = end; if (v.t2 == null) v.t2 = end; if (v.pbe == null) v.pbe = pbePhase ? 0.5 + 0.5 * end : end;
-  return { t1: r2(netR(m, v.t1, feePct)), t15: r2(netR(m, v.t15, feePct)), t2: r2(netR(m, v.t2, feePct)), pbe: r2(netR(m, v.pbe, feePct)) };
+  if (v.t1 == null) v.t1 = end; if (v.t15 == null) v.t15 = end; if (v.t2 == null) v.t2 = end; if (v.be == null) v.be = end; if (v.lock == null) v.lock = end; if (v.pbe == null) v.pbe = pbePhase ? 0.5 + 0.5 * end : end;
+  return { t1: r2(netR(m, v.t1, feePct)), t15: r2(netR(m, v.t15, feePct)), t2: r2(netR(m, v.t2, feePct)), pbe: r2(netR(m, v.pbe, feePct)), be: r2(netR(m, v.be, feePct)), lock: r2(netR(m, v.lock, feePct)) };
 }
 function netR(m, gross, feePct) { const sp = Math.abs(m.entry - m.stop) / m.entry; return gross - (feePct / 100) / sp; }
 function validLevels(m) {
@@ -4993,7 +4998,7 @@ function replayOB(sym, x, winStart, ctx) {              // OB Entry on 15m: limi
     busy = out.j;
     trades.push({ sym, model: "OB", dir: m.dir, tf: "15m", t: k15.t[f], entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
       reason: out.reason, bars: out.j - f, session: sessOf(k15.t[f]), env: ctx.envAt(T), state: `${m.state} · ${m.poi}`, rot: rotBand(x.kd, ctx.btcD, T, m.dir),
-      v: out.reason === "Stop" && out.j === f ? { t1: r2(netR(m, -1, ctx.fee)), t15: r2(netR(m, -1, ctx.fee)), t2: r2(netR(m, -1, ctx.fee)), pbe: r2(netR(m, -1, ctx.fee)) } : btVariants(k15, f, m, 48, null, ctx.fee),
+      v: out.reason === "Stop" && out.j === f ? { t1: r2(netR(m, -1, ctx.fee)), t15: r2(netR(m, -1, ctx.fee)), t2: r2(netR(m, -1, ctx.fee)), pbe: r2(netR(m, -1, ctx.fee)), be: r2(netR(m, -1, ctx.fee)), lock: r2(netR(m, -1, ctx.fee)) } : btVariants(k15, f, m, 48, null, ctx.fee),
       wd: m.withDaily ?? null, sw: true });
   }
   return trades;
@@ -5200,7 +5205,8 @@ const EDGE_KEY = "finder-edge";
 let EDGE = { rules: [], aOnly: false, minN: 30 };
 try { Object.assign(EDGE, JSON.parse(localStorage.getItem(EDGE_KEY) || "{}")); } catch (e) {}
 const edgeSave = () => { try { localStorage.setItem(EDGE_KEY, JSON.stringify(EDGE)); } catch (e) {} };
-const EDGE_VARS = { base: "Model target", t2: "2R target", t15: "1.5R target", t1: "1R target", pbe: "Half at 1R, rest to target or breakeven" };
+const EDGE_VARS = { base: "Model target", t2: "2R target", t15: "1.5R target", t1: "1R target", pbe: "Half at 1R, rest to target or breakeven",
+  be: "Breakeven once +1R", lock: "Breakeven once +1R, +1R locked once +2R" };
 const EDGE_FEATS = {
   env: ["Environment", t => t.env || null], session: ["Session", t => t.session || null], dir: ["Side", t => t.dir || null],
   rsi: ["RSI at entry", t => t.rsi || null], rot: ["Strength vs BTC", t => t.rot && t.rot !== "n/a" ? t.rot : null],
@@ -5292,7 +5298,7 @@ function edgeText() {
   res.forEach(row => {
     const b = row.base;
     t += `\n${row.model}: ${row.n} trades | model target ${b.base ? `${b.base.win.toFixed(0)}% win, ${fmtR(b.base.avg)}` : "n/a"}` +
-      (b.t15 ? `${b.t2 ? ` | 2R ${b.t2.win.toFixed(0)}%, ${fmtR(b.t2.avg)}` : ""} | 1.5R ${b.t15.win.toFixed(0)}%, ${fmtR(b.t15.avg)} | 1R ${b.t1.win.toFixed(0)}%, ${fmtR(b.t1.avg)} | half@1R+BE ${b.pbe.win.toFixed(0)}%, ${fmtR(b.pbe.avg)}` : "") + "\n";
+      (b.t15 ? `${b.t2 ? ` | 2R ${b.t2.win.toFixed(0)}%, ${fmtR(b.t2.avg)}` : ""} | 1.5R ${b.t15.win.toFixed(0)}%, ${fmtR(b.t15.avg)} | 1R ${b.t1.win.toFixed(0)}%, ${fmtR(b.t1.avg)} | half@1R+BE ${b.pbe.win.toFixed(0)}%, ${fmtR(b.pbe.avg)}${b.be ? ` | BE at +1R ${b.be.win.toFixed(0)}%, ${fmtR(b.be.avg)} | lock +1R at +2R ${b.lock.win.toFixed(0)}%, ${fmtR(b.lock.avg)}` : ""}` : "") + "\n";
     if (row.n < EDGE.minN) { t += `  not enough trades to search\n`; return; }
     if (!row.rules.length) t += `  no condition reached 50% with positive R (${row.tested} tested, ${row.failed || 0} failed on new trades)\n`;
     row.rules.forEach(c => t += `  ${EDGE_VERDICT[c.verdict][1]}: ${edgeCondText(c.cs)} + ${EDGE_VARS[c.v]} | older ${c.train.n} trades ${c.train.win.toFixed(0)}% ${fmtR(c.train.avg)} | newest ${c.test ? `${c.test.n} trades ${c.test.win.toFixed(0)}% ${fmtR(c.test.avg)}` : "none"}\n`);
@@ -5306,10 +5312,10 @@ function renderEdge() {
   const tested = res ? res.reduce((s, r) => s + r.tested, 0) : 0;
   let body;
   if (!res) body = `<div class="empty">Run the backtest above first. The Edge Finder searches its trades.</div>`;
-  else body = `${hasV ? (BT.trades.some(t => t.v && t.v.t2 != null) ? "" : `<div class="status err">This backtest was run before the 2R column existed: press Run Again above to include it.</div>`) : `<div class="status err">This backtest was run before management variants existed: press Run Again above to include the 2R, 1.5R, 1R and half-at-1R results.</div>`}
-    <div class="tablewrap"><table class="sct edget"><thead><tr><th class="l">Model</th><th>Trades</th><th>Model target</th>${hasV ? "<th>2R</th><th>1.5R</th><th>1R</th><th>Half at 1R + BE</th>" : ""}</tr></thead><tbody>${res.map(row => {
-      const head = `<tr class="edgem"><td class="l">${MODELS[row.model].icon} <b>${row.model}</b></td><td>${row.n}</td><td>${edgeCell(row.base.base)}</td>${hasV ? `<td>${edgeCell(row.base.t2)}</td><td>${edgeCell(row.base.t15)}</td><td>${edgeCell(row.base.t1)}</td><td>${edgeCell(row.base.pbe)}</td>` : ""}</tr>`;
-      const span = hasV ? 7 : 3;
+  else body = `${hasV ? (BT.trades.some(t => t.v && t.v.lock != null) ? "" : `<div class="status err">This backtest was run before the 2R and stop-to-breakeven columns existed: press Run Again above to include them.</div>`) : `<div class="status err">This backtest was run before management variants existed: press Run Again above to include the 2R, 1.5R, 1R and half-at-1R results.</div>`}
+    <div class="tablewrap"><table class="sct edget"><thead><tr><th class="l">Model</th><th>Trades</th><th>Model target</th>${hasV ? "<th>2R</th><th>1.5R</th><th>1R</th><th>Half at 1R + BE</th><th title='Stop to the entry once the trade is up 1R'>BE at +1R</th><th title='Stop to the entry once up 1R, to +1R once up 2R'>Lock +1R at +2R</th>" : ""}</tr></thead><tbody>${res.map(row => {
+      const head = `<tr class="edgem"><td class="l">${MODELS[row.model].icon} <b>${row.model}</b></td><td>${row.n}</td><td>${edgeCell(row.base.base)}</td>${hasV ? `<td>${edgeCell(row.base.t2)}</td><td>${edgeCell(row.base.t15)}</td><td>${edgeCell(row.base.t1)}</td><td>${edgeCell(row.base.pbe)}</td><td>${edgeCell(row.base.be)}</td><td>${edgeCell(row.base.lock)}</td>` : ""}</tr>`;
+      const span = hasV ? 9 : 3;
       if (row.n < EDGE.minN) return head + `<tr><td colspan="${span}" class="l mute edgesub">Not enough trades to search (${row.n} of ${EDGE.minN}). Run a longer backtest or more coins.</td></tr>`;
       if (!row.rules.length) return head + `<tr><td colspan="${span}" class="l mute edgesub">No condition reached a 50% win rate with positive R on the older trades${row.failed ? `; ${row.failed} that did were rejected by the newest trades` : ""}. Treat this model as unproven.</td></tr>`;
       return head + row.rules.map(c => `<tr><td colspan="${span}" class="l edgesub"><div class="edgerule">
@@ -5371,23 +5377,35 @@ function botOpen(strat, r, m) {
   const qty = risk / R, notional = qty * fill, feeIn = notional * BOT.fee / 200;
   const t2r = Math.abs(m.t2 - m.entry) > 2.05 * R0 ? m.entry + (long ? 2 : -2) * R0 : null;             // target beyond 2R (NBB's 3R): also track a 2R exit
   b.positions.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), sym: r.symbol, dir: m.dir, model: strat, state: m.state,
-    entry: fill, stop: m.stop, target: m.t2, ...(t2r != null ? { t2r } : {}), qty, risk, feeIn, opened: Date.now(), until: Date.now() + BOT_HOLD_MS(strat), checked: Date.now(),
+    entry: fill, stop: m.stop, target: m.t2, ...(t2r != null ? { t2r } : {}), mfe: 0, sh: { be: { s: -1 }, lock: { s: -1 } }, qty, risk, feeIn, opened: Date.now(), until: Date.now() + BOT_HOLD_MS(strat), checked: Date.now(),
     env: data.env ? data.env.label : "", session: sessOf(Date.now()) });
   if (BOT.notify) ncAdd({ sym: r.symbol, kind: "Bots", icon: "🤖", tone: "blue", title: `${strat} bot opened a ${long ? "long" : "short"}`,
     detail: `Paper trade · entry ${fmtPrice(fill)} · stop ${fmtPrice(m.stop)} · target ${fmtPrice(m.t2)}` });
   return true;
 }
-/* The 2R shadow: the same trade with its target at 2R, so the bot shows whether 2R beats the model's own target */
-const botAltR = (p, px) => ((p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty - p.feeIn - p.qty * px * BOT.fee / 200) / p.risk;   // 2R fills as a limit
-function botAlt(p, hi, lo) { if (p.t2r != null && p.r2 == null && (p.dir === "Long" ? hi >= p.t2r : lo <= p.t2r)) p.r2 = botAltR(p, p.t2r); }
+/* Other exits tracked on the same trade, so the bot shows which way of managing it keeps the most:
+   r2 = profit taken at 2R (when the target is beyond 2R) · sh.be = stop to the entry once +1R · sh.lock = that, then stop to +1R once +2R. mfe = best R reached. */
+const botAltR = (p, px, slip) => { const long = p.dir === "Long", f = slip ? px * (1 - (long ? 1 : -1) * BOT.slip / 100) : px;
+  return ((long ? f - p.entry : p.entry - f) * p.qty - p.feeIn - p.qty * f * BOT.fee / 200) / p.risk; };      // targets fill as limits; stops slip
+function botShadow(p, hi, lo) {                              // one price, or one candle's high/low; a moved stop is checked before this candle can raise it
+  const long = p.dir === "Long", R = Math.abs(p.entry - p.stop), lvl = x => p.entry + (long ? 1 : -1) * x * R;
+  if (p.sh) for (const x of Object.values(p.sh)) if (x.r == null && x.s > -1 && (long ? lo <= lvl(x.s) : hi >= lvl(x.s))) x.r = botAltR(p, lvl(x.s), true);
+  if (long ? lo <= p.stop : hi >= p.stop) return;            // the real stop went first: no credit for the high (conservative)
+  if (p.t2r != null && p.r2 == null && (long ? hi >= p.t2r : lo <= p.t2r)) p.r2 = botAltR(p, p.t2r);
+  if (p.mfe == null || !(R > 0)) return;
+  p.mfe = Math.max(p.mfe, (long ? hi - p.entry : p.entry - lo) / R);
+  if (p.mfe >= 1) { p.sh.be.s = Math.max(p.sh.be.s, 0); p.sh.lock.s = Math.max(p.sh.lock.s, p.mfe >= 2 ? 1 : 0); }
+}
 function botClose(strat, p, exitPx, reason, when = Date.now()) {
   const b = BOT.bots[strat], long = p.dir === "Long";
   const fill = reason === "Target" ? exitPx : exitPx * (1 - (long ? 1 : -1) * BOT.slip / 100);   // limit target fills; stops and market exits slip
   const feeOut = p.qty * fill * BOT.fee / 200, pnl = (long ? fill - p.entry : p.entry - fill) * p.qty - p.feeIn - feeOut;
   b.bal += pnl; b.peak = Math.max(b.peak, b.bal); b.dd = Math.max(b.dd, (b.peak - b.bal) / b.peak * 100);
   b.positions = b.positions.filter(x => x.id !== p.id);
-  const r2 = p.t2r == null ? null : p.r2 != null ? p.r2 : reason === "Target" ? botAltR(p, p.t2r) : pnl / p.risk;   // 2R not reached: it ended the same way
-  b.closed.push({ sym: p.sym, dir: p.dir, model: strat, entry: p.entry, exit: fill, stop: p.stop, target: p.target, pnl, r: pnl / p.risk, reason, ...(r2 != null ? { t2r: p.t2r, r2 } : {}),
+  const r = pnl / p.risk, same = x => x && x.r != null ? x.r : r;                                   // an exit that never triggered ended the same way as the trade
+  const r2 = p.t2r == null ? null : p.r2 != null ? p.r2 : reason === "Target" ? botAltR(p, p.t2r) : r;
+  const sh = p.sh ? { mfe: p.mfe, rBe: same(p.sh.be), rLock: same(p.sh.lock) } : {};
+  b.closed.push({ sym: p.sym, dir: p.dir, model: strat, entry: p.entry, exit: fill, stop: p.stop, target: p.target, pnl, r, reason, ...(r2 != null ? { t2r: p.t2r, r2 } : {}), ...sh,
     opened: p.opened, closed: when, env: p.env, session: p.session });
   if (b.closed.length > 400) b.closed = b.closed.slice(-400);
   b.eq.push([when, +b.bal.toFixed(2)]); if (b.eq.length > 1000) b.eq = b.eq.slice(-1000);
@@ -5401,8 +5419,8 @@ function botCheckExits() {                                   // on live prices (
     b.positions.slice().forEach(p => {
       const px = botPrice(p.sym); if (px == null) return;
       const long = p.dir === "Long";
+      botShadow(p, px, px);
       if (long ? px <= p.stop : px >= p.stop) { botClose(k, p, p.stop, "Stop"); return; }
-      botAlt(p, px, px);
       if (long ? px >= p.target : px <= p.target) botClose(k, p, p.target, "Target");
       else if (Date.now() >= p.until) botClose(k, p, px, "Time limit");
     });
@@ -5419,8 +5437,8 @@ async function botReconcile() {                              // catch wicks betw
       const long = p.dir === "Long";
       for (const c of bars) {
         if (c.t + 900e3 <= p.opened) continue;
+        botShadow(p, c.h, c.l);
         if (long ? c.l <= p.stop : c.h >= p.stop) { botClose(k, p, p.stop, "Stop", c.t); break; }       // stop first if both: conservative
-        botAlt(p, c.h, c.l);
         if (long ? c.h >= p.target : c.l <= p.target) { botClose(k, p, p.target, "Target", c.t); break; }
         if (c.t >= p.until) { botClose(k, p, c.c, "Time limit", c.t); break; }
       }
@@ -5497,9 +5515,14 @@ function botReviewHTML(list) {
   const bySet = botGroups(list, c => `${c.model} ${c.dir.toLowerCase()}`).sort((a, b) => b.n - a.n).slice(0, 8).map(g => ({ l: g.k, v: g.avgR, n: g.n }));
   const byEnd = ["Target", "Stop", "Time limit"].map(k => { const x = list.filter(c => c.reason === k); return { l: k, v: x.length / n * 100, n: x.length, grey: k === "Time limit" }; }).filter(r => r.n);
   const spots = botGroups(list, c => `${c.model} ${c.dir.toLowerCase()}s in ${sessName(c.session)}`).filter(g => g.n >= 10), best = spots.filter(g => g.avgR > 0).sort((a, b) => b.avgR - a.avgR)[0], worst = spots.filter(g => g.avgR < 0).sort((a, b) => a.avgR - b.avgR)[0];
-  const alt = [...new Set(list.filter(c => c.r2 != null).map(c => c.model))].map(k => { const x = list.filter(c => c.model === k && c.r2 != null), n2 = x.length;
-    return { k, n2, w: x.filter(c => c.pnl > 0).length / n2 * 100, w2: x.filter(c => c.r2 > 0).length / n2 * 100, a: x.reduce((s, c) => s + c.r, 0) / n2, a2: x.reduce((s, c) => s + c.r2, 0) / n2 }; });
-  const altH = alt.length ? `<div class="brnotes"><b>2R target instead</b>${alt.map(g => `<div>${g.k}, ${g.n2} trade${g.n2 === 1 ? "" : "s"}: the real target won ${g.w.toFixed(0)}% for ${fmtR(g.a)} a trade; a 2R target would have won ${g.w2.toFixed(0)}% for <b class="${g.a2 > g.a ? "up" : g.a2 < g.a ? "dn" : ""}">${fmtR(g.a2)}</b>${g.n2 >= 30 ? (g.a2 - g.a >= 0.05 ? ". 2R is ahead." : g.a - g.a2 >= 0.05 ? ". The real target is ahead." : ". About the same.") : ". Too few trades to call yet."}</div>`).join("")}<div class="meta">The same trades, entries and stops, with the profit taken at 2R. Trades that never reached 2R count the same either way. Wait for 30+ trades before switching.</div></div>` : "";
+  const EXITS = [["r", "As traded"], ["r2", "2R target"], ["rBe", "Breakeven at +1R"], ["rLock", "Lock +1R at +2R"]];
+  const exG = [...new Set(list.filter(c => c.rBe != null).map(c => c.model))].map(k => { const x = list.filter(c => c.model === k && c.rBe != null);
+    const cells = EXITS.map(([f]) => { const y = x.filter(c => c[f] != null), n2 = y.length; return n2 ? { n: n2, win: y.filter(c => c[f] > 0).length / n2 * 100, avg: y.reduce((a, c) => a + c[f], 0) / n2 } : null; });
+    const top = x.length >= 30 ? cells.reduce((b, c, i) => c && (b < 0 || c.avg > cells[b].avg) ? i : b, -1) : -1;
+    return { k, n: x.length, cells, top, gave: x.filter(c => c.mfe >= 1 && c.r < 0).length, best: x.reduce((a, c) => a + (c.mfe || 0), 0) / x.length }; });
+  const altH = exG.length ? `<div class="brnotes"><b>Ways to exit the same trades</b><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Setup</th><th>Trades</th>${EXITS.map(e => `<th>${e[1]}</th>`).join("")}<th title="Trades that were up 1R or more and still closed at a loss">Up 1R+, then lost</th><th title="How far the trades went in your favor, on average">Best reached</th></tr></thead><tbody>${exG.map(g =>
+      `<tr><td class="l">${MODELS[g.k] ? MODELS[g.k].icon + " " : ""}${g.k}</td><td>${g.n}</td>${g.cells.map((c, i) => `<td>${i === g.top ? "<b>" : ""}${edgeCell(c)}${i === g.top ? "</b>" : ""}</td>`).join("")}<td class="${g.gave ? "dn" : ""}">${g.gave}</td><td>${fmtR(g.best)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="meta">The same entries and stops; only the exit changes. Breakeven at +1R: once the trade is up 1R, the stop moves to the entry. Lock: the same, then the stop moves to +1R once it's up 2R. The best average turns bold after 30 trades; switch only when one stays ahead.</div></div>` : "";
   const tl = list.filter(c => c.reason === "Time limit"), tlR = tl.length ? tl.reduce((a, c) => a + c.r, 0) / tl.length : 0;
   const notes = [best ? `<div><b class="up">Best spot:</b> ${best.k}, ${best.n} trades, ${best.win.toFixed(0)}% won, ${fmtR(best.avgR)} on average.</div>` : "",
     worst ? `<div><b class="dn">Weak spot:</b> ${worst.k}, ${worst.n} trades, ${worst.win.toFixed(0)}% won, ${fmtR(worst.avgR)} on average. Consider pausing them then.</div>` : "",

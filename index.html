@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.16.1309">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.16.2253">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.16.1309";
+const APP_VERSION = "2026.10.16.2253";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -10551,8 +10551,16 @@ async function trFromPos(d) {                   // a Long/Short position on the 
     $("tpLv").innerHTML = `<span>Entry</span><b>${f(e)}</b><span>Stop</span><b class="dn">${f(sl)}</b><span>Target</span><b class="up">${tp ? f(tp) : "—"}</b><span>Reward : risk</span><b>${tp ? (Math.abs(tp - e) / Math.abs(e - sl)).toFixed(2) + "R" : "—"}</b>`;
     types(); clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 120);
   };
+  let snapP = null, savedAt = 0;
+  const follow = () => {                          // "Market now": the entry sits on the live price at the latest candle and follows it; the stop and target move with it
+    if ($("tpType").value !== "market") { snapP = null; return; }
+    if (snapP != null && Math.abs(d.pts[0].p - snapP) > Math.abs(snapP) * 1e-7) { snapP = null; delete $("tpType").dataset.user; types(); return; }   // you dragged the entry away: it becomes a limit or stop
+    const n = now(); if (!n) return; const P = chVis().find(Q => chPS(Q) === sym && Q.t.length), dp = n - d.pts[0].p, dt = P ? P.t.at(-1) - d.pts[0].t : 0;
+    if (dp || dt) { d.pts.forEach(q => { q.p += dp; q.t += dt; }); d.pts[0].p = n; chDirty = true; if (Date.now() - savedAt > 3000) { savedAt = Date.now(); chSaveDraw(); } }
+    snapP = d.pts[0].p;
+  };
   $("tpClose").onclick = $("tpCancel").onclick = trPosClose;
-  $("tpType").onchange = () => { $("tpType").dataset.user = "1"; check(); };
+  $("tpType").onchange = () => { $("tpType").dataset.user = "1"; follow(); sync(); check(); };
   $("tpRisk").oninput = () => { manual = false; const rv = parseFloat($("tpRisk").value); if (rv > 0) { d.s = { ...(d.s || {}), risk: rv }; chSaveDraw(); chDirty = true; } clearTimeout(TR.posSz); TR.posSz = setTimeout(sizeIt, 300); };
   $("tpSize").oninput = () => { manual = true; check(); };
   $("tpTicket").onclick = () => { const { e, sl, tp } = lv(), size = $("tpSize").value, risk = $("tpRisk").value, type = $("tpType").value; trPosClose(); openTrade(sym); TR.side = side; TR.type = type; trRender();
@@ -10576,7 +10584,7 @@ async function trFromPos(d) {                   // a Long/Short position on the 
   } catch (x) { $("tpWarn").dataset.size = x.message; warn(x.message); if ($("tpVenue")) $("tpVenue").textContent = v === "ct" ? "cTrader: not ready" : "MEXC: not ready"; }
   if (!$("trPosPanel")) return;
   sync(); clearInterval(TR.posTimer);
-  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } sync(); if (v === "mx") { const { e, sl } = lv(); mxtLevUi("tpLev", "tpLevAuto", "tpMargin", "tpLevNote", mxtLev(sym, e, sl, parseFloat($("tpSize").value))); } if (!$("tpType").dataset.user) types(); check(); }, 250);
+  TR.posTimer = setInterval(() => { if (!$("trPosPanel") || !chList().some(x => x.id === d.id)) { trPosClose(); return; } follow(); sync(); if (v === "mx") { const { e, sl } = lv(); mxtLevUi("tpLev", "tpLevAuto", "tpMargin", "tpLevNote", mxtLev(sym, e, sl, parseFloat($("tpSize").value))); } if (!$("tpType").dataset.user) types(); check(); }, 250);
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $("trPosPanel")) { e.stopPropagation(); trPosClose(); } }, true);
 async function trSizeFromRisk() {

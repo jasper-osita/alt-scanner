@@ -120,10 +120,19 @@ async def main():
         await q("() => { window._opt0 = document.getElementById('tpType').options[0]; }"); await asyncio.sleep(1.2)
         print("21b) list kept:", await q("() => document.getElementById('tpType').options[0] === window._opt0"), "| options:", await q("() => [...document.getElementById('tpType').options].map(o => o.value).join(',')"))
         t0 = await q("() => document.getElementById('tpType').value")
+        await q("() => { window._pts = JSON.parse(JSON.stringify(CHD[CH.sym][0].pts)); }")
         for k in ("market", "stop"):
             await pg.select_option("#tpType", k); await asyncio.sleep(1.2)
             print(f"21c) picked {k}:", await q("() => document.getElementById('tpType').value"))
-        await pg.select_option("#tpType", t0)
+        # Market now: the entry snaps to the live price at the latest candle and follows it; stop and target keep their distance
+        await pg.select_option("#tpType", "market"); await asyncio.sleep(0.8)
+        M = "() => { const d = CHD[CH.sym][0], x = cttSym(CH.sym), q = CTT.spots[x.symbolId], P = chVis()[0], o = window._pts; return [+(d.pts[0].p / q.bid).toFixed(6), Math.abs((d.pts[1].p - d.pts[0].p) - (o[1].p - o[0].p)) < 1e-6, d.pts[0].t === P.t.at(-1), document.getElementById('tpLv').innerText.includes(chFmt(d.pts[0].p, P.c.at(-1)).replace(/,/g, '')) || document.getElementById('tpLv').innerText.replace(/,/g, '').includes(String(+(+d.pts[0].p).toFixed(2)))]; }"
+        print("21e) market snaps: [entry/bid, stop distance kept, at last candle, panel shows it]", await q(M))
+        await q("() => { const x = cttSym(CH.sym), q = CTT.spots[x.symbolId]; CTT.spots[x.symbolId] = { ...q, bid: q.bid * 1.003, ask: q.ask * 1.003 }; }"); await asyncio.sleep(0.8)
+        print("21f) follows the price:", await q(M), "| warning:", await q("() => document.getElementById('tpWarn').innerText || 'none'"))
+        await q("() => { const d = CHD[CH.sym][0], x = cttSym(CH.sym), q = CTT.spots[x.symbolId]; d.pts.forEach((p, i) => { p.t = window._pts[i].t; p.p = window._pts[i].p; }); chDirty = true; }"); await asyncio.sleep(0.6)
+        print("21g) dragged away from market:", await q("() => document.getElementById('tpType').value"))
+        await pg.select_option("#tpType", t0); await asyncio.sleep(0.4)
         print("21d) docked beside the charts:", await q("() => { const a = document.getElementById('trPosPanel').getBoundingClientRect(), panes = chVis().map(P => P.cv.getBoundingClientRect()); return { overlapsChart: panes.some(p => a.left < p.right && a.right > p.left && a.top < p.bottom && a.bottom > p.top), rightOfCharts: panes.every(p => a.left >= p.right - 1), docked: document.querySelector('#chPage .chbody').classList.contains('trdock') }; }"))
         # drag the red stop line with the mouse: the size follows
         box = await q("() => { const P = chVis()[0], r = P.cv.getBoundingClientRect(), d = CHD[CH.sym][0]; return [r.left, r.top, chPlotW(P), chY(P, d.pts[1].p), chY(P, d.pts[0].p)]; }")

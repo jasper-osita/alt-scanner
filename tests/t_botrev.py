@@ -80,7 +80,7 @@ async def main():
         await q("() => document.getElementById('csClose').click()")
         # account menu: the bots' setups and "show bot trades on the chart"
         await q("() => { const p = document.getElementById('chAcctPop'); p.hidden = true; document.getElementById('chAcctBtn').click(); }"); await asyncio.sleep(0.4)
-        print("17) menu:", await q("() => { const p = document.getElementById('chAcctPop'); return [p.hidden, !!document.getElementById('aaBotShow'), p.querySelectorAll('[data-abs]').length, p.innerText.match(/Bot Simulator[^\\n]*\\n[^\\n]*/)[0].replace(/\\s+/g, ' ')]; }"))
+        print("17) menu:", await q("() => { const p = document.getElementById('chAcctPop'); return [p.hidden, p.innerText.match(/\\d+ on \\w+/)[0], !!document.getElementById('aaBotShow'), p.querySelectorAll('[data-abs]').length, p.innerText.match(/Bot Simulator[^\\n]*\\n[^\\n]*/)[0].replace(/\\s+/g, ' ')]; }"))
         await q("() => document.getElementById('aaBotShow').click()"); await asyncio.sleep(0.3)
         await q("() => document.querySelector('#chAcctPop [data-abs=\"NBB\"]').click()"); await asyncio.sleep(0.3)
         print("18) on, NBB only:", await q("() => [BOTF.chart, BOTF.set.join(), !document.getElementById('chAcctPop').hidden, chBotTrades(CH.sym).length > 0, chBotTrades(CH.sym).every(c => c.model === 'NBB'), JSON.parse(localStorage.getItem('altscan-bot-filter')).chart]"))

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.0125">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.1116">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.17.0125";
+const APP_VERSION = "2026.10.17.1116";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -10061,7 +10061,7 @@ function trAcctBots() {                         // the Bot Simulator's paper tra
   return `<div class="chsgh">Bot Simulator (paper money)</div>
     <button class="chacctrow ${on ? "on" : ""}" data-abv="1" aria-pressed="${on}"><i class="chacctdot demo"></i><span class="chacctn"><b>Bot Simulator</b><span class="mute">${BOT_STRATS().filter(k => BOT.bots[k].on).length} bots</span></span><span class="chacctk demo">Paper</span><small>$${fmtNum(bal)}</small></button>
     ${on ? `<p class="meta">The trade watch shows the bots' trades. Pick a cTrader account above (or click this again) to go back. Orders from the chart still go to your cTrader or MEXC account.</p>` : ""}
-    <p class="meta">${BOT.running ? "Running" : "Paused"} · ${nO} open, ${nC} closed${BOTF.days ? ` in ${BOTF.days} days` : ""} match your filters</p>
+    <p class="meta">${BOT.running ? "Running" : "Paused"} · ${nO} open, ${nC} closed${BOTF.days ? ` in ${BOTF.days} days` : ""} match your filters${String(CH.sym || "").startsWith("CT:") ? "" : ` · <b>${[...botOpenStudy(), ...botClosedF()].filter(c => c.sym === CH.sym).length}</b> on ${trEsc(coin(CH.sym))}`}</p>
     <label class="chk"><input type="checkbox" id="aaBotShow" ${BOTF.chart ? "checked" : ""}> Show bot trades on the chart</label>
     <div class="acbots" role="group" aria-label="Bot setups to show">${c("", "All", !BOTF.set.length)}${BOT_STRATS().map(k => c(k, `${MODELS[k].icon} ${k}`, BOTF.set.includes(k))).join("")}</div>
     <p class="meta">Setups filter the Bot Simulator page too. Click a trade there to study it on the chart.</p><button class="btn sm" data-aa="bots">Open Bot Simulator</button>`;

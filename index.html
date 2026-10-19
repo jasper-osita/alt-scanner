@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.2332">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.2356">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -915,6 +915,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fkey{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 11px;font-size:12px;color:var(--mute)}.fkey input{flex:1;min-width:160px;height:28px;border:1px solid var(--pill-b);border-radius:7px;background:var(--bg);color:var(--text);padding:0 8px;font:12px var(--font)}
 .fchips{display:flex;flex-wrap:wrap;gap:4px;padding:8px 11px 4px}.fchip{border:1px solid var(--pill-b);background:transparent;color:var(--mute);border-radius:6px;font:600 11px var(--font);padding:2px 7px;cursor:pointer}.fchip.on{color:var(--accent);border-color:var(--accent)}
 .fnews{display:flex;flex-direction:column;max-height:520px;overflow-y:auto;scrollbar-width:none}.fnews::-webkit-scrollbar{display:none}.fni{display:block;padding:6px 11px;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.4;color:var(--text);text-decoration:none}.fni:hover{background:var(--hover)}.fnt{color:var(--strong)}
+.fread{margin:0 0 10px}.fhead{font-size:13.5px;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}.fhead b{color:var(--strong)}
+.fcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}.fcard:hover{border-color:var(--pill-b)}
+.fcard .ft{display:flex;align-items:baseline;gap:8px}.fcard .ft b{font:700 14px var(--display);color:var(--strong)}.fcard .ft .fpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13px}
+.fverd{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--pill);color:var(--mute)}.fverd.up{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}.fverd.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+.fwhy{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.35}.fwhy li{display:flex;gap:6px}.fwhy li i{font-style:normal;flex:none;width:12px}.fwatch{font-size:12px;color:var(--amber)}
+@media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
 @media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
@@ -1184,6 +1190,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <section class="card fundcard" data-page="fund">
     <div class="momohead"><h2>Fundamentals</h2><span class="meta" id="fundMeta"></span><span class="calbtns"><button class="btn sm" id="fundRefresh">Refresh</button></span></div>
     <div class="fstrip" id="fundStrip"></div>
+    <div id="fundRead"></div>
     <div class="fgrid" id="fundBody"><div class="empty">Loading…</div></div>
     <p class="meta">Sources: your price feeds (cTrader, MEXC/Binance), US Treasury yields, FRED (free key), CFTC positioning, CoinGecko and Alternative.me, Forex Factory, and news RSS (FXStreet, MarketWatch, Investing.com, CoinDesk). Positioning and headlines go through the Mac app's relay or the web version's.</p>
   </section>
@@ -4432,7 +4439,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.19.2332";
+const APP_VERSION = "2026.10.19.2356";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9748,6 +9755,7 @@ async function fundNews(force) {
   const items = [], errs = [];
   await Promise.all(FUND_RSS.map(async ([k, name]) => { try { const doc = new DOMParser().parseFromString(await fundText("/proxy/rss/" + k), "text/xml");
     [...doc.querySelectorAll("item")].slice(0, 25).forEach(it => { const g = s => (it.querySelector(s) || {}).textContent || "", title = g("title").trim(), link = g("link").trim(), t = Date.parse(g("pubDate")) || Date.parse(g("date")) || 0;
+      const tag = (FUND_TAGS.find(([, re]) => re.test(title)) || [""])[0]; if (k === "marketwatch" && !tag) return;          // its personal-finance stories aren't market news
       if (title && /^https?:\/\//.test(link)) items.push({ title, link, t, src: name, tag: (FUND_TAGS.find(([, re]) => re.test(title)) || [""])[0] }); }); } catch (e) { errs.push(name); } }));
   if (items.length) { const seen = new Set(); FUND.news = { at: Date.now(), items: items.sort((a, b) => b.t - a.t).filter(x => { const k = x.title.toLowerCase().slice(0, 60); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 60) }; }
   FUND.err.news = errs.length === FUND_RSS.length ? "headlines need the Mac app's relay (or the web version's)" : null;
@@ -9775,7 +9783,9 @@ function fundStrip() {
 function fundWorld() {
   let h = `<table class="ftbl"><tr class="mu"><td></td><td class="r">Price</td><td class="r">24h</td><td class="r">1W</td></tr>`;
   FUND_WM.forEach(([grp, L]) => { h += `<tr><td class="fgrp" colspan="4">${grp}</td></tr>`;
-    L.forEach(([lbl, names]) => { const r = fRow(names); h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
+    L.forEach(([lbl, names]) => { const r = fRow(names);
+      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
+      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
   const G = EXT.global, F = EXT.fng, mf = typeof medianFunding === "function" && data ? medianFunding() : null, vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2");
   h += `<tr><td class="fgrp" colspan="4">Risk &amp; crypto</td></tr>
     <tr><td>VIX (fear gauge)</td><td class="r">${vix ? vix[0][1].toFixed(1) : "—"}</td><td class="r ${vix && vix[1] ? fCls(-(vix[0][1] - vix[1][1])) : "mu"}">${vix && vix[1] ? (vix[0][1] - vix[1][1] >= 0 ? "+" : "") + (vix[0][1] - vix[1][1]).toFixed(1) : ""}</td><td class="r mu">${vix ? (vix[0][1] < 15 ? "calm" : vix[0][1] < 22 ? "normal" : "stressed") : ""}</td></tr>
@@ -9786,13 +9796,18 @@ function fundWorld() {
     <tr><td>Funding (median, 8h)</td><td class="r">${mf != null ? (mf * 100).toFixed(3) + "%" : "—"}</td><td></td><td class="r mu">${mf != null ? (mf > 0.0003 ? "longs paying up" : mf < 0 ? "shorts paying" : "normal") : ""}</td></tr></table>`;
   return h;
 }
+function fundBank(id) {                           // a bank's rate, its last real move and stance (monthly OECD series wiggle a few bp: ignore under 10bp)
+  const s = fundLast(id), out = { rate: null, asOf: null, mv: null, mvAt: null, stance: "" }; if (!s) return out;
+  const th = id.startsWith("IRSTCI") ? 0.1 : 0.001; out.rate = s[0][1]; out.asOf = s[0][0];
+  const j = s.findIndex(o => Math.abs(o[1] - out.rate) >= th); if (j > 0) { out.mv = Math.round((out.rate - s[j][1]) * 100); out.mvAt = s[j - 1][0]; }
+  out.stance = out.mv == null ? "on hold" : Date.now() - out.mvAt < 200 * 864e5 ? (out.mv < 0 ? "cutting" : "hiking") : "on hold"; return out;
+}
 function fundCB() {
   const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
   const meet = ccy => { if (ccy === "USD" && nextFOMC) return nextFOMC; const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && /rate|policy|cash rate|statement/i.test(e.title) && e.type === "Central Bank"); return x ? x.at : null; };
   const rows = FUND_CB.map(([bank, ccy, id, what]) => { const s = fundLast(id), m = meet(ccy);
-    let rate = null, asOf = null, mv = null, mvAt = null;
-    if (s) { rate = s[0][1]; asOf = s[0][0]; const j = s.findIndex(o => Math.abs(o[1] - rate) > 0.001); if (j > 0) { mv = Math.round((rate - s[j][1]) * 100); mvAt = s[j - 1][0]; } }
-    const recent = mvAt && now - mvAt < 200 * 864e5, stance = mv == null ? "" : !recent ? "on hold" : mv < 0 ? "cutting" : "hiking";
+    let rate, asOf, mv, mvAt, stance;
+    ({ rate, asOf, mv, mvAt, stance } = fundBank(id));
     return `<tr><td><b>${bank}</b> <span class="mu">${ccy}</span></td><td class="r" title="${xEsc(what)}${asOf ? " · as of " + new Date(asOf).toISOString().slice(0, 10) : ""}">${rate != null ? rate.toFixed(2) + "%" : "—"}</td>
       <td class="r ${mv == null ? "mu" : fCls(mv)}">${mv == null ? "—" : (mv > 0 ? "+" : "") + mv + "bp " + new Date(mvAt).toLocaleString("en-US", { month: "short", year: "2-digit", timeZone: "UTC" })}</td>
       <td class="r">${m ? `${phtDay(m).slice(4)} <span class="mu">· ${inTxt(m - now)}</span>` : "—"}</td><td>${stance ? `<span class="fk ${stance === "cutting" ? "up" : stance === "hiking" ? "dn" : ""}">${stance}</span>` : ""}</td></tr>`; }).join("");
@@ -9838,12 +9853,70 @@ function fundCalHTML() {
   return L.length ? `<table class="ftbl">${L.map(x => `<tr><td class="fam" style="white-space:nowrap">${phtDayKey(x.at) === phtDayKey(now) ? "" : phtDay(x.at).slice(0, 3) + " "}${x.timeLbl || phtHM(x.at)}</td><td><b>${xEsc(x.ccy)}</b> ${xEsc(x.title)}</td><td class="r mu">${x.forecast ? "F " + xEsc(x.forecast) : ""}${x.previous ? " · P " + xEsc(x.previous) : ""}</td></tr>`).join("")}</table>`
     : `<div class="empty">No high-impact events coming up this week.</div>`;
 }
+// ---- the read: what the numbers add up to for Gold, the Nasdaq, the dollar and Bitcoin, in one look ----
+function fDollar() {                               // the dollar index; without one, an estimate from its main pairs (ICE weights, Swedish krona left out)
+  const r = fRow(["US Dollar Index", "USDX", "DXY"]); if (r) return { sym: r.symbol, price: r.price, chg: r.chg24h, w: r.ret7 != null ? r.ret7 * 100 : null };
+  const P = [[["EUR/USD", "EURUSD"], -0.576], [["USD/JPY", "USDJPY"], 0.136], [["GBP/USD", "GBPUSD"], -0.119], [["USD/CAD", "USDCAD"], 0.091], [["USD/CHF", "USDCHF"], 0.036]].map(([n, w]) => [fRow(n), w]).filter(x => x[0]);
+  if (P.length < 3) return null; const W = P.reduce((a, x) => a + Math.abs(x[1]), 0), sum = f => P.reduce((a, [r, w]) => a + (f(r) == null ? 0 : w * f(r)), 0) / W;
+  return { est: true, chg: sum(r => r.chg24h), w: P.every(([r]) => r.ret7 != null) ? sum(r => r.ret7 * 100) : null };
+}
+function fundSignals() {
+  const now = Date.now(), R = FUND.real && FUND.real.rows, N = FUND.ust && FUND.ust.rows, back = (rows, k) => { if (!rows || !rows[0] || rows[0].v[k] == null) return null; const o = rows.find(r => r.t <= rows[0].t - 28 * 864e5 && r.v[k] != null); return o ? rows[0].v[k] - o.v[k] : null; };
+  const vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2"), F = EXT.fng, cot = n => FUND.cot && FUND.cot.rows.find(r => r.name === n), fed = fundBank("DFEDTARU");
+  const vixV = vix ? vix[0][1] : null, hyWk = hy && hy[5] ? hy[0][1] - hy[5][1] : null;
+  const risk = vixV == null ? null : vixV > 25 || (hyWk != null && hyWk > 0.25) ? "off" : vixV < 18 && (!hy || hy[0][1] < 4) ? "on" : "mixed";
+  const ev = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now && x.at < now + 36 * 3600e3 && x.impact === "High" && x.ccy === "USD")[0];
+  const fomc = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
+  return { real: back(R, "10yr"), y2: back(N, "2yr"), dollar: fDollar(), fed: fed.rate != null ? fed.stance : null, risk, vix: vixV, fng: F ? F.v : null, ev, fomc: fomc && fomc - now < 4 * 864e5 ? fomc : null, cot };
+}
+function fundCardsData() {
+  const S = fundSignals(), mf = typeof medianFunding === "function" && data ? medianFunding() : null, btc = typeof bySym !== "undefined" && bySym.BTCUSDT;
+  const trend = (w, lbl) => w == null ? null : w >= 1 ? [+1, `${lbl} up ${w.toFixed(1)}% this week`] : w <= -1 ? [-1, `${lbl} down ${Math.abs(w).toFixed(1)}% this week`] : null;
+  const realL = S.real == null ? null : S.real <= -0.08 ? [+1, `Real yields falling (${Math.round(S.real * 100)}bp in a month)`] : S.real >= 0.08 ? [-1, `Real yields rising (+${Math.round(S.real * 100)}bp in a month)`] : null;
+  const usdW = S.dollar && S.dollar.w;
+  const crowd = (c, name) => !c ? null : c.pct >= 90 ? [0, `Crowded long (${name} speculators near a 1-year high): dips can be sharp`] : c.pct <= 10 ? [0, `Crowded short: squeezes can be sharp`] : null;
+  const evL = S.ev ? [0, `${S.ev.ccy} ${S.ev.title} ${phtDay(S.ev.at).slice(0, 3)} ${S.ev.timeLbl || phtHM(S.ev.at)} (in ${inTxt(S.ev.at - Date.now())}): expect spikes`] : S.fomc ? [0, `Fed decision in ${inTxt(S.fomc - Date.now())}: expect spikes`] : null;
+  const fedL = (good) => !S.fed || S.fed === "on hold" ? null : S.fed === "cutting" ? [good, "The Fed is cutting rates"] : [-good, "The Fed is raising rates"];
+  const riskL = (good) => S.risk === "on" ? [good, `Risk appetite is up (VIX ${S.vix.toFixed(0)})`] : S.risk === "off" ? [-good, `Markets are nervous (VIX ${S.vix.toFixed(0)})`] : null;
+  const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]);
+  return [
+    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
+    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
+    { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
+      L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
+    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
+      trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
+  ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
+    return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
+}
+function fundReadHTML() {
+  const S = fundSignals(), C = fundCardsData(), bits = [];
+  if (S.risk) bits.push(S.risk === "on" ? `<b class="up">Risk-on</b>` : S.risk === "off" ? `<b class="dn">Risk-off</b>` : `<b>Risk mood mixed</b>`);
+  if (S.real != null && Math.abs(S.real) >= 0.08) bits.push(S.real < 0 ? "real yields falling" : "real yields rising");
+  if (S.dollar && S.dollar.w != null && Math.abs(S.dollar.w) >= 0.5) bits.push(S.dollar.w < 0 ? "dollar weaker" : "dollar stronger");
+  if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
+  const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
+  const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
+    <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;
+  return `<div class="fread"><div class="fhead"><span class="mu">Today's read</span>${bits.join(" · ") || `<span class="mu">Fills in as the data loads.</span>`}</div><div class="fcards">${C.map(card).join("")}</div>
+    <p class="meta fnote" style="margin:6px 2px 0">▲ pushes the price up, ▼ pushes it down, ⚠ a warning. A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</p></div>`;
+}
+function fundLive() {                              // prices tick in place between full refreshes
+  if (page !== "fund" || document.visibilityState !== "visible") return;
+  const st = $("fundStrip"); if (st) { const h = fundStrip(); if (h && st.innerHTML !== h) st.innerHTML = h; }
+  const tick = (el, v) => { const txt = fmtPrice(v); if (el.textContent === txt) return; const prev = +el.dataset.v || v; el.textContent = txt; el.dataset.v = v; el.classList.remove("tick-up", "tick-dn"); void el.offsetWidth; el.classList.add(v >= prev ? "tick-up" : "tick-dn"); };
+  document.querySelectorAll("#fundBody tr[data-fsym]").forEach(tr => { const r = MACRO.by[tr.dataset.fsym]; if (!r) return; const td = tr.children; tick(td[1], r.price); td[2].textContent = fPct(r.chg24h); td[2].className = "r " + fCls(r.chg24h); });
+  document.querySelectorAll("#fundRead .flp[data-fp]").forEach(el => { const s = el.dataset.fp, r = MACRO.by[s] || (typeof bySym !== "undefined" && bySym[s]); if (!r) return; tick(el, r.price); const c = el.parentElement.querySelector(".flc"); if (c) { c.textContent = fPct(r.chg24h); c.className = fCls(r.chg24h) + " flc"; } });
+}
+setInterval(fundLive, 1000);
 function fundRender() {
   const el = $("fundBody"); if (!el || page !== "fund") return;
   const at = [FUND.ust && FUND.ust.at, FUND.cot && FUND.cot.at, FUND.news && FUND.news.at].filter(Boolean);
   $("fundMeta").textContent = FUND.busy ? "Updating…" : at.length ? `updated ${phtHM(Math.max(...at))} PHT` : "";
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
   const keep = document.activeElement && document.activeElement.id === "fredKey" ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
+  $("fundRead").innerHTML = fundReadHTML();
+  $("fundRead").querySelectorAll("[data-fsym]").forEach(c => c.onclick = () => typeof openInCharts === "function" && openInCharts(c.dataset.fsym));
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>

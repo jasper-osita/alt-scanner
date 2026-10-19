@@ -40,6 +40,12 @@ async def main():
         print("11b) no key pasted, the server's own:", await q("() => [!!document.getElementById('fredKey'), document.querySelector('.fcb .ftbl tr:nth-child(2)').innerText.replace(/\\s+/g, ' ')]"),
               "| key sent from the page:", any("api_key=" in h for h in FUND_HITS[-3:]))
         print("13) calendar:", await q("() => document.querySelectorAll('.fnewsp .ftbl tr').length"))
+        print("16) read:", await q("() => document.querySelector('#fundRead .fhead').innerText.replace(/\\s+/g, ' ')"))
+        print("17) cards:", await q("() => [...document.querySelectorAll('#fundRead .fcard')].map(c => c.querySelector('.ft b').textContent + ' → ' + c.querySelector('.fverd').textContent + ' [' + [...c.querySelectorAll('.fwhy li')].map(li => li.innerText.replace(/\\s+/g, ' ')).join('; ') + ']').join(' || ')"))
+        G = "() => { const c = [...document.querySelectorAll('#fundRead .fcard')].find(c => c.querySelector('.ft b').textContent === 'Gold'), tr = [...document.querySelectorAll('.fworld tr[data-fsym]')].find(t => t.children[0].textContent === 'Gold'); return [c.querySelector('.flp').textContent, tr.children[1].textContent]; }"
+        before = await q(G)
+        await q("() => { const r = fRow(['Gold']); r.price = r.price * 1.01; }"); await asyncio.sleep(1.3)
+        print("18) live tick:", before, "→", await q(G), "| flashed:", await q("() => !!document.querySelector('#fundRead .flp.tick-up')"))
         el = await pg.query_selector(".fundcard"); await el.screenshot(path=f"{OUT}/fund.png")
         await q("() => document.querySelector('.fworld tr[data-fsym]').click()"); await asyncio.sleep(1)
         print("14) click a market → chart:", await q("() => page"))

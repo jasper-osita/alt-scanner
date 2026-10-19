@@ -90,7 +90,7 @@
     },
     {
       "source": "/proxy/fred/series/observations",
-      "destination": "https://api.stlouisfed.org/fred/series/observations"
+      "destination": "/api/fred"
     },
     {
       "source": "/proxy/rss/fxstreet",

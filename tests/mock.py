@@ -378,7 +378,7 @@ async def setup_extra(ctx):
     for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api/awake*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
 
 # ---------------- fundamentals page: Treasury yield curves, CFTC positioning, FRED, news RSS ----------------
-FUND_HITS = []
+FUND_HITS = []; FUND_SRV = {"key": False}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)
 def ust_csv(real, year):
     import datetime as dt
     hdr = ['Date', '"5 YR"', '"7 YR"', '"10 YR"', '"20 YR"', '"30 YR"'] if real else ['Date', '"1 Mo"', '"1.5 Month"', '"2 Mo"', '"3 Mo"', '"4 Mo"', '"6 Mo"', '"1 Yr"', '"2 Yr"', '"3 Yr"', '"5 Yr"', '"7 Yr"', '"10 Yr"', '"20 Yr"', '"30 Yr"']
@@ -420,13 +420,14 @@ def rss_xml(name):
     items = "".join(f"<item><title>{name}: {x}</title><link>https://example.com/{name}/{i}</link><pubDate>{email.utils.formatdate(now - i * 900 - len(name) * 60)}</pubDate></item>" for i, x in enumerate(t))
     return f'<?xml version="1.0"?><rss version="2.0"><channel><title>{name}</title>{items}</channel></rss>'
 async def route_fund(route):
-    u = route.request.url; p = urlparse(u); FUND_HITS.append(p.path)
+    u = route.request.url; p = urlparse(u); FUND_HITS.append(p.path + "?" + p.query)
     if p.path.startswith("/proxy/ust/"):
         _, _, _, typ, year = p.path.split("/")
         return await route.fulfill(status=200, content_type="text/csv", body=ust_csv("real" in typ, year))
     if p.path == "/proxy/cot": return await route.fulfill(status=200, content_type="application/json", body=json.dumps(cot_json()))
     if p.path.startswith("/proxy/fred/"):
         q = parse_qs(p.query)
+        if not q.get("api_key", [""])[0] and not FUND_SRV["key"]: return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_message": "no api_key: add FRED_API_KEY in Vercel or paste a key in the app"}))
         if q.get("api_key", [""])[0].startswith("bad"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_code": 400, "error_message": "Bad Request.  The value for variable api_key is not registered."}))
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps(fred_json(q.get("series_id", [""])[0])))
     if p.path.startswith("/proxy/rss/"): return await route.fulfill(status=200, content_type="application/xml", body=rss_xml(p.path.split("/")[-1]))

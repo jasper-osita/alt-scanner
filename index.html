@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.2325">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.2332">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4432,7 +4432,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.19.2325";
+const APP_VERSION = "2026.10.19.2332";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9731,13 +9731,13 @@ const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR
   ["RBA", "AUD", "IRSTCI01AUM156N", "OECD short rate, monthly"], ["BoC", "CAD", "IRSTCI01CAM156N", "OECD short rate, monthly"], ["SNB", "CHF", "IRSTCI01CHM156N", "OECD short rate, monthly"], ["RBNZ", "NZD", "IRSTCI01NZM156N", "OECD short rate, monthly"]];
 const FUND_US = [["CPIAUCSL", "US inflation (CPI y/y)", "yoy"], ["UNRATE", "US unemployment", "lvl"], ["T10YIE", "10Y inflation expectations", "lvl"], ["BAMLH0A0HYM2", "Junk-bond spread (stress)", "lvl"], ["VIXCLS", "VIX (fear gauge)", "lvl"]];
 async function fundFRED(force) {
-  const k = fredKey(); if (!k) return;
-  if (!force && FUND.fred && FUND.fred.at && Date.now() - FUND.fred.at < 6 * 3600e3 && FUND.fred.k === k.slice(-4)) return;
-  const one = async id => { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}&api_key=${encodeURIComponent(k)}&file_type=json&sort_order=desc&limit=420`), j = await r.json().catch(() => null);
+  const k = fredKey(), tag = k ? k.slice(-4) : "server";        // no key pasted: the relay (Mac app or the web version) adds its own
+  if (!force && FUND.fred && FUND.fred.at && Date.now() - FUND.fred.at < 6 * 3600e3 && FUND.fred.k === tag) return;
+  const one = async id => { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}${k ? "&api_key=" + encodeURIComponent(k) : ""}&file_type=json&sort_order=desc&limit=420`), j = await r.json().catch(() => null);
     if (!r.ok || !j || j.error_message) throw new Error((j && j.error_message) || "HTTP " + r.status); return (j.observations || []).filter(o => o.value !== ".").map(o => [Date.parse(o.date), +o.value]); };
   try { const ids = [...FUND_CB.map(c => c[2]), ...FUND_US.map(u => u[0])], res = await Promise.all(ids.map(id => one(id).catch(e => { if (/api_key|key/i.test(e.message)) throw e; return []; })));
-    FUND.fred = { at: Date.now(), k: k.slice(-4), s: Object.fromEntries(ids.map((id, i) => [id, res[i].slice(0, 420)])) }; FUND.err.fred = null; }
-  catch (e) { FUND.err.fred = /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
+    FUND.fred = { at: Date.now(), k: tag, s: Object.fromEntries(ids.map((id, i) => [id, res[i].slice(0, 420)])) }; FUND.err.fred = null; }
+  catch (e) { FUND.err.fred = !k && /api_key/i.test(e.message) ? "nokey" : /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
 }
 // headlines: free RSS feeds through the relay
 const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"]];
@@ -9796,7 +9796,7 @@ function fundCB() {
     return `<tr><td><b>${bank}</b> <span class="mu">${ccy}</span></td><td class="r" title="${xEsc(what)}${asOf ? " · as of " + new Date(asOf).toISOString().slice(0, 10) : ""}">${rate != null ? rate.toFixed(2) + "%" : "—"}</td>
       <td class="r ${mv == null ? "mu" : fCls(mv)}">${mv == null ? "—" : (mv > 0 ? "+" : "") + mv + "bp " + new Date(mvAt).toLocaleString("en-US", { month: "short", year: "2-digit", timeZone: "UTC" })}</td>
       <td class="r">${m ? `${phtDay(m).slice(4)} <span class="mu">· ${inTxt(m - now)}</span>` : "—"}</td><td>${stance ? `<span class="fk ${stance === "cutting" ? "up" : stance === "hiking" ? "dn" : ""}">${stance}</span>` : ""}</td></tr>`; }).join("");
-  const note = !k ? `<div class="fkey"><span>Rates come from FRED. Add your free key (fred.stlouisfed.org → My account → API keys):</span><input id="fredKey" placeholder="Paste FRED key" aria-label="FRED API key" autocomplete="off"><button class="btn sm" id="fredSave">Save</button></div>`
+  const note = !k && (FUND.err.fred === "nokey" || !(FUND.fred && FUND.fred.s)) ? `<div class="fkey"><span>Rates come from FRED. Add your free key (fred.stlouisfed.org → My account → API keys):</span><input id="fredKey" placeholder="Paste FRED key" aria-label="FRED API key" autocomplete="off"><button class="btn sm" id="fredSave">Save</button></div>`
     : FUND.err.fred ? `<div class="fkey dn">${xEsc(FUND.err.fred)}. <button class="btn sm" id="fredClear">Change key</button></div>` : "";
   return `<table class="ftbl"><tr class="mu"><td>Bank</td><td class="r">Rate</td><td class="r">Last move</td><td class="r">Next meeting</td><td>Stance</td></tr>${rows}</table>${note}`;
 }

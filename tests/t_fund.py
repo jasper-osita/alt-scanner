@@ -35,6 +35,10 @@ async def main():
         await pg.fill("#fredKey", "abcdef0123456789abcdef0123456789"); await q("() => document.getElementById('fredSave').click()"); await wait("() => FUND.fred && FUND.fred.s && !FUND.busy", 20); await q("() => fundRender()")
         print("11) rates:", await q("() => [...document.querySelectorAll('.fcb .ftbl tr')].slice(1, 4).map(tr => tr.innerText.replace(/\\s+/g, ' ')).join(' / ')"), "| key stored:", await q("() => localStorage.getItem('finder-fred').length"))
         print("12) US gauges:", await q("() => document.querySelector('.fkv').innerText.replace(/\\s+/g, ' ')"), "| VIX:", await q("() => document.querySelector('.fworld').innerText.match(/VIX[^\\n]*\\n?[^\\n]*/)[0].replace(/\\s+/g, ' ')"))
+        FUND_SRV["key"] = True
+        await q("() => { lsSet('finder-fred', ''); FUND.fred = {}; FUND.err.fred = null; }"); await q("() => fundLoad(true)"); await wait("() => FUND.fred && FUND.fred.s && FUND.fred.k === 'server' && !FUND.busy", 20); await q("() => fundRender()")
+        print("11b) no key pasted, the server's own:", await q("() => [!!document.getElementById('fredKey'), document.querySelector('.fcb .ftbl tr:nth-child(2)').innerText.replace(/\\s+/g, ' ')]"),
+              "| key sent from the page:", any("api_key=" in h for h in FUND_HITS[-3:]))
         print("13) calendar:", await q("() => document.querySelectorAll('.fnewsp .ftbl tr').length"))
         el = await pg.query_selector(".fundcard"); await el.screenshot(path=f"{OUT}/fund.png")
         await q("() => document.querySelector('.fworld tr[data-fsym]').click()"); await asyncio.sleep(1)

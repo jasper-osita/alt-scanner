@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.1116">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.0857">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.17.1116";
+const APP_VERSION = "2026.10.19.0857";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6841,7 +6841,7 @@ const CS_DEF = {
   textC: "", fontSize: 11, scaleC: "", mTop: 6, mBot: 6, rightBars: 8,
   alertLines: true, alertC: "#f7a600", sessBreaks: false, sbC: "#4c525e",
   scMode: 0, scInv: false, bidAsk: false,
-  trLines: true, trX: true, trDrag: true, trWatch: true, trBuyC: "#2962ff", trSellC: "#f23645", trPendC: "#f7a600", trSLC: "#f23645", trTPC: "#22ab94",
+  trLines: true, trX: true, trDrag: true, trWatch: true, trBuyC: "#2962ff", trSellC: "#f23645", trPendC: "#f7a600", trSLC: "#f23645", trTPC: "#22ab94", trWinC: "#22ab94", trLossC: "#f23645",
 };
 const chCS = () => ({ ...CS_DEF, ...(CH.cs || {}) });
 const CS_TZ = [["Asia/Manila", "(UTC+8) Manila"], ["Asia/Singapore", "(UTC+8) Singapore"], ["Asia/Hong_Kong", "(UTC+8) Hong Kong"], ["Asia/Tokyo", "(UTC+9) Tokyo"], ["Australia/Sydney", "Sydney"],
@@ -6965,7 +6965,9 @@ function chChartSettings(tab) {
     else if (cur === "tr") h = `<div class="chsgh">Your trades on the chart</div>${chk("trLines", "Positions and pending orders as lines")}${chk("trX", "× on the line to close or cancel")}${chk("trDrag", "Drag a line to move the price, stop loss or take profit")}
       ${row("Buy position", sw("trBuyC"))}${row("Sell position", sw("trSellC"))}${row("Pending order", sw("trPendC"))}${row("Stop loss", sw("trSLC"))}${row("Take profit", sw("trTPC"))}
       <p class="meta">Drag a position's own line to add a stop loss or take profit. Changes go to your broker when you let go.</p>
-      <div class="chsgh">Trade watch</div>${chk("trWatch", "Positions, orders and history under the charts")}<p class="meta">Pick its columns with “Columns” on the panel. Double-click a row to open that market.</p>`;
+      <div class="chsgh">Trade marks (bot trades and trades you study)</div>${row("Winning trade", sw("trWinC"))}${row("Losing trade", sw("trLossC"))}
+      <p class="meta">The arrows, the line from entry to exit and the result tag. Open trades follow their P&amp;L so far.</p>
+      <div class="chsgh">Trade watch</div>${chk("trWatch", "Positions, orders and history under the charts")}<p class="meta">Pick its columns with “Columns” on the panel. Click a row to see that trade on the chart.</p>`;
     else h = `<div class="chsgh">Events</div>${chk("sessBreaks", "Session breaks (start of each day)", sw("sbC"))}<p class="meta">Day boundaries follow the timezone on the Symbol tab. The Asia, London and NY session boxes are an indicator: add or edit them from Indicators.</p>`;
     B.innerHTML = h;
     B.querySelectorAll("[data-ck]").forEach(el => el.onchange = () => set({ [el.dataset.ck]: el.checked }, !!el.dataset.rd));
@@ -8365,13 +8367,13 @@ function chTradeMarks(P, g, W, H) {
     const px = c.open ? P.c.at(-1) : c.exit;        // an open trade runs to the last candle at the live price
     const x1 = chX(P, snap(c.opened)), x2 = chX(P, c.open ? P.t.at(-1) : snap(c.closed)), y1 = chY(P, c.entry), y2 = chY(P, px); if (x1 == null || x2 == null || y1 == null || y2 == null) return;
     const pnl = c.open ? (c.qty ? (long ? px - c.entry : c.entry - px) * c.qty : null) : c.pnl, r = c.open ? (pnl != null && c.risk ? pnl / c.risk : null) : c.r;
-    const col = me ? "rgba(247,166,0,.9)" : pnl >= 0 ? "rgba(34,171,148,.75)" : "rgba(242,54,69,.75)";
+    const col = chHexA((pnl ?? 0) >= 0 ? S.trWinC : S.trLossC, me ? 1 : 0.75);   // winners and losers in their colors (Settings → Trading)
     if (me) { g.save(); g.setLineDash([3, 3]); g.lineWidth = 1;                      // where the stop and target were while it was open
       [[c.stop, S.trSLC], [c.target, S.trTPC]].forEach(([p, cl]) => { const y = p ? chY(P, p) : null; if (y == null) return; g.strokeStyle = chHexA(cl, 0.7); g.beginPath(); g.moveTo(x1, Math.round(y) + .5); g.lineTo(x2, Math.round(y) + .5); g.stroke(); }); g.restore(); }
-    g.strokeStyle = col; g.lineWidth = 1; g.setLineDash(c.open && !me ? [4, 3] : []); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.setLineDash([]);   // thin, like cTrader; dashed while still open
+    g.strokeStyle = col; g.lineWidth = me ? 1.5 : 1; g.setLineDash(c.open && !me ? [4, 3] : []); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.setLineDash([]);   // thin, like cTrader; dashed while still open
     chTri(g, x1, y1, long, col, me ? 5 : 4); if (c.open) { g.beginPath(); g.arc(x2, y2, 3.5, 0, 7); g.fillStyle = col; g.fill(); } else chTri(g, x2, y2, !long, col, me ? 5 : 4);
     if (!me || typeof trPill !== "function") return;
-    const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.open ? "Open now" : c.reason, col: (pnl ?? 0) >= 0 ? S.trTPC : S.trSLC, parts: [F(px), ...(pnl != null ? [`${c.open ? "" : "Net "}${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}`] : []), ...(r != null ? [`${r >= 0 ? "+" : ""}${r.toFixed(2)}R`] : [])] };
+    const tagIn = { txt: `${long ? "Buy" : "Sell"} · ${c.model}`, col: long ? S.trBuyC : S.trSellC, parts: [F(c.entry)] }, tagOut = { txt: c.open ? "Open now" : c.reason, col: (pnl ?? 0) >= 0 ? S.trWinC : S.trLossC, parts: [F(px), ...(pnl != null ? [`${c.open ? "" : "Net "}${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}`] : []), ...(r != null ? [`${r >= 0 ? "+" : ""}${r.toFixed(2)}R`] : [])] };
     g.save(); g.globalAlpha = 0; const wi = trPill(g, tagIn, 0, -100, true), wo = trPill(g, tagOut, 0, -100, true); g.restore();   // measure first, then keep both tags on the chart
     const xi = x1 - wi - 10 >= 2 ? x1 - wi - 10 : x1 + 10, xo = x2 + 10 + wo <= W - 4 ? x2 + 10 : Math.max(2, x2 - wo - 10);
     trPill(g, tagIn, xi, Math.min(Hm - 12, Math.max(12, y1 + (long ? 16 : -16))), true); trPill(g, tagOut, xo, Math.min(Hm - 12, Math.max(12, y2 + (long ? -16 : 16))), true);

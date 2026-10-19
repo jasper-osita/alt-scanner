@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.0002">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.17.1116">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.17.0002";
+const APP_VERSION = "2026.10.17.1116";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5465,7 +5465,8 @@ function botMatch(c, closed) {
 }
 const botClosedF = () => BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => botMatch(c, true)).sort((a, b) => b.closed - a.closed);
 const botOpenStudy = () => BOT_STRATS().flatMap(k => BOT.bots[k].positions).filter(p => botMatch(p, false)).sort((a, b) => b.opened - a.opened)
-  .map(p => { const px = botPrice(p.sym) ?? p.entry, pnl = (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; return { ...p, open: true, exit: px, closed: Date.now(), pnl, r: pnl / (p.risk || 1), reason: "Open" }; });
+  .map(botOpenT);
+function botOpenT(p) { const px = botPrice(p.sym) ?? p.entry, pnl = (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; return { ...p, open: true, exit: px, closed: Date.now(), pnl, r: pnl / (p.risk || 1), reason: "Open" }; }
 const botAllClosed = sym => BOT ? BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => c.sym === sym) : [];
 const botHeld = ms => { const m = Math.round(ms / 60e3); return m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`; };
 function botFilterHTML() {
@@ -8377,7 +8378,7 @@ function chTradeMarks(P, g, W, H) {
   });
 }
 function chBotTrades(sym) {                      // the bots' trades on this coin (account menu → "Show bot trades on the chart"), with your Bot Simulator filters
-  if (!BOTF.chart || typeof BOT === "undefined" || !BOT || String(sym).startsWith("CT:")) return [];
+  if (!(BOTF.chart || (typeof twBots === "function" && twBots())) || typeof BOT === "undefined" || !BOT || String(sym).startsWith("CT:")) return [];
   return [...botOpenStudy(), ...botClosedF()].filter(c => c.sym === sym);
 }
 async function chStudy(list, i) { CHM = { list, i, all: CHM ? CHM.all : false }; await chStudyGo(); }
@@ -9009,7 +9010,7 @@ function chPaintBody(P, g) {
         chLabel(g, `${dp >= 0 ? "+" : ""}${F(dp)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%) · ${bars} bars · ${dur}`, (xa + xb) / 2, Math.min(ya, yb) - 12, `rgba(${col},.95)`, "#fff", "center"); }
     }
   }
-  if (CHM || BOTF.chart) { g.save(); try { chTradeMarks(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
+  if (CHM || BOTF.chart || (typeof twBots === "function" && twBots())) { g.save(); try { chTradeMarks(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
   if (typeof trChartLines === "function") { g.save(); try { trChartLines(P, g, W, H, axis); } catch (e) { chPaintErr(e, "orders"); } g.restore(); g.setLineDash([]); }
   g.restore(); g.restore();
   axis.forEach(([y, txt, col], j) => { if (y >= 0 && y <= (j < nAx ? H : Hm)) chLabel(g, txt, W + 1, y, col, "#141517"); });
@@ -10015,6 +10016,7 @@ function trPosSize(d, risk, man) {              // the chart's position tool ask
 }
 /* ---- account picker on the chart toolbar: which account sizes and places orders for the chart's market ---- */
 function trAcctNow(sym) {                       // → { txt, cls } for the chip
+  if (twBots()) return { txt: `Bot Simulator · paper · $${fmtNum(BOT_STRATS().reduce((a, k) => a + BOT.bots[k].bal, 0))}`, cls: "demo" };
   if (trVenue(sym) === "mx" && !String(sym || "").startsWith("CT:")) {
     if (!mxtOn()) return { txt: "Link MEXC", cls: "" };
     const a = MXT.asset; return { txt: `MEXC futures${a ? " · " + fmtNum(+(a.equity || a.availableBalance || 0)) + " USDT" : ""}`, cls: "demo" };
@@ -10055,8 +10057,11 @@ function trAcctGroups(accts, cur, tc) {          // the account in use on top; t
 function trAcctBots() {                         // the Bot Simulator's paper trades: which setups, and whether they show on the chart
   if (typeof BOT === "undefined" || !BOT || typeof BOTF === "undefined") return "";
   const c = (v, l, on) => `<button class="bfc ${on ? "on" : ""}" data-abs="${v}" aria-pressed="${!!on}">${l}</button>`, nO = botOpenStudy().length, nC = botClosedF().length;
+  const on = twBots(), bal = BOT_STRATS().reduce((a, k) => a + BOT.bots[k].bal, 0);
   return `<div class="chsgh">Bot Simulator (paper money)</div>
-    <p class="meta">${BOT.running ? "Running" : "Paused"} · ${nO} open, ${nC} closed${BOTF.days ? ` in ${BOTF.days} days` : ""} match your filters</p>
+    <button class="chacctrow ${on ? "on" : ""}" data-abv="1" aria-pressed="${on}"><i class="chacctdot demo"></i><span class="chacctn"><b>Bot Simulator</b><span class="mute">${BOT_STRATS().filter(k => BOT.bots[k].on).length} bots</span></span><span class="chacctk demo">Paper</span><small>$${fmtNum(bal)}</small></button>
+    ${on ? `<p class="meta">The trade watch shows the bots' trades. Pick a cTrader account above (or click this again) to go back. Orders from the chart still go to your cTrader or MEXC account.</p>` : ""}
+    <p class="meta">${BOT.running ? "Running" : "Paused"} · ${nO} open, ${nC} closed${BOTF.days ? ` in ${BOTF.days} days` : ""} match your filters${String(CH.sym || "").startsWith("CT:") ? "" : ` · <b>${[...botOpenStudy(), ...botClosedF()].filter(c => c.sym === CH.sym).length}</b> on ${trEsc(coin(CH.sym))}`}</p>
     <label class="chk"><input type="checkbox" id="aaBotShow" ${BOTF.chart ? "checked" : ""}> Show bot trades on the chart</label>
     <div class="acbots" role="group" aria-label="Bot setups to show">${c("", "All", !BOTF.set.length)}${BOT_STRATS().map(k => c(k, `${MODELS[k].icon} ${k}`, BOTF.set.includes(k))).join("")}</div>
     <p class="meta">Setups filter the Bot Simulator page too. Click a trade there to study it on the chart.</p><button class="btn sm" data-aa="bots">Open Bot Simulator</button>`;
@@ -10077,12 +10082,13 @@ function trAcctPop() {
     <button class="btn sm" data-aa="settings">Trade settings…</button>${trAcctBots()}<p class="meta">App version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"}</p>`;
   const done = () => { TPS.clear(); chDirty = true; trAcctChip(); if (!p.hidden) trAcctPop(); };
   p.querySelectorAll("[data-ag]").forEach(b => b.onclick = e => { e.stopPropagation(); TRA.open = TRA.open === b.dataset.ag ? null : b.dataset.ag; trAcctPop(); });
-  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (b.dataset.acct === cur && CTT.state === "ready") return; trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; TW.hist = []; TW.histAt = 0; done(); cttConnect().then(done, done); });
+  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (twBots()) { twSave({ bots: false }); chDirty = true; twRender(); } if (b.dataset.acct === cur && CTT.state === "ready") { done(); return; } trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; TW.hist = []; TW.histAt = 0; done(); cttConnect().then(done, done); });
   p.querySelectorAll("[data-aa]").forEach(b => b.onclick = () => { const k = b.dataset.aa; p.hidden = true;
     if (k === "refresh") { p.hidden = false; cttRefresh().then(() => trAcctPop()); return; }
     if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else if (k === "bots") goPage("bots"); else openCTSettings(); });
+  p.querySelectorAll("[data-abv]").forEach(b => b.onclick = e => { e.stopPropagation(); twSave({ bots: !twBots(), ...(twBots() ? {} : { open: true }) }); chDirty = true; twRender(); trAcctChip(); trAcctPop(); });
   p.querySelectorAll("[data-abs]").forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.abs;
-    BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; botfSave(); chDirty = true; trAcctPop(); });
+    BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; botfSave(); chDirty = true; twRender(); trAcctPop(); });
   if ($("aaBotShow")) $("aaBotShow").onchange = () => { BOTF.chart = $("aaBotShow").checked; botfSave(); chDirty = true; trAcctPop(); };
   if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
   if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
@@ -10403,23 +10409,37 @@ const twMoney = v => v == null || !isFinite(v) ? "" : `<span class="${v > 0 ? "u
 function twSpec(sid) { const sp = CTT.specs[sid]; if (!sp && CTT.state === "ready" && CTT.byId[sid] && !TW["sp" + sid]) { TW["sp" + sid] = 1; cttSpec(CTT.byId[sid]).then(() => { TW["sp" + sid] = 0; twRender(); }, () => {}); } return sp; }
 const twPip = (sp, d) => sp && sp.pip != null ? d / 10 ** -sp.pip : null;
 const TW_COLS = {                                // [key, label, value (for sorting), display, on by default]
-  pos: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, null, 1], ["dir", "Direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" || r.dir === "Long" ? "long" : "short"}">${r.dir}</span>`, 1],
+  pos: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, twSymCell, 1], ["dir", "Direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" || r.dir === "Long" ? "long" : "short"}">${r.dir}</span>`, 1],
     ["qty", "Quantity", r => r.qtyN, r => r.qty, 1], ["entry", "Entry price", r => r.entry, r => r.entryS, 1], ["cur", "Current price", r => r.cur, r => r.curS, 1], ["sl", "SL", r => r.sl, r => r.slS, 1], ["tp", "TP", r => r.tp, r => r.tpS, 1],
     ["opened", "Opened", r => r.opened, r => twTime(r.opened), 1], ["pips", "Pips", r => r.pips, r => r.pips == null ? "" : twMoney(r.pips).replace(/\.(\d)\d</, ".$1<"), 1], ["swap", "Swap", r => r.swap, r => twMoney(r.swap), 0], ["comm", "Commission", r => r.comm, r => twMoney(r.comm), 0],
     ["pnl", "Net P&L", r => r.pnl, r => twMoney(r.pnl), 1], ["id", "ID", r => r.id, null, 0]],
   ord: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, null, 1], ["type", "Type", r => r.type, null, 1], ["dir", "Direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" ? "long" : "short"}">${r.dir}</span>`, 1],
     ["qty", "Quantity", r => r.qtyN, r => r.qty, 1], ["price", "Price", r => r.price, r => r.priceS, 1], ["dist", "Distance", r => r.dist, r => r.dist == null ? "" : r.dist.toFixed(1) + " pips", 1], ["sl", "SL", r => r.sl, r => r.slS, 1], ["tp", "TP", r => r.tp, r => r.tpS, 1],
     ["created", "Created", r => r.created, r => twTime(r.created), 1], ["id", "ID", r => r.id, null, 0]],
-  hist: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, null, 1], ["dir", "Opening direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" || r.dir === "Long" ? "long" : "short"}">${r.dir}</span>`, 1],
+  hist: [["venue", "Venue", r => r.venue, null, 0], ["sym", "Symbol", r => r.sym, twSymCell, 1], ["dir", "Opening direction", r => r.dir, r => `<span class="tag ${r.dir === "Buy" || r.dir === "Long" ? "long" : "short"}">${r.dir}</span>`, 1],
     ["opened", "Opening time", r => r.opened, r => twTime(r.opened), 1], ["closed", "Closing time", r => r.closed, r => twTime(r.closed), 1], ["qty", "Quantity", r => r.qtyN, r => r.qty, 0], ["entry", "Entry price", r => r.entry, r => r.entryS, 1],
     ["close", "Closing price", r => r.close, r => r.closeS, 1], ["gross", "Gross", r => r.gross, r => twMoney(r.gross), 0], ["swap", "Swap", r => r.swap, r => twMoney(r.swap), 0], ["comm", "Commission", r => r.comm, r => twMoney(r.comm), 0],
     ["net", "Net", r => r.net, r => twMoney(r.net), 1], ["pips", "Pips", r => r.pips, r => r.pips == null ? "" : twMoney(r.pips), 1], ["bal", "Balance", r => r.bal, r => r.bal == null ? "" : fmtNum(r.bal), 0], ["id", "Deal ID", r => r.id, null, 0]],
 };
 const twCols = tab => { const c = TWS().cols[tab]; return TW_COLS[tab].filter(([k, , , , on]) => c ? c.includes(k) : on); };
-const twVenue = () => trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:") ? "MEXC" : "cTrader";   // the chart's account (as on the account button): only its trades show
+const twVenue = () => twBots() ? "Bots" : trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:") ? "MEXC" : "cTrader";   // the chart's account (as on the account button): only its trades show
+function twBots() { try { return !!TWS().bots && typeof BOT !== "undefined" && !!BOT; } catch (e) { return false; } }   // the Bot Simulator picked as the account (account menu)
+function twSymCell(r) { return trEsc(r.sym) + (r.model ? ` <span class="mute">${typeof MODELS !== "undefined" && MODELS[r.model] ? MODELS[r.model].icon + " " : ""}${trEsc(r.model)}</span>` : ""); }
+const twBotOk = c => !BOTF.set.length || BOTF.set.includes(c.model);
+function twBotRows(tab) {                        // the Bot Simulator as an account: its paper positions and closed trades (your setup chips; history follows the range picker)
+  const F = v => v == null ? "" : fmtPrice(v);
+  if (tab === "pos") return BOT_STRATS().flatMap(k => BOT.bots[k].positions).filter(twBotOk).map(p => { const px = botPrice(p.sym), long = p.dir === "Long";
+    return { kind: "bot", ref: p, venue: "Bots", model: p.model, sym: p.sym, dir: p.dir, qtyN: p.qty, qty: `${+(+p.qty).toPrecision(4)} ${coin(p.sym)}`, entry: p.entry, entryS: F(p.entry), cur: px, curS: F(px),
+      sl: p.stop, slS: F(p.stop), tp: p.target, tpS: F(p.target), opened: p.opened, pips: null, swap: null, comm: null, pnl: px == null ? null : (long ? px - p.entry : p.entry - px) * p.qty, id: p.id }; });
+  if (tab !== "hist") return [];
+  const since = Date.now() - TWS().range * 864e5;
+  return BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => twBotOk(c) && c.closed >= since).map(c => ({ kind: "botc", ref: c, venue: "Bots", model: c.model, sym: c.sym, dir: c.dir, opened: c.opened, closed: c.closed,
+    qtyN: null, qty: "", entry: c.entry, entryS: F(c.entry), close: c.exit, closeS: F(c.exit), gross: null, swap: null, comm: null, net: c.pnl, pips: null, bal: null, id: botKey(c) }));
+}
 function twRows(tab) {
   const rows = [], live = CTT.state === "ready";
-  if (tab === "pos") {
+  if (twBots()) rows.push(...twBotRows(tab));
+  else if (tab === "pos") {
     if (live) CTT.positions.forEach(p => { const td = p.tradeData || {}, x = CTT.byId[td.symbolId] || {}, sp = twSpec(td.symbolId), dg = sp && sp.digits != null ? +sp.digits : 5, buy = +td.tradeSide === 1, q = CTT.spots[td.symbolId] || {}, cur = buy ? q.bid : q.ask, md = p.moneyDigits != null ? +p.moneyDigits : (CTT.info || {}).md || 2;
       rows.push({ kind: "pos", ref: p, venue: "cTrader", sym: x.symbolName || "#" + td.symbolId, dir: buy ? "Buy" : "Sell", qtyN: sp ? +td.volume / sp.lotSize : +td.volume / 100, qty: sp ? (+td.volume / sp.lotSize).toFixed(2) + " lots" : +td.volume / 100 + " units",
         entry: +p.price, entryS: p.price ? (+p.price).toFixed(dg) : "", cur, curS: cur ? (+cur).toFixed(dg) : "", sl: +p.stopLoss || null, slS: p.stopLoss ? (+p.stopLoss).toFixed(dg) : "", tp: +p.takeProfit || null, tpS: p.takeProfit ? (+p.takeProfit).toFixed(dg) : "",
@@ -10488,20 +10508,21 @@ function twColPop() {
 }
 function twRender() {
   const el = $("trWatch"); if (!el) return; const st = TWS(), tab = st.tab, ccy = CTT.info ? CTT.info.ccy || "" : "";
-  const ctV = twVenue() === "cTrader", nPos = ctV ? (CTT.state === "ready" ? CTT.positions.length : 0) : (mxtOn() ? MXT.positions.length : 0), nOrd = ctV ? (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) : (mxtOn() ? MXT.orders.length : 0);
+  const bots = twBots(), ctV = twVenue() === "cTrader", nPos = bots ? twBotRows("pos").length :  ctV ? (CTT.state === "ready" ? CTT.positions.length : 0) : (mxtOn() ? MXT.positions.length : 0), nOrd = bots ? 0 : ctV ? (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) : (mxtOn() ? MXT.orders.length : 0);
   el.classList.toggle("shut", !st.open); $("twToggle").innerHTML = chIco(st.open ? "M5 8l5 5 5-5" : "M5 12l5-5 5 5", 15); $("twToggle").title = st.open ? "Hide" : "Show";
   el.querySelector(".trwtabs").innerHTML = [["pos", "Positions", nPos], ["ord", "Orders", nOrd], ["hist", "History"]].map(([k, l, n]) => `<button role="tab" data-twt="${k}" class="${k === tab ? "on" : ""}" aria-selected="${k === tab}">${l}${n ? ` <i>${n}</i>` : ""}</button>`).join("");
   el.querySelectorAll("[data-twt]").forEach(b => b.onclick = () => { twSave({ tab: b.dataset.twt, open: true }); $("twColPop").hidden = true; if (b.dataset.twt === "hist") twLoadHist(); twRender(); window.dispatchEvent(new Event("resize")); });
   const pnl = CTT.positions.reduce((a, p) => a + (CTT.pnl[p.positionId] || 0), 0), bal = CTT.info ? CTT.info.balance : null, mx = MXT.asset;
-  $("twSum").innerHTML = [ctV && CTT.state === "ready" && bal != null ? `${chEsc(trTitle(CTT.acct.brokerTitleShort || "cTrader"))} ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} ${chEsc(String(CTT.acct.traderLogin || ""))} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", !ctV && mxtOn() && mx ? `MEXC futures · equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>${MXT.positions.length ? ` · P&amp;L ${twMoney(MXT.positions.reduce((a, p) => a + (mxtUpnl(p) || 0), 0))}` : ""}` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctV ? (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader to see this account's trades here") : "Add a MEXC key in Trade settings to see your MEXC trades here");
+  const bk = bots ? BOT_STRATS().filter(k => twBotOk({ model: k })) : [], bBal = bk.reduce((a, k) => a + BOT.bots[k].bal, 0), bPnl = bots ? twBotRows("pos").reduce((a, r) => a + (r.pnl || 0), 0) : 0;
+  $("twSum").innerHTML = bots ? `Bot Simulator · paper money${BOTF.set.length ? " · " + chEsc(BOTF.set.join(", ")) : ""} · Balance <b>$${fmtNum(bBal)}</b> · Open P&amp;L ${twMoney(bPnl)} · ${BOT.running ? "running" : "paused"}` : [ctV && CTT.state === "ready" && bal != null ? `${chEsc(trTitle(CTT.acct.brokerTitleShort || "cTrader"))} ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} ${chEsc(String(CTT.acct.traderLogin || ""))} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", !ctV && mxtOn() && mx ? `MEXC futures · equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>${MXT.positions.length ? ` · P&amp;L ${twMoney(MXT.positions.reduce((a, p) => a + (mxtUpnl(p) || 0), 0))}` : ""}` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctV ? (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader to see this account's trades here") : "Add a MEXC key in Trade settings to see your MEXC trades here");
   $("twRange").hidden = $("twReload").hidden = tab !== "hist"; $("twRange").value = st.range;
   const B = $("twBody"); B.style.height = st.h + "px"; if (!st.open) return;
   if (TW.arm && TW.arm.until < Date.now()) TW.arm = null;
   const cols = twCols(tab), rows = twRows(tab), so = st.sort[tab];
   const head = `<tr>${cols.map(([k, l]) => `<th data-tws="${k}" class="${so && so[0] === k ? "srt" : ""}">${trEsc(l)}${so && so[0] === k ? (so[1] > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}${tab !== "hist" ? "<th></th>" : ""}</tr>`;
   const act = r => { const k = r.kind + ":" + r.id, armed = TW.arm && TW.arm.key === k; return `<td class="trwact"><button class="btn sm ${armed ? "trwsure" : ""}" data-twx="${trEsc(k)}">${armed ? "Sure?" : r.kind === "pos" || r.kind === "mxp" ? "Close" : "Cancel"}</button></td>`; };
-  const body = rows.map((r, i) => `<tr data-twi="${i}" title="${tab === "ord" ? "Show this market on the chart" : "Show this trade on the chart"}">${cols.map(c => `<td>${c[3] ? c[3](r) : trEsc(c[2](r) ?? "")}</td>`).join("")}${tab !== "hist" ? act(r) : ""}</tr>`).join("");
-  const empty = tab === "hist" ? (TW.histBusy ? "Loading history…" : TW.histErr ? "Couldn't load history: " + trEsc(TW.histErr) : "No closed trades in this range.") : tab === "pos" ? "No open positions." : "No pending orders.";
+  const body = rows.map((r, i) => `<tr data-twi="${i}" title="${tab === "ord" ? "Show this market on the chart" : "Show this trade on the chart"}">${cols.map(c => `<td>${c[3] ? c[3](r) : trEsc(c[2](r) ?? "")}</td>`).join("")}${tab !== "hist" ? (r.kind === "bot" ? "<td></td>" : act(r)) : ""}</tr>`).join("");
+  const empty = bots ? (tab === "hist" ? "No bot trades in this range." : tab === "pos" ? "No open bot trades." : "Bots don't use pending orders.") : tab === "hist" ? (TW.histBusy ? "Loading history…" : TW.histErr ? "Couldn't load history: " + trEsc(TW.histErr) : "No closed trades in this range.") : tab === "pos" ? "No open positions." : "No pending orders.";
   B.innerHTML = `<table class="trwt"><thead>${head}</thead><tbody>${body || `<tr><td colspan="${cols.length + 1}" class="mute">${empty}</td></tr>`}</tbody></table>`;
   B.querySelectorAll("[data-tws]").forEach(th => th.onclick = () => { const k = th.dataset.tws, s0 = TWS().sort[tab]; twSave({ sort: { ...TWS().sort, [tab]: s0 && s0[0] === k ? (s0[1] > 0 ? [k, -1] : null) : [k, 1] } }); twRender(); });
   B.querySelectorAll("[data-twx]").forEach(b => b.onclick = async e => { e.stopPropagation(); const k = b.dataset.twx, [kind, id] = [k.slice(0, k.indexOf(":")), k.slice(k.indexOf(":") + 1)], r = rows.find(z => z.kind === kind && z.id === id); if (!r) return;
@@ -10510,6 +10531,7 @@ function twRender() {
   B.querySelectorAll("tr[data-twi]").forEach(tr => tr.onclick = () => { const r = rows[+tr.dataset.twi]; if (r) twShow(r, tab); });
 }
 function twShow(r, tab) {                        // a row clicked: the chart jumps to the trade's entry and marks it (a pending order just opens its market)
+  if (r.kind === "bot" || r.kind === "botc") { const L = twRows(tab).filter(x => x.kind === r.kind), list = L.map(x => r.kind === "bot" ? botOpenT(x.ref) : x.ref); chStudy(list, Math.max(0, L.findIndex(x => x.id === r.id))); return; }
   const raw = r.venue === "MEXC" ? r.sym : "CT:" + r.sym, sym = (typeof ctEquiv === "function" && ctEquiv(raw)) || raw;
   if (tab === "ord" || !r.opened || !r.entry || typeof chStudyGo !== "function") { if (sym !== CH.sym && typeof chSetSym === "function") chSetSym(sym); return; }
   const hist = tab === "hist";

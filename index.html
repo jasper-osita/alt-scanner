@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.0857">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.0914">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4397,7 +4397,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.19.0857";
+const APP_VERSION = "2026.10.19.0914";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6873,7 +6873,8 @@ const chTick = (time, type) => { const ms = time * 1000, d = new Date(ms + chTzO
 function chPxFmt(P) { const S = chCS(); return S.prec === "auto" ? v => chFmt(v, P.c.at(-1)) : v => (v == null || !isFinite(v) ? "—" : (+v).toLocaleString("en-US", { minimumFractionDigits: +S.prec, maximumFractionDigits: +S.prec })); }
 function chFeed(s) {                                         // where a chart's candles come from
   if (!s) return { s: "", l: "" };
-  if (s.startsWith("CT:")) return { s: `${CT.broker || "Broker"} · cTrader`, l: `Your ${CT.broker || "broker"} ${CT.live ? "live" : "demo"} account through the cTrader Open API (bid prices). Symbol ${s.slice(3)}.` };
+  const bk = CT.broker && typeof trTitle === "function" ? trTitle(CT.broker) : CT.broker;
+  if (s.startsWith("CT:")) return { s: `${bk || "Broker"} · cTrader`, l: `Your ${bk || "broker"} ${CT.live ? "live" : "demo"} account through the cTrader Open API (bid prices). Symbol ${s.slice(3)}.` };
   if (isMX(s)) { const c = s.slice(3); return { s: "MEXC", l: `MEXC USDT-M perpetual ${c}${mxInv(s) ? `, flipped from MEXC's ${c} quote to the usual one` : ""}. Live from MEXC's stream when the exchange is MEXC, polled every few seconds otherwise.` }; }
   if (chIsTF(s)) return { s: "Binance TradFi", l: `Binance USDT-M TradFi perpetual ${s}. Tracks the real market while it's open; thin and can drift on weekends and after hours.` };
   const ex = typeof exName === "function" ? exName() : "Binance", spot = MODE === "spot";
@@ -10035,17 +10036,39 @@ function trAcctChip() {
 }
 setInterval(trAcctChip, 1000);
 const TR_ACRO = new Set(["LLC", "LLP", "PLC", "LP", "FX", "CFD", "CFDS", "UK", "US", "USA", "EU", "AU", "NZ", "SA", "SV", "AG", "NV", "BV", "IG", "IC", "ICM", "CMC", "ACY", "FXCM", "TMGM", "FP", "GO", "VT", "XM", "FBS", "HFM", "OANDA", "IFC", "AMP", "ECN", "STP"]);
-const TR_BROKER = { acgmarkets: "ACG Markets", icmarkets: "IC Markets", vtmarkets: "VT Markets", fpmarkets: "FP Markets", blackbullmarkets: "BlackBull Markets" };   // names cTrader sends run together
+const TR_BROKER = { rawtradingltd: "IC Markets", rawtrading: "IC Markets", acgmarkets: "ACG Markets", icmarkets: "IC Markets", vtmarkets: "VT Markets", fpmarkets: "FP Markets", blackbullmarkets: "BlackBull Markets" };   // names cTrader sends run together, or a legal name in place of the brand (Raw Trading Ltd is IC Markets)
 function trTitle(s) {                            // broker names in Title Case: "AXIORY" → "Axiory", "raw trading ltd" → "Raw Trading Ltd"; known initials stay capitals
   const k = String(s || "").replace(/\s+/g, "").toLowerCase(); if (TR_BROKER[k]) return TR_BROKER[k];
   return String(s || "").trim().split(/(\s+|-|\.)/).map(w => { const u = w.toUpperCase(); return TR_ACRO.has(u) ? u : w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w; }).join("");
 }
-const TRA = { open: null };                      // which account list is dropped down: "on" (active), "off" (inactive) or none
+const TRA = { open: null, bal: {}, balAt: 0, balBusy: false };   // open: which account list is dropped down ("on", "off" or none); bal: every account's balance by id
+async function trAcctBalances(accts) {           // each account's balance for the menu, on its own short read-only connection (the trading socket stays on its account)
+  const c = ctCfg(); if (TRA.balBusy || !c || !c.accessToken || Date.now() - TRA.balAt < 120e3) return; TRA.balBusy = true;
+  try {
+    for (const live of [false, true]) {
+      const L = accts.filter(a => !!a.isLive === live); if (!L.length) continue;
+      const ws = await ctOpen(CT_HOST(live)), pend = new Map(); let seq = 0;
+      ws.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e) { return; } const q = m.clientMsgId && pend.get(m.clientMsgId); if (!q) return; pend.delete(m.clientMsgId);
+        if (m.payloadType === 2142 || m.payloadType === 50) q.rej(new Error((m.payload || {}).description || "refused")); else q.res(m.payload || {}); };
+      const req = (type, payload) => new Promise((res, rej) => { const id = "b" + (++seq); pend.set(id, { res, rej }); setTimeout(() => { if (pend.delete(id)) rej(new Error("timed out")); }, 10000); ws.send(JSON.stringify({ clientMsgId: id, payloadType: type, payload })); });
+      try {
+        await req(2100, { clientId: c.clientId, clientSecret: c.clientSecret });
+        for (const a of L) { const id = a.ctidTraderAccountId;
+          try { await req(2102, { ctidTraderAccountId: id, accessToken: c.accessToken });
+            const tr = (await req(2121, { ctidTraderAccountId: id })).trader || {}, md = tr.moneyDigits != null ? +tr.moneyDigits : 2;
+            const as = ((await req(2112, { ctidTraderAccountId: id }).catch(() => ({}))).asset || []).find(z => +z.assetId === +tr.depositAssetId);
+            TRA.bal[String(id)] = { bal: +(tr.balance || 0) / 10 ** md, ccy: as ? as.name || as.displayName : "" };
+          } catch (e) {} }
+      } finally { try { ws.close(); } catch (e) {} }
+    }
+    TRA.balAt = Date.now();
+  } catch (e) {} finally { TRA.balBusy = false; }
+}
 function trAcctRow(x, cur, tc) {
-  const id = String(x.ctidTraderAccountId), off = x.isLive && !tc.live, me = id === cur;
+  const id = String(x.ctidTraderAccountId), off = x.isLive && !tc.live, me = id === cur, b = me && CTT.info ? { bal: CTT.info.balance, ccy: CTT.info.ccy } : TRA.bal[id];
   return `<button class="chacctrow ${me ? "on" : ""}" data-acct="${id}" ${off ? 'disabled title="Allow live accounts in Trade settings first"' : ""}><i class="chacctdot ${x.isLive ? "live" : "demo"}"></i>`
     + `<span class="chacctn"><b>${trEsc(trTitle(x.brokerTitleShort || x.brokerName || "Broker"))}</b><span class="mute">${trEsc(String(x.traderLogin || id))}</span></span>`
-    + `<span class="chacctk ${x.isLive ? "live" : "demo"}">${x.isLive ? "Live" : "Demo"}</span>${me && CTT.info ? `<small>${fmtNum(CTT.info.balance)} ${CTT.info.ccy || ""}</small>` : ""}</button>`;
+    + `<span class="chacctk ${x.isLive ? "live" : "demo"}">${x.isLive ? "Live" : "Demo"}</span>${b ? `<small>${fmtNum(b.bal)} ${trEsc(b.ccy || "")}</small>` : ""}</button>`;
 }
 function trAcctGroups(accts, cur, tc) {          // the account in use on top; the rest behind an Active / Inactive toggle that drops down its list
   const me = accts.find(x => String(x.ctidTraderAccountId) === cur), rest = accts.filter(x => x !== me);
@@ -10093,6 +10116,7 @@ function trAcctPop() {
     BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; botfSave(); chDirty = true; twRender(); trAcctPop(); });
   if ($("aaBotShow")) $("aaBotShow").onchange = () => { BOTF.chart = $("aaBotShow").checked; botfSave(); chDirty = true; trAcctPop(); };
   if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
+  if (!readOnly && accts.length && !TRA.balBusy && Date.now() - TRA.balAt > 120e3) trAcctBalances(accts).then(() => { if (!p.hidden) trAcctPop(); });
   if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
 }
 /* ---- your open positions and pending orders on the chart (cTrader and MEXC): × closes or cancels, drag a line to change it ---- */

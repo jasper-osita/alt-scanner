@@ -260,6 +260,9 @@ async def main():
         print("29b) toggle:", await q("() => [...document.querySelectorAll('#chAcctPop [data-ag]')].map(b => b.innerText.replace(/\\s+/g, ' ') + (b.disabled ? '(none)' : '')).join(' | ')"))
         await q("() => document.querySelector('#chAcctPop [data-ag=\"off\"]:not(:disabled)')?.click()"); await asyncio.sleep(0.2)
         print("29c) inactive open:", await q("() => [...document.querySelectorAll('#chAcctPop .chacctlist .chacctrow')].map(b => b.innerText.replace(/\\s+/g, ' ') + (b.disabled ? '(off)' : '')).join(' | ')"))
+        await wait("() => TRA.balAt > 0", 15); await asyncio.sleep(0.3)
+        print("29d) balances on every account:", await q("() => [Object.keys(TRA.bal).sort().join(','), [...document.querySelectorAll('#chAcctPop .chacctrow')].filter(b => b.dataset.acct).map(b => (b.querySelector('small') || {}).textContent || '—').join(' | ')]"),
+              "| broker names:", await q("() => [trTitle('Raw Trading Ltd'), trTitle('RAW TRADING LTD'), trTitle('Pepperstone')]"))
         await q("() => { trSave({ ...trCfg(), live: true }); TRA.open = 'on'; trAcctPop(); }"); await asyncio.sleep(0.3)
         other = await q("() => { const b = [...document.querySelectorAll('#chAcctPop .chacctrow')].find(b => !b.classList.contains('on') && !b.disabled); if (!b) return null; b.click(); return b.dataset.acct; }")
         await wait(f"() => CTT.state === 'ready' && String(CTT.acct.ctidTraderAccountId) === '{other}'", 15)

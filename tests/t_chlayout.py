@@ -11,7 +11,7 @@ async def main():
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
         q = lambda js: pg.evaluate(js)
-        if not await q("() => document.body.classList.contains('fopen')"): await pg.click("#fToggle")
+        await q("() => goPage('filters')")
         print("0) filters panel open before Charts:", await q("() => document.body.classList.contains('fopen')"))
         await q("() => goPage('charts')")
         for _ in range(60):

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.2356">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.20.0007">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -127,7 +127,7 @@ h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-s
 .tab{background:transparent;border:0;border-radius:8px;padding:7px 14px;cursor:pointer;color:var(--text);font-size:15px}
 .tab:hover{background:var(--pill)}
 .tab.on{background:var(--active);color:var(--strong);font-weight:600;box-shadow:inset 0 -2px 0 var(--accent)}
-.count{margin-left:auto;color:var(--mute);font-size:12.5px}
+.count{margin-left:auto;color:var(--mute);font-size:12.5px}.ffnote{color:var(--amber)}.ffb{background:transparent;border:0;color:var(--accent);font:600 12px var(--font);cursor:pointer;padding:0 0 0 8px;text-decoration:underline}
 .tablewrap{overflow-x:auto;border-top:1px solid var(--line)}
 *{scrollbar-width:thin;scrollbar-color:var(--pill-b) transparent}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--pill-b);border-radius:8px}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
 table{border-collapse:collapse;width:100%;min-width:1100px;font-size:14px}
@@ -1070,7 +1070,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <button class="bell" id="bellBtn" aria-label="Notifications" aria-expanded="false" aria-controls="ncDrawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bellct" id="bellCt" hidden></span></button>
       <button class="btn" id="copyBtn" disabled>Copy for Claude</button>
       <button class="btn" id="jsonBtn" disabled>Export JSON</button>
-      <button class="btn" id="fToggle" aria-expanded="false" aria-controls="fPanel">Filters <span class="badge" id="fBadge"></span></button>
+      <button class="btn" id="fToggle" hidden aria-expanded="false" aria-controls="fPanel">Filters <span class="badge" id="fBadge"></span></button>
       <button class="btn mmore" id="mMore" aria-label="More actions" aria-haspopup="true"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4" cy="10" r="1.7" fill="currentColor"/><circle cx="10" cy="10" r="1.7" fill="currentColor"/><circle cx="16" cy="10" r="1.7" fill="currentColor"/></svg></button>
       <button class="btn primary" id="runBtn">Scan Now</button>
     </div>
@@ -4439,7 +4439,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.19.2356";
+const APP_VERSION = "2026.10.20.0007";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5951,7 +5951,9 @@ function renderTable() {
   let rows = data.all.filter(r => (!T.f || T.f(r)) && (!q || r.symbol.includes(q)) && rateMatch(r, rf) && passFilters(r) && (dirSel() === "Both" || coinPlay(r).dir === dirSel()));
   const val = C[key].v;
   rows.sort((a, b) => { const x = val(a), y = val(b); return (x > y ? 1 : x < y ? -1 : 0) * sortDir; });
-  $("count").textContent = `${rows.length} of ${data.all.length} coins${activeFilters().length ? ` · ${activeFilters().length} filter${activeFilters().length > 1 ? "s" : ""} on${FS.template ? " (" + FS.template + ")" : ""}` : ""}`;
+  const af = activeFilters();                       // a filter on: say so here, with Edit and Clear (the panel lives under Screener → Filters & Templates)
+  $("count").innerHTML = `${rows.length} of ${data.all.length} coins${af.length ? ` · <span class="ffnote">Filtered: ${String(FS.template || af.map(describe).join(FS.match === "all" ? " and " : " or ")).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]))} <button class="ffb" data-ff="edit">Edit</button><button class="ffb" data-ff="clear">Clear</button></span>` : ""}`;
+  $("count").querySelectorAll("[data-ff]").forEach(b => b.onclick = () => { if (b.dataset.ff === "clear") { FS.filters = []; FS.template = ""; filtersChanged(true); } else togglePanel(true); });
   if (!rows.length) { $("tbody").innerHTML = `<tr><td class="l mute" colspan="${T.cols.length}">No coins match these filters.</td></tr>`; return; }
   $("tbody").innerHTML = rows.map(r => `<tr data-s="${r.symbol}">${T.cols.map(k => `<td class="${C[k].l ? "l" : ""}">${C[k].h(r)}</td>`).join("")}</tr>`).join("");
   $("tbody").querySelectorAll("tr[data-s]").forEach(tr => tr.onclick = () => openDetail(tr.dataset.s));
@@ -6282,7 +6284,8 @@ function renderNav() {
   navBadges();
 }
 function goPage(id, keepTab) {
-  if (id === "filters") { goPage("screener", true); if (!document.body.classList.contains("fopen")) $("fToggle").click(); return; }
+  if (id === "filters") { goPage("screener", true); togglePanel(true); return; }
+  if (id !== "screener" && document.body.classList.contains("fopen")) togglePanel(false);   // the filters panel belongs to All Coins
   if (!PAGE_INFO[id]) id = "overview";
   const changed = id !== page; page = id;
   try { localStorage.setItem("finder-page", id); } catch (e) {}

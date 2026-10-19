@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.0914">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.1620">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -899,7 +899,17 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .nwlr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;padding:2px 0}
 .nwedit{border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 12px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
 .nwer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nwer label{display:flex;gap:4px;align-items:center;font-size:13px}.nweacts{display:flex;gap:8px;align-items:center}
-.calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px}
+.calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
+.calviews{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden}.calviews button{background:transparent;border:0;color:var(--mute);font:500 12px var(--font);padding:5px 11px;cursor:pointer}.calviews button+button{border-left:1px solid var(--pill-b)}.calviews button.on{background:var(--pill);color:var(--accent)}
+.calnav{display:flex;align-items:center;gap:8px;margin:4px 0 10px}.calnav b{font-size:15px;color:var(--strong);margin-left:4px}.calnav .btn{min-width:30px}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}.calgrid>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.calgh{font-size:11.5px;color:var(--mute);text-align:center;padding:6px 0;background:var(--pill)}
+.calcell{min-height:104px;padding:5px;display:flex;flex-direction:column;gap:3px;cursor:pointer}.calcell:hover{background:color-mix(in srgb,var(--pill) 60%,transparent)}.calcell.out{opacity:.45}
+.calcell .cald{font-size:12px;color:var(--mute);text-align:right;padding:0 2px 2px}.calcell.today .cald b{background:var(--accent);color:#10131a;border-radius:10px;padding:1px 7px}
+.calwk .calcell{min-height:340px;cursor:default}.calwk .calcell .cald{text-align:left;font-weight:600;color:var(--strong)}
+.calev{display:flex;gap:5px;align-items:baseline;font-size:11.5px;line-height:1.3;padding:3px 5px;border-radius:6px;background:var(--pill);border-left:3px solid var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.calev .t{color:var(--mute);flex:none}.calev b{flex:none}.calev span.n{overflow:hidden;text-overflow:ellipsis}
+.calwk .calev{white-space:normal;flex-wrap:wrap}.calwk .calev .fc{width:100%;color:var(--mute);font-size:11px}.calev.past{opacity:.5}.calmore{font-size:11px;color:var(--mute);padding-left:4px}
+@media (max-width:760px){.calwk.calgrid{grid-template-columns:1fr}.calwk .calcell{min-height:0}.calgrid:not(.calwk) .calev span.n,.calgrid:not(.calwk) .calev .t{display:none}.calcell{min-height:70px}}
 .calfilter{border:3px solid color-mix(in srgb,var(--green) 55%,transparent);border-radius:10px;padding:10px;margin:10px 0;background:var(--bg)}
 .calfg{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:10px}
 @media (max-width:760px){.calfg{grid-template-columns:1fr}}
@@ -1146,7 +1156,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 
   <section class="card calcard" data-page="calendar">
     <div class="momohead"><h2>Economic Calendar</h2><div class="xmtabs caltabs" id="calTabs" role="tablist"><button role="tab" data-ct="ff">Forex Factory</button><button role="tab" data-ct="idx">What moves the Nasdaq</button></div>
-      <span class="meta" id="calMeta"></span><span class="calbtns"><button class="btn sm" id="calFilterBtn">⚲ Filter</button><button class="btn sm" id="calRefresh">Refresh</button></span></div>
+      <span class="meta" id="calMeta"></span><span class="calbtns"><span class="calviews" id="calViews" role="group" aria-label="Calendar view"><button data-cv="list">List</button><button data-cv="week">Week</button><button data-cv="month">Month</button></span><button class="btn sm" id="calFilterBtn">⚲ Filter</button><button class="btn sm" id="calRefresh">Refresh</button></span></div>
     <div id="calFilter" class="calfilter" hidden></div>
     <div id="calUp" class="calup"></div>
     <div id="calBody"><div class="empty">Loading…</div></div>
@@ -4397,7 +4407,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.19.0914";
+const APP_VERSION = "2026.10.19.1620";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9267,6 +9277,29 @@ let CALF = { ...CALF_DEF, ...lsGet(CALF_KEY, {}) };
 const CALI_DEF = { src: ["macro", "earn", "flow", "fed", "hol"], imp: ["High", "Medium", "Holiday"], scope: "heavy", view: "2w" };
 let CALI = { ...CALI_DEF, ...lsGet(CALI_KEY, {}) };
 let calTab = "ff", calFilterOpen = false;
+const CALV_KEY = "finder-cal-view"; let CALV = { mode: "list", off: 0, ...lsGet(CALV_KEY, {}) }; CALV.off = 0;   // mode: list, week or month; off: weeks or months from now
+const calDayMs = k => k * 864e5 - PHT_MS, calDow = k => (k + 4) % 7;             // a PHT day number → its start; its weekday (Sun = 0)
+function calGridRange() {                          // the days the week or month view shows → [first day, number of days, label, month]
+  const k0 = phtDayKey(Date.now());
+  if (CALV.mode === "week") { const a = k0 - calDow(k0) + CALV.off * 7, d1 = new Date(calDayMs(a) + PHT_MS), d2 = new Date(calDayMs(a + 6) + PHT_MS), M = d => d.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+    return [a, 7, `${M(d1)} ${d1.getUTCDate()} – ${M(d2) !== M(d1) ? M(d2) + " " : ""}${d2.getUTCDate()}, ${d2.getUTCFullYear()}`, -1]; }
+  const t = new Date(calDayMs(k0) + PHT_MS); const y = t.getUTCFullYear(), m = t.getUTCMonth() + CALV.off, first = Math.floor(Date.UTC(y, m, 1) / 864e5), a = first - calDow(first), mon = new Date(Date.UTC(y, m, 1));
+  return [a, 42, mon.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" }), mon.getUTCMonth()];
+}
+function calEvHTML(x, now, wk) {
+  const c = (CAL_IMPACTS.find(i => i[0] === x.impact) || CAL_IMPACTS[3])[1], name = x.type === "Earnings" ? x.title.split(" ·")[0] : x.title, past = x.at < now - 2 * 60e3;
+  const tip = [`${phtDay(x.at)} ${x.allDay ? "all day" : x.timeLbl || phtHM(x.at)}`, `${x.ccy} ${x.title}`, x.forecast ? "Forecast " + x.forecast : "", x.previous ? "Previous " + x.previous : "", x.note || ""].filter(Boolean).join("\n");
+  return `<div class="calev ${past ? "past" : ""}" style="border-left-color:${c}" title="${xEsc(tip)}"><span class="t">${x.allDay ? "All day" : x.timeLbl || phtHM(x.at)}</span><b>${xEsc(x.ccy)}</b><span class="n">${xEsc(name)}</span>${wk && (x.forecast || x.previous) ? `<span class="fc">${x.forecast ? "F " + xEsc(x.forecast) : ""}${x.forecast && x.previous ? " · " : ""}${x.previous ? "P " + xEsc(x.previous) : ""}</span>` : ""}</div>`;
+}
+function calGrid(list, now) {                      // week: a column per day with every event; month: a cell per day with the top few
+  const [a, n, label, mon] = calGridRange(), wk = CALV.mode === "week", today = phtDayKey(now), by = {};
+  list.forEach(x => (by[phtDayKey(x.at)] = by[phtDayKey(x.at)] || []).push(x));
+  const rank = { High: 0, Medium: 1, Low: 2, Holiday: 3 }, cells = [];
+  for (let k = a; k < a + n; k++) { const d = new Date(calDayMs(k) + PHT_MS), L = (by[k] || []).sort((p, q) => p.at - q.at), show = wk ? L : L.slice().sort((p, q) => (rank[p.impact] ?? 4) - (rank[q.impact] ?? 4) || p.at - q.at).slice(0, 3).sort((p, q) => p.at - q.at);
+    cells.push(`<div class="calcell ${k === today ? "today" : ""} ${!wk && d.getUTCMonth() !== mon ? "out" : ""}" data-calk="${k}"><div class="cald">${wk ? (k === today ? "Today · " : "") + phtDay(calDayMs(k)).slice(4) : `<b>${d.getUTCDate()}</b>`}</div>${show.map(x => calEvHTML(x, now, wk)).join("")}${!wk && L.length > show.length ? `<div class="calmore">+${L.length - show.length} more</div>` : ""}</div>`); }
+  return `<div class="calnav"><button class="btn sm" data-cvn="-1" aria-label="Previous">‹</button><button class="btn sm" data-cvn="0">Today</button><button class="btn sm" data-cvn="1" aria-label="Next">›</button><b>${label}</b></div>
+    <div class="calgrid ${wk ? "calwk" : ""}">${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => `<div class="calgh">${d}</div>`).join("")}${cells.join("")}</div>`;
+}
 const weekStart = ms => { const d = new Date(ms - 4 * 3600e3); d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.getTime(); };   // Forex Factory weeks run Sunday to Saturday, New York time
 async function calFetch(force) {
   if (!force && CAL.items.length && Date.now() - CAL.at < 30 * 60e3) return;
@@ -9333,8 +9366,8 @@ async function earnRange(from, to) {
     try { (await earnDay(ds)).forEach(r => out.push({ ...r, ds, y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() })); } catch (e) { EARN_ERR = e.message; } }
   return out;
 }
-async function calIndexItems() {
-  const [from, to] = calRange(CALI.view), F = CALI, out = [];
+async function calIndexItems(range) {
+  const [from, to] = range || calRange(CALI.view), F = CALI, out = [];
   if (F.src.includes("macro") || F.src.includes("fed")) calAll().filter(x => x.ccy === "USD" && x.at >= from && x.at < to).forEach(x => {
     const fed = x.type === "Central Bank" || (x.type === "Speeches" && /Fed|FOMC|Powell/i.test(x.title));
     if (fed ? F.src.includes("fed") : F.src.includes("macro") && x.type !== "Speeches") out.push({ ...x, type: fed ? "Fed" : x.type }); });
@@ -9354,15 +9387,18 @@ async function calRender() {
   $("calTabs").querySelectorAll("[data-ct]").forEach(b => { const on = b.dataset.ct === calTab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   $("calFilter").hidden = !calFilterOpen; if (calFilterOpen) { $("calFilter").innerHTML = calFilterHTML(); calBindFilter(); }
   $("calMeta").textContent = CAL.at ? `Forex Factory · updated ${phtHM(CAL.at)}${CAL.err ? " · last refresh failed" : ""}` : CAL.err ? `Couldn't load Forex Factory (${CAL.err})` : "Loading Forex Factory…";
-  let list;
-  if (calTab === "ff") { const [from, to] = calRange(CALF.view); list = calAll().filter(x => x.at >= from && x.at < to && calPass(x, CALF));
-    $("calNote").innerHTML = `Times in your timezone (PHT). Forex Factory's free feed covers this week only and doesn't include actual results; the actual appears on <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">forexfactory.com</a> as it's released.${CALF.view === "last" && !list.length ? " Last week shows once this device has kept a week of data." : ""}`; }
-  else { el.innerHTML = `<div class="empty">Loading what moves the Nasdaq…</div>`; list = await calIndexItems(); if (calTab !== "idx") return;
+  let list; const grid = CALV.mode !== "list", gr = grid ? calGridRange() : null, span = grid ? [calDayMs(gr[0]), calDayMs(gr[0] + gr[1])] : null;
+  $("calViews").querySelectorAll("[data-cv]").forEach(b => { const on = b.dataset.cv === CALV.mode; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  if (calTab === "ff") { const [from, to] = span || calRange(CALF.view); list = calAll().filter(x => x.at >= from && x.at < to && calPass(x, CALF));
+    $("calNote").innerHTML = `Times in your timezone (PHT). Forex Factory's free feed covers this week only and doesn't include actual results; the actual appears on <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">forexfactory.com</a> as it's released.${grid ? " Other weeks show what this device kept (up to three weeks back); future weeks fill in as Forex Factory publishes them. Hover an event for its forecast and previous." : CALF.view === "last" && !list.length ? " Last week shows once this device has kept a week of data." : ""}`; }
+  else { el.innerHTML = `<div class="empty">Loading what moves the Nasdaq…</div>`; list = await calIndexItems(span); if (calTab !== "idx") return;
     $("calNote").innerHTML = `US data from Forex Factory (this week only), earnings from Nasdaq.com's calendar, Fed meetings from the Fed's schedule, and expiries, rebalances and holidays from the exchange rules (one-off closures aren't included).${EARN_ERR ? ` <span class="dn">Earnings didn't load (${xEsc(EARN_ERR)}); they need the Mac app's relay.</span>` : ""}`; }
   const nxt = list.find(x => x.at > now - 60e3 && x.impact !== "Holiday" && x.impact !== "Low");
   $("calUp").innerHTML = nxt ? `<span class="calupl">Up next</span> ${impDot(nxt.impact)} <b>${xEsc(nxt.ccy)}</b> ${xEsc(nxt.title)} <span class="mute">· ${phtDay(nxt.at)} ${nxt.timeLbl || phtHM(nxt.at)} · in ${inTxt(nxt.at - now)}</span>` : "";
   if (calTab === "idx") { const wk = list.filter(x => x.at > now && x.at < now + 7 * 864e5 && (x.impact === "High")); $("calUp").innerHTML += wk.length ? `<div class="calsum">Next 7 days, high impact for the Nasdaq: ${wk.slice(0, 8).map(x => `<span class="mchip"><b>${xEsc(x.type === "Earnings" ? x.title.split(" ·")[0] : x.title.replace(/ \(.*\)$/, ""))}</b> ${phtDay(x.at).slice(0, 3)}</span>`).join(" ")}</div>` : ""; }
-  el.innerHTML = calTable(list, now);
+  el.innerHTML = grid ? calGrid(list, now) : calTable(list, now);
+  el.querySelectorAll("[data-cvn]").forEach(b => b.onclick = () => { const v = +b.dataset.cvn; CALV.off = v ? CALV.off + v : 0; calRender(); });
+  if (CALV.mode === "month") el.querySelectorAll("[data-calk]").forEach(c => c.onclick = () => { const k = +c.dataset.calk, k0 = phtDayKey(Date.now()); CALV.mode = "week"; CALV.off = Math.floor((k - calDow(k) - (k0 - calDow(k0))) / 7); lsSet(CALV_KEY, { mode: "week" }); calRender(); });   // a day in the month → its week
 }
 function calBindFilter() {
   const box = $("calFilter"), grp = calTab === "ff" ? "cf" : "ci";
@@ -9377,6 +9413,7 @@ function calBindFilter() {
     calFilterOpen = false; calRender(); });
 }
 $("calTabs").querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { calTab = b.dataset.ct; calFilterOpen = false; calRender(); });
+$("calViews").querySelectorAll("[data-cv]").forEach(b => b.onclick = () => { CALV.mode = b.dataset.cv; CALV.off = 0; lsSet(CALV_KEY, { mode: CALV.mode }); calRender(); });
 $("calFilterBtn").onclick = () => { calFilterOpen = !calFilterOpen; calRender(); };
 $("calRefresh").onclick = () => { Object.keys(EARN).forEach(k => EARN[k].at = 0); calFetch(true); };
 function calShown() { calFetch(false); calRender(); }

@@ -31,7 +31,7 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   `trChartLines`), `qtDrop` (dragged entry → limit/stop, 2-tick snap to market), `qtPlace` (→ `cttPlace`/`mxtPlace`).
   MEXC auto leverage `mxtLev` (lowest under the margin cap `levCap`%, liquidation ≥ `levBuf`× the stop, isolated; UI `mxtLevUi`). The chart order panel docks right of the charts (`.chbody.trdock`).
 - Bot Simulator: filters `BOTF`/`botMatch`, trade review `botReviewHTML`; clicking a closed trade or an open position (`botOpenStudy`) → `chStudy` marks it cTrader style (`chTradeMarks`, state `CHM`; the menu switch `BOTF.chart` → `chBotTrades`) with a docked study panel (notes in `altscan-bot-notes`); a trade watch row → `twShow` (mark only, `CHM.tw`). The Bot Simulator is also an account in the chart account menu (`twBots`, `TWS().bots`): the trade watch then lists `twBotRows`. Never place real orders in tests; mocks only.
-- Calendar: `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
+- Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow
 - After changes: `TZ=Asia/Manila bash bump-version.sh` (updates version.json, index.html, sw.js).

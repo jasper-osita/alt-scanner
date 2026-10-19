@@ -79,6 +79,34 @@
     {
       "source": "/proxy/earnings",
       "destination": "https://api.nasdaq.com/api/calendar/earnings"
+    },
+    {
+      "source": "/proxy/ust/:type/:year",
+      "destination": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/:year/all?type=:type&field_tdr_date_value=:year&page&_format=csv"
+    },
+    {
+      "source": "/proxy/cot",
+      "destination": "https://publicreporting.cftc.gov/resource/6dca-aqww.json"
+    },
+    {
+      "source": "/proxy/fred/series/observations",
+      "destination": "https://api.stlouisfed.org/fred/series/observations"
+    },
+    {
+      "source": "/proxy/rss/fxstreet",
+      "destination": "https://www.fxstreet.com/rss/news"
+    },
+    {
+      "source": "/proxy/rss/marketwatch",
+      "destination": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+    },
+    {
+      "source": "/proxy/rss/investing",
+      "destination": "https://www.investing.com/rss/news_25.rss"
+    },
+    {
+      "source": "/proxy/rss/coindesk",
+      "destination": "https://www.coindesk.com/arc/outboundfeeds/rss/"
     }
   ]
 }

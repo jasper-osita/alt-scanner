@@ -61,6 +61,24 @@ def relay_earnings(q):
     if not m: return 400, b'{"error":"date=YYYY-MM-DD"}'
     return cached_get("earn" + m.group(1), "https://api.nasdaq.com/api/calendar/earnings?date=" + m.group(1), 6 * 3600,
                       {**BROWSER, "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/"})
+# Fundamentals page: US Treasury yield curves, CFTC positioning, FRED series (your own free key, passed through) and news RSS.
+UST_TYPES = ("daily_treasury_yield_curve", "daily_treasury_real_yield_curve")
+RSS_FEEDS = {"fxstreet": "https://www.fxstreet.com/rss/news", "marketwatch": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+             "investing": "https://www.investing.com/rss/news_25.rss", "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/"}
+def relay_fund(path, q):
+    import re
+    m = re.match(r"^/proxy/ust/([a-z_]+)/(\d{4})$", path)
+    if m and m.group(1) in UST_TYPES:
+        t, y = m.group(1), m.group(2)
+        return cached_get("ust" + t + y, f"https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{y}/all?type={t}&field_tdr_date_value={y}&page&_format=csv", 3600, {**BROWSER, "Accept": "text/csv,*/*"})
+    if path == "/proxy/cot":
+        return cached_get("cot" + q, "https://publicreporting.cftc.gov/resource/6dca-aqww.json?" + q, 6 * 3600, BROWSER)
+    if path == "/proxy/fred/series/observations":
+        return cached_get("fred" + q, "https://api.stlouisfed.org/fred/series/observations?" + q, 1800, BROWSER)
+    m = re.match(r"^/proxy/rss/([a-z]+)$", path)
+    if m and m.group(1) in RSS_FEEDS:
+        return cached_get("rss" + m.group(1), RSS_FEEDS[m.group(1)], 300, {**BROWSER, "Accept": "application/rss+xml,application/xml,text/xml,*/*"})
+    return 404, b'{"error":"unknown source"}'
 # Keep this Mac awake while a trading session is on (asked for by the app; caffeinate stops by itself after the time given).
 AWAKE = {"proc": None, "until": 0}
 def keep_awake(minutes):
@@ -95,6 +113,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
             return
         path, _, query = self.path.partition("?")
+        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/")):
+            code, body = relay_fund(path, query)
+            ctype = "text/csv" if path.startswith("/proxy/ust/") else "application/xml" if path.startswith("/proxy/rss/") else "application/json"
+            self.send_response(code)
+            self.send_header("Content-Type", ctype); self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+            return
         if path in ("/proxy/ff", "/proxy/earnings", "/api/awake"):
             if path == "/proxy/ff": code, body = relay_ff()
             elif path == "/proxy/earnings": code, body = relay_earnings(query)

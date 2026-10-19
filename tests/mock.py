@@ -376,3 +376,60 @@ async def route_extra(route):
     return await route.fulfill(status=404, body="")
 async def setup_extra(ctx):
     for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api/awake*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
+
+# ---------------- fundamentals page: Treasury yield curves, CFTC positioning, FRED, news RSS ----------------
+FUND_HITS = []
+def ust_csv(real, year):
+    import datetime as dt
+    hdr = ['Date', '"5 YR"', '"7 YR"', '"10 YR"', '"20 YR"', '"30 YR"'] if real else ['Date', '"1 Mo"', '"1.5 Month"', '"2 Mo"', '"3 Mo"', '"4 Mo"', '"6 Mo"', '"1 Yr"', '"2 Yr"', '"3 Yr"', '"5 Yr"', '"7 Yr"', '"10 Yr"', '"20 Yr"', '"30 Yr"']
+    base = [1.42, 1.55, 1.78, 2.05, 2.21] if real else [4.02, 4.0, 3.98, 3.95, 3.9, 3.82, 3.66, 3.52, 3.5, 3.6, 3.82, 4.07, 4.58, 4.65]
+    out, d, i = [",".join(hdr)], dt.date.today(), 0
+    while len(out) < 45:
+        d -= dt.timedelta(days=1)
+        if d.weekday() >= 5 or d.year != int(year): continue
+        drift = i * 0.004; out.append(",".join([d.strftime("%m/%d/%Y")] + [f"{b + drift:.2f}" for b in base])); i += 1
+    return "\n".join(out)
+def cot_json():
+    import datetime as dt
+    codes = {"088691": (62, 3), "084691": (40, 1), "067651": (12, -6), "085692": (8, 2), "209742": (18, -4), "13874A": (-5, 1), "098662": (10, -2), "099741": (24, 2), "096742": (-8, -3), "097741": (-14, 5), "232741": (-20, 1), "090741": (-30, -2), "092741": (-25, 0), "133741": (-12, 4)}
+    rows, d = [], dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 1) % 7 + 3)
+    for code, (net, chg) in codes.items():
+        for w in range(52):
+            n = net - chg * (1 if w else 0) - w * 0.4 * (1 if net > 0 else -1); oi = 500000
+            lo = int(oi * (0.4 + n / 200)); sh = int(oi * 0.4)
+            rows.append({"cftc_contract_market_code": code, "report_date_as_yyyy_mm_dd": (d - dt.timedelta(weeks=w)).isoformat() + "T00:00:00.000", "open_interest_all": str(oi), "noncomm_positions_long_all": str(lo), "noncomm_positions_short_all": str(sh)})
+    return rows
+def fred_json(sid):
+    import datetime as dt
+    vals = {"DFEDTARU": [(0, 3.75), (40, 4.0), (120, 4.25)], "ECBDFR": [(0, 2.0), (130, 2.25)], "CPIAUCSL": None, "UNRATE": [(0, 4.4)], "T10YIE": [(0, 2.31)], "BAMLH0A0HYM2": [(0, 3.12), (1, 3.18)], "VIXCLS": [(0, 16.4), (1, 17.2)]}
+    obs, today = [], dt.date.today()
+    if sid == "CPIAUCSL":
+        for m in range(16): obs.append({"date": (today.replace(day=1) - dt.timedelta(days=31 * (m + 1))).replace(day=1).isoformat(), "value": f"{320 - m * 0.75:.3f}"})
+    else:
+        steps = vals.get(sid, [(0, 3.5), (150, 3.75)])
+        monthly = sid.startswith("IRSTCI")
+        for i in range(60 if not monthly else 18):
+            day = today - dt.timedelta(days=(i * 30 if monthly else i))
+            v = [x for k, x in steps if i * (30 if monthly else 1) >= k][-1]
+            obs.append({"date": day.isoformat(), "value": f"{v}"})
+    return {"observations": obs}
+def rss_xml(name):
+    import email.utils
+    now = time.time(); t = ["Fed's Waller says another cut is appropriate if jobs keep cooling", "Gold climbs as Treasury yields slip", "Nasdaq futures edge higher ahead of Netflix earnings",
+         "Oil falls as OPEC+ keeps its output plan", "Bitcoin ETFs take in $412M", "Yen firms as BoJ's Ueda keeps an October hike on the table"]
+    items = "".join(f"<item><title>{name}: {x}</title><link>https://example.com/{name}/{i}</link><pubDate>{email.utils.formatdate(now - i * 900 - len(name) * 60)}</pubDate></item>" for i, x in enumerate(t))
+    return f'<?xml version="1.0"?><rss version="2.0"><channel><title>{name}</title>{items}</channel></rss>'
+async def route_fund(route):
+    u = route.request.url; p = urlparse(u); FUND_HITS.append(p.path)
+    if p.path.startswith("/proxy/ust/"):
+        _, _, _, typ, year = p.path.split("/")
+        return await route.fulfill(status=200, content_type="text/csv", body=ust_csv("real" in typ, year))
+    if p.path == "/proxy/cot": return await route.fulfill(status=200, content_type="application/json", body=json.dumps(cot_json()))
+    if p.path.startswith("/proxy/fred/"):
+        q = parse_qs(p.query)
+        if q.get("api_key", [""])[0].startswith("bad"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_code": 400, "error_message": "Bad Request.  The value for variable api_key is not registered."}))
+        return await route.fulfill(status=200, content_type="application/json", body=json.dumps(fred_json(q.get("series_id", [""])[0])))
+    if p.path.startswith("/proxy/rss/"): return await route.fulfill(status=200, content_type="application/xml", body=rss_xml(p.path.split("/")[-1]))
+    return await route.fulfill(status=404, body="")
+async def setup_fund(ctx):
+    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**"]: await ctx.route(pat, route_fund)

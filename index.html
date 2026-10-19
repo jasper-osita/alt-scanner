@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.1620">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.19.2227">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -129,10 +129,12 @@ h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-s
 .tab.on{background:var(--active);color:var(--strong);font-weight:600;box-shadow:inset 0 -2px 0 var(--accent)}
 .count{margin-left:auto;color:var(--mute);font-size:12.5px}
 .tablewrap{overflow-x:auto;border-top:1px solid var(--line)}
+*{scrollbar-width:thin;scrollbar-color:var(--pill-b) transparent}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--pill-b);border-radius:8px}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
 table{border-collapse:collapse;width:100%;min-width:1100px;font-size:14px}
 th,td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
 th{position:sticky;top:0;background:var(--bg);font-weight:400;color:var(--mute);font-size:12.5px;cursor:pointer;user-select:none;vertical-align:bottom}
 th:hover{color:var(--text)} th.sorted{color:var(--text)}
+table.fit1{min-width:0}.fit1 th,.fit1 td{padding:8px 7px}.fit1 th{white-space:normal}.fit2 td.l{white-space:normal;min-width:100px}.fit2 td b{white-space:nowrap}
 th.l,td.l{text-align:left}
 tbody tr{cursor:pointer} tbody tr:hover{background:var(--hover)}
 .up{color:var(--green)} .dn{color:var(--red)} .mute{color:var(--mute)}
@@ -741,7 +743,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 .chfavbar{display:inline-flex;gap:1px;padding:0 4px;border-left:1px solid var(--line);border-right:1px solid var(--line)}.chfavbar[hidden]{display:none}.chfavbar button.on{background:var(--active);color:var(--accent)}
 .chtools{gap:1px}
 .chtg{position:relative;display:flex;align-items:center;flex:none}
-.chtools .chtb{width:34px;height:32px}
+.chtools .chtb{width:34px;height:var(--chtbh,32px)}.chtools{scrollbar-width:none}.chtools::-webkit-scrollbar{display:none}
 .chtools .chtarr{position:absolute;right:-3px;top:50%;transform:translateY(-50%);width:10px;height:22px;padding:0;border-radius:3px;opacity:0;color:var(--mute)}
 .chtg:hover .chtarr,.chtarr:focus-visible{opacity:1}.chtools .chtarr:hover{background:var(--hover);color:var(--text)}
 .chemo{font-size:16px;line-height:1}
@@ -4407,7 +4409,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.19.1620";
+const APP_VERSION = "2026.10.19.2227";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4431,6 +4433,14 @@ function applyUpdateWhenIdle() {
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(); });
 setInterval(checkForUpdate, 2 * 60 * 1000);
+function fitTables() {                             // a wide table fits its box instead of scrolling sideways
+  document.querySelectorAll(".tablewrap").forEach(w => { const t = w.querySelector(":scope > table"); if (!t || !w.offsetParent) return;
+    const sig = w.clientWidth + ":" + t.rows.length; if (t.dataset.fit === sig) return; t.dataset.fit = sig;
+    t.style.zoom = ""; t.classList.remove("fit1", "fit2"); const over = () => w.scrollWidth / Math.max(1, w.clientWidth);
+    if (over() > 1.005) t.classList.add("fit1"); if (over() > 1.005) t.classList.add("fit2");      // tighter cells, then headers and text wrap
+    const o = over(); if (o > 1.005) t.style.zoom = Math.max(0.72, 1 / o - 0.005).toFixed(3); });   // then a little smaller; only a phone-narrow box still scrolls
+}
+setInterval(fitTables, 500); window.addEventListener("resize", fitTables);
 setTimeout(checkForUpdate, 4000);
 
 
@@ -8044,6 +8054,7 @@ function chBuild() {
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
   el.querySelectorAll("[data-cat]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpen(b.dataset.cat); });
   document.addEventListener("click", e => { const p = $("chPick"); if (p && !p.hidden && !e.target.closest(".chpickw")) chPickClose(); });
+  if (window.ResizeObserver) new ResizeObserver(() => chToolsFit()).observe($("chTools"));
   $("chAcctBtn").onclick = e => { e.stopPropagation(); const p = $("chAcctPop"), open = p.hidden; p.hidden = !open; $("chAcctBtn").setAttribute("aria-expanded", open); if (open && typeof trAcctPop === "function") trAcctPop(); };
   document.addEventListener("click", e => { const p = $("chAcctPop"); if (p && !p.hidden && !e.target.closest(".chacctw")) { p.hidden = true; $("chAcctBtn").setAttribute("aria-expanded", "false"); } });
   $("chLayBtn").onclick = e => { e.stopPropagation(); const p = $("chLayPop"), open = p.hidden; p.hidden = !open; $("chLayBtn").setAttribute("aria-expanded", open); if (open) chLayPop(); };
@@ -8673,6 +8684,14 @@ const chTIco = id => { if (id && id.startsWith("c:")) return chIco(CH_CURSORS[id
 const chTName = id => id.startsWith("c:") ? CH_CURSORS[id.slice(2)][0] : (CH_T[id] || {}).name || id;
 function chGroupOf(id) { if (id === "cursor" || id.startsWith("c:") || id === "eraser") return "cursor"; const T = CH_T[id]; return T ? T.g : null; }
 function chGroupCur(g) { if (g === "cursor") return chTool === "eraser" ? "eraser" : "c:" + (CH.cur || "cross"); return (CH.tg || {})[g] || CH_GROUPS.find(x => x[0] === g)[2][0][1][0]; }
+function chToolsFit() {                          // the drawing toolbar never scrolls: an overview chart grows to fit it; on Charts its buttons shrink a little
+  const T = $("chTools"); if (!T || !T.offsetParent || getComputedStyle(T).flexDirection !== "column") return;
+  T.style.removeProperty("--chtbh"); T.style.zoom = ""; const over = T.scrollHeight - T.clientHeight; if (over <= 1) return;
+  const host = T.closest(".ovchost");
+  if (host) { host.style.height = Math.ceil(host.getBoundingClientRect().height + over + 4) + "px"; window.dispatchEvent(new Event("resize")); return; }
+  const n = T.querySelectorAll(".chtb").length || 1; T.style.setProperty("--chtbh", Math.max(22, Math.floor(32 - (over + 2) / n)) + "px");
+  T.style.zoom = ""; const o = T.scrollHeight / Math.max(1, T.clientHeight); if (o > 1.005) T.style.zoom = Math.max(0.55, 1 / o - 0.01).toFixed(3);   // a very short window: the whole bar a little smaller
+}
 function chToolbarHTML() {
   const grp = ([g, title]) => `<div class="chtg" data-g="${g}"><button class="chtb" data-gt="${g}" title="${chEsc(title)}" aria-label="${chEsc(title)}">${chTIco(chGroupCur(g))}</button><button class="chtarr" data-garr="${g}" aria-label="More ${chEsc(title)}" title="More">${chIco("M8 6l4 4.5L8 15", 10)}</button></div>`;
   return CH_GROUPS.map(grp).join("") + `<span class="chtsep"></span>

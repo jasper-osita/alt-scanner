@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.24.1114">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.10.26.1524">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -3122,7 +3122,7 @@ function renderPre() {
 }
 const PRE_SEEN = "finder-pre-seen";
 function aotsPromotions() {                          // a coin that was on deck and has now broken out: tell me
-  if (!data || !data.all) return;
+  if (!data || !data.all || data.cached) return;
   let st = {}; try { st = JSON.parse(localStorage.getItem(PRE_SEEN) || "{}"); } catch (e) {}
   st.pre = st.pre || {}; st.sent = st.sent || {}; const now = Date.now(), first = !Object.keys(st.pre).length;
   [st.pre, st.sent].forEach(o => Object.keys(o).forEach(k => { if (now - o[k] > 3 * 864e5) delete o[k]; }));
@@ -4439,7 +4439,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.24.1114";
+const APP_VERSION = "2026.10.26.1524";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4773,7 +4773,7 @@ async function refreshSession(sym) {
 function scheduleRerender() {
   clearTimeout(LIVE.rerender);
   LIVE.rerender = setTimeout(() => {
-    if (!data) return;
+    if (!data || data.cached) return;
     renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); renderMomentum(); checkSetupAlerts(); liveSync(); botOnScan();
   }, 800);
 }
@@ -4793,7 +4793,7 @@ function chartLiveBar(bar) {
 }
 /* paint live prices into whatever is on screen, once a second */
 setInterval(() => {
-  if (!data || !LIVE.dirty.size) return;
+  if (!data || data.cached || !LIVE.dirty.size) return;
   const changed = LIVE.dirty; LIVE.dirty = new Set();
   // instant price alerts
   const live = WL.alerts.filter(a => !a.fired && changed.has(a.sym));
@@ -5440,7 +5440,7 @@ function botClose(strat, p, exitPx, reason, when = Date.now()) {
     detail: `Paper trade · ${reason} · ${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}` });
 }
 function botCheckExits() {                                   // on live prices (the stream ticks, or the last scan)
-  if (!BOT.running || !data) return;
+  if (!BOT.running || !data || data.cached) return;
   BOT_STRATS().forEach(k => {
     const b = BOT.bots[k];
     b.positions.slice().forEach(p => {
@@ -5454,7 +5454,7 @@ function botCheckExits() {                                   // on live prices (
   botSave();
 }
 async function botReconcile() {                              // catch wicks between checks, and anything that happened while the app was closed
-  if (!BOT.running || !data) return;
+  if (!BOT.running || !data || data.cached) return;
   const open = BOT_STRATS().flatMap(k => BOT.bots[k].positions.map(p => ({ k, p })));
   for (const { k, p } of open) {
     try {
@@ -5473,7 +5473,7 @@ async function botReconcile() {                              // catch wicks betw
   BOT.lastRecon = Date.now(); botSave();
 }
 function botOnScan() {                                        // new setups from a scan or a candle-close refresh
-  if (!BOT || !BOT.running || !data) return;
+  if (!BOT || !BOT.running || !data || data.cached) return;
   botCheckExits();
   const cooldown = 6 * 3600e3;
   BOT_STRATS().forEach(k => {
@@ -5633,7 +5633,7 @@ function renderBot() {
   el.querySelectorAll("[data-bopen]").forEach(tr => tr.onclick = () => { const list = botOpenStudy(), i = list.findIndex(c => botKey(c) === tr.dataset.bopen); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
   drawBotEquity();
 }
-setInterval(() => { if (BOT && BOT.running && data) { botCheckExits(); if (Date.now() - BOT.lastRecon > 120e3) botReconcile(); if (document.visibilityState === "visible" && $("botSim")) renderBotLight(); } }, 30000);
+setInterval(() => { if (BOT && BOT.running && data && !data.cached) { botCheckExits(); if (Date.now() - BOT.lastRecon > 120e3) botReconcile(); if (document.visibilityState === "visible" && $("botSim")) renderBotLight(); } }, 30000);
 function renderBotLight() {                                  // refresh numbers without redrawing the charts
   if (!$("botSim")) return;
   const y = window.scrollY; renderBot(); window.scrollTo(0, y);
@@ -5859,7 +5859,7 @@ function renderMomentum() {
     + col("awaiting", "⏳ Awaiting Momentum", "Tapped RSI 70 in the last 12 hours, cooled to 55–70, still holding the 20. Watch for a base (NBB) or a reclaim.")
     + col("breakout", "🚀 Breaking Out", "A clear close beyond bunched 20/50/100 after time on the other side, RSI 60+. Pressing = testing the cluster with RSI rising.");
   bindRows(el);
-  momoAlerts(R.fresh);
+  if (!data.cached) momoAlerts(R.fresh);
 }
 
 /* ---- tabs + table (TradingView-style column sets) ---- */
@@ -6088,12 +6088,73 @@ $("jsonBtn").onclick = () => {
   a.download = `alt-scan-${new Date().toISOString().slice(0, 16).replace(":", "")}.json`; a.click();
 };
 
+/* ---- cache (IndexedDB): the last scan shows the moment the app opens, and a rescan downloads only the candles that closed since ---- */
+const SC = { db: null, on: 0, mem: new Map(), dirty: new Set() };          // on: scans running
+const KC_IV = { "15m": 900e3, "1h": 3600e3, "4h": 144e5, "1d": 864e5 }, KC_F = ["t", "o", "h", "l", "c", "qv"];
+function scDb() {
+  if (!SC.db) SC.db = new Promise((ok, no) => {
+    try { const q = indexedDB.open("finder-cache", 1);
+      q.onupgradeneeded = () => { const d = q.result; d.createObjectStore("scan"); d.createObjectStore("kl", { keyPath: "k" }).createIndex("at", "at"); };
+      q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); q.onblocked = () => no(new Error("cache blocked")); } catch (e) { no(e); }
+  });
+  return SC.db;
+}
+async function scTx(store, mode, fn) {
+  const d = await scDb();
+  return new Promise((ok, no) => { const tx = d.transaction(store, mode), r = fn(tx.objectStore(store)); tx.oncomplete = () => ok(r && r.result); tx.onerror = tx.onabort = () => no(tx.error); });
+}
+const scKey = o => [o.exchange, o.market, o.quote, o.alts, o.ma, o.minVol].join("|");
+function scAgo(at) { const m = Math.round((Date.now() - Date.parse(at)) / 60000); return m < 1 ? "just now" : m < 90 ? `${m} min ago` : m < 2160 ? `${Math.round(m / 60)} hours ago` : `${Math.round(m / 1440)} days ago`; }
+async function scShow(key) {                         // the last scan for these settings, drawn while a new one runs. Alerts, the bot and the history wait for the new one.
+  let s = null; try { s = await scTx("scan", "readonly", st => st.get(key)); } catch (e) {}
+  if (!s || !s.all || (data && data.key === key) || !(Date.now() - Date.parse(s.at) < 3 * 864e5)) return;
+  const prev = [data, bySym, EXCHANGE, MODE];
+  try { data = s; data.cached = true; EXCHANGE = s.exchange; MODE = s.mode; bySym = Object.fromEntries(s.all.map(r => [r.symbol, r]));
+    renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); tickClock();
+    renderSessions(); renderRotation(); renderMomentum();
+  } catch (e) { console.warn("last scan couldn't be shown", e); [data, bySym, EXCHANGE, MODE] = prev; renderTable(); }
+}
+function scSave(key, d) { try { scTx("scan", "readwrite", st => st.put(d, key)).catch(() => {}); } catch (e) {} }
+// candles: closed ones never change, so keep them and fetch only what's new (Binance weight 1 instead of 2, and no request at all for a 4H or daily candle still forming)
+const klinesNet = klines;
+klines = async function (sym, interval, limit) {
+  const iv = KC_IV[interval];
+  if (!SC.on || !iv || !(limit <= 1000) || CT_SYMS.has(sym)) return klinesNet(sym, interval, limit);
+  const k = `${EXCHANGE}|${MODE}|${sym}|${interval}`, now = Date.now();
+  let c = SC.mem.get(k);
+  if (c === undefined) { try { const x = await scTx("kl", "readonly", st => st.get(k)); c = x ? Object.fromEntries(KC_F.map(f => [f, Array.from(x[f])]).concat([["lim", x.lim]])) : null; } catch (e) { c = null; } SC.mem.set(k, c); }
+  const out = () => Object.fromEntries(KC_F.map(f => [f, c[f].slice(-limit)]));
+  if (c && c.lim >= limit && c.t.length) {
+    const last = c.t.at(-1), fresh = Math.floor((now - last) / iv) - 1;      // candles closed since the newest one kept
+    if (fresh <= 0) return out();
+    if (fresh + 3 < Math.min(limit, 99)) {
+      const n = await klinesNet(sym, interval, fresh + 3);
+      if (n.t.length && n.t[0] <= last) { const i = c.t.findIndex(t => t >= n.t[0]);
+        KC_F.forEach(f => c[f] = c[f].slice(0, i).concat(n[f]).slice(-c.lim)); SC.dirty.add(k); return out(); }
+    }
+  }
+  const want = Math.max(limit, c ? c.lim : 0), n = await klinesNet(sym, interval, want);     // keep the longer history when one is kept
+  c = { ...n, lim: want };
+  SC.mem.set(k, c); SC.dirty.add(k); return out();
+};
+function klFlush() {                                  // saves the candles this scan touched and forgets ones untouched for a week
+  const keys = [...SC.dirty]; SC.dirty.clear(); if (!keys.length) return;
+  const at = Date.now();
+  scTx("kl", "readwrite", st => { keys.forEach(k => { const c = SC.mem.get(k); if (c) st.put({ k, at, lim: c.lim, ...Object.fromEntries(KC_F.map(f => [f, Float64Array.from(c[f])])) }); });
+    st.index("at").openKeyCursor(IDBKeyRange.upperBound(at - 7 * 864e5)).onsuccess = e => { const cur = e.target.result; if (cur) { st.delete(cur.primaryKey); cur.continue(); } }; }).catch(() => {});
+}
+
 /* ---- run ---- */
 function opts() { return { exchange: $("exF").value, market: $("market").value, quote: $("quote").value, alts: $("alts").checked, ma: $("maType").value, minVol: +$("minVol").value }; }
 async function run() {
   $("runBtn").disabled = true; $("status").className = "status";
+  const key = scKey(opts());
+  if (!data || data.key !== key) await scShow(key);
   try {
-    data = await scan(opts(), (msg, f) => { $("status").textContent = msg; $("prog").style.width = (f * 100) + "%"; });
+    SC.on++;
+    try { data = await scan(opts(), (msg, f) => { $("status").textContent = (data && data.cached ? `Showing your last scan from ${scAgo(data.at)} while a new one runs · ` : "") + msg; $("prog").style.width = (f * 100) + "%"; }); }
+    finally { SC.on--; klFlush(); }
+    data.key = key;
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
     renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan(); renderRotation(); renderMomentum();
@@ -6105,6 +6166,7 @@ async function run() {
     $("copyBtn").disabled = false; $("jsonBtn").disabled = false;
     loadBoardDrivers().catch(() => {});
     macroScan(true).catch(() => {});
+    scSave(key, data);
   } catch (e) {
     $("status").className = "status err";
     const net = /fetch|network|unreachable|HTTP|refuses|Failed|timeout|abort/i.test(e.message || "");
@@ -6113,6 +6175,7 @@ async function run() {
       ? `Couldn't reach Bybit: ${e.message}. Try secure DNS or a VPN. If Bybit loads in your browser but not here, open the scanner from the Mac app (localhost), which relays Bybit's data.`
       : $("exF").value === "mexc" ? `Couldn't reach MEXC: ${e.message}. If MEXC loads in your browser but not here, open the scanner from the Mac app (localhost), which relays MEXC's data.`
       : `Couldn't reach Binance: ${e.message}. Your internet provider may be blocking Binance. Try DNS 1.1.1.1 or 8.8.8.8, or a VPN, then press Scan Now.`;
+    if (data && data.cached) $("status").textContent += ` Showing your last scan from ${scAgo(data.at)}.`;
     $("prog").style.width = "0";
   }
   $("runBtn").disabled = false;

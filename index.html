@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.26.1524">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.02.1431">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -906,7 +906,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}
 .fph{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--line);color:var(--accent);font:700 11.5px var(--font);letter-spacing:.05em;text-transform:uppercase}.fph span{margin-left:auto;color:var(--mute);font-weight:500;letter-spacing:0;text-transform:none}.fph.fsub{border-top:1px solid var(--line)}
 .ftbl{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px}.ftbl td{padding:5px 11px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.ftbl td.r{text-align:right}.ftbl tr:hover{background:transparent}.ftbl tr.fclk{cursor:pointer}.ftbl tr.fclk:hover{background:var(--hover)}
-.fworld .ftbl td{padding:5px 7px}.fworld .ftbl td:first-child{padding-left:11px;white-space:normal}.fnewsp .ftbl td{white-space:normal;padding:5px 8px}.fnewsp .ftbl td.r{font-size:11.5px}.fp{overflow:hidden}
+.fworld .ftbl td{padding:5px 7px}.fworld .ftbl td:first-child{padding-left:11px;white-space:normal}.fcb .ftbl td{padding:5px 7px}.fcb .ftbl td:first-child{padding-left:11px}.fcb .ftbl td:last-child{padding-right:11px}.fnewsp .ftbl td{white-space:normal;padding:5px 8px}.fnewsp .ftbl td.r{font-size:11.5px}.fp{overflow:hidden}
 .ftbl .fgrp{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:9px}.fam{color:var(--accent)}
 .fk{display:inline-block;padding:0 6px;border-radius:4px;background:var(--pill);color:var(--mute);font-size:11px;font-weight:600}.fk.up{color:var(--green)}.fk.dn{color:var(--red)}
 .fbar{height:8px;background:var(--pill);border-radius:4px;position:relative;overflow:hidden}.fbar i{position:absolute;top:0;bottom:0}
@@ -916,12 +916,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fchips{display:flex;flex-wrap:wrap;gap:4px;padding:8px 11px 4px}.fchip{border:1px solid var(--pill-b);background:transparent;color:var(--mute);border-radius:6px;font:600 11px var(--font);padding:2px 7px;cursor:pointer}.fchip.on{color:var(--accent);border-color:var(--accent)}
 .fnews{display:flex;flex-direction:column;max-height:520px;overflow-y:auto;scrollbar-width:none}.fnews::-webkit-scrollbar{display:none}.fni{display:block;padding:6px 11px;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.4;color:var(--text);text-decoration:none}.fni:hover{background:var(--hover)}.fnt{color:var(--strong)}
 .fread{margin:0 0 10px}.fhead{font-size:13.5px;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}.fhead b{color:var(--strong)}
-.fcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}.fcard:hover{border-color:var(--pill-b)}
+.fcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}.fcard:hover{border-color:var(--pill-b)}
 .fcard .ft{display:flex;align-items:baseline;gap:8px}.fcard .ft b{font:700 14px var(--display);color:var(--strong)}.fcard .ft .fpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13px}
 .fverd{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--pill);color:var(--mute)}.fverd.up{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}.fverd.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
 .fwhy{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.35}.fwhy li{display:flex;gap:6px}.fwhy li i{font-style:normal;flex:none;width:12px}.fwatch{font-size:12px;color:var(--amber)}
 @media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
+@media (max-width:1420px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
 @media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
 .calviews{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden}.calviews button{background:transparent;border:0;color:var(--mute);font:500 12px var(--font);padding:5px 11px;cursor:pointer}.calviews button+button{border-left:1px solid var(--pill-b)}.calviews button.on{background:var(--pill);color:var(--accent)}
@@ -1192,7 +1192,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="fstrip" id="fundStrip"></div>
     <div id="fundRead"></div>
     <div class="fgrid" id="fundBody"><div class="empty">Loading…</div></div>
-    <p class="meta">Sources: your price feeds (cTrader, MEXC/Binance), US Treasury yields, FRED (free key), CFTC positioning, CoinGecko and Alternative.me, Forex Factory, and news RSS (FXStreet, MarketWatch, Investing.com, CoinDesk). Positioning and headlines go through the Mac app's relay or the web version's.</p>
+    <p class="meta">Sources: your price feeds (cTrader, MEXC/Binance), US Treasury yields, FRED (free key), BIS policy rates, ECB and Japan Ministry of Finance bond yields, CFTC positioning, CoinGecko and Alternative.me, Forex Factory, and news RSS (FXStreet, MarketWatch, Investing.com, CoinDesk). Rates, positioning and headlines go through the Mac app's relay or the web version's.</p>
   </section>
 
   <section class="card macrocard xovhead" data-page="macroov macromomo">
@@ -4439,7 +4439,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.26.1524";
+const APP_VERSION = "2026.11.02.1431";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9765,8 +9765,8 @@ if ($("ncPhone")) $("ncPhone").onclick = () => { ncShow(false); openTGSettings()
 if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
 /* ===================== Fundamentals: a terminal-style page (markets, rates and central banks, yield curve, positioning, headlines, calendar) ===================== */
 const FUND_KEY = "finder-fund", FRED_LS = "finder-fred";
-let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
-const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news });
+let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, bis: null, fy: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
+const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news, bis: FUND.bis, fy: FUND.fy });
 const fredKey = () => String(lsGet(FRED_LS, "") || "").trim();
 async function fundText(url) { const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }
 // US Treasury daily yield curves (nominal par and real), no key needed
@@ -9800,8 +9800,8 @@ async function fundCOT(force) {
   catch (e) { FUND.err.cot = e.message; }
 }
 // FRED (free key): central-bank rates and a few US gauges
-const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly"],
-  ["RBA", "AUD", "IRSTCI01AUM156N", "OECD short rate, monthly"], ["BoC", "CAD", "IRSTCI01CAM156N", "OECD short rate, monthly"], ["SNB", "CHF", "IRSTCI01CHM156N", "OECD short rate, monthly"], ["RBNZ", "NZD", "IRSTCI01NZM156N", "OECD short rate, monthly"]];
+const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly", "GB"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly", "JP"],
+  ["RBA", "AUD", "IRSTCI01AUM156N", "OECD short rate, monthly", "AU"], ["BoC", "CAD", "IRSTCI01CAM156N", "OECD short rate, monthly", "CA"], ["SNB", "CHF", "IRSTCI01CHM156N", "OECD short rate, monthly", "CH"], ["RBNZ", "NZD", "IRSTCI01NZM156N", "OECD short rate, monthly", "NZ"]];
 const FUND_US = [["CPIAUCSL", "US inflation (CPI y/y)", "yoy"], ["UNRATE", "US unemployment", "lvl"], ["T10YIE", "10Y inflation expectations", "lvl"], ["BAMLH0A0HYM2", "Junk-bond spread (stress)", "lvl"], ["VIXCLS", "VIX (fear gauge)", "lvl"]];
 async function fundFRED(force) {
   const k = fredKey(), tag = k ? k.slice(-4) : "server";        // no key pasted: the relay (Mac app or the web version) adds its own
@@ -9811,6 +9811,44 @@ async function fundFRED(force) {
   try { const ids = [...FUND_CB.map(c => c[2]), ...FUND_US.map(u => u[0])], res = await Promise.all(ids.map(id => one(id).catch(e => { if (/api_key|key/i.test(e.message)) throw e; return []; })));
     FUND.fred = { at: Date.now(), k: tag, s: Object.fromEntries(ids.map((id, i) => [id, res[i].slice(0, 420)])) }; FUND.err.fred = null; }
   catch (e) { FUND.err.fred = !k && /api_key/i.test(e.message) ? "nokey" : /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
+}
+// rates outside the US, no key: BIS policy rates (daily) and 2Y/10Y government yields for the euro area (ECB) and Japan (Ministry of Finance)
+const csvSplit = l => { const o = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === "," && !q) { o.push(cur.trim()); cur = ""; } else cur += ch; } o.push(cur.trim()); return o; };
+function sdmxRows(txt) {                           // SDMX-CSV: header "REF_AREA" or "REF_AREA:Reference area", values "GB" or "GB: United Kingdom"
+  const L = String(txt || "").replace(/^\uFEFF/, "").trim().split(/\r?\n/); if (L.length < 2) return [];
+  const H = csvSplit(L[0]).map(h => h.split(":")[0].trim().toUpperCase());
+  return L.slice(1).map(l => { const c = csvSplit(l), o = {}; H.forEach((h, i) => o[h] = (c[i] || "").replace(/^([A-Z0-9_]+): .*$/, "$1")); return o; });
+}
+async function fundBIS(force) {
+  if (!force && FUND.bis && Date.now() - FUND.bis.at < 12 * 3600e3) return;
+  const since = new Date(Date.now() - 3 * 365 * 864e5).toISOString().slice(0, 10), by = {};
+  try { sdmxRows(await fundText("/proxy/rates/bis?startPeriod=" + since)).forEach(r => { const a = r.REF_AREA, t = Date.parse(r.TIME_PERIOD), v = parseFloat(r.OBS_VALUE); if (a && isFinite(t) && isFinite(v)) (by[a] = by[a] || []).push([t, v]); });
+    const s = {}; Object.entries(by).forEach(([a, L]) => { L.sort((x, y) => x[0] - y[0]); const k = [];        // keep the latest day plus the first day of each new rate, newest first
+      L.forEach(p => { if (!k.length || Math.abs(p[1] - k.at(-1)[1]) >= 0.001) k.push(p); }); if (k.at(-1)[0] !== L.at(-1)[0]) k.push(L.at(-1)); s[a] = k.reverse(); });
+    if (!Object.keys(s).length) throw new Error("no policy rates came back"); FUND.bis = { at: Date.now(), s }; FUND.err.bis = null; }
+  catch (e) { FUND.err.bis = e.message; }
+}
+function jgbParse(csv) {                           // Ministry of Finance: a title line, then "Date,1Y,2Y,…,10Y,…"; dates 2026/10/30 (or the era form R8.10.30)
+  const L = String(csv || "").split(/\r?\n/), hi = L.findIndex(l => /^\s*"?date"?\s*,/i.test(l)); if (hi < 0) return [];
+  const H = csvSplit(L[hi]).map(h => h.toUpperCase().replace(/\s+/g, "")), i2 = H.indexOf("2Y"), i10 = H.indexOf("10Y"), ERA = { M: 1867, T: 1911, S: 1925, H: 1988, R: 2018 };
+  return L.slice(hi + 1).map(l => { const c = csvSplit(l), d = c[0] || "", m = d.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/), e = d.match(/^([MTSHR])(\d{1,2})\.(\d{1,2})\.(\d{1,2})$/);
+    const t = m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : e ? Date.UTC(ERA[e[1]] + +e[2], +e[3] - 1, +e[4]) : NaN, v = {}; if (!isFinite(t)) return null;
+    if (i2 > 0 && isFinite(parseFloat(c[i2]))) v["2yr"] = parseFloat(c[i2]); if (i10 > 0 && isFinite(parseFloat(c[i10]))) v["10yr"] = parseFloat(c[i10]);
+    return Object.keys(v).length ? { t, v } : null; }).filter(Boolean);
+}
+async function fundYields(force) {
+  if (!force && FUND.fy && FUND.fy.at && Date.now() - FUND.fy.at < 6 * 3600e3) return;
+  const old = FUND.fy || {}, fy = { at: Date.now(), EU: old.EU || null, JP: old.JP || null }, errs = [], since = new Date(Date.now() - 75 * 864e5).toISOString().slice(0, 10);
+  const merge = (keep, add) => { const m = new Map((keep || []).map(r => [r.t, r])); add.forEach(r => m.set(r.t, r)); return [...m.values()].sort((a, b) => b.t - a.t).slice(0, 60); };
+  await Promise.all([
+    (async () => { const by = {}; sdmxRows(await fundText("/proxy/rates/ecb?startPeriod=" + since)).forEach(r => { const dt = r.DATA_TYPE_FM || String(r.KEY || "").split(".").pop(), k = dt === "SR_2Y" ? "2yr" : dt === "SR_10Y" ? "10yr" : null, t = Date.parse(r.TIME_PERIOD), v = parseFloat(r.OBS_VALUE);
+        if (k && isFinite(t) && isFinite(v)) (by[t] = by[t] || {})[k] = v; });
+      const rows = Object.entries(by).map(([t, v]) => ({ t: +t, v })); if (!rows.length) throw new Error("none"); fy.EU = merge(null, rows); })().catch(() => errs.push("euro area")),
+    (async () => { let rows = (fy.JP || []).concat(jgbParse(await fundText("/proxy/rates/jgb")));                      // this month's file; the full history once, when a month back is missing
+      if (!rows.some(r => r.t <= Date.now() - 32 * 864e5)) rows = jgbParse(await fundText("/proxy/rates/jgb-all").catch(() => "")).filter(r => r.t > Date.now() - 120 * 864e5).concat(rows);
+      if (!rows.length) throw new Error("none"); fy.JP = merge(null, rows); })().catch(() => errs.push("Japan"))]);
+  if (errs.length) fy.at = Date.now() - 5 * 3600e3;                                    // try again within the hour
+  FUND.fy = fy; FUND.err.fy = errs.length ? errs.join(" and ") : null;
 }
 // headlines: free RSS feeds through the relay
 const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"]];
@@ -9828,7 +9866,7 @@ async function fundNews(force) {
 }
 async function fundLoad(force) {
   if (FUND.busy) { FUND.again = FUND.again || force || "soft"; return; } FUND.busy = true; fundRender();
-  await Promise.all([fundUST(force), fundCOT(force), fundFRED(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
+  await Promise.all([fundUST(force), fundCOT(force), fundFRED(force), fundBIS(force), fundYields(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
   FUND.busy = false; fundSave(); fundRender();
   if (FUND.again) { const f = FUND.again === true; FUND.again = false; fundLoad(f); }       // asked again while busy (a new key, Refresh)
 }
@@ -9862,24 +9900,25 @@ function fundWorld() {
     <tr><td>Funding (median, 8h)</td><td class="r">${mf != null ? (mf * 100).toFixed(3) + "%" : "—"}</td><td></td><td class="r mu">${mf != null ? (mf > 0.0003 ? "longs paying up" : mf < 0 ? "shorts paying" : "normal") : ""}</td></tr></table>`;
   return h;
 }
-function fundBank(id) {                           // a bank's rate, its last real move and stance (monthly OECD series wiggle a few bp: ignore under 10bp)
-  const s = fundLast(id), out = { rate: null, asOf: null, mv: null, mvAt: null, stance: "" }; if (!s) return out;
-  const th = id.startsWith("IRSTCI") ? 0.1 : 0.001; out.rate = s[0][1]; out.asOf = s[0][0];
+function fundBank(id, bis) {                      // a bank's rate, its last real move and stance: BIS's daily policy rate when loaded, else FRED (monthly OECD series wiggle a few bp: ignore under 10bp)
+  const b = bis && FUND.bis && FUND.bis.s && FUND.bis.s[bis], s = b && b.length ? b : fundLast(id), out = { rate: null, asOf: null, mv: null, mvAt: null, stance: "", bis: s === b }; if (!s) return out;
+  const th = !out.bis && id.startsWith("IRSTCI") ? 0.1 : 0.001; out.rate = s[0][1]; out.asOf = s[0][0];
   const j = s.findIndex(o => Math.abs(o[1] - out.rate) >= th); if (j > 0) { out.mv = Math.round((out.rate - s[j][1]) * 100); out.mvAt = s[j - 1][0]; }
   out.stance = out.mv == null ? "on hold" : Date.now() - out.mvAt < 200 * 864e5 ? (out.mv < 0 ? "cutting" : "hiking") : "on hold"; return out;
 }
 function fundCB() {
   const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
   const meet = ccy => { if (ccy === "USD" && nextFOMC) return nextFOMC; const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && /rate|policy|cash rate|statement/i.test(e.title) && e.type === "Central Bank"); return x ? x.at : null; };
-  const rows = FUND_CB.map(([bank, ccy, id, what]) => { const s = fundLast(id), m = meet(ccy);
-    let rate, asOf, mv, mvAt, stance;
-    ({ rate, asOf, mv, mvAt, stance } = fundBank(id));
-    return `<tr><td><b>${bank}</b> <span class="mu">${ccy}</span></td><td class="r" title="${xEsc(what)}${asOf ? " · as of " + new Date(asOf).toISOString().slice(0, 10) : ""}">${rate != null ? rate.toFixed(2) + "%" : "—"}</td>
+  const fed = fundBank("DFEDTARU").rate, fedMid = fed != null ? fed - 0.125 : null;                 // the middle of the Fed's 0.25-wide range
+  const rows = FUND_CB.map(([bank, ccy, id, what, bis]) => { const m = meet(ccy), { rate, asOf, mv, mvAt, stance, bis: fromBis } = fundBank(id, bis);
+    const gap = ccy === "USD" || rate == null || fedMid == null ? null : rate - fedMid;
+    return `<tr><td><b>${bank}</b> <span class="mu">${ccy}</span></td><td class="r" title="${fromBis ? "policy rate (BIS, daily)" : xEsc(what)}${asOf ? " · as of " + new Date(asOf).toISOString().slice(0, 10) : ""}">${rate != null ? rate.toFixed(2) + "%" : "—"}</td>
+      <td class="r ${gap == null ? "mu" : fCls(gap)}" title="${gap == null ? "" : `Holding ${ccy} instead of dollars ${gap >= 0 ? "earns" : "costs"} about ${Math.abs(gap).toFixed(2)}% a year (before the broker's markup)`}">${gap == null ? "—" : (gap > 0 ? "+" : gap < 0 ? "−" : "") + Math.abs(gap).toFixed(2)}</td>
       <td class="r ${mv == null ? "mu" : fCls(mv)}">${mv == null ? "—" : (mv > 0 ? "+" : "") + mv + "bp " + new Date(mvAt).toLocaleString("en-US", { month: "short", year: "2-digit", timeZone: "UTC" })}</td>
-      <td class="r">${m ? `${phtDay(m).slice(4)} <span class="mu">· ${inTxt(m - now)}</span>` : "—"}</td><td>${stance ? `<span class="fk ${stance === "cutting" ? "up" : stance === "hiking" ? "dn" : ""}">${stance}</span>` : ""}</td></tr>`; }).join("");
-  const note = !k && (FUND.err.fred === "nokey" || !(FUND.fred && FUND.fred.s)) ? `<div class="fkey"><span>Rates come from FRED. Add your free key (fred.stlouisfed.org → My account → API keys):</span><input id="fredKey" placeholder="Paste FRED key" aria-label="FRED API key" autocomplete="off"><button class="btn sm" id="fredSave">Save</button></div>`
+      <td class="r" ${m ? `title="in ${inTxt(m - now)}"` : ""}>${m ? `${phtDay(m).slice(4)} <span class="mu">· ${m - now >= 2 * 864e5 ? Math.floor((m - now) / 864e5) + "d" : inTxt(m - now)}</span>` : "—"}</td><td>${stance ? `<span class="fk ${stance === "cutting" ? "up" : stance === "hiking" ? "dn" : ""}">${stance}</span>` : ""}</td></tr>`; }).join("");
+  const note = !k && (FUND.err.fred === "nokey" || !(FUND.fred && FUND.fred.s)) ? `<div class="fkey"><span>The Fed and ECB rates and the US gauges come from FRED. Add your free key (fred.stlouisfed.org → My account → API keys):</span><input id="fredKey" placeholder="Paste FRED key" aria-label="FRED API key" autocomplete="off"><button class="btn sm" id="fredSave">Save</button></div>`
     : FUND.err.fred ? `<div class="fkey dn">${xEsc(FUND.err.fred)}. <button class="btn sm" id="fredClear">Change key</button></div>` : "";
-  return `<table class="ftbl"><tr class="mu"><td>Bank</td><td class="r">Rate</td><td class="r">Last move</td><td class="r">Next meeting</td><td>Stance</td></tr>${rows}</table>${note}`;
+  return `<table class="ftbl"><tr class="mu"><td>Bank</td><td class="r">Rate</td><td class="r" title="This bank's rate minus the Fed's (middle of its range), in percentage points">vs Fed</td><td class="r">Last move</td><td class="r">Next meeting</td><td>Stance</td></tr>${rows}</table>${note}`;
 }
 function fundCurve() {
   const R = FUND.ust && FUND.ust.rows; if (!R || !R.length) return `<div class="empty">${FUND.err.ust ? "Couldn't load US Treasury yields (" + xEsc(FUND.err.ust) + ")" : "Loading US Treasury yields…"}</div>`;
@@ -9898,6 +9937,25 @@ function fundCurve() {
       ${(() => { const c = fundLast("CPIAUCSL"), u = fundLast("UNRATE"), be = fundLast("T10YIE"); const y = c && c[12] ? (c[0][1] / c[12][1] - 1) * 100 : null;
         return kv("US CPI y/y", y != null ? y.toFixed(1) + "%" : "—") + kv("Unemployment", u ? u[0][1].toFixed(1) + "%" : "—") + kv("10Y inflation exp.", be ? be[0][1].toFixed(2) + "%" : "—"); })()}</div></div>
     <p class="meta fnote">Falling real yields usually help gold and the Nasdaq; a rising 2Y means the market expects fewer Fed cuts.</p>`;
+}
+function fundGaps() {                             // US minus euro-area / Japan yields, now and the change over about a month (in % points)
+  const U = FUND.ust && FUND.ust.rows, F = FUND.fy || {};
+  const gap = (A, B, k) => { const has = r => r.v[k] != null, a0 = A && A.find(has), b0 = B && B.find(has); if (!a0 || !b0) return null;
+    const a1 = A.find(r => has(r) && r.t <= a0.t - 28 * 864e5), b1 = B.find(r => has(r) && r.t <= b0.t - 28 * 864e5), now = a0.v[k] - b0.v[k];
+    return { now, chg: a1 && b1 ? now - (a1.v[k] - b1.v[k]) : null, asOf: Math.min(a0.t, b0.t) }; };
+  return { eu2: gap(U, F.EU, "2yr"), eu10: gap(U, F.EU, "10yr"), jp2: gap(U, F.JP, "2yr"), jp10: gap(U, F.JP, "10yr") };
+}
+function fundGapsHTML() {
+  const G = fundGaps(), bp = v => v == null ? "" : ` <span class="${fCls(v)}">${v >= 0 ? "+" : "−"}${Math.abs(Math.round(v * 100))}</span>`;
+  const cell = g => `<td class="r">${g ? g.now.toFixed(2) + bp(g.chg) : "—"}</td>`;
+  const read = (g, them, pair) => !g || g.chg == null ? `<span class="mu">${g ? "needs a month of data" : ""}</span>` : Math.abs(g.chg) < 0.1 ? `<span class="mu">steady</span>`      // coloured by where it pushes the pair
+    : `${g.chg > 0 ? "widening" : "narrowing"}: <b class="${g.chg * pair > 0 ? "up" : "dn"}">helps ${g.chg > 0 ? "the dollar" : them}</b>`;
+  if (!G.eu2 && !G.eu10 && !G.jp2 && !G.jp10) return `<div class="fph fsub">Yield gaps <span>US minus euro area and Japan</span></div><div class="empty">${FUND.err.fy ? "Couldn't load " + xEsc(FUND.err.fy) + " yields. They need the Mac app's relay or the web version." : "Loading euro-area and Japan yields…"}</div>`;
+  return `<div class="fph fsub">Yield gaps <span>US minus the others · bp change in a month</span></div>
+    <table class="ftbl fgaps"><tr class="mu"><td></td><td class="r">2Y</td><td class="r">10Y</td><td>Lately</td></tr>
+    <tr><td title="US minus euro-area yields"><b>EUR/USD</b> <span class="mu">US − euro</span></td>${cell(G.eu2)}${cell(G.eu10)}<td title="EUR/USD follows the 2-year gap most">${read(G.eu2, "the euro", -1)}</td></tr>
+    <tr><td title="US minus Japan yields"><b>USD/JPY</b> <span class="mu">US − Japan</span></td>${cell(G.jp2)}${cell(G.jp10)}<td title="USD/JPY follows the 10-year gap most">${read(G.jp10, "the yen", 1)}</td></tr></table>
+    <p class="meta fnote">Money goes where it earns more: a wider gap usually lifts USD/JPY and weighs on EUR/USD. Euro area is the ECB's AAA government curve, close to German Bunds${FUND.err.fy ? ` · couldn't load ${xEsc(FUND.err.fy)} just now` : ""}.</p>`;
 }
 function fundCOTHTML() {
   const C = FUND.cot; if (!C || !C.rows.length) return `<div class="empty">${FUND.err.cot ? "Couldn't load positioning (" + xEsc(FUND.err.cot) + "). It needs the Mac app's relay or the web version." : "Loading positioning…"}</div>`;
@@ -9944,12 +10002,22 @@ function fundCardsData() {
   const evL = S.ev ? [0, `${S.ev.ccy} ${S.ev.title} ${phtDay(S.ev.at).slice(0, 3)} ${S.ev.timeLbl || phtHM(S.ev.at)} (in ${inTxt(S.ev.at - Date.now())}): expect spikes`] : S.fomc ? [0, `Fed decision in ${inTxt(S.fomc - Date.now())}: expect spikes`] : null;
   const fedL = (good) => !S.fed || S.fed === "on hold" ? null : S.fed === "cutting" ? [good, "The Fed is cutting rates"] : [-good, "The Fed is raising rates"];
   const riskL = (good) => S.risk === "on" ? [good, `Risk appetite is up (VIX ${S.vix.toFixed(0)})`] : S.risk === "off" ? [-good, `Markets are nervous (VIX ${S.vix.toFixed(0)})`] : null;
-  const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]);
+  const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]), eur = fRow(["EUR/USD", "EURUSD"]), jpy = fRow(["USD/JPY", "USDJPY"]), G = fundGaps();
+  const now = Date.now(), evFor = ccys => { const e = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now && x.at < now + 36 * 3600e3 && x.impact === "High" && ccys.includes(x.ccy))[0];
+    return e ? [0, `${e.ccy} ${e.title} ${phtDay(e.at).slice(0, 3)} ${e.timeLbl || phtHM(e.at)} (in ${inTxt(e.at - now)}): expect spikes`] : evL; };
+  const gapL = (g, name, sign) => !g || g.chg == null ? null : g.chg >= 0.1 ? [sign, `${name} yield gap widening (+${Math.round(g.chg * 100)}bp in a month)`] : g.chg <= -0.1 ? [-sign, `${name} yield gap narrowing (${Math.round(g.chg * 100)}bp in a month)`] : null;
+  const bank = (id, bis, name, sign) => { const st = fundBank(id, bis).stance; return st === "cutting" ? [-sign, `The ${name} is cutting rates`] : st === "hiking" ? [sign, `The ${name} is raising rates`] : null; };
+  const yen = S.cot("Yen"), yenCrowd = !yen ? null : yen.pct >= 90 ? [0, "Speculators heavily long the yen: if they bail, USD/JPY can jump"] : yen.pct <= 10 ? [0, "Speculators heavily short the yen: if they bail, USD/JPY can drop fast"] : null;
+  const yenRisk = S.risk === "on" ? [+1, `Risk appetite is up (VIX ${S.vix.toFixed(0)}): the yen is usually sold`] : S.risk === "off" ? [-1, `Markets are nervous (VIX ${S.vix.toFixed(0)}): money hides in the yen`] : null;
   return [
     { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
     { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
     { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
       L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
+    { k: "EUR/USD", sym: eur && eur.symbol, px: eur && eur.price, chg: eur && eur.chg24h, L: [gapL(G.eu2, "US–euro 2-year", -1), fedL(+1), bank("ECBDFR", null, "ECB", +1),
+      trend(eur && eur.ret7 != null ? eur.ret7 * 100 : null, "EUR/USD"), crowd(S.cot("Euro"), "euro"), evFor(["USD", "EUR"])] },
+    { k: "USD/JPY", sym: jpy && jpy.symbol, px: jpy && jpy.price, chg: jpy && jpy.chg24h, L: [gapL(G.jp10, "US–Japan 10-year", +1), yenRisk, fedL(-1), bank("IRSTCI01JPM156N", "JP", "BoJ", -1),
+      trend(jpy && jpy.ret7 != null ? jpy.ret7 * 100 : null, "USD/JPY"), yenCrowd, evFor(["USD", "JPY"])] },
     { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
   ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
@@ -9984,7 +10052,7 @@ function fundRender() {
   $("fundRead").innerHTML = fundReadHTML();
   $("fundRead").querySelectorAll("[data-fsym]").forEach(c => c.onclick = () => typeof openInCharts === "function" && openInCharts(c.dataset.fsym));
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
-    <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
+    <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}${fundGapsHTML()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
   el.querySelectorAll("[data-fsym]").forEach(tr => tr.onclick = () => typeof openInCharts === "function" && openInCharts(tr.dataset.fsym));

@@ -378,7 +378,7 @@ async def setup_extra(ctx):
     for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api/awake*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
 
 # ---------------- fundamentals page: Treasury yield curves, CFTC positioning, FRED, news RSS ----------------
-FUND_HITS = []; FUND_SRV = {"key": False}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)
+FUND_HITS = []; FUND_SRV = {"key": False, "rates": True}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)
 def ust_csv(real, year):
     import datetime as dt
     hdr = ['Date', '"5 YR"', '"7 YR"', '"10 YR"', '"20 YR"', '"30 YR"'] if real else ['Date', '"1 Mo"', '"1.5 Month"', '"2 Mo"', '"3 Mo"', '"4 Mo"', '"6 Mo"', '"1 Yr"', '"2 Yr"', '"3 Yr"', '"5 Yr"', '"7 Yr"', '"10 Yr"', '"20 Yr"', '"30 Yr"']
@@ -413,6 +413,38 @@ def fred_json(sid):
             v = [x for k, x in steps if i * (30 if monthly else 1) >= k][-1]
             obs.append({"date": day.isoformat(), "value": f"{v}"})
     return {"observations": obs}
+def bis_csv():                                    # SDMX-CSV the way BIS can label it: "CODE:Label" headers and "CODE: Label" values
+    import datetime as dt
+    steps = {"GB": [(0, 4.0), (60, 4.25)], "JP": [(0, 0.75), (100, 0.5)], "AU": [(0, 3.6)], "CA": [(0, 2.25), (300, 2.5)], "CH": [(0, 0.0)], "NZ": [(0, 2.5), (30, 3.0)]}
+    names = {"GB": "United Kingdom", "JP": "Japan", "AU": "Australia", "CA": "Canada", "CH": "Switzerland", "NZ": "New Zealand"}
+    out, today = ["DATAFLOW:Dataflow,FREQ:Frequency,REF_AREA:Reference area,TIME_PERIOD:Time period or range,OBS_VALUE:Observation Value"], dt.date.today() - dt.timedelta(days=3)
+    for a, st in steps.items():
+        for i in range(400, -1, -1):
+            v = [x for k, x in st if i >= k][-1]
+            out.append(f'BIS:WS_CBPOL(1.0): Central bank policy rates,D: Daily,"{a}: {names[a]}",{(today - dt.timedelta(days=i)).isoformat()},{v}')
+    return "\n".join(out)
+def ecb_csv():                                    # ECB csvdata: euro-area AAA curve, 2Y and 10Y, business days
+    import datetime as dt
+    out, d, i = ["KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF"], dt.date.today(), 0
+    while i < 50:
+        d -= dt.timedelta(days=1)
+        if d.weekday() >= 5: continue
+        for k, b in (("SR_2Y", 2.05 - i * 0.002), ("SR_10Y", 2.62 - i * 0.001)):
+            out.append(f"YC.B.U2.EUR.4F.G_N_A.SV_C_YM.{k},B,U2,EUR,4F,G_N_A,SV_C_YM,{k},{d.isoformat()},{b:.6f},A,F")
+        i += 1
+    return "\n".join(out)
+def jgb_csv(full):                               # Ministry of Finance: a title line, then Date,1Y,…,40Y; this month only unless full
+    import datetime as dt
+    out, d, i, today = ["Interest Rate", "Date,1Y,2Y,3Y,4Y,5Y,6Y,7Y,8Y,9Y,10Y,15Y,20Y,25Y,30Y,40Y"], dt.date.today(), 0, dt.date.today()
+    rows = []
+    while i < 160:
+        d -= dt.timedelta(days=1)
+        if d.weekday() >= 5: continue
+        if full or (d.year, d.month) == (today.year, today.month):
+            y2, y10 = 0.95 - i * 0.003, 1.75 - i * 0.005
+            rows.append(f"{d.year}/{d.month}/{d.day},0.7,{y2:.3f},1.0,1.1,1.2,1.3,1.4,1.5,1.6,{y10:.3f},2.2,2.6,2.9,3.1,3.3")
+        i += 1
+    return "\n".join(out + rows[::-1])
 def rss_xml(name):
     import email.utils
     now = time.time(); t = ["Fed's Waller says another cut is appropriate if jobs keep cooling", "Gold climbs as Treasury yields slip", "Nasdaq futures edge higher ahead of Netflix earnings",
@@ -431,6 +463,11 @@ async def route_fund(route):
         if q.get("api_key", [""])[0].startswith("bad"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_code": 400, "error_message": "Bad Request.  The value for variable api_key is not registered."}))
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps(fred_json(q.get("series_id", [""])[0])))
     if p.path.startswith("/proxy/rss/"): return await route.fulfill(status=200, content_type="application/xml", body=rss_xml(p.path.split("/")[-1]))
+    if p.path.startswith("/proxy/rates/"):
+        src = p.path.split("/")[-1]
+        if not FUND_SRV["rates"]: return await route.fulfill(status=502, content_type="text/csv", body="couldn't reach the source")
+        body = {"bis": bis_csv, "ecb": ecb_csv, "jgb": lambda: jgb_csv(False), "jgb-all": lambda: jgb_csv(True)}.get(src)
+        return await route.fulfill(status=200 if body else 400, content_type="text/csv", body=body() if body else "unknown source")
     return await route.fulfill(status=404, body="")
 async def setup_fund(ctx):
-    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**"]: await ctx.route(pat, route_fund)
+    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**", "**/proxy/rates/**"]: await ctx.route(pat, route_fund)

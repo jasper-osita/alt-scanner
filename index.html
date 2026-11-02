@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.02.1431">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.02.1539">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2337,6 +2337,19 @@ function momentum(r) {                             // 0–100: RSI alignment 40,
 }
 
 /* ---- per-coin analysis (1H / 4H / Daily) ---- */
+function adrOf(kd, n = 14) {                      // average daily range (high minus low) of the last n full days; stub days (a Sunday open) left out
+  if (!kd || kd.t.length < 6) return null; const r = kd.h.map((h, i) => h - kd.l[i]).slice(-n - 6), med = [...r].sort((a, b) => a - b)[r.length >> 1];
+  const ok = r.filter(x => x > 0 && x >= med / 3).slice(-n); return ok.length >= 5 ? ok.reduce((a, b) => a + b, 0) / ok.length : null;
+}
+function dayRange(kd, ks) {                        // today so far: high and low of the closed candles since the current daily candle opened, against the average day
+  const adr = adrOf(kd); if (!adr) return null; const start = kd.t.at(-1) + 864e5; let hi = -Infinity, lo = Infinity;
+  ks.filter(Boolean).forEach(k => k.t.forEach((t, i) => { if (t >= start) { if (k.h[i] > hi) hi = k.h[i]; if (k.l[i] < lo) lo = k.l[i]; } }));
+  return { adr, start, hi: isFinite(hi) ? hi : null, lo: isFinite(lo) ? lo : null };
+}
+function dayUsed(d, px) {                          // the share of an average day's range covered so far, the live price included (null on a closed market)
+  if (!d || d.hi == null || !d.adr) return null; const hi = px != null && isFinite(px) ? Math.max(d.hi, px) : d.hi, lo = px != null && isFinite(px) ? Math.min(d.lo, px) : d.lo;
+  return { pct: Math.round((hi - lo) / d.adr * 100), hi, lo, adr: d.adr };
+}
 async function analyse(c, maFn) {
   const [k1h, k4h, k1d, k15] = await Promise.all([klines(c.symbol, "1h", 400), klines(c.symbol, "4h", 160), klines(c.symbol, "1d", 130),
                                                  klines(c.symbol, "15m", 200).catch(() => null)]);
@@ -2356,7 +2369,8 @@ async function analyse(c, maFn) {
   const dayParts = { structure: r1(s1h.pts * 0.8), rvol: r1(rvNowPts), vol: r1(volPts * 0.6), rs: 0, loc: lp };
   const swingParts = { structure: r1(0.5 * s4h.pts + 0.5 * s1d.pts), rvol: r1(rvolPts * 0.8), vol: r1(volPts * 0.6), rs: 0 };
   const sum = o => r1(Object.values(o).reduce((a, b) => a + b, 0));
-  return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
+  const intra = CT_SYMS.has(c.symbol) || TRADFI_SYMS.has(c.symbol) || isMX(c.symbol), kq = k15 && k15.t.length ? k15 : k1h;     // forex, metals, indices: opens for "since the session opened"
+  return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, day: dayRange(k1d, [k1h, k15]), ...(intra ? { opens: { t: kq.t.slice(kq === k15 ? -120 : -30), o: kq.o.slice(kq === k15 ? -120 : -30) } } : {}), rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
            session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
@@ -4439,7 +4453,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.02.1431";
+const APP_VERSION = "2026.11.02.1539";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6499,13 +6513,17 @@ function macroReadHTML() {
   if (cs.length >= 4) chips.unshift(`<span class="mchip">Currency strength 24h ${cs.map(([c, v]) => `<b class="${v >= 0 ? "up" : "dn"}">${c} ${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}%</b>`).join(" ")}</span>`);
   return chips.join("") + (chips.length ? `<span class="meta">Trend = 4H and Daily stacks agree</span>` : "");
 }
+function dayTag(r) {                               // how much of an average day's range is already covered; 90%+ means most of the usual move is done
+  const u = dayUsed(r.day, r.price); if (!u) return "";
+  return `<span class="tag${u.pct >= 90 ? " flag" : ""}" title="Today's high to low so far is ${u.pct}% of an average day (${fmtPrice(u.adr)}, last 14 days).${u.pct >= 90 ? " Most of the usual move is done: breakouts often stall." : ""}">Day range ${u.pct}%</span>`;
+}
 function macroRowHTML(r, i) {
   const p = coinPlay(r), m = r.momo;
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
     <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${MACRO.rows.some(x => x.ct) && !r.ct ? `<span class="tag" title="Your broker doesn't list this one, so it comes from ${macroSrcName(r)}">${macroSrcName(r)}</span>` : ""}${mxInvTag(r)}${ratingHTML(r.rating)}</div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span>${m ? ` <span class="tag ${m.dir === "Long" ? "long" : "short"}">${MOMO_STAGE[m.stage]}</span>` : ""}</div>
       <div class="ln mstk"><span>1H ${chip(r.s1h)} 4H ${chip(r.s4h)} D ${chip(r.s1d)}</span><span class="rsis">RSI 1H ${rsiChip(r.rsi && r.rsi.h1)} 4H ${rsiChip(r.rsi && r.rsi.h4)}</span></div>
-      <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""}</div></div>
+      <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""} ${dayTag(r)}</div></div>
     <span class="sc" title="Day score">${r.dayScore}</span>${chartBtn(r.symbol)}</div>`;
 }
 function renderMacro() {
@@ -6604,7 +6622,15 @@ const X_CLASS = {
   "Asian stocks": ["Nikkei 225", "Hang Seng", "KOSPI", "ASX 200"],
   "European stocks": ["DAX 40", "FTSE 100", "Euro Stoxx 50", "CAC 40"],
 };
-const xRet = (r, w) => w === "24h" ? r.chg24h : w === "7d" ? (r.ret7 == null ? null : r.ret7 * 100) : (r.ret30 == null ? null : r.ret30 * 100);
+const X_SESS = [["Asia", 480], ["London", 720], ["New York", 1290]];        // major session opens, minutes after midnight PHT
+function xSessStart(now = Date.now()) {           // the latest of them: Asia 8 AM, London 12 PM or New York 9:30 PM (PHT)
+  const d0 = now - ((now + PHT_MS) % 864e5); let best = null;
+  [0, -1].forEach(b => X_SESS.forEach(([name, m]) => { const t = d0 + b * 864e5 + m * 60e3; if (t <= now && (!best || t > best.t)) best = { name, t }; }));
+  return best;
+}
+const xSessRet = (r, t0) => { const k = r.opens; if (!k || !k.t.length || !(r.price > 0)) return null; const i = k.t.findIndex(t => t >= t0);      // the first candle at or after the open
+  return i < 0 || k.t[i] - t0 > 30 * 60e3 || !(k.o[i] > 0) ? null : (r.price / k.o[i] - 1) * 100; };
+const xRet = (r, w) => w === "sess" ? xSessRet(r, xSessStart().t) : w === "24h" ? r.chg24h : w === "7d" ? (r.ret7 == null ? null : r.ret7 * 100) : (r.ret30 == null ? null : r.ret30 * 100);
 const avg = a => { const v = a.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((p, x) => p + x, 0) / v.length : null; };
 function xClassRet(rows, cls, w) { const ns = X_CLASS[cls]; return avg(rows.filter(r => ns.includes(r.name)).map(r => xRet(r, w))); }
 function xCcy(rows, w) {                               // each currency's change against the others it's quoted with, averaged
@@ -6692,13 +6718,22 @@ function xFlowRead(rows) {                            // risk-on / risk-off, the
   return { key, label: L[0], cls: L[1], desc: L[2], invalid: L[3], checks: key === "off" ? off : on, other: key === "off" ? on : off, themes, cc, cl, W,
     lead: lead.slice(0, 6), lag: lead.slice(-6).reverse(), eqName };
 }
+let XCS = (() => { try { return localStorage.getItem("finder-xcs") || "sess"; } catch (e) { return "sess"; } })();
+function xCsHTML(rows) {                           // currency strength over the chosen window: since the session opened, 24 hours or 7 days
+  const S = xSessStart(), w = ["sess", "24h", "7d"].includes(XCS) ? XCS : "sess", L = Object.entries(xCcy(rows, w)).filter(([, v]) => v != null).sort((a, b) => b[1] - a[1]);
+  const sc = Math.max(...L.map(x => Math.abs(x[1])), { sess: 0.15, "24h": 0.4, "7d": 1.2 }[w]);          // the strongest mover fills the bar
+  const bar = (c, v) => { const wd = Math.min(50, Math.abs(v) / sc * 50);
+    return `<div class="xbar"><span class="xc">${c}</span><span class="xtrack"><i class="${v >= 0 ? "up" : "dn"}" style="${v >= 0 ? "left:50%" : `left:${50 - wd}%`};width:${wd}%"></i></span><span class="xv">${sgn(v)}</span></div>`; };
+  const lbl = { sess: `since ${S.name} opened (${phtHM(S.t)})`, "24h": "24 hours", "7d": "7 days" }[w];
+  const tabs = [["sess", "Session"], ["24h", "24h"], ["7d", "7d"]].map(([k, l]) => `<button data-xcs="${k}" class="${k === w ? "on" : ""}" aria-pressed="${k === w}">${l}</button>`).join("");
+  return `<div class="xmh xcsh"><h3 class="pbh3">Currency Strength <span class="meta">${lbl}, vs the others</span></h3><div class="xseg" role="group" aria-label="Currency strength window">${tabs}</div></div>
+    <div class="xbars">${L.length >= 3 ? L.map(([c, v]) => bar(c, v)).join("") : `<div class="empty">${w === "sess" && Date.now() - S.t < 20 * 60e3 ? `${S.name} just opened: this fills in at the next refresh.` : "Not enough data for this window yet (markets closed?)."}</div>`}</div>`;
+}
 function renderXFlow(rows) {
   const el = $("xFlow"), R = xFlowRead(rows);
   const ck = c => `<li class="${c.pass === true ? "ok" : c.pass === false ? "no" : "na"}"><span>${c.pass === true ? "✓" : c.pass === false ? "✗" : "–"}</span><b>${c.name}</b> ${c.val} <span class="mute">needs ${c.need}</span></li>`;
   const line = (name, by) => `<span>${name}</span>${R.W.map(w => `<span>${sgn(by[w])}</span>`).join("")}`;
   const ccys = Object.keys(R.cc["7d"]).sort((a, b) => (R.cc["7d"][b] ?? -99) - (R.cc["7d"][a] ?? -99));
-  const bar = (c, v) => { const w = v == null ? 0 : Math.min(50, Math.abs(v) / 3 * 50);
-    return `<div class="xbar"><span class="xc">${c}</span><span class="xtrack"><i class="${v >= 0 ? "up" : "dn"}" style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></i></span><span class="xv">${sgn(v)}</span></div>`; };
   const chipR = r => `<button class="qchip" data-s="${r.symbol}">${r.name} <span>${sgn(r.ret7 * 100)}</span></button>`;
   el.innerHTML = `
     <div class="pbhead"><h2>Money Flow</h2><span class="pblabel ${R.cls}">${R.label}</span><span class="meta">last 7 days · ${rows.length} instruments</span></div>
@@ -6711,7 +6746,7 @@ function renderXFlow(rows) {
           ${Object.keys(X_CLASS).filter(k => R.W.some(w => R.cl[k][w] != null)).map(k => line(k, R.cl[k])).join("")}
           ${["USD", "JPY", "CHF"].filter(c => R.cc["7d"][c] != null).map(c => line(c === "USD" ? "US dollar" : c === "JPY" ? "Japanese yen" : "Swiss franc", Object.fromEntries(R.W.map(w => [w, R.cc[w][c]])))).join("")}
         </div>
-        ${ccys.length >= 3 ? `<h3 class="pbh3">Currency Strength <span class="meta">7 days, vs the others</span></h3><div class="xbars">${ccys.map(c => bar(c, R.cc["7d"][c])).join("")}</div>` : ""}
+        ${ccys.length >= 3 ? xCsHTML(rows) : ""}
       </div>
       <div>
         <h3 class="pbh3">${R.key === "mixed" ? "Risk-on Needs" : "Why " + R.label}</h3><ul class="rck">${R.checks.map(ck).join("")}</ul>
@@ -6723,6 +6758,7 @@ function renderXFlow(rows) {
     </div>
     <p class="meta rotnote">Stocks up with the yen and franc sold is the classic risk-on pattern, and the reverse is risk-off, but these links break often (gold and stocks can rise together when the dollar falls). This card reports only what the last 7 days show and what would change the read; it doesn't say what comes next. Forex on MEXC is quoted against USD only, so the currency strengths there lean on one pair each.</p>`;
   el.querySelectorAll("[data-s]").forEach(b => b.onclick = () => openDetail(b.dataset.s));
+  el.querySelectorAll("[data-xcs]").forEach(b => b.onclick = () => { XCS = b.dataset.xcs; try { localStorage.setItem("finder-xcs", XCS); } catch (e) {} renderXFlow(xRows()); });
 }
 
 function xMomoRows(rows) {
@@ -6744,7 +6780,7 @@ function xMomoRowHTML(x, i) {
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
     <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${(r.group || "").replace(/^MEXC /, "")}</span>${mxInvTag(r)}${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span> · ${momoLine(r, m)}</div>
-      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
+      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${dayTag(r)}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
 }
 let XMOMO_TAB = "all";
@@ -9594,19 +9630,22 @@ async function nwFetch(it) {
   try {
     if (ctPrefer() && CT.state !== "ready" && !CT.connecting) { try { await ctConnect(); } catch (e) {} }
     const S = nwSym(it.name); if (!S) throw new Error("this market isn't available on your broker or exchange");
-    if (st.sym !== S.sym) { st.k = null; st.read = null; }
+    if (st.sym !== S.sym) { st.k = null; st.read = null; st.hk = null; st.kd = null; st.htfAt = 0; st.kdAt = 0; }
     st.sym = S.sym; st.src = S.src; st.ct = !!S.ct;
     if (needBars) {
       const k = await klines(S.sym, it.tf, 400), cut = k.t.findIndex(t => t + iv > Date.now()), kk = cut < 0 ? k : { t: k.t.slice(0, cut), o: k.o.slice(0, cut), h: k.h.slice(0, cut), l: k.l.slice(0, cut), c: k.c.slice(0, cut), qv: k.qv.slice(0, cut) };
       st.k = kk; st.read = nbbWatchRead(kk, iv); st.at = Date.now(); st.err = null;
       if (!st.htfAt || Date.now() - st.htfAt > 5 * 60e3) { try { const h = await klines(S.sym, NW_HTF[it.tf] || "1h", 150), c = h.c, e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), i = c.length - 1;
-        st.htf = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null; st.htfAt = Date.now(); } catch (e) {} }
+        st.htf = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null; st.hk = h; st.htfAt = Date.now(); } catch (e) {} }
+      if (!st.kdAt || Date.now() - st.kdAt > 30 * 60e3 || (st.kd && st.kd.t.length && Date.now() >= st.kd.t.at(-1) + 2 * 864e5)) {      // daily candles for the range used today; again once a new day closes
+        try { st.kd = await klines(S.sym, "1d", 30); st.kdAt = Date.now(); } catch (e) {} }
       nwSignals(it, st);
     }
     try { const fb = await formingBar(S.sym, it.tf); if (fb) { st.px = fb.c; st.fb = fb; st.pxAt = Date.now(); } } catch (e) {}
   } catch (e) { st.err = e.message || String(e); st.at = Date.now(); }
   st.busy = false; nwRender(it);
 }
+const nwDay = st => dayUsed(dayRange(st.kd, [st.hk, st.k]), st.px);       // today's range so far vs the average day (higher timeframe for the early hours, the chart's own bars for the rest)
 function nwSignals(it, st) {
   const r = st.read; if (!r) return;
   const sess = nwSession(it), now = Date.now(), dayAgo = now - 24 * 3600e3;
@@ -9614,11 +9653,11 @@ function nwSignals(it, st) {
     const m = r.trig, id = `${nwKey(it)}|${m.dir}|${m.tClose}`;
     if (!NW_LOG.some(x => x.id === id) && now - m.tClose < 3 * (CH_IV[it.tf] || 60e3)) {
       const news = calNextFor(nwCcys(it.name), 30, 15), sig = { id, name: it.name, tf: it.tf, sym: st.sym, src: st.src, dir: m.dir, entry: m.entry, stop: m.stop, tClose: m.tClose, at: now, inSess: sess.on,
-        withTf: r.stack === m.dir, withHtf: st.htf === m.dir, sweep: !!m.sweep, room: !!m.room, baseNo: m.baseNo, baseLen: m.baseLen, news: news ? `${news.ccy} ${news.title} at ${phtHM(news.at)}` : null };
+        withTf: r.stack === m.dir, withHtf: st.htf === m.dir, sweep: !!m.sweep, room: !!m.room, baseNo: m.baseNo, baseLen: m.baseLen, news: news ? `${news.ccy} ${news.title} at ${phtHM(news.at)}` : null, dayPct: (nwDay(st) || {}).pct ?? null };
       NW_LOG.unshift(sig); NW_LOG = NW_LOG.filter(x => x.at > now - 3 * 864e5).slice(0, 200); lsSet(NW_LOG_KEY, NW_LOG);
       if (it.alerts && (sess.on || NW.outside)) {
         const R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, f = v => fmtPrice(v);
-        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
+        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${sig.dayPct >= 90 ? ` Day range ${sig.dayPct}% used: most of the usual move is done.` : ""}${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
           { sym: st.sym, kind: "NBB Watch", icon: "🥪", tone: m.dir === "Long" ? "up" : "down", title: `NBB ${m.dir.toLowerCase()}: ${it.name} ${CH_TFL[it.tf] || it.tf}` });
       }
     }
@@ -9639,12 +9678,12 @@ function nwCardHTML(it) {
   let state = `<div class="nwst none">Loading ${xEsc(it.name)} ${tfl}…</div>`;
   if (st.err && !r) state = `<div class="nwst none dn">Couldn't load: ${xEsc(st.err)}</div>`;
   else if (r) {
-    const ctx = `${tfl} ${r.stack ? `<b class="${r.stack === "Long" ? "up" : "dn"}">${r.stack === "Long" ? "bull" : "bear"} stack</b>` : "<b>no stack</b>"} · ${CH_TFL[NW_HTF[it.tf]] || ""} ${st.htf ? `<b class="${st.htf === "Long" ? "up" : "dn"}">${st.htf === "Long" ? "bull" : "bear"}</b>` : "<b>mixed</b>"} · RSI ${r.rsi != null ? r.rsi.toFixed(0) : "—"} · ATR ${f(r.atr)}`;
+    const du = nwDay(st), ctx = `${tfl} ${r.stack ? `<b class="${r.stack === "Long" ? "up" : "dn"}">${r.stack === "Long" ? "bull" : "bear"} stack</b>` : "<b>no stack</b>"} · ${CH_TFL[NW_HTF[it.tf]] || ""} ${st.htf ? `<b class="${st.htf === "Long" ? "up" : "dn"}">${st.htf === "Long" ? "bull" : "bear"}</b>` : "<b>mixed</b>"} · RSI ${r.rsi != null ? r.rsi.toFixed(0) : "—"} · ATR ${f(r.atr)}${du ? ` · <span class="nwday" title="Today's high to low so far (${f(du.lo)} to ${f(du.hi)}) is ${du.pct}% of an average day (${f(du.adr)}, last 14 days).${du.pct >= 90 ? " Most of the usual move is done: breakouts often stall." : ""}">Day range <b class="${du.pct >= 90 ? "fam" : ""}">${du.pct}%</b></span>` : ""}`;
     if (r.state === "trigger") { const m = r.trig, R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, ago = Math.max(0, Math.round((now - m.tClose) / 60e3));
       const ck = (ok, txt) => `<span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"} ${txt}</span>`;
       state = `<div class="nwst trig ${m.dir === "Long" ? "long" : "short"}">🚀 <b>NBB ${m.dir.toUpperCase()} triggered</b> <span class="mute">${ago ? ago + " min ago" : "just now"} (${phtHM(m.tClose)} close)</span>
         <div class="nwlv"><span>Entry <b>${f(m.entry)}</b></span><span>Stop <b>${f(m.stop)}</b></span><span>3R <b>${f(t3)}</b></span><span class="mute">base ${m.baseLen} candles${m.baseNo === 2 ? " · base #2 (prime)" : ""}</span></div>
-        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${ck(!news, "no high-impact news near")}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
+        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${du ? ck(du.pct < 90, du.pct < 90 ? `room in the day's range (${du.pct}% used)` : `day range ${du.pct}% used`) : ""}${ck(!news, "no high-impact news near")}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
     else if (r.state === "basing") state = `<div class="nwst base">🧱 <b>Basing</b> · ${r.base.len} candles, ${r.base.tall.toFixed(1)} ATR tall
         <div class="nwlv"><span class="up">Long above <b>${f(r.base.hi)}</b></span><span class="dn">Short below <b>${f(r.base.lo)}</b></span><span class="mute">${r.stack ? `trend favors ${r.stack.toLowerCase()}s` : "no clear trend: either side"}</span></div>
         <div class="meta">Trigger: a displacing close out of the base (body 1.5× the base's average) with the trend.</div></div>`;

@@ -26,6 +26,9 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   Overview main charts borrow the same engine: `OVC`, `ovcHost`/`ovcPark` (Bitcoin on Overview; dollar + Nasdaq 100 side by side on the
   forex overview, each pane its own symbol via `P.psym`/`chPS(P)`; the Charts page's own state is restored on park).
   Forex overview toggles: session timeframes `ovcSessTf`/`ovcSessApply` (NAS100 1m at the US open, Gold 5m in London), same timeframe `ovcTfPicked`.
+- Day range used (core, also in Node): `adrOf` (14-day average high−low), `dayRange` (closed candles since the current daily candle opened) and `dayUsed` (+ live price);
+  `r.day` on every scanned row, `dayTag` on forex/momentum rows, `nwDay` on NBB Watch cards, checklist and alerts. Currency strength window
+  `XCS` (Session/24h/7d) in Money Flow: `xSessStart` (latest of Asia 8 AM, London 12 PM, New York 9:30 PM PHT), `xSessRet` from `r.opens` (15m opens, forex/metals/indices rows only).
 - Trade page (`<script id="trade">`): cTrader trading on its own socket `CTT` (`cttConnect`, `cttPlace` 2106, reconcile 2124, close 2111,
   amend 2110, cancel 2108, P&L 2187; demo by default, live needs "Allow live" + typing LIVE); chart account picker `trAcctPop`/`trAcctChip`, position sizing `trSizeCalc`/`trPosSize` (Sync or Manual account size); MEXC futures `mxtReq` (HMAC signed in the
   browser, forwarded by `/proxy/mexc-priv`: server.py or a Vercel rewrite), `mxtPlace`.

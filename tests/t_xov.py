@@ -29,6 +29,20 @@ async def run(pw, mexc, phone):
     await q("() => document.querySelector('[data-xc=\"fx\"] [data-xm=\"l\"]').click()"); await asyncio.sleep(0.3)
     print("  fx losers:", await q("() => [...document.querySelectorAll('#xMv_fx .mv')].length + ' rows · ' + document.getElementById('xMv_fx').innerText.replace(/\\s+/g,' ').slice(0,120)"))
     print("  flow:", await q("() => document.getElementById('xFlow').innerText.replace(/\\s+/g,' ').slice(0,900)"))
+    print("  day range:", await q("() => xRows().filter(r => ['Gold', 'Nasdaq 100', 'EUR/USD', 'WTI Crude Oil'].includes(r.name)).map(r => { const u = dayUsed(r.day, r.price); return r.name + ' ' + (u ? u.pct + '% of ' + fmtPrice(u.adr) + ' (' + fmtPrice(u.lo) + '–' + fmtPrice(u.hi) + ')' : 'none'); }).join(' | ')"),
+          "| rows with a day:", await q("() => xRows().filter(r => dayUsed(r.day, r.price)).length + ' of ' + xRows().length"), "| opens kept:", await q("() => xRows().filter(r => r.opens).length + ', coins: ' + data.all.filter(r => r.opens).length"))
+    for w in (["sess", "24h", "7d"] if await q("() => !!document.querySelector('[data-xcs]')") else []):
+        await q(f"() => document.querySelector('[data-xcs=\"{w}\"]').click()"); await asyncio.sleep(0.2)
+        print(f"  strength {w}:", await q("() => [document.querySelector('.xcsh').innerText.replace(/\\s+/g,' '), [...document.querySelectorAll('#xFlow .xbar')].slice(0, 4).map(b => b.innerText.replace(/\\s+/g,'')).join(' ') || document.querySelector('#xFlow .xbars').innerText]"))
+    print("  remembered:", await q("() => localStorage.getItem('finder-xcs')"))
+    await q("() => { const b = document.querySelector('[data-xcs=\"sess\"]'); if (b) b.click(); }")
+    if not phone and not mexc:
+        print("  session opens (PHT):", await q("() => [[2026,10,2,7,0],[2026,10,2,10,15],[2026,10,2,12,0],[2026,10,2,19,0],[2026,10,2,23,40],[2026,10,3,2,0]].map(([y,mo,d,h,m]) => { const t = Date.UTC(y,mo,d,h,m) - PHT_MS, S = xSessStart(t); return h + ':' + String(m).padStart(2,'0') + '→' + S.name + ' ' + phtHM(S.t) + (S.t < t - 12 * 3600e3 ? ' (yesterday)' : ''); }).join(', ')"))
+        print("  adr unit:", await q("""() => { const kd = { t: [], h: [], l: [] }; for (let i = 0; i < 20; i++) { kd.t.push(Date.UTC(2026, 9, 1 + i)); kd.h.push(110); kd.l.push(i === 18 ? 109.5 : 100); }
+          const k = { t: [kd.t.at(-1) + 864e5 + 3600e3, kd.t.at(-1) + 864e5 + 7200e3, kd.t.at(-1) - 3600e3], h: [104, 106, 200], l: [101, 103, 0] }, d = dayRange(kd, [k]);
+          return 'adr ' + d.adr.toFixed(2) + ' (stub day left out), today ' + d.lo + '–' + d.hi + ', used ' + dayUsed(d, 108).pct + '% with price 108, closed market: ' + dayUsed(dayRange(kd, []), 108); }"""))
+    print("  momo day tags:", await q("() => { goPage('macromomo'); return [...document.querySelectorAll('#xMomo .row .tag')].filter(t => /Day range/.test(t.textContent)).length; }"))
+    await q("() => goPage('macroov')"); await asyncio.sleep(0.5)
     print("  overflow:", await q(OV))
     await pg.screenshot(path=f"xov_{tag}.png", full_page=True)
     await q("() => goPage('macromomo')"); await asyncio.sleep(1)

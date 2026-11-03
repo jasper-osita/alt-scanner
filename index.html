@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.03.1008">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.03.1040">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2386,7 +2386,7 @@ async function analyse(c, maFn) {
   const sum = o => r1(Object.values(o).reduce((a, b) => a + b, 0));
   const intra = CT_SYMS.has(c.symbol) || TRADFI_SYMS.has(c.symbol) || isMX(c.symbol), kq = k15 && k15.t.length ? k15 : k1h;     // forex, metals, indices: opens for "since the session opened"
   return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, day: dayRange(k1d, [k1h, k15]), ...(intra ? { opens: { t: kq.t.slice(kq === k15 ? -120 : -30), o: kq.o.slice(kq === k15 ? -120 : -30) },
-             c1: { t: k1h.t.slice(-220), c: k1h.c.slice(-220) }, c4: { t: k4h.t.slice(-160), c: k4h.c.slice(-160) } } : {}),      // closes for the Pair Picker's crosses and ratios rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
+             c1: { t: k1h.t.slice(-220), c: k1h.c.slice(-220) }, c4: { t: k4h.t.slice(-160), c: k4h.c.slice(-160) } } : {}),   /* closes for the Pair Picker's crosses and ratios */ rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
            session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
@@ -4469,7 +4469,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.03.1008";
+const APP_VERSION = "2026.11.03.1040";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update

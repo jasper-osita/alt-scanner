@@ -51,7 +51,7 @@ async def main():
         print("9) cTrader loaded:", await wait("() => !MACRO.running && MACRO.rows.some(r => r.ct && r.group === 'Forex')"))
         await q("() => renderMacroBoards()")
         print("10) cTrader groups:", await q(f"() => ({CARD})(ppGroups(xRows()))"))
-        print("11) closes kept:", await q("() => { const r = xRows().find(r => r.name === 'EUR/USD'); return r.c1.c.length + ' 1H, ' + r.c4.c.length + ' 4H; coins: ' + data.all.filter(r => r.c1).length; }"), "| missing note:", await q("() => (document.querySelector('.ppmiss') || {innerText: 'none'}).innerText"))
+        print("11) closes kept:", await q("() => { const r = xRows().find(r => r.name === 'EUR/USD'); return r.c1.c.length + ' 1H, ' + r.c4.c.length + ' 4H; coins: ' + data.all.filter(r => r.c1).length + '; rows keep volume and ATR: ' + [...xRows(), ...data.all].every(r => r.atrPct != null && r.rvol != null); }"), "| missing note:", await q("() => (document.querySelector('.ppmiss') || {innerText: 'none'}).innerText"))
         print("12) first card:", await q("() => document.querySelector('#ppBody .ppcard').innerText.replace(/\\s+/g, ' ')"))
         print("13) pick opens the chart:", await q("() => { const p = document.querySelector('#ppBody .pppick'); if (!p) return 'no pick on this data'; p.click(); return document.getElementById('dlg').open + ' ' + p.dataset.s; }"))
         await q("() => document.getElementById('dlg').open && document.getElementById('dlg').close()")

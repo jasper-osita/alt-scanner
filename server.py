@@ -71,7 +71,7 @@ RATE_SRC = {   # rates outside the US, no keys (mirrors api/rates.js): BIS polic
     "jgb": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv",
     "jgb-all": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv"}
 FRED_SERIES = {"DFEDTARU", "ECBDFR", "IRSTCI01GBM156N", "IRSTCI01JPM156N", "IRSTCI01AUM156N", "IRSTCI01CAM156N", "IRSTCI01CHM156N", "IRSTCI01NZM156N",
-               "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS"}
+               "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS", "GVZCLS", "OVXCLS", "DTWEXBGS", "WALCL", "WTREGEN", "RRPONTSYD", "DFF"}
 def fred_key():                                    # FRED_API_KEY, or the file ~/.finder-fred-key (one line); read each time so no restart is needed
     k = os.environ.get("FRED_API_KEY", "")
     if not k:

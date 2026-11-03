@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.02.1539">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.03.0920">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4453,7 +4453,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.02.1539";
+const APP_VERSION = "2026.11.03.0920";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9842,12 +9842,13 @@ async function fundCOT(force) {
 const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly", "GB"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly", "JP"],
   ["RBA", "AUD", "IRSTCI01AUM156N", "OECD short rate, monthly", "AU"], ["BoC", "CAD", "IRSTCI01CAM156N", "OECD short rate, monthly", "CA"], ["SNB", "CHF", "IRSTCI01CHM156N", "OECD short rate, monthly", "CH"], ["RBNZ", "NZD", "IRSTCI01NZM156N", "OECD short rate, monthly", "NZ"]];
 const FUND_US = [["CPIAUCSL", "US inflation (CPI y/y)", "yoy"], ["UNRATE", "US unemployment", "lvl"], ["T10YIE", "10Y inflation expectations", "lvl"], ["BAMLH0A0HYM2", "Junk-bond spread (stress)", "lvl"], ["VIXCLS", "VIX (fear gauge)", "lvl"]];
+const FUND_MORE = ["GVZCLS", "OVXCLS", "DTWEXBGS", "WALCL", "WTREGEN", "RRPONTSYD", "DFF"];      // gold and oil volatility, the broad dollar, dollar liquidity, the Fed's effective rate
 async function fundFRED(force) {
   const k = fredKey(), tag = k ? k.slice(-4) : "server";        // no key pasted: the relay (Mac app or the web version) adds its own
-  if (!force && FUND.fred && FUND.fred.at && Date.now() - FUND.fred.at < 6 * 3600e3 && FUND.fred.k === tag) return;
+  if (!force && FUND.fred && FUND.fred.at && Date.now() - FUND.fred.at < 6 * 3600e3 && FUND.fred.k === tag && FUND.fred.s && FUND_MORE.every(id => id in FUND.fred.s)) return;
   const one = async id => { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}${k ? "&api_key=" + encodeURIComponent(k) : ""}&file_type=json&sort_order=desc&limit=420`), j = await r.json().catch(() => null);
     if (!r.ok || !j || j.error_message) throw new Error((j && j.error_message) || "HTTP " + r.status); return (j.observations || []).filter(o => o.value !== ".").map(o => [Date.parse(o.date), +o.value]); };
-  try { const ids = [...FUND_CB.map(c => c[2]), ...FUND_US.map(u => u[0])], res = await Promise.all(ids.map(id => one(id).catch(e => { if (/api_key|key/i.test(e.message)) throw e; return []; })));
+  try { const ids = [...FUND_CB.map(c => c[2]), ...FUND_US.map(u => u[0]), ...FUND_MORE], res = await Promise.all(ids.map(id => one(id).catch(e => { if (/api_key|key/i.test(e.message)) throw e; return []; })));
     FUND.fred = { at: Date.now(), k: tag, s: Object.fromEntries(ids.map((id, i) => [id, res[i].slice(0, 420)])) }; FUND.err.fred = null; }
   catch (e) { FUND.err.fred = !k && /api_key/i.test(e.message) ? "nokey" : /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
 }
@@ -9923,16 +9924,45 @@ function fundStrip() {
   return [m(["US Dollar Index", "USDX"], "DXY"), u && u.v["10yr"] != null ? cell("US10Y", u.v["10yr"].toFixed(2) + "%", FUND.ust.rows[1] && FUND.ust.rows[1].v["10yr"] != null ? `<span class="${fCls(u.v["10yr"] - FUND.ust.rows[1].v["10yr"])}">${((u.v["10yr"] - FUND.ust.rows[1].v["10yr"]) * 100 >= 0 ? "+" : "") + Math.round((u.v["10yr"] - FUND.ust.rows[1].v["10yr"]) * 100)}bp</span>` : "") : "",
     m(["Gold"], "Gold"), m(["Nasdaq 100"], "NAS100"), m(["WTI Crude Oil"], "WTI"), vix ? cell("VIX", vix[0][1].toFixed(1), "") : "", btc ? cell("BTC", fmtPrice(btc.price), `<span class="${fCls(btc.chg24h)}">${fPct(btc.chg24h)}</span>`) : ""].join("");
 }
+const fAt = (s, t) => { const o = s && s.find(x => x[0] <= t); return o ? o[1] : null; };      // a FRED series' value on or before a date (series are newest first)
+function fundRank(id) {                            // latest value, change on the day, and where it sits in its own past year (0 = lowest, 100 = highest)
+  const s = fundLast(id); if (!s) return null; const yr = s.filter(o => o[0] > s[0][0] - 365 * 864e5).map(o => o[1]);
+  return { v: s[0][1], chg: s[1] ? s[0][1] - s[1][1] : null, pct: Math.round(yr.filter(v => v <= s[0][1]).length / yr.length * 100), t: s[0][0] };
+}
+const fRankLbl = x => !x ? "" : x.pct >= 80 ? "high for the year" : x.pct <= 20 ? "low for the year" : "normal";
+function fundLiq() {                               // dollar liquidity in $bn: the Fed's balance sheet minus the Treasury's cash account and reverse repo; weekly (Wednesdays)
+  const W = fundLast("WALCL"), T = fundLast("WTREGEN"), R = fundLast("RRPONTSYD"); if (!W || !T || !R) return null;
+  const lv = t => { const w = fAt(W, t), g = fAt(T, t), r = fAt(R, t); return w == null || g == null || r == null ? null : w / 1000 - g / 1000 - r; };
+  const t = Math.min(W[0][0], T[0][0]), v = lv(t), m = lv(t - 28 * 864e5); return v == null ? null : { v, chg: m == null ? null : v - m, t };
+}
+function fundBroad() {                             // the Fed's broad trade-weighted dollar (26 currencies), with its 1-week change
+  const s = fundLast("DTWEXBGS"); if (!s) return null; const w = fAt(s, s[0][0] - 7 * 864e5);
+  return { v: s[0][1], d: s[1] ? (s[0][1] / s[1][1] - 1) * 100 : null, w: w ? (s[0][1] / w - 1) * 100 : null, t: s[0][0] };
+}
+function fundCuts() {                              // rough Fed cuts priced: the rate markets expect 6–12 months out (2 × 1-year − 6-month yield) vs the Fed's effective rate now
+  const R = FUND.ust && FUND.ust.rows, f = fundLast("DFF"); if (!R || !R.length || !f) return null;
+  const at = r => { if (!r || r.v["6mo"] == null || r.v["1yr"] == null) return null; const e = fAt(f, r.t); return e == null ? null : (e - (2 * r.v["1yr"] - r.v["6mo"])) / 0.25; };
+  const n = at(R[0]), then = at(R.find(r => r.t <= R[0].t - 28 * 864e5)); return n == null ? null : { n, then, eff: f[0][1] };
+}
+const fCutsTxt = n => { const h = Math.round(Math.abs(n) * 2) / 2; return h < 0.5 ? "no change" : `about ${h} ${n > 0 ? (h === 1 ? "cut" : "cuts") : (h === 1 ? "hike" : "hikes")}`; };
 function fundWorld() {
   let h = `<table class="ftbl"><tr class="mu"><td></td><td class="r">Price</td><td class="r">24h</td><td class="r">1W</td></tr>`;
   FUND_WM.forEach(([grp, L]) => { h += `<tr><td class="fgrp" colspan="4">${grp}</td></tr>`;
     L.forEach(([lbl, names]) => { const r = fRow(names);
       if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
-      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
+      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; });
+    const B = grp === "FX" && fundBroad();
+    if (B) h += `<tr title="The Fed's trade-weighted dollar against 26 currencies (a wider view than the dollar index, which is mostly the euro) · as of ${new Date(B.t).toISOString().slice(0, 10)}"><td>Broad dollar <span class="mu">Fed</span></td><td class="r">${B.v.toFixed(2)}</td><td class="r ${fCls(B.d)}">${fPct(B.d)}</td><td class="r ${fCls(B.w)}">${B.w != null ? fPct(B.w, 1) : "—"}</td></tr>`; });
   const G = EXT.global, F = EXT.fng, mf = typeof medianFunding === "function" && data ? medianFunding() : null, vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2");
-  h += `<tr><td class="fgrp" colspan="4">Risk &amp; crypto</td></tr>
+  const gv = fundRank("GVZCLS"), ov = fundRank("OVXCLS"), lq = fundLiq();
+  const volRow = (lbl, x, tip) => `<tr title="${tip}"><td>${lbl}</td><td class="r">${x ? x.v.toFixed(1) : "—"}</td><td class="r ${x && x.chg != null ? fCls(-x.chg) : "mu"}">${x && x.chg != null ? (x.chg >= 0 ? "+" : "") + x.chg.toFixed(1) : ""}</td><td class="r ${x && x.pct >= 80 ? "fam" : "mu"}">${fRankLbl(x)}</td></tr>`;
+  h += `<tr><td class="fgrp" colspan="4">Volatility &amp; liquidity</td></tr>
     <tr><td>VIX (fear gauge)</td><td class="r">${vix ? vix[0][1].toFixed(1) : "—"}</td><td class="r ${vix && vix[1] ? fCls(-(vix[0][1] - vix[1][1])) : "mu"}">${vix && vix[1] ? (vix[0][1] - vix[1][1] >= 0 ? "+" : "") + (vix[0][1] - vix[1][1]).toFixed(1) : ""}</td><td class="r mu">${vix ? (vix[0][1] < 15 ? "calm" : vix[0][1] < 22 ? "normal" : "stressed") : ""}</td></tr>
     <tr><td>Junk-bond spread</td><td class="r">${hy ? hy[0][1].toFixed(2) + "%" : "—"}</td><td class="r ${hy && hy[1] ? fCls(-(hy[0][1] - hy[1][1])) : "mu"}">${hy && hy[1] ? ((hy[0][1] - hy[1][1]) * 100 >= 0 ? "+" : "") + Math.round((hy[0][1] - hy[1][1]) * 100) + "bp" : ""}</td><td class="r mu">${hy ? (hy[0][1] < 3.5 ? "relaxed" : hy[0][1] < 5 ? "normal" : "stress") : ""}</td></tr>
+    ${volRow("Gold volatility (GVZ)", gv, "How much gold options expect it to move (30 days), against its own past year. High: wider swings, so wider stops and smaller size")}
+    ${volRow("Oil volatility (OVX)", ov, "How much oil options expect it to move (30 days), against its own past year")}
+    <tr title="The Fed's balance sheet minus the Treasury's cash account and reverse repo: roughly the spare dollars in the system. Rising tends to help stocks, Bitcoin and gold · weekly, as of ${lq ? new Date(lq.t).toISOString().slice(0, 10) : "—"}"><td>Dollar liquidity <span class="mu">Fed</span></td><td class="r">${lq ? "$" + (lq.v / 1000).toFixed(2) + "tn" : "—"}</td><td></td><td class="r ${lq && lq.chg != null ? fCls(lq.chg) : "mu"}">${lq && lq.chg != null ? (lq.chg >= 0 ? "+" : "−") + "$" + Math.abs(Math.round(lq.chg)) + "bn 4w" : ""}</td></tr>
+    <tr><td class="fgrp" colspan="4">Crypto</td></tr>
     <tr><td>Crypto Fear &amp; Greed</td><td class="r">${F ? F.v : "—"}</td><td class="r ${F && F.prev != null ? fCls(F.v - F.prev) : "mu"}">${F && F.prev != null ? (F.v - F.prev >= 0 ? "+" : "") + (F.v - F.prev) : ""}</td><td class="r mu">${F ? xEsc(String(F.cls).toLowerCase()) : ""}</td></tr>
     <tr><td>Crypto market cap</td><td class="r">${G ? "$" + fmtVol(G.mcap).replace(" ", "") : "—"}</td><td class="r ${fCls(G && G.chg)}">${G ? fPct(G.chg) : ""}</td><td></td></tr>
     <tr><td>BTC dominance</td><td class="r">${G ? G.btcDom.toFixed(1) + "%" : "—"}</td><td></td><td></td></tr>
@@ -9974,7 +10004,9 @@ function fundCurve() {
       <g fill="var(--mute)" font-size="10" text-anchor="middle">${T.map((k, i) => `<text x="${X(i).toFixed(1)}" y="110">${k.replace("mo", "M").replace("yr", "Y")}</text>`).join("")}</g></svg></div>
     <div class="fkv">${kv("2Y", a.v["2yr"] != null ? a.v["2yr"].toFixed(2) : "—", d2)}${kv("10Y", a.v["10yr"] != null ? a.v["10yr"].toFixed(2) : "—", d10)}${kv("10Y minus 2Y", s != null ? (s >= 0 ? "+" : "") + s + "bp" : "—")}${kv("10Y real", rr && rr.v["10yr"] != null ? rr.v["10yr"].toFixed(2) : "—", dr)}
       ${(() => { const c = fundLast("CPIAUCSL"), u = fundLast("UNRATE"), be = fundLast("T10YIE"); const y = c && c[12] ? (c[0][1] / c[12][1] - 1) * 100 : null;
-        return kv("US CPI y/y", y != null ? y.toFixed(1) + "%" : "—") + kv("Unemployment", u ? u[0][1].toFixed(1) + "%" : "—") + kv("10Y inflation exp.", be ? be[0][1].toFixed(2) + "%" : "—"); })()}</div></div>
+        const fc = fundCuts(), fcd = fc && fc.then != null ? Math.round((fc.n - fc.then) * 2) / 2 : null;
+        return `<span class="mu" title="Rough: the Fed rate markets expect 6 to 12 months out (from the 6-month and 1-year Treasury yields) against the Fed's effective rate today${fc ? ` (${fc.eff.toFixed(2)}%)` : ""}. Change is against a month ago.">Fed cuts priced</span><b>${fc ? fCutsTxt(fc.n) : "—"}${fcd ? ` <span class="${fcd > 0 ? "up" : "dn"}">${fcd > 0 ? "+" : "−"}${Math.abs(fcd)}</span>` : ""}</b>`
+          + kv("US CPI y/y", y != null ? y.toFixed(1) + "%" : "—") + kv("Unemployment", u ? u[0][1].toFixed(1) + "%" : "—") + kv("10Y inflation exp.", be ? be[0][1].toFixed(2) + "%" : "—"); })()}</div></div>
     <p class="meta fnote">Falling real yields usually help gold and the Nasdaq; a rising 2Y means the market expects fewer Fed cuts.</p>`;
 }
 function fundGaps() {                             // US minus euro-area / Japan yields, now and the change over about a month (in % points)
@@ -10046,18 +10078,21 @@ function fundCardsData() {
     return e ? [0, `${e.ccy} ${e.title} ${phtDay(e.at).slice(0, 3)} ${e.timeLbl || phtHM(e.at)} (in ${inTxt(e.at - now)}): expect spikes`] : evL; };
   const gapL = (g, name, sign) => !g || g.chg == null ? null : g.chg >= 0.1 ? [sign, `${name} yield gap widening (+${Math.round(g.chg * 100)}bp in a month)`] : g.chg <= -0.1 ? [-sign, `${name} yield gap narrowing (${Math.round(g.chg * 100)}bp in a month)`] : null;
   const bank = (id, bis, name, sign) => { const st = fundBank(id, bis).stance; return st === "cutting" ? [-sign, `The ${name} is cutting rates`] : st === "hiking" ? [sign, `The ${name} is raising rates`] : null; };
+  const gv = fundRank("GVZCLS"), lq = fundLiq();
+  const gvL = gv && gv.pct >= 80 ? [0, `Gold volatility high for the year (GVZ ${gv.v.toFixed(0)}): wider stops, smaller size`] : null;
+  const lqL = !lq || lq.chg == null ? null : lq.chg >= 100 ? [+1, `Dollar liquidity rising (+$${Math.round(lq.chg)}bn in 4 weeks)`] : lq.chg <= -100 ? [-1, `Dollar liquidity draining (−$${Math.round(-lq.chg)}bn in 4 weeks)`] : null;
   const yen = S.cot("Yen"), yenCrowd = !yen ? null : yen.pct >= 90 ? [0, "Speculators heavily long the yen: if they bail, USD/JPY can jump"] : yen.pct <= 10 ? [0, "Speculators heavily short the yen: if they bail, USD/JPY can drop fast"] : null;
   const yenRisk = S.risk === "on" ? [+1, `Risk appetite is up (VIX ${S.vix.toFixed(0)}): the yen is usually sold`] : S.risk === "off" ? [-1, `Markets are nervous (VIX ${S.vix.toFixed(0)}): money hides in the yen`] : null;
   return [
-    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
-    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
+    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), evL, gvL, crowd(S.cot("Gold"), "gold")] },      // warnings show two at most: the coming release, then volatility
+    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), lqL, trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
     { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
       L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
     { k: "EUR/USD", sym: eur && eur.symbol, px: eur && eur.price, chg: eur && eur.chg24h, L: [gapL(G.eu2, "US–euro 2-year", -1), fedL(+1), bank("ECBDFR", null, "ECB", +1),
       trend(eur && eur.ret7 != null ? eur.ret7 * 100 : null, "EUR/USD"), crowd(S.cot("Euro"), "euro"), evFor(["USD", "EUR"])] },
     { k: "USD/JPY", sym: jpy && jpy.symbol, px: jpy && jpy.price, chg: jpy && jpy.chg24h, L: [gapL(G.jp10, "US–Japan 10-year", +1), yenRisk, fedL(-1), bank("IRSTCI01JPM156N", "JP", "BoJ", -1),
       trend(jpy && jpy.ret7 != null ? jpy.ret7 * 100 : null, "USD/JPY"), yenCrowd, evFor(["USD", "JPY"])] },
-    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
+    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), lqL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
   ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
     return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
@@ -10068,6 +10103,7 @@ function fundReadHTML() {
   if (S.real != null && Math.abs(S.real) >= 0.08) bits.push(S.real < 0 ? "real yields falling" : "real yields rising");
   if (S.dollar && S.dollar.w != null && Math.abs(S.dollar.w) >= 0.5) bits.push(S.dollar.w < 0 ? "dollar weaker" : "dollar stronger");
   if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
+  const fc = fundCuts(); if (fc) bits.push(`${fCutsTxt(fc.n).replace(/^about /, "≈")} priced`);
   const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
   const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
     <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;

@@ -401,7 +401,9 @@ def cot_json():
     return rows
 def fred_json(sid):
     import datetime as dt
-    vals = {"DFEDTARU": [(0, 3.75), (40, 4.0), (120, 4.25)], "ECBDFR": [(0, 2.0), (130, 2.25)], "CPIAUCSL": None, "UNRATE": [(0, 4.4)], "T10YIE": [(0, 2.31)], "BAMLH0A0HYM2": [(0, 3.12), (1, 3.18)], "VIXCLS": [(0, 16.4), (1, 17.2)]}
+    vals = {"DFEDTARU": [(0, 3.75), (40, 4.0), (120, 4.25)], "ECBDFR": [(0, 2.0), (130, 2.25)], "CPIAUCSL": None, "UNRATE": [(0, 4.4)], "T10YIE": [(0, 2.31)], "BAMLH0A0HYM2": [(0, 3.12), (1, 3.18)], "VIXCLS": [(0, 16.4), (1, 17.2)],
+            "GVZCLS": [(0, 31.5), (1, 29.8), (40, 22.0), (200, 17.0)], "OVXCLS": [(0, 34.0), (1, 35.1), (300, 40.0)], "DTWEXBGS": [(0, 121.4), (1, 121.1), (5, 120.2), (60, 123.0)],
+            "WALCL": [(0, 6612000), (21, 6590000)], "WTREGEN": [(0, 812000), (21, 905000)], "RRPONTSYD": [(0, 18.5), (25, 42.0)], "DFF": [(0, 3.62), (40, 3.87), (120, 4.12)]}
     obs, today = [], dt.date.today()
     if sid == "CPIAUCSL":
         for m in range(16): obs.append({"date": (today.replace(day=1) - dt.timedelta(days=31 * (m + 1))).replace(day=1).isoformat(), "value": f"{320 - m * 0.75:.3f}"})

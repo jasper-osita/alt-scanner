@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.03.0920">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.03.1008">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -707,6 +707,15 @@ section.mrow:has(.xstatcard){grid-template-columns:1fr}.xstatcard .xstat{grid-te
 .xmtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .xmtabs button{border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;cursor:pointer}
 .xmtabs button.on{border-color:var(--accent);background:var(--pill);color:var(--strong)}
+.ppgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;margin-top:8px}
+.ppcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:7px}
+.pph{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.pph b{color:var(--strong);font-size:14.5px}.ppcor{margin-left:auto;font-size:11.5px;color:var(--mute);white-space:nowrap}.ppcor.loose{color:var(--amber)}
+.pprow{font-size:12.5px;display:flex;gap:4px 8px;flex-wrap:wrap;align-items:baseline}.ppl{min-width:74px}
+.pppick{border-radius:9px;padding:8px 10px;cursor:pointer;background:color-mix(in srgb,var(--green) 10%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,transparent)}
+.pppick.short{background:color-mix(in srgb,var(--red) 10%,transparent);border-color:color-mix(in srgb,var(--red) 35%,transparent)}.pppick:hover{filter:brightness(1.15)}
+.ppk{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-right:8px}.pppick b{font-size:15px;margin-right:8px}.pppick.long b{color:var(--green)}.pppick.short b{color:var(--red)}
+.ppck{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:11.5px;margin-top:5px}.ppck .ok{color:var(--green)}.ppck .no{color:var(--mute)}
+.ppalt,.ppno{font-size:12px;color:var(--mute)}.ppalt b{color:var(--text)}.ppmiss{grid-column:1/-1;margin-top:2px}
 .xmsec+.xmsec{margin-top:16px}.xmsech{margin:0 0 8px;font-size:15px;color:var(--strong)}
 @media (max-width:1100px){.momogrid{grid-template-columns:1fr}}
 .mname{color:var(--strong);font-weight:600}
@@ -1079,7 +1088,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <div class="subline"><span id="title">Binance Perpetuals</span><span>·</span><span class="clock" id="clock">Loading time…</span></div>
   <div class="layout"><main>
 
-  <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch bots backtest nbbwatch macroov macromomo macro">   <!-- scan settings: only where they change what you see -->
+  <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch bots backtest nbbwatch macroov macromomo macropair macro">   <!-- scan settings: only where they change what you see -->
     <button class="pillsum" id="pillSum" aria-expanded="false" aria-controls="exF"><span id="pillSumT">Scan settings</span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
     <label class="pill"><span>Exchange</span><select id="exF"><option value="binance" selected>Binance</option><option value="bybit">Bybit</option><option value="mexc">MEXC</option></select></label>
     <label class="pill"><span>Market</span><select id="market"><option value="futures" selected>Futures</option><option value="spot">Spot</option></select></label>
@@ -1195,7 +1204,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <p class="meta">Sources: your price feeds (cTrader, MEXC/Binance), US Treasury yields, FRED (free key), BIS policy rates, ECB and Japan Ministry of Finance bond yields, CFTC positioning, CoinGecko and Alternative.me, Forex Factory, and news RSS (FXStreet, MarketWatch, Investing.com, CoinDesk). Rates, positioning and headlines go through the Mac app's relay or the web version's.</p>
   </section>
 
-  <section class="card macrocard xovhead" data-page="macroov macromomo">
+  <section class="card macrocard xovhead" data-page="macroov macromomo macropair">
     <div class="momohead"><h2 id="xovTitle">Forex, Metals &amp; Indices</h2><span class="meta xmeta">Binance TradFi perpetuals</span>
       <button class="btn xrun" style="margin-left:auto">Refresh</button></div>
     <div class="ctbar xctbar"></div>
@@ -1231,6 +1240,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="why">The same three stages as the coin board: already running, pausing after a push, and starting a new trend out of bunched moving averages. Each instrument is listed in its strongest stage; stretched ones (3+ ATR from the 20) are flagged so you wait for a pullback instead of chasing. When your cTrader account is connected, its prices are used for anything it also lists.</div>
     <div class="xmtabs" id="xMomoTabs" role="tablist" aria-label="Asset class"></div>
     <div id="xMomo"><div class="empty">Loading…</div></div>
+  </section>
+
+  <section class="card ppwrap" data-page="macropair">
+    <div class="momohead"><h2>Pair Picker</h2><span class="meta">Markets that move together: which one to trade right now</span></div>
+    <div class="why">Pairs like EUR/USD and GBP/USD mostly move together, so pick the better one. First, which way the shared side leans (the dollar from its index and every dollar pair, the yen, or the stocks and metals trend). Then which of the two is stronger, from their cross or ratio (EUR/GBP, Gold ÷ Silver) since the session opened, over 24 hours and on the 1H and 4H moving averages. Selling the dollar: buy the stronger one. Buying it: sell the weaker one. Crosses and ratios are worked out from the two charts, so they work without your broker too.</div>
+    <div id="ppBody" class="ppgrid"><div class="empty">Loading…</div></div>
   </section>
 
   <section class="card macrocard" id="macro" data-page="macro">
@@ -2370,7 +2385,8 @@ async function analyse(c, maFn) {
   const swingParts = { structure: r1(0.5 * s4h.pts + 0.5 * s1d.pts), rvol: r1(rvolPts * 0.8), vol: r1(volPts * 0.6), rs: 0 };
   const sum = o => r1(Object.values(o).reduce((a, b) => a + b, 0));
   const intra = CT_SYMS.has(c.symbol) || TRADFI_SYMS.has(c.symbol) || isMX(c.symbol), kq = k15 && k15.t.length ? k15 : k1h;     // forex, metals, indices: opens for "since the session opened"
-  return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, day: dayRange(k1d, [k1h, k15]), ...(intra ? { opens: { t: kq.t.slice(kq === k15 ? -120 : -30), o: kq.o.slice(kq === k15 ? -120 : -30) } } : {}), rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
+  return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, day: dayRange(k1d, [k1h, k15]), ...(intra ? { opens: { t: kq.t.slice(kq === k15 ? -120 : -30), o: kq.o.slice(kq === k15 ? -120 : -30) },
+             c1: { t: k1h.t.slice(-220), c: k1h.c.slice(-220) }, c4: { t: k4h.t.slice(-160), c: k4h.c.slice(-160) } } : {}),      // closes for the Pair Picker's crosses and ratios rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
            session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
@@ -4453,7 +4469,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.03.0920";
+const APP_VERSION = "2026.11.03.1008";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6344,7 +6360,7 @@ ncPrune(); ncSave(); ncRenderBell();
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"], ["fund", "Fundamentals"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
-  { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
+  { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macropair", "Pair Picker", "Pair Picker: Which Correlated Market to Trade"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
   { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
@@ -6352,7 +6368,7 @@ const PAGES = [
 const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
 const PAGE_INFO = {};
 PAGES.forEach(g => g.items.forEach(([id, label, title]) => PAGE_INFO[id] = { g: g.g, label, title: title || label }));
-const MACRO_PAGES = ["macro", "macroov", "macromomo"];
+const MACRO_PAGES = ["macro", "macroov", "macromomo", "macropair"];
 let page = "overview";
 function pageGroupName(g) { return g.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
 function renderNav() {
@@ -6402,6 +6418,7 @@ function navBadges() {
   set("screener", has ? data.all.length : "");
   { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n || MACRO.rows.length) : ""); }
   if (MACRO.rows.length) { const R = xMomoRows(xRows()); set("macromomo", R.momentum.length + R.awaiting.length + R.breakout.length); } else set("macromomo", "");
+  set("macropair", MACRO.rows.length && typeof ppGroups === "function" ? ppGroups(xRows()).filter(g => g.pick).length || "" : "");
   const fa = typeof activeFilters === "function" ? activeFilters().length : 0;
   set("filters", fa ? fa + " on" : "");
   let w = 0, al = 0;
@@ -6799,21 +6816,103 @@ function renderXMomo(rows) {
   bindRows(el);
   momoAlerts(all.fresh);
 }
+/* ===================== Pair Picker: markets that move together, and which one to trade (triads like EUR/USD vs GBP/USD with EUR/GBP and the dollar) ===================== */
+// legs in cross order: [instrument, +1 when it prices the other side in the shared one (EUR/USD: euros in dollars) or -1 the other way round (USD/CHF), the other side]
+const PP_GROUPS = [
+  { c: "USD", legs: [["EUR/USD", 1, "EUR"], ["GBP/USD", 1, "GBP"]] }, { c: "USD", legs: [["AUD/USD", 1, "AUD"], ["NZD/USD", 1, "NZD"]] },
+  { c: "USD", legs: [["USD/CHF", -1, "CHF"], ["USD/JPY", -1, "JPY"]] }, { c: "USD", legs: [["EUR/USD", 1, "EUR"], ["USD/CHF", -1, "CHF"]] },
+  { c: "USD", legs: [["AUD/USD", 1, "AUD"], ["USD/CAD", -1, "CAD"]] }, { c: "JPY", legs: [["EUR/JPY", 1, "EUR"], ["GBP/JPY", 1, "GBP"]] },
+  { c: "JPY", legs: [["AUD/JPY", 1, "AUD"], ["NZD/JPY", 1, "NZD"]] },
+  { theme: "US stocks", ratio: "Nasdaq ÷ S&P 500", legs: [["Nasdaq 100", 1, "Nasdaq"], ["S&P 500", 1, "S&P 500"]] },
+  { theme: "Precious metals", ratio: "Gold ÷ Silver", legs: [["Gold", 1, "Gold"], ["Silver", 1, "Silver"]] }];
+const CCY_NAME = { USD: "dollar", EUR: "euro", GBP: "pound", JPY: "yen", CHF: "franc", AUD: "Aussie", NZD: "kiwi", CAD: "Canadian dollar" };
+const ppCcy = c => CCY_NAME[c] || c;
+const ppDir = st => { const d = stDir(st); return d === "Long" ? 1 : d === "Short" ? -1 : 0; };
+const ppSgn = (v, th) => v == null ? 0 : v > th ? 1 : v < -th ? -1 : 0;
+function ppAlign(a, b, key) {                      // both legs' log prices, turned to "the other side in the shared one", on the candles both have
+  const A = a.r[key], B = b.r[key]; if (!A || !B) return null; const m = new Map(B.t.map((t, i) => [t, B.c[i]])), out = [];
+  A.t.forEach((t, i) => { const y = m.get(t); if (y > 0 && A.c[i] > 0) out.push([a.o * Math.log(A.c[i]), b.o * Math.log(y)]); });
+  return out.length >= 30 ? out : null;
+}
+function ppStack(P) {                              // the cross or ratio's 20/50/100 stack: +1 rising, -1 falling, 0 neither
+  if (!P || P.length < 101) return 0; const v = P.map(p => Math.exp(p[0] - p[1])), e20 = ema(v, 20).at(-1), e50 = ema(v, 50).at(-1), e100 = ema(v, 100).at(-1), x = v.at(-1);
+  return e20 > e50 && e50 > e100 && x > e50 ? 1 : e20 < e50 && e50 < e100 && x < e50 ? -1 : 0;
+}
+function ppCorr(P, n = 120) {                      // how closely their hourly moves line up over about 5 days (1 = in step)
+  if (!P || P.length < 40) return null; const Q = P.slice(-n - 1), x = [], y = [];
+  for (let i = 1; i < Q.length; i++) { x.push(Q[i][0] - Q[i - 1][0]); y.push(Q[i][1] - Q[i - 1][1]); }
+  const mx = x.reduce((p, v) => p + v, 0) / x.length, my = y.reduce((p, v) => p + v, 0) / y.length; let sxy = 0, sxx = 0, syy = 0;
+  x.forEach((v, i) => { sxy += (v - mx) * (y[i] - my); sxx += (v - mx) ** 2; syy += (y[i] - my) ** 2; });
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
+}
+function ppLean(rows, g, legs) {                   // which way the shared side leans; v > 0 favours buying the two "other sides" (EUR and GBP, or gold and silver)
+  const st = r => (ppDir(r.s1h.state) + ppDir(r.s4h.state)) / 2;
+  if (!g.c) { const v = legs.reduce((p, l) => p + st(l.r), 0) / legs.length; return { v, word: v >= 0.34 ? "trending up" : v <= -0.34 ? "trending down" : "mixed" }; }
+  const bk = []; rows.filter(r => /Forex/.test(r.group || "")).forEach(r => { const p = String(r.pair || r.name.replace("/", "")).toUpperCase(), sg = p.slice(0, 3) === g.c ? 1 : p.slice(3, 6) === g.c ? -1 : 0; if (sg) bk.push(sg * st(r)); });
+  const dx = g.c === "USD" ? rows.find(r => r.name === "US Dollar Index") : null, idx = dx ? st(dx) : null, bv = bk.length ? bk.reduce((p, v) => p + v, 0) / bk.length : null;
+  const c = bv == null ? idx : idx == null ? bv : (bv + idx) / 2; if (c == null) return null;
+  return { v: -c, c, idx, n: bk.length, sess: xCcy(rows, "sess")[g.c], word: c >= 0.34 ? "strong" : c <= -0.34 ? "weak" : "mixed" };
+}
+function ppGroups(rows) {
+  const S = xSessStart();
+  return PP_GROUPS.map(g => {
+    const legs = g.legs.map(([name, o, x]) => { const r = rows.find(r => r.name === name); return r ? { r, o, x, name } : null; }); if (legs.some(l => !l)) return null;
+    const [a, b] = legs, P1 = ppAlign(a, b, "c1"), P4 = ppAlign(a, b, "c4"), lr = (l, pct) => pct == null ? null : l.o * Math.log(1 + pct / 100);
+    const rel = (x, y) => x == null || y == null ? null : (Math.exp(x - y) - 1) * 100;      // the cross or ratio's change in %
+    const sess = rel(lr(a, xSessRet(a.r, S.t)), lr(b, xSessRet(b.r, S.t))), d24 = rel(lr(a, a.r.chg24h), lr(b, b.r.chg24h));
+    const st1 = ppStack(P1), st4 = ppStack(P4), corr = ppCorr(P1), rs = ppSgn(sess, 0.03) + ppSgn(d24, 0.05) + st1 + st4;
+    const strong = rs > 0 ? a : rs < 0 ? b : null, weak = rs > 0 ? b : rs < 0 ? a : null, lean = ppLean(rows, g, legs);
+    const trade = (l, buy) => l ? { l, dir: (buy ? 1 : -1) * l.o > 0 ? "Long" : "Short" } : null;
+    const up = trade(strong, true), dn = trade(weak, false), side = lean && lean.v >= 0.34 ? 1 : lean && lean.v <= -0.34 ? -1 : 0;
+    return { g, a, b, S, sess, d24, st1, st4, rs, corr, raw: corr == null ? null : corr * a.o * b.o, lean, side, up, dn, pick: side > 0 ? up : side < 0 ? dn : null };
+  }).filter(Boolean);
+}
+function ppCardHTML(x) {
+  const { g, a, b, S, lean: L } = x, fx = !!g.c, nm = c => fx ? ppCcy(c) : c, dirW = v => v > 0 ? "up" : v < 0 ? "down" : "flat";
+  const lbl = t => `${t.dir} ${t.l.name}`, ok = (v, txt) => `<span class="${v ? "ok" : "no"}">${v ? "✓" : "✗"} ${txt}</span>`;
+  const tags = t => { const r = t.l.r, d = t.dir === "Long" ? 1 : -1, u = dayUsed(r.day, r.price);
+    return ok(ppDir(r.s1h.state) === d, "1H stack agrees") + ok(ppDir(r.s4h.state) === d, "4H agrees") + (u ? ok(u.pct < 90, `day range ${u.pct}% used`) : ""); };
+  const cor = x.raw == null ? "" : `<span class="ppcor ${Math.abs(x.corr) < 0.5 ? "loose" : ""}" title="How closely their hourly moves have lined up over about 5 days: 1 means in step, −1 mirror images. Under 0.5 they're not really moving together.">${Math.abs(x.corr) < 0.5 ? "loosely linked" : x.raw > 0 ? "move together" : "move opposite"} ${x.raw.toFixed(2)}</span>`;
+  const leanH = !L ? `<span class="mute">no read yet</span>` : fx
+    ? `<b class="${L.c >= 0.34 ? "up" : L.c <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">${L.idx != null ? `index ${dirW(L.idx)} · ` : ""}${L.n} pairs on 1H/4H${L.sess != null ? ` · ${g.c} ${sgn(L.sess)} since ${S.name} opened` : ""}</span>`
+    : `<b class="${L.v >= 0.34 ? "up" : L.v <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">both on 1H and 4H</span>`;
+  const who = x.rs > 0 ? `${nm(a.x)} stronger` : x.rs < 0 ? `${nm(b.x)} stronger` : "neither clearly stronger";
+  const ifUp = fx ? `Selling the ${ppCcy(g.c)}` : "Going long", ifDn = fx ? `Buying the ${ppCcy(g.c)}` : "Going short";
+  const turn = x.side > 0 ? (fx ? `the ${ppCcy(g.c)} turns up` : `${g.theme.replace(/^Precious/, "precious")} turn down`) : (fx ? `the ${ppCcy(g.c)} turns down` : `${g.theme.replace(/^Precious/, "precious")} turn up`);
+  let pick;
+  if (x.pick) pick = `<div class="pppick ${x.pick.dir === "Long" ? "long" : "short"}" data-s="${x.pick.l.r.symbol}" role="button" tabindex="0" title="Open the chart"><span class="ppk">Pick</span><b>${lbl(x.pick)}</b>
+      <span class="meta">${x.side > 0 ? `${fx ? `${ifUp}: buy` : "Going long: buy"} the stronger one` : `${fx ? `${ifDn}: sell` : "Going short: sell"} the weaker one`}</span><div class="ppck">${tags(x.pick)}</div></div>
+      ${(x.side > 0 ? x.dn : x.up) ? `<div class="ppalt">If ${turn}: ${lbl(x.side > 0 ? x.dn : x.up)}</div>` : ""}`;
+  else if (x.up) pick = `<div class="ppno">${x.side ? "" : `No clear lean${fx ? ` on the ${ppCcy(g.c)}` : ""} yet: wait, or go with your own read.`}</div><div class="ppalt">${ifUp}: <b>${lbl(x.up)}</b> · ${ifDn}: <b>${lbl(x.dn)}</b></div>`;
+  else pick = `<div class="ppno">Neither is clearly stronger, so there's no edge in picking one: either works${x.side ? "" : ", or wait"}.</div>`;
+  return `<div class="ppcard"><div class="pph"><b>${a.name} vs ${b.name}</b>${cor}</div>
+    <div class="pprow"><span class="mute ppl">${fx ? `The ${ppCcy(g.c)}` : g.theme}</span>${leanH}</div>
+    <div class="pprow"><span class="mute ppl">${fx ? `${a.x}/${b.x}` : g.ratio}</span><b class="${x.rs ? "" : "mute"}">${who}</b> <span class="meta">${sgn(x.sess)} since ${S.name} · ${sgn(x.d24)} 24h · 1H ${dirW(x.st1)} · 4H ${dirW(x.st4)}</span></div>
+    ${pick}${x.raw != null && Math.abs(x.corr) < 0.5 ? `<div class="ppalt">They aren't moving together lately${x.pick ? ", so treat this pick lightly" : ": read each chart on its own"}.</div>` : ""}</div>`;
+}
+function renderPP(rows) {
+  const el = $("ppBody"); if (!el) return;
+  const G = ppGroups(rows), have = new Set(rows.map(r => r.name)), miss = PP_GROUPS.filter(g => g.legs.some(l => !have.has(l[0]))).map(g => g.legs.map(l => l[0]).join(" vs "));
+  el.innerHTML = (G.length ? G.map(ppCardHTML).join("") : `<div class="empty">None of these markets are loaded here.</div>`)
+    + (miss.length ? `<div class="ppmiss meta">Not available from this feed: ${miss.join(", ")}. Connecting cTrader brings in all of them.</div>` : "");
+  el.querySelectorAll("[data-s]").forEach(b => { b.onclick = () => openDetail(b.dataset.s); b.onkeydown = e => { if (e.key === "Enter") openDetail(b.dataset.s); }; });
+}
+setInterval(() => { if (page === "macropair" && !document.hidden && MACRO.rows.length) renderPP(xRows()); }, 30e3);
 function renderMacroBoards() {
-  if (page !== "macroov" && page !== "macromomo") { if (MACRO.rows.length && !MACRO.running) momoAlerts(xMomoRows(xRows()).fresh); return; }   // off-screen: just the breakout alerts
+  if (page !== "macroov" && page !== "macromomo" && page !== "macropair") { if (MACRO.rows.length && !MACRO.running) momoAlerts(xMomoRows(xRows()).fresh); return; }   // off-screen: just the breakout alerts
   const meta = $("macroMeta") ? $("macroMeta").textContent : "";
   document.querySelectorAll(".xmeta").forEach(e => e.textContent = meta);
   document.querySelectorAll(".xrun").forEach(b => { b.disabled = MACRO.running; b.textContent = MACRO.running ? "Loading…" : "Refresh"; });
   document.querySelectorAll(".xctbar").forEach(e => { e.innerHTML = ctBarHTML(); const o = e.querySelector("#ctOpen"); if (o) { o.removeAttribute("id"); o.onclick = openCTSettings; } });
-  if ($("xovTitle")) $("xovTitle").textContent = page === "macromomo" ? "Forex, Metals & Indices · Momentum" : "Forex, Metals & Indices · Overview";
+  if ($("xovTitle")) $("xovTitle").textContent = page === "macromomo" ? "Forex, Metals & Indices · Momentum" : page === "macropair" ? "Forex, Metals & Indices · Pair Picker" : "Forex, Metals & Indices · Overview";
   renderXHours();
   const rows = xRows();
   if (!rows.length) {
     const msg = MACRO.err ? `Couldn't load the data (${MACRO.err}). Press Refresh to try again.` : MACRO.running ? "Reading forex, metals and the indices…" : "Press Refresh to load forex, metals and the indices.";
-    ["xStat", "xMomo", ...X_CLASSES.map(([k]) => "xMv_" + k)].forEach(id => { if ($(id)) $(id).innerHTML = `<div class="empty">${msg}</div>`; }); if ($("xMomoTabs")) $("xMomoTabs").innerHTML = "";
+    ["xStat", "xMomo", "ppBody", ...X_CLASSES.map(([k]) => "xMv_" + k)].forEach(id => { if ($(id)) $(id).innerHTML = `<div class="empty">${msg}</div>`; }); if ($("xMomoTabs")) $("xMomoTabs").innerHTML = "";
     $("xFlow").innerHTML = `<h2>Money Flow</h2><div class="empty">${msg}</div>`; return;
   }
-  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows); if (typeof renderXCharts === "function") renderXCharts(rows);
+  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows); renderPP(rows); if (typeof renderXCharts === "function") renderXCharts(rows);
 }
 document.querySelectorAll(".xrun").forEach(b => b.onclick = () => macroScan(true));
 $("xmomoAlert").checked = momoAlertOn();

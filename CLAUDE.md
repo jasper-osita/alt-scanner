@@ -19,6 +19,8 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
 - Scan: `structure`, `aots`, `preAots`, `preBest`, `coinPlay`, `renderBoards`, `TABS`, `testFilter`.
   Cache (IndexedDB `finder-cache`, `SC`): `scShow` draws the last scan for these settings on open (`data.cached`: alerts, bot and history skip it),
   `scSave` stores each fresh one; during a scan `klines` keeps closed candles and fetches only new ones (`klinesNet` is the real fetch, `klFlush` saves).
+- cTrader markets: `FX_PAIRS` (28, group "Forex": the strength meter), `FX_MORE` (USD/CNH, SEK, NOK, MXN, ZAR, SGD: group "Other Forex", counted in the dollar's
+  lean and movers, not the meter), `CT_CFD` (metals, energy, indices, dollar index, grains and softs in group "Commodities"; aliases are full names only).
 - cTrader: `ctKlines(sym, tf, limit, keepForming, toMs)`, `ctAccountInfo`, `ctSpec`, `ctLots`, `CT_PERIOD/CT_MS/CT_SPAN`, `ctPrefer`, `ctEquiv`.
   Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct, or via `/api/ct-token`: server.py on the Mac, `api/ct-token.js` on Vercel), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
 - Charts: `CHP` panes, `chLoad`, `chSetData`, `chLoadOlder` (history on scroll, max 5000), `chPaint`, `chIndPaint`, `IND` registry,
@@ -42,6 +44,8 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
 - Fundamentals page (`fund`, terminal style): "Today's read" on top (`fundSignals` → `fundCardsData`: Gold, Nasdaq, dollar, Bitcoin tailwind/headwind with reasons), live ticks `fundLive`; `fundLoad` → `fundUST` (Treasury curves via /proxy/ust), `fundCOT` (CFTC via /proxy/cot), `fundFRED` (via /proxy/fred; the relay adds its own key: Vercel env FRED_API_KEY in `api/fred.js`, Mac `~/.finder-fred-key`; a key pasted in the panel, `finder-fred`, wins), `fundBIS` (policy rates for BoE/BoJ/RBA/BoC/SNB/RBNZ, daily; OECD monthly via FRED only as fallback) and `fundYields` (euro-area and Japan 2Y/10Y → `fundGaps`: US minus them), both via /proxy/rates/<bis|ecb|jgb|jgb-all> (server.py `RATE_SRC`, Vercel `api/rates.js`), `fundNews` (RSS via /proxy/rss/<name>); relays in server.py `relay_fund` and vercel.json rewrites.
   Extra FRED series `FUND_MORE` (add new ones to the allow-lists in server.py `FRED_SERIES` and `api/fred.js` too): `fundRank` (gold/oil volatility vs its own year),
   `fundBroad` (Fed broad dollar), `fundLiq` (balance sheet − Treasury cash − reverse repo, $bn), `fundCuts` (rough Fed cuts priced: 2×1Y − 6M yield vs the effective rate).
+  `COT_MK` [name, CFTC code, group] (a new code refetches the cache); World markets ratios `fRatio` (Gold ÷ Silver, Copper ÷ Gold) and `fGoldIn` (gold in euros and yen;
+  the Gold card warns "mostly the dollar" when gold moves in dollars but not in euros).
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow

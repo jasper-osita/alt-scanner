@@ -159,7 +159,7 @@ async def ready(pg, secs=150):
 # ---------------- mock cTrader Open API (JSON over WebSocket) ----------------
 CT_FX = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
          "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"]
-CT_LIST = CT_FX + ["XAUUSD", "XAGUSD", "US500", "NAS100", "US30", "SpotCrude", "GER40", "AAPL.US", "XPTUSD", "SpotBrent", "NatGas", "JPN225", "HK50", "UK100"]
+CT_LIST = CT_FX + ["XAUUSD", "XAGUSD", "US500", "NAS100", "US30", "SpotCrude", "GER40", "AAPL.US", "XPTUSD", "SpotBrent", "NatGas", "JPN225", "HK50", "UK100"] + ["USDCNH", "USDSEK", "USDMXN", "Corn", "Coffee.f"]     # other dollar pairs, grains and softs
 CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w"}
 CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
@@ -391,7 +391,7 @@ def ust_csv(real, year):
     return "\n".join(out)
 def cot_json():
     import datetime as dt
-    codes = {"088691": (62, 3), "084691": (40, 1), "067651": (12, -6), "085692": (8, 2), "209742": (18, -4), "13874A": (-5, 1), "098662": (10, -2), "099741": (24, 2), "096742": (-8, -3), "097741": (-14, 5), "232741": (-20, 1), "090741": (-30, -2), "092741": (-25, 0), "133741": (-12, 4)}
+    codes = {"076651": (-14, 2), "112741": (-22, -1), "002602": (-9, -3), "083731": (35, 4), "088691": (62, 3), "084691": (40, 1), "067651": (12, -6), "085692": (8, 2), "209742": (18, -4), "13874A": (-5, 1), "098662": (10, -2), "099741": (24, 2), "096742": (-8, -3), "097741": (-14, 5), "232741": (-20, 1), "090741": (-30, -2), "092741": (-25, 0), "133741": (-12, 4)}
     rows, d = [], dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 1) % 7 + 3)
     for code, (net, chg) in codes.items():
         for w in range(52):

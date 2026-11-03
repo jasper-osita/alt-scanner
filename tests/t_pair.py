@@ -52,6 +52,12 @@ async def main():
         await q("() => renderMacroBoards()")
         print("10) cTrader groups:", await q(f"() => ({CARD})(ppGroups(xRows()))"))
         print("11) closes kept:", await q("() => { const r = xRows().find(r => r.name === 'EUR/USD'); return r.c1.c.length + ' 1H, ' + r.c4.c.length + ' 4H; coins: ' + data.all.filter(r => r.c1).length + '; rows keep volume and ATR: ' + [...xRows(), ...data.all].every(r => r.atrPct != null && r.rvol != null); }"), "| missing note:", await q("() => (document.querySelector('.ppmiss') || {innerText: 'none'}).innerText"))
+        print("11b) more markets from the broker:", await q("() => { const g = {}; xRows().filter(r => r.ct).forEach(r => (g[r.group] = g[r.group] || []).push(r.name)); return ['Other Forex', 'Commodities'].map(k => k + ': ' + (g[k] || []).join(', ')).join(' | '); }"),
+              "| strength meter currencies:", await q("() => Object.keys(xCcy(xRows(), '24h')).sort().join(',')"), "| dollar lean uses", await q("() => ppGroups(xRows())[0].lean.n"), "pairs")
+        print("11d) gold in euros / yen:", await q("() => { const G = fGoldIn(), f = x => x ? fmtPrice(x.v) + ' (' + x.d.toFixed(2) + '% 24h, ' + (x.w == null ? '—' : x.w.toFixed(2) + '% 1W') + ')' : 'n/a'; return 'gold ' + fmtPrice(G.au.price) + ' · in euros ' + f(G.eur) + ' · in yen ' + f(G.jpy) + ' · check ' + (G.au.price / fRow(['EUR/USD']).price).toFixed(2); }"))
+        await q("() => goPage('macroov')"); await asyncio.sleep(0.5)
+        print("11c) movers card:", await q("() => document.querySelector('[data-xc=cmd] h2').innerText"), "| flow classes:", await q("() => [...document.querySelectorAll('#xFlow .xkv > span')].filter((e, i) => i % 4 === 0).map(e => e.textContent).filter(Boolean).join(', ')"))
+        await q("() => goPage('macropair')"); await asyncio.sleep(0.5)
         print("12) first card:", await q("() => document.querySelector('#ppBody .ppcard').innerText.replace(/\\s+/g, ' ')"))
         print("13) pick opens the chart:", await q("() => { const p = document.querySelector('#ppBody .pppick'); if (!p) return 'no pick on this data'; p.click(); return document.getElementById('dlg').open + ' ' + p.dataset.s; }"))
         await q("() => document.getElementById('dlg').open && document.getElementById('dlg').close()")

@@ -67,6 +67,19 @@ async def main():
         print("33a) mismatched feeds hidden:", await q("() => ![...document.querySelectorAll('.fworld tr')].some(tr => /Brent − WTI/.test(tr.innerText))"))
         await q("() => { const b = fRow(['Brent Crude Oil', 'UKOIL']), w = fRow(['WTI Crude Oil', 'USOIL']); if (b && w) { b.price = w.price + 4.2; b.chg24h = 1.0; b.ret7 = 0.03; } fundRender(); }")
         print("33) Brent − WTI:", await q("() => { const tr = [...document.querySelectorAll('.fworld tr')].find(tr => /Brent − WTI/.test(tr.innerText)); return tr ? tr.innerText.replace(/\\s+/g, ' ').trim() : 'not shown (Brent: ' + !!fRow(['Brent Crude Oil', 'UKOIL']) + ', WTI: ' + !!fRow(['WTI Crude Oil', 'USOIL']) + ')'; }"))
+        print("34) seasonality without a broker:", await q("() => document.querySelector('.fseasp').innerText.replace(/\\s+/g, ' ').slice(0, 120)"))
+        # stub the broker: 20 years of monthly gold candles stamped 22:00 on the last day of the month before (broker time); November up in 16 of 20 years
+        print("35) seasonality, 20 years:", await q("""async () => {
+          const bars = []; for (let y = 2006; y <= 2026; y++) for (let m = 0; m < 12; m++) { if (y === 2026 && m > 10) break;
+            const t = Date.UTC(y, m, 1) - 2 * 3600e3, up = m === 10 ? (y % 5 !== 0) : m === 8 ? (y % 4 === 0) : ((y + m) % 2 === 0), o = 1000 + y; bars.push([t, o, o * (up ? 1.02 : 0.985)]); }
+          localStorage.setItem('finder-ctrader', JSON.stringify({ clientId: 'cid', clientSecret: 'sec', accessToken: 'tok' })); window.ctList = () => [{ name: 'Gold', x: { symbolName: 'XAUUSD' } }, { name: 'Silver', x: { symbolName: 'XAGUSD' } }]; CT.state = 'ready'; window.__calls = [];
+          window.ctKlines = async (sym, tf, limit, keep, to) => { __calls.push(sym + ' ' + tf + ' ' + new Date(to).getUTCFullYear()); const B = sym === 'CT:XAUUSD' ? bars.filter(b => b[0] <= to && b[0] > to - 5 * 365.25 * 864e5) : [];
+            return { t: B.map(b => b[0]), o: B.map(b => b[1]), h: B.map(b => b[2]), l: B.map(b => b[1]), c: B.map(b => b[2]), qv: B.map(() => 0) }; };
+          await fundSeas(true); localStorage.removeItem('finder-ctrader'); if (!FUND.seas) return 'no result: ' + FUND.err.seas; const R = FUND.seas.rows.Gold;
+          return 'requests: ' + __calls.join(', ') + ' | rows: ' + Object.keys(FUND.seas.rows).join(',') + ' | gold ' + R.years + 'y from ' + new Date(R.from).toISOString().slice(0, 7) + ' · Nov ' + JSON.stringify(R.m[10]) + ' · Sep ' + R.m[8].ups + '/' + R.m[8].n + ' · Novembers counted ' + R.m[10].n + ' (2007–2025: 20 years back starts after Nov 2006, and this November is not finished)'; }"""))
+        await q("() => fundRender()")
+        print("36) panel:", await q("() => [...document.querySelectorAll('.fseas tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ').trim()).join(' / ')"), "| now cell:", await q("() => document.querySelectorAll('.fseas tr:nth-child(2) td.fsc.now').length"))
+        print("37) gold card seasonal line:", await q("() => (fundCardsData().find(c => c.k === 'Gold').L.find(x => /Seasonally/.test(x[1])) || ['', 'none'])[1]"), "| others:", await q("() => seasLine('Silver') + ' / ' + seasLine('Nasdaq 100')"))
         print("24) rates panel, nothing cut off:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4); }"))
         await pg.set_viewport_size({"width": 1180, "height": 1000}); await asyncio.sleep(0.3)
         print("24b) at 1180px:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [Math.round(p.width), [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4)]; }"))

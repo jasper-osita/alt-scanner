@@ -25,6 +25,7 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct, or via `/api/ct-token`: server.py on the Mac, `api/ct-token.js` on Vercel), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
 - Charts: `CHP` panes, `chLoad`, `chSetData`, `chLoadOlder` (history on scroll, max 5000), `chPaint`, `chIndPaint`, `IND` registry,
   `chIndBuild/Layout/Sync`, dialog mode `CHDLG`/`chDlgStart`, settings `CS_DEF`/`chCS()`.
+  Comparison indicators `cmp` (another market over the chart on its own scale, `ownScale`) and `ratio` (pane): `chCmpSym` (typed name → symbol), `chCmpData` (cache `CHCMP`), `chCmpLine`.
   Overview main charts borrow the same engine: `OVC`, `ovcHost`/`ovcPark` (Bitcoin on Overview; dollar + Nasdaq 100 side by side on the
   forex overview, each pane its own symbol via `P.psym`/`chPS(P)`; the Charts page's own state is restored on park).
   Forex overview toggles: session timeframes `ovcSessTf`/`ovcSessApply` (NAS100 1m at the US open, Gold 5m in London), same timeframe `ovcTfPicked`.

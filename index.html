@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2047">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2107">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4475,7 +4475,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.04.2047";
+const APP_VERSION = "2026.11.04.2107";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7465,7 +7465,7 @@ const TA = {
     case "hlcc4": return h.map((x, i) => (x + l[i] + 2 * c[i]) / 4); default: return c.slice(); } },
 };
 const IND_SRC = ["close", "open", "high", "low", "hl2", "hlc3", "ohlc4", "hlcc4"], IND_MAS = ["EMA", "SMA", "WMA", "RMA", "HMA", "VWMA", "DEMA", "TEMA"];
-const IND_CATS = [["fav", "Favorites"], ["on", "On chart"], ["Moving averages", "Moving averages"], ["Trend", "Trend"], ["Volatility", "Volatility"], ["Oscillators", "Oscillators"], ["Volume", "Volume"], ["Sessions & levels", "Sessions & levels"]];
+const IND_CATS = [["fav", "Favorites"], ["on", "On chart"], ["Moving averages", "Moving averages"], ["Trend", "Trend"], ["Volatility", "Volatility"], ["Oscillators", "Oscillators"], ["Volume", "Volume"], ["Sessions & levels", "Sessions & levels"], ["Comparison", "Comparison"]];
 const IND_UTC_DAY = 864e5, IND_HR = 3600e3;
 const indFmtT = (h, m) => `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 const indParseT = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "").trim()); return m ? (+m[1] % 24) + (+m[2]) / 60 : null; };
@@ -7603,6 +7603,15 @@ const IND = {
     inputs: [{ k: "len", l: "Length", t: "int", d: 9, min: 1 }, { k: "src", l: "Source", t: "src", d: "close" }], plots: [{ k: "roc", l: "ROC", c: "#2962ff" }], levels: [{ v: 0, l: "Zero line" }],
     title: p => `ROC ${p.len} ${p.src}`, calc(P, p) { const s = TA.src(P, p.src); return { roc: s.map((v, i) => i >= p.len && s[i - p.len] ? (v - s[i - p.len]) / s[i - p.len] * 100 : null) }; } },
   /* ---- painted on the chart (sessions, levels, gaps, vertical lines) ---- */
+  cmp: { name: "Compare with another market", short: "Compare", cat: "Comparison", ownScale: true, desc: "Another market drawn over this chart on its own scale, e.g. the dollar index over gold",
+    inputs: [{ k: "sym", l: "Market (e.g. DXY, Gold, EUR/USD, NAS100)", t: "text", d: "DXY" }, { k: "inv", l: "Flip it (1 ÷ price), to see it move the same way", t: "bool", d: false }],
+    plots: [{ k: "cmp", l: "Compared", c: "#f7a600" }], title: p => `vs ${p.sym}${p.inv ? " (flipped)" : ""}`,
+    calc(P, p) { const a = chCmpLine(P, p.sym); return a ? { cmp: p.inv ? a.map(v => v ? 1 / v : null) : a } : {}; } },
+  ratio: { name: "Ratio to another market", short: "Ratio", cat: "Comparison", pane: true, desc: "This chart divided by another market (gold ÷ silver, Nasdaq ÷ S&P 500), with an average line",
+    inputs: [{ k: "sym", l: "Divide by (e.g. Silver, S&P 500, GBP/USD)", t: "text", d: "Silver" }, { k: "ma", l: "Average length", t: "int", d: 20, min: 1 }],
+    plots: [{ k: "r", l: "Ratio", c: "#26a69a" }, { k: "m", l: "Average", c: "#e8b04a" }], title: p => `÷ ${p.sym}`,
+    calc(P, p) { const a = chCmpLine(P, p.sym); if (!a) return {}; const r = P.c.map((c, i) => a[i] ? c / a[i] : null), f = r.findIndex(v => v != null);
+      const m = f < 0 ? r.map(() => null) : [...r.slice(0, f), ...TA.ma("EMA", r.slice(f).map(v => v == null ? NaN : v), p.ma)].map(v => v == null || !isFinite(v) ? null : v); return { r, m }; } },
   sess: { name: "Sessions", short: "Sessions", cat: "Sessions & levels", desc: "Asia, London, Pre-NY and NY AM boxes (times in PHT)", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
     inputs: [1, 2, 3, 4, 5].flatMap(j => { const s = CH_SESS[j - 1] || ["Extra", 0, 4, "120,123,134"]; return [
       { k: "on" + j, l: `Session ${j}`, t: "bool", d: j <= 4, grp: `Session ${j}` }, { k: "n" + j, l: "Name", t: "text", d: s[0], grp: `Session ${j}` },
@@ -7736,11 +7745,11 @@ function chIndDrop(P, id) {
   delete P.ix[id]; delete P.iv[id];
 }
 function chIndBuild(P, I) {
-  const D = IND[I.type], st = indStyle(I), p = { ...indDefaults(I.type), ...I.p }, scale = D.pane ? "ind_" + I.id : D.scale ? D.scale + "_" + I.id : "right", ser = {};
+  const D = IND[I.type], st = indStyle(I), p = { ...indDefaults(I.type), ...I.p }, scale = D.pane ? "ind_" + I.id : D.scale ? D.scale + "_" + I.id : D.ownScale ? "cmp_" + I.id : "right", ser = {};
   (D.plots || []).forEach(pl => {
     const s = st.plots[pl.k]; if (!s.on || pl.canvas) return;
     if (pl.k === "vma" && !p.ma) return; if (I.type === "vwap" && /^[ud][12]$/.test(pl.k) && !p["b" + pl.k[1]]) return;
-    const common = { priceScaleId: scale, priceLineVisible: false, crosshairMarkerVisible: false, lastValueVisible: pl.kind !== "hist" && !D.scale && st.lbl, title: "", ...(D.scale ? { priceFormat: { type: "volume" } } : {}) };
+    const common = { priceScaleId: scale, priceLineVisible: false, crosshairMarkerVisible: false, lastValueVisible: pl.kind !== "hist" && !D.scale && !D.ownScale && st.lbl, title: "", ...(D.scale ? { priceFormat: { type: "volume" } } : {}) };
     if (pl.kind === "hist" || pl.kind === "hist4") ser[pl.k] = P.chart.addHistogramSeries({ ...common, color: s.c, priceFormat: pl.kind === "hist" ? { type: "volume" } : undefined, base: 0 });
     else if (pl.kind === "dots") ser[pl.k] = P.chart.addLineSeries({ ...common, color: s.c, lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 1 + s.w, lineWidth: s.w });
     else ser[pl.k] = P.chart.addLineSeries({ ...common, color: s.c, lineWidth: s.w, lineStyle: CH_LWS[s.ls] || 0,
@@ -7773,6 +7782,29 @@ function chIndHistCol(x, pl, V, i, v) {
   if (pl.kind === "hist") return chHexA((V._dir || [])[i] === false ? s.c2 : s.c, s.al);
   const cols = s.cols || pl.cols, pv = i ? V[pl.k][i - 1] : null;
   return v >= 0 ? (pv == null || v >= pv ? cols[0] : cols[1]) : (pv == null || v <= pv ? cols[3] : cols[2]);
+}
+/* ---- Compare and Ratio: another market's candles on this chart's timeframe, fetched once and kept a minute (5 on slower charts) ---- */
+const CHCMP = {}, CHCMP_SYM = {};
+function chCmpSym(q) {                             // a typed market ("DXY", "Gold", "EUR/USD", "XAUUSD", "BTCUSDT") → the chart symbol for it
+  const t = String(q || "").trim(), hit = CHCMP_SYM[t]; if (!t) return null; if (hit && Date.now() - hit.at < 30e3) return hit.s;
+  const lo = t.toLowerCase().replace(/^(dxy|usdx|dollar index|dollar)$/, "us dollar index"), flat = lo.replace(/[^a-z0-9]/g, ""), list = chCatList("all");
+  const nm = x => chName(x).toLowerCase(), code = x => x.toLowerCase().replace(/^(ct|mx):/, "").replace(/[^a-z0-9]/g, "");
+  const s = list.find(x => nm(x) === lo) || list.find(x => code(x) === flat || code(x) === flat + "usdt") || list.find(x => nm(x).replace(/[^a-z0-9]/g, "") === flat)
+    || list.find(x => nm(x).startsWith(lo)) || (/^([A-Z0-9]+USDT|(CT|MX):\S+)$/.test(t) ? t : null);
+  CHCMP_SYM[t] = { s, at: Date.now() }; return s;
+}
+function chCmpData(sym, tf) {
+  const k = sym + "|" + tf, x = CHCMP[k] || (CHCMP[k] = {}), ttl = (CH_IV[tf] || 60e3) <= 15 * 60e3 ? 60e3 : 300e3;
+  if (!x.busy && (!x.at || Date.now() - x.at > ttl)) { x.busy = true;
+    (async () => { try { if (sym.startsWith("CT:")) CT_SYMS.add(sym); if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
+        const why = chSourceOK(sym); if (why) throw new Error(why); const kk = await klines(sym, tf, 500); x.t = kk.t; x.c = kk.c; x.err = null; } catch (e) { x.err = e.message; }
+      x.at = Date.now(); x.busy = false; CHP.forEach(P => { if (P.chart && P.t && P.t.length && chIndActive(P).some(I => IND[I.type] && IND[I.type].cat === "Comparison")) chIndData(P); }); chDirty = true; })();
+  }
+  return x.t && x.t.length ? x : null;
+}
+function chCmpLine(P, q) {                         // the other market's close on each of this chart's candles (its last one where it has none, e.g. a weekend)
+  const sym = chCmpSym(q); if (!sym || !P.t || !P.t.length) return null; const x = chCmpData(sym, P.tf); if (!x) return null;
+  const out = []; let j = 0, last = null; P.t.forEach(t => { while (j < x.t.length && x.t[j] <= t) last = x.c[j++]; out.push(x.t[0] <= t ? last : null); }); return out;
 }
 function chIndCalc(P, I) { const D = IND[I.type]; if (!D.calc) return {}; try { return D.calc(P, { ...indDefaults(I.type), ...I.p }) || {}; } catch (e) { return {}; } }
 function chIndData(P) {

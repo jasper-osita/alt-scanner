@@ -80,6 +80,17 @@ async def main():
         await q("() => fundRender()")
         print("36) panel:", await q("() => [...document.querySelectorAll('.fseas tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ').trim()).join(' / ')"), "| now cell:", await q("() => document.querySelectorAll('.fseas tr:nth-child(2) td.fsc.now').length"))
         print("37) gold card seasonal line:", await q("() => (fundCardsData().find(c => c.k === 'Gold').L.find(x => /Seasonally/.test(x[1])) || ['', 'none'])[1]"), "| others:", await q("() => seasLine('Silver') + ' / ' + seasLine('Nasdaq 100')"))
+        # calendar actuals: three past US releases with known answers (mock FRED: CPI +0.2% m/m, payrolls +150K, claims 221K)
+        await q("""() => { const now = Date.now(), ev = (title, at, fc) => ({ id: 'USD|' + title + '|' + at, at, ccy: 'USD', title, impact: 'High', type: ffType(title), forecast: fc, previous: '' });
+          CAL.items = [...CAL.items.filter(x => !/^(CPI m\\/m|Non-Farm Employment Change|Unemployment Claims)$/.test(x.title)), ev('CPI m/m', now - 3 * 3600e3, '0.3%'), ev('Unemployment Claims', now - 2.5 * 3600e3, '221K'), ev('Non-Farm Employment Change', now - 2 * 3600e3, '120K')].sort((a, b) => a.at - b.at); }""")
+        await q("() => { CALA.at = {}; return calActFetch(); }"); await wait("() => !CALA.busy && CALA.s.CPIAUCSL && CALA.s.PAYEMS && CALA.s.ICSA", 15)      # the page's first try ran before the mock FRED key was on
+        print("38) actuals:", await q("() => calAll().filter(x => calActDef(x) && x.at > Date.now() - 864e5).map(x => { const a = calActual(x); return x.title + ' ' + (a ? a.txt + ' vs ' + x.forecast + ' (' + a.word + ', dollar ' + a.dir + ')' : 'waiting'); }).join(' | ')"))
+        print("38b) CPI series:", await q("() => (CALA.s.CPIAUCSL || []).slice(0, 4).map(p => new Date(p[0]).toISOString().slice(0, 10) + '=' + p[1]).join(', ') + ' | events: ' + calAll().filter(x => x.title === 'CPI m/m').map(x => new Date(x.at).toISOString().slice(0, 16) + ' F ' + x.forecast).join(', ')"))
+        await q("() => fundRender()")
+        print("39) read + cards:", await q("() => document.querySelector('#fundRead .fhead').innerText.replace(/\\s+/g, ' ')"), "||", await q("() => fundCardsData().map(c => c.k + ' ' + ((c.L.find(x => /expected/.test(x[1])) || [0, '—'])[0])).join(', ')"))
+        await q("() => goPage('calendar')"); await asyncio.sleep(1)
+        print("40) calendar rows:", await q("() => [...document.querySelectorAll('.caltbl tbody tr:not(.calday)')].filter(tr => /CPI m\\/m|Non-Farm|Claims/.test(tr.innerText)).map(tr => tr.querySelector('.ce').innerText.split('\\n')[0] + ' → ' + tr.querySelector('.cw').innerText).join(' | ')"))
+        await q("() => goPage('fund')"); await asyncio.sleep(0.5)
         print("24) rates panel, nothing cut off:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4); }"))
         await pg.set_viewport_size({"width": 1180, "height": 1000}); await asyncio.sleep(0.3)
         print("24b) at 1180px:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [Math.round(p.width), [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4)]; }"))

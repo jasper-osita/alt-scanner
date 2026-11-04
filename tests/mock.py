@@ -407,6 +407,11 @@ def fred_json(sid):
     obs, today = [], dt.date.today()
     if sid == "CPIAUCSL":
         for m in range(16): obs.append({"date": (today.replace(day=1) - dt.timedelta(days=31 * (m + 1))).replace(day=1).isoformat(), "value": f"{320 - m * 0.75:.3f}"})
+    elif sid == "PAYEMS":                          # payrolls in thousands: +150K a month
+        for m in range(16): obs.append({"date": (today.replace(day=1) - dt.timedelta(days=31 * (m + 1))).replace(day=1).isoformat(), "value": f"{159500 - m * 150}"})
+    elif sid == "ICSA":                            # weekly claims, dated the Saturday each week ends
+        sat = today - dt.timedelta(days=(today.weekday() - 5) % 7 or 7)
+        for w in range(10): obs.append({"date": (sat - dt.timedelta(weeks=w)).isoformat(), "value": f"{221000 + w * 3000}"})
     else:
         steps = vals.get(sid, [(0, 3.5), (150, 3.75)])
         monthly = sid.startswith("IRSTCI")

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2131">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2139">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4476,7 +4476,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.04.2131";
+const APP_VERSION = "2026.11.04.2139";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9579,7 +9579,7 @@ function calGridRange() {                          // the days the week or month
 }
 function calEvHTML(x, now, wk) {
   const c = (CAL_IMPACTS.find(i => i[0] === x.impact) || CAL_IMPACTS[3])[1], name = x.type === "Earnings" ? x.title.split(" ·")[0] : x.title, past = x.at < now - 2 * 60e3;
-  const tip = [`${phtDay(x.at)} ${x.allDay ? "all day" : x.timeLbl || phtHM(x.at)}`, `${x.ccy} ${x.title}`, x.forecast ? "Forecast " + x.forecast : "", x.previous ? "Previous " + x.previous : "", x.note || ""].filter(Boolean).join("\n");
+  const tip = [`${phtDay(x.at)} ${x.allDay ? "all day" : x.timeLbl || phtHM(x.at)}`, `${x.ccy} ${x.title}`, (a => a ? `Actual ${a.txt}${a.word ? " (" + a.word + ")" : ""}` : "")(past ? calActual(x) : null), x.forecast ? "Forecast " + x.forecast : "", x.previous ? "Previous " + x.previous : "", x.note || ""].filter(Boolean).join("\n");
   return `<div class="calev ${past ? "past" : ""}" style="border-left-color:${c}" title="${xEsc(tip)}"><span class="t">${x.allDay ? "All day" : x.timeLbl || phtHM(x.at)}</span><b>${xEsc(x.ccy)}</b><span class="n">${xEsc(name)}</span>${wk && (x.forecast || x.previous) ? `<span class="fc">${x.forecast ? "F " + xEsc(x.forecast) : ""}${x.forecast && x.previous ? " · " : ""}${x.previous ? "P " + xEsc(x.previous) : ""}</span>` : ""}</div>`;
 }
 function calGrid(list, now) {                      // week: a column per day with every event; month: a cell per day with the top few
@@ -9601,7 +9601,7 @@ async function calFetch(force) {
     Object.keys(CAL.weeks).sort().slice(0, -3).forEach(k => delete CAL.weeks[k]);           // keep the last three weeks on this device
     lsSet(CAL_KEY, { items: CAL.items, at: CAL.at, weeks: CAL.weeks });
   } catch (e) { CAL.err = e.message || String(e); }
-  if (page === "calendar") calRender(); nwRenderAll();
+  if (page === "calendar") calRender(); nwRenderAll(); calActFetch();
 }
 function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
 function calRange(view) {
@@ -9613,11 +9613,45 @@ function calRange(view) {
 }
 const calPass = (x, F) => F.imp.includes(x.impact) && (x.impact === "Holiday" || F.types.includes(x.type)) && (x.ccy === "All" || F.ccy.includes(x.ccy));
 const impDot = imp => { const c = (CAL_IMPACTS.find(i => i[0] === imp) || CAL_IMPACTS[3]); return `<i class="calimp" style="background:${c[1]}" title="${c[2]}"></i>`; };
+/* ---- actual results for the main US releases, from FRED once it has the new number (Forex Factory's free feed has none) ---- */
+const CAL_ACT = [   // [Forex Factory title, FRED series, how to read it, months back it covers ("q": last quarter, "w": last week), +1 when a higher number lifts the dollar, kind]
+  [/^CPI m\/m$/, "CPIAUCSL", "mom", 1, 1, "infl"], [/^CPI y\/y$/, "CPIAUCSL", "yoy", 1, 1, "infl"], [/^Core CPI m\/m$/, "CPILFESL", "mom", 1, 1, "infl"], [/^Core CPI y\/y$/, "CPILFESL", "yoy", 1, 1, "infl"],
+  [/^Core PCE Price Index m\/m$/, "PCEPILFE", "mom", 1, 1, "infl"], [/^PPI m\/m$/, "PPIFIS", "mom", 1, 1, "infl"], [/^Core PPI m\/m$/, "PPIFES", "mom", 1, 1, "infl"],
+  [/^Average Hourly Earnings m\/m$/, "CES0500000003", "mom", 1, 1, "infl"], [/^Non-Farm Employment Change$/, "PAYEMS", "chgK", 1, 1, "growth"], [/^Unemployment Rate$/, "UNRATE", "pct", 1, -1, "slack"],
+  [/^Unemployment Claims$/, "ICSA", "K", "w", -1, "slack"], [/^JOLTS Job Openings$/, "JTSJOL", "M", 2, 1, "growth"], [/^Retail Sales m\/m$/, "RSAFS", "mom", 1, 1, "growth"],
+  [/^Core Retail Sales m\/m$/, "RSFSXMV", "mom", 1, 1, "growth"], [/^(Advance|Prelim|Final) GDP q\/q$/, "A191RL1Q225SBEA", "pct", "q", 1, "growth"]];
+const CALA = { s: {}, at: {}, busy: false };
+const calActDef = x => x && x.ccy === "USD" ? CAL_ACT.find(d => d[0].test(x.title)) || null : null;
+function calActual(x) {                            // { txt, diff, dir (+1 good for the dollar), word } once FRED has this release's number
+  const d = calActDef(x), s = d && CALA.s[d[1]]; if (!s || !s.length || x.at > Date.now()) return null;
+  const ev = new Date(x.at); let o;
+  if (d[3] === "w") o = s.find(p => p[0] <= x.at - 2 * 864e5 && p[0] > x.at - 9 * 864e5);                  // claims: the week that ended the Saturday before
+  else { const mo = d[3] === "q" ? Math.floor(ev.getUTCMonth() / 3) * 3 - 3 : ev.getUTCMonth() - d[3]; o = s.find(p => p[0] === Date.UTC(ev.getUTCFullYear(), mo, 1)); }
+  if (!o) return null; const i = s.indexOf(o), v = o[1], p1 = s[i + 1] && s[i + 1][1], p12 = s[i + 12] && s[i + 12][1]; let txt;
+  if (d[2] === "mom") { if (!p1) return null; txt = ((v / p1 - 1) * 100).toFixed(1) + "%"; }
+  else if (d[2] === "yoy") { if (!p12) return null; txt = ((v / p12 - 1) * 100).toFixed(1) + "%"; }
+  else if (d[2] === "chgK") { if (p1 == null) return null; txt = Math.round(v - p1) + "K"; }
+  else if (d[2] === "K") txt = Math.round(v / 1000) + "K"; else if (d[2] === "M") txt = (v / 1000).toFixed(2) + "M"; else txt = v.toFixed(1) + "%";
+  const num = t => { const n = parseFloat(String(t).replace(/[^0-9.\-]/g, "")); return isFinite(n) ? n : null; }, fc = num(x.forecast), diff = fc == null ? null : +(num(txt) - fc).toFixed(3);
+  const word = !diff ? (fc == null ? "" : "as expected") : d[5] === "infl" ? (diff > 0 ? "hotter" : "cooler") : d[5] === "growth" ? (diff > 0 ? "stronger" : "weaker") : (diff > 0 ? "weaker" : "stronger");
+  return { txt, diff, dir: diff ? Math.sign(diff) * d[4] : 0, word };
+}
+async function calActFetch() {                     // fetch the series behind last week's US releases that still lack a number (each at most every 10 minutes)
+  if (CALA.busy || typeof fredKey !== "function") return; const now = Date.now(), need = new Set();
+  calAll().filter(x => x.at < now - 2 * 60e3 && x.at > now - 8 * 864e5).forEach(x => { const d = calActDef(x); if (d && !calActual(x) && (!CALA.at[d[1]] || now - CALA.at[d[1]] > 10 * 60e3)) need.add(d[1]); });
+  if (!need.size) return; CALA.busy = true; const k = fredKey();
+  await Promise.all([...need].map(async id => { try { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}${k ? "&api_key=" + encodeURIComponent(k) : ""}&file_type=json&sort_order=desc&limit=30`), j = await r.json().catch(() => null);
+    if (r.ok && j && j.observations) CALA.s[id] = j.observations.filter(o => o.value !== ".").map(o => [Date.parse(o.date), +o.value]); } catch (e) {} CALA.at[id] = Date.now(); }));
+  CALA.busy = false; if (page === "calendar") calRender(); if (page === "fund" && typeof fundRender === "function") fundRender();
+}
+function calLastSurprise() {                       // the latest US release in the last day that came in above or below forecast
+  const now = Date.now(); return calAll().filter(x => x.at < now && x.at > now - 24 * 3600e3 && calActDef(x)).map(x => ({ x, a: calActual(x) })).filter(o => o.a && o.a.dir).pop() || null;
+}
 function calRowHTML(x, now) {
-  const past = x.at < now - 2 * 60e3, soon = !past && x.at - now < 60 * 60e3;
+  const past = x.at < now - 2 * 60e3, soon = !past && x.at - now < 60 * 60e3, act = past ? calActual(x) : null;
   return `<tr class="${past ? "past" : ""}${soon ? " soon" : ""}"><td class="ct">${x.allDay ? "All day" : x.timeLbl || phtHM(x.at)}</td><td class="cc"><b>${xEsc(x.ccy)}</b></td><td class="ci">${impDot(x.impact)}</td>
     <td class="ce">${xEsc(x.title)}${x.note ? `<div class="meta">${xEsc(x.note)}</div>` : ""}</td><td class="cty"><span class="tag">${xEsc(x.type)}</span></td>
-    <td class="cf">${xEsc(x.forecast || "")}</td><td class="cp">${xEsc(x.previous || "")}</td><td class="cw ${past ? "mute" : soon ? "up" : ""}">${past ? "done" : "in " + inTxt(x.at - now)}</td></tr>`;
+    <td class="cf">${xEsc(x.forecast || "")}</td><td class="cp">${xEsc(x.previous || "")}</td><td class="cw ${past && !act ? "mute" : soon ? "up" : ""}">${act ? `<b class="${act.dir > 0 ? "up" : act.dir < 0 ? "dn" : ""}" title="Actual, worked out from FRED (can differ by 0.1 from the official headline). Green: good for the dollar">${xEsc(act.txt)}</b>${act.word ? ` <span class="mute">${act.word}</span>` : ""}` : past ? "done" : "in " + inTxt(x.at - now)}</td></tr>`;
 }
 function calTable(list, now) {
   if (!list.length) return `<div class="empty">Nothing matches your filter in this range.</div>`;
@@ -9719,7 +9753,7 @@ function calRemind() {
       { kind: "News", icon: "📅", tone: x.impact === "High" ? "down" : "warn", title: `${x.ccy} ${x.title} in ${inTxt(x.at - now)}` }); });
   Object.keys(seen).forEach(k => { if (now - seen[k] > 8 * 864e5) delete seen[k]; }); lsSet(CAL_SEEN_KEY, seen);
 }
-setInterval(() => { calFetch(false); calRemind(); }, 30e3);
+setInterval(() => { calFetch(false); calRemind(); calActFetch(); }, 30e3);
 setTimeout(() => { calFetch(false).then(calRemind); }, 4000);
 function calNextFor(ccys, aheadMin = 60, behindMin = 15) {      // the next high-impact release for these currencies, close to now
   const now = Date.now(); return calAll().find(x => x.impact === "High" && ccys.includes(x.ccy) && x.at > now - behindMin * 60e3 && x.at < now + aheadMin * 60e3) || null;
@@ -10055,6 +10089,12 @@ async function fundSeas(force) {
     if (!Object.keys(rows).length) throw new Error("no long price history came back"); FUND.seas = { at: Date.now(), rows }; FUND.err.seas = null; }
   catch (e) { FUND.err.seas = e.message; }
 }
+const SUR_SIGN = { "US dollar": 1, "Gold": -1, "Silver": -1, "EUR/USD": -1, "USD/JPY": 1 };
+function surLine(card) {                           // the last day's US data surprise, turned into this card's direction (the Nasdaq only minds inflation)
+  const su = typeof calLastSurprise === "function" ? calLastSurprise() : null; if (!su) return null;
+  const sg = card === "Nasdaq 100" ? (calActDef(su.x)[5] === "infl" ? -1 : 0) : SUR_SIGN[card] || 0;
+  return sg ? [sg * su.a.dir, `US ${su.x.title} ${su.a.txt} vs ${su.x.forecast} expected: ${su.a.word}`] : null;
+}
 function seasLine(card) {                          // a card's seasonal lean: this calendar month up (or down) in at least 70% of years
   const lbl = { "US dollar": "Dollar index" }[card] || card, R = FUND.seas && FUND.seas.rows && FUND.seas.rows[lbl], mi = new Date(Date.now() + PHT_MS).getUTCMonth(), x = R && R.m[mi];
   if (!x || x.n < 5) return null; const mo = MON[mi];
@@ -10301,7 +10341,7 @@ function fundCardsData() {
     { k: "Oil (WTI)", sym: wti && wti.symbol, px: wti && wti.price, chg: wti && wti.chg24h, L: [usdL, riskL(+1), trend(wti && wti.ret7 != null ? wti.ret7 * 100 : null, "Oil"), oilEv || evL, ovL, crowd(S.cot("Crude oil"), "oil")] },
     { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), lqL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
-  ].map(c => { const L = [...c.L, seasLine(c.k)].filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
+  ].map(c => { const L = [...c.L, surLine(c.k), seasLine(c.k)].filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
     return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
 }
 function fundReadHTML() {
@@ -10311,6 +10351,7 @@ function fundReadHTML() {
   if (S.dollar && S.dollar.w != null && Math.abs(S.dollar.w) >= 0.5) bits.push(S.dollar.w < 0 ? "dollar weaker" : "dollar stronger");
   if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
   const fc = fundCuts(); if (fc) bits.push(`${fCutsTxt(fc.n).replace(/^about /, "≈")} priced`);
+  const su = typeof calLastSurprise === "function" ? calLastSurprise() : null; if (su) bits.push(`<b>${xEsc(su.x.title)}</b> ${xEsc(su.a.txt)} vs ${xEsc(su.x.forecast)} (${su.a.word})`);
   const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
   const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from its six currencies (EUR, JPY, GBP, CAD, SEK, CHF); SEK needs your broker">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
     <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;

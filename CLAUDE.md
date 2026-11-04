@@ -48,7 +48,9 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   Seasonality `fundSeas` (cTrader monthly candles `ctKlines(sym, "1M", …)`, MN1 = period 14, 5 years a request, up to 20 years; `seasStats`, panel `fundSeasHTML`, card line `seasLine`).
   `COT_MK` [name, CFTC code, group] (a new code refetches the cache); World markets ratios `fRatio` (Gold ÷ Silver, Copper ÷ Gold) and `fGoldIn` (gold in euros and yen;
   the Gold card warns "mostly the dollar" when gold moves in dollars but not in euros).
-- Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
+- Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`.
+  Actuals for main US releases from FRED: `CAL_ACT` (title → series, how, months back, dollar sign, kind), `calActual`, `calActFetch` (each series at most every 10 min;
+  new series go in the FRED allow-lists too), `calLastSurprise` → "Today's read" header and card line `surLine`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow
 - After changes: `TZ=Asia/Manila bash bump-version.sh` (updates version.json, index.html, sw.js).

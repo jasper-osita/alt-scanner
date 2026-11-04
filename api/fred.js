@@ -2,7 +2,8 @@
 // set in Vercel → Settings → Environment Variables) when the browser doesn't send one, so the key never sits in the code or the page.
 // Only the series the page uses are allowed. Mirrors /proxy/fred in server.py.
 const SERIES = new Set(["DFEDTARU", "ECBDFR", "IRSTCI01GBM156N", "IRSTCI01JPM156N", "IRSTCI01AUM156N", "IRSTCI01CAM156N", "IRSTCI01CHM156N", "IRSTCI01NZM156N",
-  "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS", "GVZCLS", "OVXCLS", "DTWEXBGS", "WALCL", "WTREGEN", "RRPONTSYD", "DFF"]);
+  "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS", "GVZCLS", "OVXCLS", "DTWEXBGS", "WALCL", "WTREGEN", "RRPONTSYD", "DFF",
+  "CPILFESL", "PCEPILFE", "PPIFIS", "PPIFES", "PAYEMS", "CES0500000003", "RSAFS", "RSFSXMV", "ICSA", "A191RL1Q225SBEA", "JTSJOL"]);     // calendar actuals
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const send = (code, obj) => { res.statusCode = code; res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); };

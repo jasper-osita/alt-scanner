@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.03.1614">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2047">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -925,11 +925,11 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fchips{display:flex;flex-wrap:wrap;gap:4px;padding:8px 11px 4px}.fchip{border:1px solid var(--pill-b);background:transparent;color:var(--mute);border-radius:6px;font:600 11px var(--font);padding:2px 7px;cursor:pointer}.fchip.on{color:var(--accent);border-color:var(--accent)}
 .fnews{display:flex;flex-direction:column;max-height:520px;overflow-y:auto;scrollbar-width:none}.fnews::-webkit-scrollbar{display:none}.fni{display:block;padding:6px 11px;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.4;color:var(--text);text-decoration:none}.fni:hover{background:var(--hover)}.fnt{color:var(--strong)}
 .fread{margin:0 0 10px}.fhead{font-size:13.5px;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}.fhead b{color:var(--strong)}
-.fcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}.fcard:hover{border-color:var(--pill-b)}
+.fcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-width:0}.fcard:hover{border-color:var(--pill-b)}
 .fcard .ft{display:flex;align-items:baseline;gap:8px}.fcard .ft b{font:700 14px var(--display);color:var(--strong)}.fcard .ft .fpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13px}
 .fverd{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--pill);color:var(--mute)}.fverd.up{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}.fverd.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
 .fwhy{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.35}.fwhy li{display:flex;gap:6px}.fwhy li i{font-style:normal;flex:none;width:12px}.fwatch{font-size:12px;color:var(--amber)}
-@media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1200px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1420px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
 @media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
@@ -4475,7 +4475,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.03.1614";
+const APP_VERSION = "2026.11.04.2047";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -10066,6 +10066,10 @@ function fundWorld() {
     L.forEach(([lbl, names]) => { const r = fRow(names);
       if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from its six currencies (EUR, JPY, GBP, CAD, SEK, CHF); SEK needs your broker"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
       h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; });
+    const br = grp === "Commodities" && fRow(["Brent Crude Oil", "UKOIL"]), wt = br && fRow(["WTI Crude Oil", "USOIL"]);
+    if (br && wt && Math.abs(br.price - wt.price) < 0.25 * wt.price) { /* both in dollars a barrel; anything wider is a feed mismatch */ const sp = br.price - wt.price, was = k => br.price / (1 + k(br)) - wt.price / (1 + k(wt)), d = br.chg24h != null && wt.chg24h != null ? sp - was(r => r.chg24h / 100) : null, w = br.ret7 != null && wt.ret7 != null ? sp - was(r => r.ret7) : null;
+      const f = v => v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2);
+      h += `<tr title="Brent's premium over WTI, in dollars a barrel. Widening: tighter supply outside the US (often Middle East or Russia news); narrowing: the US market tightening"><td>Brent − WTI</td><td class="r">${sp < 0 ? "−" : ""}$${Math.abs(sp).toFixed(2)}</td><td class="r ${fCls(d)}">${f(d)}</td><td class="r ${fCls(w)}">${f(w)}</td></tr>`; }
     const B = grp === "FX" && fundBroad();
     if (B) h += `<tr title="The Fed's trade-weighted dollar against 26 currencies (a wider view than the dollar index, which is mostly the euro) · as of ${new Date(B.t).toISOString().slice(0, 10)}"><td>Broad dollar <span class="mu">Fed</span></td><td class="r">${B.v.toFixed(2)}</td><td class="r ${fCls(B.d)}">${fPct(B.d)}</td><td class="r ${fCls(B.w)}">${B.w != null ? fPct(B.w, 1) : "—"}</td></tr>`; });
   const G = EXT.global, F = EXT.fng, mf = typeof medianFunding === "function" && data ? medianFunding() : null, vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2");
@@ -10205,10 +10209,17 @@ function fundCardsData() {
     : [0, `Mostly the dollar: gold is ${gE >= 0 ? "+" : "−"}${Math.abs(gE).toFixed(1)}% in euros this week (${gW >= 0 ? "+" : "−"}${Math.abs(gW).toFixed(1)}% in dollars)`];
   const gvL = gv && gv.pct >= 80 ? [0, `Gold volatility high for the year (GVZ ${gv.v.toFixed(0)}): wider stops, smaller size`] : null;
   const lqL = !lq || lq.chg == null ? null : lq.chg >= 100 ? [+1, `Dollar liquidity rising (+$${Math.round(lq.chg)}bn in 4 weeks)`] : lq.chg <= -100 ? [-1, `Dollar liquidity draining (−$${Math.round(-lq.chg)}bn in 4 weeks)`] : null;
+  const ag = fRow(["Silver", "XAGUSD"]), wti = fRow(["WTI Crude Oil", "USOIL"]), ov = fundRank("OVXCLS"), gsr = fRatio([[gold, 1], [ag, -1]]);
+  const usdL = usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null;
+  const gsrL = !gsr || gsr.w == null ? null : gsr.w <= -1 ? [+1, `Silver outpacing gold (gold ÷ silver ${gsr.w.toFixed(1)}% this week)`] : gsr.w >= 1 ? [-1, `Silver lagging gold (gold ÷ silver +${gsr.w.toFixed(1)}% this week)`] : null;
+  const oilEv = (() => { const e = (typeof calAll === "function" ? calAll() : []).find(x => x.at > now && x.at < now + 36 * 3600e3 && /crude oil inventor|OPEC/i.test(x.title));
+    return e ? [0, `${e.title} ${phtDay(e.at).slice(0, 3)} ${e.timeLbl || phtHM(e.at)} (in ${inTxt(e.at - now)}): expect spikes`] : null; })();
+  const ovL = ov && ov.pct >= 80 ? [0, `Oil volatility high for the year (OVX ${ov.v.toFixed(0)}): wider stops, smaller size`] : null;
   const yen = S.cot("Yen"), yenCrowd = !yen ? null : yen.pct >= 90 ? [0, "Speculators heavily long the yen: if they bail, USD/JPY can jump"] : yen.pct <= 10 ? [0, "Speculators heavily short the yen: if they bail, USD/JPY can drop fast"] : null;
   const yenRisk = S.risk === "on" ? [+1, `Risk appetite is up (VIX ${S.vix.toFixed(0)}): the yen is usually sold`] : S.risk === "off" ? [-1, `Markets are nervous (VIX ${S.vix.toFixed(0)}): money hides in the yen`] : null;
   return [
     { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), evL, gvL, dolL, crowd(S.cot("Gold"), "gold")] },      // warnings show two at most: the coming release, then volatility
+    { k: "Silver", sym: ag && ag.symbol, px: ag && ag.price, chg: ag && ag.chg24h, L: [realL, usdL, gsrL, fedL(+1), trend(ag && ag.ret7 != null ? ag.ret7 * 100 : null, "Silver"), evL, crowd(S.cot("Silver"), "silver")] },
     { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), lqL, trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
     { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
       L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
@@ -10216,6 +10227,7 @@ function fundCardsData() {
       trend(eur && eur.ret7 != null ? eur.ret7 * 100 : null, "EUR/USD"), crowd(S.cot("Euro"), "euro"), evFor(["USD", "EUR"])] },
     { k: "USD/JPY", sym: jpy && jpy.symbol, px: jpy && jpy.price, chg: jpy && jpy.chg24h, L: [gapL(G.jp10, "US–Japan 10-year", +1), yenRisk, fedL(-1), bank("IRSTCI01JPM156N", "JP", "BoJ", -1),
       trend(jpy && jpy.ret7 != null ? jpy.ret7 * 100 : null, "USD/JPY"), yenCrowd, evFor(["USD", "JPY"])] },
+    { k: "Oil (WTI)", sym: wti && wti.symbol, px: wti && wti.price, chg: wti && wti.chg24h, L: [usdL, riskL(+1), trend(wti && wti.ret7 != null ? wti.ret7 * 100 : null, "Oil"), oilEv || evL, ovL, crowd(S.cot("Crude oil"), "oil")] },
     { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), lqL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
   ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);

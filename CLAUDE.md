@@ -51,6 +51,10 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   `COT_MK` [name, CFTC code, group] (a new code refetches the cache); hedge-fund column `fundCOTFunds` (leveraged funds from /proxy/cot-tff for currencies, indices,
   Bitcoin; managed money from /proxy/cot-dis for commodities; fields found by name, falls back to all columns for recent weeks if a $select column is refused); World markets ratios `fRatio` (Gold ÷ Silver, Copper ÷ Gold) and `fGoldIn` (gold in euros and yen;
   the Gold card warns "mostly the dollar" when gold moves in dollars but not in euros).
+- Event risk (extras, before NBB Watch): `riskRead` (level 0–2 + reasons: US election nights by rule `usElectionDay`, your own events `riskOwn`/`EVR_KEY`, shock headlines
+  `RISK_WORDS`/`RISK_SEVERE` from `FUND.news`, VIX jump via UVXY, last hour vs normal hourly range from `NW_ST` bars, Friday weekend gap), `riskCalItems` (into `calAll`),
+  `riskTick` every minute (alerts kind "Event risk" once per reason; "protect your trade" for real positions `riskPositions` at ≥1.5R whose stop is still on the losing side),
+  banner `riskRender` on NBB Watch (add/remove your own events), NBB checklist + alert text, "Today's read" header + card warning. Test: `t_risk`.
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`.
   Actuals for main US releases from FRED: `CAL_ACT` (title → series, how, months back, dollar sign, kind), `calActual`, `calActFetch` (each series at most every 10 min;
   new series go in the FRED allow-lists too), `calLastSurprise` → "Today's read" header and card line `surLine`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.

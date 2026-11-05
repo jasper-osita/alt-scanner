@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.05.0927">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.05.1116">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -893,6 +893,10 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .nwopts{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .nbbw .why{font-size:12.5px;color:var(--mute);margin:4px 0 10px}
 .nwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
+.riskbar{border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:6px 0 12px;background:var(--panel);font-size:13px}.riskbar.elev{border-color:color-mix(in srgb,var(--amber) 55%,transparent);background:color-mix(in srgb,var(--amber) 8%,var(--panel))}
+.riskbar.high{border-color:color-mix(in srgb,var(--red) 60%,transparent);background:color-mix(in srgb,var(--red) 9%,var(--panel))}.riskbar.calm b{color:var(--green)}.riskbar.elev b{color:var(--amber)}.riskbar.high b{color:var(--red)}
+.rkh{display:flex;gap:4px 10px;align-items:baseline;flex-wrap:wrap}.rkh .btn{margin-left:auto}.rkl{margin:6px 0 0;padding-left:18px;font-size:12.5px}.rkl li{margin:2px 0}.rkup{margin-top:6px}
+.rkdel{background:none;border:0;color:var(--mute);cursor:pointer;font-size:14px;padding:0 2px}.rkform{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.rkform input{background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:5px 7px;font:inherit;font-size:12.5px}.rkform #rkT{flex:1;min-width:200px}.rkform #rkN{width:52px}
 @media (max-width:760px){.nwgrid{grid-template-columns:1fr}.nbbw .why{display:none}.nwopts{margin-left:0}}
 .nwcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);min-width:0}
 .nwcard.on{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
@@ -1184,6 +1188,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <span class="nwopts"><label class="tog"><input type="checkbox" id="nwBase"> Alert when a base forms</label><label class="tog"><input type="checkbox" id="nwOutside"> Outside sessions too</label>
       <button class="btn sm" id="nwPhone">📱 Phone alerts</button><button class="btn sm" id="nwEditB">Edit watch list</button></span></div>
     <div class="why">The next-base breakout on your trading timeframes: Gold on M5 through London, the Nasdaq on M1 at the US open. Read on closed candles from your broker (cTrader) when connected, otherwise MEXC or Binance. A trigger is a displacing close out of a base of 6+ candles; entry at that close, stop beyond the far side of the base, target 3R. Checks show whether it's with the trend, whether the base was swept first, whether there's room, and whether high-impact news is close.</div>
+    <div id="riskBar" class="riskbar calm" aria-live="polite"></div>
     <div id="nwEdit" class="nwedit" hidden></div>
     <div id="nwGrid" class="nwgrid"><div class="empty">Loading…</div></div>
   </section>
@@ -4476,7 +4481,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.05.0927";
+const APP_VERSION = "2026.11.05.1116";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6254,7 +6259,7 @@ run();
 /* ===================== Notification center: bell + drawer + toast cards ===================== */
 const NC_KEY = "finder-notifs", NC_DAYS = 7, NC_STATE = { filter: "All", ctErr: null, toasts: [] };
 const NC_TONE = { up: "var(--green)", down: "var(--red)", gold: "var(--accent)", blue: "var(--blue)", warn: "var(--amber)" };
-const NC_KINDS = ["All", "NBB Watch", "News", "Breakouts", "Setups", "Price", "Bots", "System"];
+const NC_KINDS = ["All", "NBB Watch", "Event risk", "News", "Breakouts", "Setups", "Price", "Bots", "System"];
 let NC = [];
 try { NC = JSON.parse(localStorage.getItem(NC_KEY) || "[]"); } catch (e) { NC = []; }
 const ncSave = () => { try { localStorage.setItem(NC_KEY, JSON.stringify(NC)); } catch (e) {} };
@@ -9603,7 +9608,7 @@ async function calFetch(force) {
   } catch (e) { CAL.err = e.message || String(e); }
   if (page === "calendar") calRender(); nwRenderAll(); calActFetch();
 }
-function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
+function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items, riskCalItems()).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
 function calRange(view) {
   const now = Date.now(), today = phtDayKey(now) * 864e5 - PHT_MS, wk = weekStart(now);
   if (view === "today") return [today, today + 864e5]; if (view === "tomorrow") return [today + 864e5, today + 2 * 864e5]; if (view === "yesterday") return [today - 864e5, today];
@@ -9765,6 +9770,77 @@ function calNextFor(ccys, aheadMin = 60, behindMin = 15) {      // the next high
   const now = Date.now(); return calAll().find(x => x.impact === "High" && ccys.includes(x.ccy) && x.at > now - behindMin * 60e3 && x.at < now + aheadMin * 60e3) || null;
 }
 
+/* ===================== Event risk: what could move markets violently now or soon, and protecting open trades ===================== */
+const EVR_KEY = "finder-risk-events", RISK_SEEN = "finder-risk-seen";             // (RISK_KEY is position sizing's)
+const RISK_WORDS = /\b(war|invasion|invades?|missiles?|airstrikes?|attacks?|nuclear|terror\w*|coup|martial law|sanctions?|tariffs?|shutdown|default|emergency|intervention|intervenes?|circuit breakers?|halted|crash\w*|plunges?|bank run|collapse\w*|assassinat\w*|impeach\w*|resigns?|elections?|snap poll)\b/i;
+const RISK_SEVERE = /(?<!(?:trade|price|currency|bidding|tariff|culture|talent) )\b(war|invasion|invades?|missiles?|airstrikes?|drone strikes?|nuclear|coup|martial law|emergency (rate|meeting|cut)|circuit breakers?|intervention|intervenes?|bank run|assassinat\w*)\b/i;     // "trade war" etc. aren't shocks
+const riskOwn = () => (lsGet(EVR_KEY, []) || []).filter(e => e && e.at && e.title);
+function usElectionDay(y) { const dow = new Date(Date.UTC(y, 10, 1)).getUTCDay(); return 1 + (8 - dow) % 7 + 1; }      // the Tuesday after the first Monday of November
+function riskEvents(from, to) {                    // US election nights (by that rule, no guessed dates) and your own risk events: { id, at, hours, title, note, ccy }
+  const out = [], y0 = new Date(from).getUTCFullYear();
+  for (let y = y0; y <= y0 + 1; y++) if (y % 2 === 0) out.push({ id: "elec:" + y, at: nyAt(y, 11, usElectionDay(y), 19, 0), hours: 18, ccy: "USD", title: `US ${y % 4 === 0 ? "presidential" : "midterm"} election results`,
+    note: "Polls close from 7 PM New York time and results arrive overnight: the dollar, gold and US indices can gap and reverse hard" });
+  riskOwn().forEach(e => out.push({ id: "own:" + e.id, at: e.at, hours: e.hours || 6, ccy: e.ccy || "USD", title: e.title, note: e.note || "Your own risk event" }));
+  return out.filter(e => e.at + e.hours * 3600e3 >= from && e.at <= to).sort((a, b) => a.at - b.at);
+}
+function riskCalItems() {                          // in the calendar as high impact, so reminders and NBB Watch's "no high-impact news near" check see them
+  const now = Date.now(); return riskEvents(now - 21 * 864e5, now + 60 * 864e5).map(e => ({ id: "RISK|" + e.id, at: e.at, ccy: e.ccy, title: "⚠ " + e.title, impact: "High", type: "Misc",
+    note: `${e.note} (risky for about ${e.hours} hours)`, forecast: "", previous: "", src: "risk" }));
+}
+function riskRead(now = Date.now()) {              // { level: 0 calm, 1 elevated, 2 high, items: [{ lvl, id, short, txt }] }
+  const items = [], add = (lvl, id, short, txt) => items.push({ lvl, id, short, txt });
+  riskEvents(now - 2 * 864e5, now + 864e5).forEach(e => { const end = e.at + e.hours * 3600e3;
+    if (now >= e.at && now < end) add(2, e.id, e.title, `${e.title}: under way until ${phtDay(end).slice(0, 3)} ${phtHM(end)}. ${e.note}`);
+    else if (e.at > now && e.at - now < 12 * 3600e3) add(e.at - now < 3 * 3600e3 ? 2 : 1, e.id + ":soon", `${e.title} in ${inTxt(e.at - now)}`, `${e.title} starts ${phtDay(e.at).slice(0, 3)} ${phtHM(e.at)} (in ${inTxt(e.at - now)}). ${e.note}`); });
+  const N = (typeof FUND !== "undefined" && FUND.news && FUND.news.items) || [], hot = N.filter(x => x.t > now - 3 * 3600e3 && RISK_WORDS.test(x.title)), sev = hot.find(x => RISK_SEVERE.test(x.title));
+  if (sev) add(2, "news:" + sev.title.slice(0, 60), "shock headline", `Shock headline ${inTxt(Math.max(60e3, now - sev.t))} ago: "${sev.title}" (${sev.src})`);
+  else if (hot.length >= 3) add(1, "news3:" + hot[0].title.slice(0, 40), `${hot.length} risk headlines`, `${hot.length} risk headlines in 3 hours, e.g. "${hot[0].title}"`);
+  const vx = typeof MACRO !== "undefined" && MACRO.rows.find(r => r.name === "Volatility (VIX)");
+  if (vx && vx.chg24h >= 8) add(vx.chg24h >= 15 ? 2 : 1, "vix:" + phtDayKey(now), "fear jumping", `Fear is jumping: the VIX (via UVXY) is ${fPct(vx.chg24h, 0)} in 24 hours`);
+  Object.entries(NW_ST).forEach(([k, st]) => { const K = st.k; if (!K || K.t.length < 80) return; const n = Math.max(1, Math.round(3600e3 / (K.t[1] - K.t[0]))), m = K.h.length;     // last hour's range against the hours before it
+    const rng = (a, b) => Math.max(...K.h.slice(a, b)) - Math.min(...K.l.slice(a, b)), base = []; for (let i = m - n; i - n >= 0 && base.length < 48; i -= n) base.push(rng(i - n, i));
+    const avg = base.length >= 6 ? base.reduce((p, v) => p + v, 0) / base.length : 0, x = avg ? rng(m - n, m) / avg : 0, nm = k.split("|")[0];
+    if (x >= 3) add(x >= 5 ? 2 : 1, "vol:" + nm + ":" + Math.floor(now / 3600e3), `${nm} moving ${x.toFixed(1)}× normal`, `${nm} moved ${x.toFixed(1)}× its normal hourly range in the last hour: something is happening`); });
+  const ny = zClock(now, "America/New_York"); if (ny.wd === "Fri" && ny.m >= 13 * 60) add(1, "wknd:" + phtDayKey(now), "weekend gap", "Weekend ahead: open trades can gap at the Sunday open");
+  return { level: items.reduce((a, x) => Math.max(a, x.lvl), 0), items: items.sort((a, b) => b.lvl - a.lvl) };
+}
+function riskPositions() {                         // your real open trades (not the Bot Simulator's); R from the stop while it's still on the losing side
+  const out = [];
+  if (typeof CTT !== "undefined" && CTT.state === "ready") CTT.positions.forEach(p => { const td = p.tradeData || {}, x = CTT.byId[td.symbolId] || {}, buy = +td.tradeSide === 1, q = CTT.spots[td.symbolId] || {}, cur = buy ? q.bid : q.ask, en = +p.price, sl = +p.stopLoss || 0;
+    const locked = !!sl && (buy ? sl >= en : sl <= en); out.push({ id: "ct" + p.positionId, sym: x.symbolName || "#" + td.symbolId, buy, locked, noStop: !sl, r: cur && sl && !locked ? (cur - en) / Math.abs(en - sl) * (buy ? 1 : -1) : null, pnl: CTT.pnl[p.positionId] ?? null }); });
+  if (typeof mxtOn === "function" && mxtOn()) MXT.positions.forEach(p => out.push({ id: "mx" + p.positionId, sym: String(p.symbol).replace("_", ""), buy: +p.positionType === 1, locked: false, noStop: true, r: null, pnl: typeof mxtUpnl === "function" ? mxtUpnl(p) : null }));
+  return out;
+}
+const riskTip = "Expect gaps and fast reversals: take profit sooner, move stops to break-even at 1R, trade smaller or stand aside.";
+function riskTick() {                              // once a minute: alert on new high-risk reasons, and on open trades worth protecting
+  if (typeof fundNews === "function") fundNews(false).catch(() => {});                                   // headlines every 10 minutes, whatever page is open
+  const R = riskRead(), now = Date.now(), seen = lsGet(RISK_SEEN, {}) || {}; let dirty = false;
+  R.items.filter(x => x.lvl === 2 && !seen[x.id]).forEach(x => { seen[x.id] = now; dirty = true;
+    notify(`⚠️ Event risk: ${x.short}`, `${x.txt}. ${riskTip}`, { kind: "Event risk", icon: "⚠️", tone: "warn", title: `Event risk: ${x.short}` }); });
+  if (R.level) riskPositions().forEach(p => { const top = R.items[0], id = "pos:" + p.id + ":" + top.id; if (seen[id] || p.locked || !(p.r != null ? p.r >= 1.5 : p.noStop && p.pnl > 0)) return; seen[id] = now; dirty = true;
+    notify(`🛡️ Protect your ${p.sym} ${p.buy ? "long" : "short"}${p.r != null ? `: +${p.r.toFixed(1)}R open` : ""}`, `${top.txt}. Lock it in: take partial profit, or move the stop to break-even or beyond.${p.noStop ? " This trade has no stop loss." : ""}`,
+      { kind: "Event risk", icon: "🛡️", tone: "warn", title: `Protect your ${p.sym} trade` }); });
+  if (dirty) { Object.keys(seen).forEach(k => { if (now - seen[k] > 4 * 864e5) delete seen[k]; }); lsSet(RISK_SEEN, seen); }
+  if (page === "nbbwatch") riskRender();
+}
+function riskRender() {
+  const el = $("riskBar"); if (!el) return; const R = riskRead(), now = Date.now(), up = riskEvents(now, now + 14 * 864e5), open = el.querySelector("#rkForm") && !el.querySelector("#rkForm").hidden;     // includes ones under way, so yours can be removed
+  if (open && el.contains(document.activeElement)) return;                                               // don't wipe a risk event being typed
+  el.className = "riskbar " + ["calm", "elev", "high"][R.level];
+  el.innerHTML = `<div class="rkh"><b>${R.level === 2 ? "⚠️ Event risk: high" : R.level === 1 ? "⚠️ Event risk: elevated" : "✓ No event risk flagged"}</b>
+      <span class="meta">${R.level ? riskTip : "Watching election nights, your own risk events, shock headlines, fear (VIX), unusual moves in your NBB Watch markets and the weekend."}</span><button class="btn sm" id="rkAddB">＋ Risk event</button></div>
+    ${R.items.length ? `<ul class="rkl">${R.items.map(x => `<li class="${x.lvl === 2 ? "dn" : "fam"}">${xEsc(x.txt)}</li>`).join("")}</ul>` : ""}
+    ${up.length ? `<div class="rkup meta">Risk events: ${up.map(e => `<span>${xEsc(e.title)} · ${e.at <= now ? "now" : phtDay(e.at) + " " + phtHM(e.at)}${e.id.startsWith("own:") ? ` <button class="rkdel" data-rkdel="${xEsc(e.id.slice(4))}" title="Remove" aria-label="Remove ${xEsc(e.title)}">×</button>` : ""}</span>`).join(" · ")}</div>` : ""}
+    <form id="rkForm" class="rkform" ${open ? "" : "hidden"}><input id="rkT" placeholder="What (e.g. Supreme Court tariff ruling)" aria-label="Risk event" required><input id="rkD" type="date" aria-label="Date (PHT)" required>
+      <input id="rkH" type="time" value="22:00" aria-label="Time (PHT)" required><label class="meta">risky for <input id="rkN" type="number" min="1" max="72" value="6" aria-label="Hours"> hours</label><button class="btn sm primary">Add</button></form>`;
+  $("rkAddB").onclick = () => { const f = $("rkForm"); f.hidden = !f.hidden; if (!f.hidden) { $("rkD").value = new Date(now + PHT_MS).toISOString().slice(0, 10); $("rkT").focus(); } };
+  $("rkForm").onsubmit = ev => { ev.preventDefault(); const [y, mo, d] = $("rkD").value.split("-").map(Number), [h, mi] = $("rkH").value.split(":").map(Number), t = $("rkT").value.trim(); if (!t || !y) return;
+    lsSet(EVR_KEY, [...riskOwn(), { id: Date.now().toString(36), title: t, at: Date.UTC(y, mo - 1, d, h, mi) - PHT_MS, hours: Math.max(1, Math.min(72, +$("rkN").value || 6)) }]);
+    $("rkForm").hidden = true; document.activeElement.blur(); riskRender(); nwRenderAll(); };
+  el.querySelectorAll("[data-rkdel]").forEach(b => b.onclick = () => { lsSet(EVR_KEY, riskOwn().filter(e => e.id !== b.dataset.rkdel)); riskRender(); });
+}
+setInterval(riskTick, 60e3); setTimeout(riskTick, 8000);
+
 /* ===================== NBB Watch: Gold M5 (London), Nasdaq M1 (US open) — your broker's data first ===================== */
 const NW_KEY = "finder-nbbwatch", NW_LOG_KEY = "finder-nbbwatch-log";
 const NW_DEF = [{ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }, { name: "Nasdaq 100", tf: "1m", from: "21:30", to: "23:00", alerts: true }];
@@ -9836,7 +9912,7 @@ function nwSignals(it, st) {
       NW_LOG.unshift(sig); NW_LOG = NW_LOG.filter(x => x.at > now - 3 * 864e5).slice(0, 200); lsSet(NW_LOG_KEY, NW_LOG);
       if (it.alerts && (sess.on || NW.outside)) {
         const R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, f = v => fmtPrice(v);
-        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${sig.dayPct >= 90 ? ` Day range ${sig.dayPct}% used: most of the usual move is done.` : ""}${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
+        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${sig.dayPct >= 90 ? ` Day range ${sig.dayPct}% used: most of the usual move is done.` : ""}${(R => R.level ? ` ⚠ Event risk: ${R.items[0].short}. Take profit sooner.` : "")(riskRead())}${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
           { sym: st.sym, kind: "NBB Watch", icon: "🥪", tone: m.dir === "Long" ? "up" : "down", title: `NBB ${m.dir.toLowerCase()}: ${it.name} ${CH_TFL[it.tf] || it.tf}` });
       }
     }
@@ -9862,7 +9938,7 @@ function nwCardHTML(it) {
       const ck = (ok, txt) => `<span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"} ${txt}</span>`;
       state = `<div class="nwst trig ${m.dir === "Long" ? "long" : "short"}">🚀 <b>NBB ${m.dir.toUpperCase()} triggered</b> <span class="mute">${ago ? ago + " min ago" : "just now"} (${phtHM(m.tClose)} close)</span>
         <div class="nwlv"><span>Entry <b>${f(m.entry)}</b></span><span>Stop <b>${f(m.stop)}</b></span><span>3R <b>${f(t3)}</b></span><span class="mute">base ${m.baseLen} candles${m.baseNo === 2 ? " · base #2 (prime)" : ""}</span></div>
-        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${du ? ck(du.pct < 90, du.pct < 90 ? `room in the day's range (${du.pct}% used)` : `day range ${du.pct}% used`) : ""}${ck(!news, "no high-impact news near")}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
+        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${du ? ck(du.pct < 90, du.pct < 90 ? `room in the day's range (${du.pct}% used)` : `day range ${du.pct}% used`) : ""}${ck(!news, "no high-impact news near")}${(R => ck(!R.level, R.level ? `event risk: ${xEsc(R.items[0].short)}` : "no event risk"))(riskRead())}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
     else if (r.state === "basing") state = `<div class="nwst base">🧱 <b>Basing</b> · ${r.base.len} candles, ${r.base.tall.toFixed(1)} ATR tall
         <div class="nwlv"><span class="up">Long above <b>${f(r.base.hi)}</b></span><span class="dn">Short below <b>${f(r.base.lo)}</b></span><span class="mute">${r.stack ? `trend favors ${r.stack.toLowerCase()}s` : "no clear trend: either side"}</span></div>
         <div class="meta">Trigger: a displacing close out of the base (body 1.5× the base's average) with the trend.</div></div>`;
@@ -9887,7 +9963,7 @@ function nwRenderAll() {
   $("nwGrid").innerHTML = NW.items.length ? NW.items.map(nwCardHTML).join("") : `<div class="empty">Add a market to watch with Edit watch list.</div>`;
   $("nwMeta").textContent = `${NW.items.length} market${NW.items.length === 1 ? "" : "s"} · ${ctPrefer() ? (CT.state === "ready" ? `${CT.broker} prices` : "connecting to cTrader…") : "exchange prices (connect cTrader for your broker's)"}`;
   $("nwBase").checked = !!NW.base; $("nwOutside").checked = !!NW.outside;
-  nwBind();
+  nwBind(); riskRender();
 }
 function nwBind() {
   document.querySelectorAll("[data-nwchart]").forEach(b => b.onclick = () => { const st = NW_ST[b.dataset.nwchart], it = NW.items.find(x => nwKey(x) === b.dataset.nwchart); if (!st || !st.sym) return;
@@ -9928,7 +10004,7 @@ function nwShown() { nwRenderAll(); nwTick(true); }
 
 /* ===================== Phone alerts: Telegram (your own bot; token kept in this browser only) ===================== */
 const TG_KEY = "finder-telegram";
-const TG_KINDS = [["NBB Watch", "NBB Watch triggers and bases"], ["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["Bots", "Bot simulator"], ["System", "System messages"]];
+const TG_KINDS = [["NBB Watch", "NBB Watch triggers and bases"], ["Event risk", "Event risk and protect-your-trade warnings"], ["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["Bots", "Bot simulator"], ["System", "System messages"]];
 const tgCfg = () => lsGet(TG_KEY, null), TG_OFF = ["Breakouts", "Bots", "System"];      // noisy kinds start switched off
 const tgKind = (c, k) => { const v = ((c || {}).kinds || {})[k]; return v == null ? !TG_OFF.includes(k) : !!v; };
 const tgOn = () => { const c = tgCfg(); return !!(c && c.token && c.chat); };
@@ -10359,6 +10435,7 @@ function fundSignals() {
 }
 function fundCardsData() {
   const S = fundSignals(), mf = typeof medianFunding === "function" && data ? medianFunding() : null, btc = typeof bySym !== "undefined" && bySym.BTCUSDT;
+  const RK = riskRead(), rkL = RK.level ? [0, `Event risk: ${RK.items[0].short}. Take profit sooner, stops to break-even at 1R`] : null;     // first among the warnings
   const trend = (w, lbl) => w == null ? null : w >= 1 ? [+1, `${lbl} up ${w.toFixed(1)}% this week`] : w <= -1 ? [-1, `${lbl} down ${Math.abs(w).toFixed(1)}% this week`] : null;
   const realL = S.real == null ? null : S.real <= -0.08 ? [+1, `Real yields falling (${Math.round(S.real * 100)}bp in a month)`] : S.real >= 0.08 ? [-1, `Real yields rising (+${Math.round(S.real * 100)}bp in a month)`] : null;
   const usdW = S.dollar && S.dollar.w;
@@ -10398,7 +10475,7 @@ function fundCardsData() {
     { k: "Oil (WTI)", sym: wti && wti.symbol, px: wti && wti.price, chg: wti && wti.chg24h, L: [crL, usdL, riskL(+1), trend(wti && wti.ret7 != null ? wti.ret7 * 100 : null, "Oil"), oilEv || evL, ovL, crowd(S.cot("Crude oil"), "oil")] },
     { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), lqL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
-  ].map(c => { const L = [...c.L, surLine(c.k), seasLine(c.k)].filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
+  ].map(c => { const L = [rkL, ...c.L, surLine(c.k), seasLine(c.k)].filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
     return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
 }
 function fundReadHTML() {
@@ -10409,6 +10486,7 @@ function fundReadHTML() {
   if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
   const fc = fundCuts(); if (fc) bits.push(`${fCutsTxt(fc.n).replace(/^about /, "≈")} priced`);
   const su = typeof calLastSurprise === "function" ? calLastSurprise() : null; if (su) bits.push(`<b>${xEsc(su.x.title)}</b> ${xEsc(su.a.txt)} vs ${xEsc(su.x.forecast)} (${su.a.word})`);
+  const RK = riskRead(); if (RK.level) bits.unshift(`<b class="${RK.level === 2 ? "dn" : "fam"}" title="${xEsc(RK.items.map(x => x.txt).join("\n"))}">⚠ Event risk: ${xEsc(RK.items[0].short)}</b>`);
   const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
   const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from its six currencies (EUR, JPY, GBP, CAD, SEK, CHF); SEK needs your broker">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
     <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;

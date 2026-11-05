@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.26.1524">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.05.1116">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -707,6 +707,15 @@ section.mrow:has(.xstatcard){grid-template-columns:1fr}.xstatcard .xstat{grid-te
 .xmtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .xmtabs button{border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;cursor:pointer}
 .xmtabs button.on{border-color:var(--accent);background:var(--pill);color:var(--strong)}
+.ppgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;margin-top:8px}
+.ppcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:7px}
+.pph{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.pph b{color:var(--strong);font-size:14.5px}.ppcor{margin-left:auto;font-size:11.5px;color:var(--mute);white-space:nowrap}.ppcor.loose{color:var(--amber)}
+.pprow{font-size:12.5px;display:flex;gap:4px 8px;flex-wrap:wrap;align-items:baseline}.ppl{min-width:74px}
+.pppick{border-radius:9px;padding:8px 10px;cursor:pointer;background:color-mix(in srgb,var(--green) 10%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,transparent)}
+.pppick.short{background:color-mix(in srgb,var(--red) 10%,transparent);border-color:color-mix(in srgb,var(--red) 35%,transparent)}.pppick:hover{filter:brightness(1.15)}
+.ppk{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-right:8px}.pppick b{font-size:15px;margin-right:8px}.pppick.long b{color:var(--green)}.pppick.short b{color:var(--red)}
+.ppck{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:11.5px;margin-top:5px}.ppck .ok{color:var(--green)}.ppck .no{color:var(--mute)}
+.ppalt,.ppno{font-size:12px;color:var(--mute)}.ppalt b{color:var(--text)}.ppmiss{grid-column:1/-1;margin-top:2px}
 .xmsec+.xmsec{margin-top:16px}.xmsech{margin:0 0 8px;font-size:15px;color:var(--strong)}
 @media (max-width:1100px){.momogrid{grid-template-columns:1fr}}
 .mname{color:var(--strong);font-weight:600}
@@ -884,6 +893,10 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .nwopts{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .nbbw .why{font-size:12.5px;color:var(--mute);margin:4px 0 10px}
 .nwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
+.riskbar{border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:6px 0 12px;background:var(--panel);font-size:13px}.riskbar.elev{border-color:color-mix(in srgb,var(--amber) 55%,transparent);background:color-mix(in srgb,var(--amber) 8%,var(--panel))}
+.riskbar.high{border-color:color-mix(in srgb,var(--red) 60%,transparent);background:color-mix(in srgb,var(--red) 9%,var(--panel))}.riskbar.calm b{color:var(--green)}.riskbar.elev b{color:var(--amber)}.riskbar.high b{color:var(--red)}
+.rkh{display:flex;gap:4px 10px;align-items:baseline;flex-wrap:wrap}.rkh .btn{margin-left:auto}.rkl{margin:6px 0 0;padding-left:18px;font-size:12.5px}.rkl li{margin:2px 0}.rkup{margin-top:6px}
+.rkdel{background:none;border:0;color:var(--mute);cursor:pointer;font-size:14px;padding:0 2px}.rkform{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.rkform input{background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:5px 7px;font:inherit;font-size:12.5px}.rkform #rkT{flex:1;min-width:200px}.rkform #rkN{width:52px}
 @media (max-width:760px){.nwgrid{grid-template-columns:1fr}.nbbw .why{display:none}.nwopts{margin-left:0}}
 .nwcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);min-width:0}
 .nwcard.on{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
@@ -902,11 +915,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .nwedit{border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 12px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
 .nwer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nwer label{display:flex;gap:4px;align-items:center;font-size:13px}.nweacts{display:flex;gap:8px;align-items:center}
 .fundcard .momohead{gap:10px}.fstrip{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;margin:4px 0 10px;background:var(--pill);border:1px solid var(--line);border-radius:10px;font-variant-numeric:tabular-nums;font-size:13px}
-.fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w p n";gap:10px;font-variant-numeric:tabular-nums}
-.fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}
+.fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w p n" "s s s";gap:10px;font-variant-numeric:tabular-nums}
+.fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}.fseasp{grid-area:s}
+.fseasw{overflow-x:auto}.fseas td.fsc{text-align:center;padding:5px 2px;font-size:11.5px;min-width:30px}.fseas td.fsc.now{outline:1px solid var(--accent);outline-offset:-1px}.fseas td:first-child{white-space:nowrap}
 .fph{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--line);color:var(--accent);font:700 11.5px var(--font);letter-spacing:.05em;text-transform:uppercase}.fph span{margin-left:auto;color:var(--mute);font-weight:500;letter-spacing:0;text-transform:none}.fph.fsub{border-top:1px solid var(--line)}
 .ftbl{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px}.ftbl td{padding:5px 11px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.ftbl td.r{text-align:right}.ftbl tr:hover{background:transparent}.ftbl tr.fclk{cursor:pointer}.ftbl tr.fclk:hover{background:var(--hover)}
-.fworld .ftbl td{padding:5px 7px}.fworld .ftbl td:first-child{padding-left:11px;white-space:normal}.fnewsp .ftbl td{white-space:normal;padding:5px 8px}.fnewsp .ftbl td.r{font-size:11.5px}.fp{overflow:hidden}
+.fworld .ftbl td{padding:5px 7px}.fworld .ftbl td:first-child{padding-left:11px;white-space:normal}.fcb .ftbl td{padding:5px 7px}.fcb .ftbl td:first-child{padding-left:11px}.fcb .ftbl td:last-child{padding-right:11px}.fnewsp .ftbl td{white-space:normal;padding:5px 8px}.fnewsp .ftbl td.r{font-size:11.5px}.fp{overflow:hidden}
 .ftbl .fgrp{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:9px}.fam{color:var(--accent)}
 .fk{display:inline-block;padding:0 6px;border-radius:4px;background:var(--pill);color:var(--mute);font-size:11px;font-weight:600}.fk.up{color:var(--green)}.fk.dn{color:var(--red)}
 .fbar{height:8px;background:var(--pill);border-radius:4px;position:relative;overflow:hidden}.fbar i{position:absolute;top:0;bottom:0}
@@ -920,9 +934,9 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fcard .ft{display:flex;align-items:baseline;gap:8px}.fcard .ft b{font:700 14px var(--display);color:var(--strong)}.fcard .ft .fpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13px}
 .fverd{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--pill);color:var(--mute)}.fverd.up{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}.fverd.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
 .fwhy{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.35}.fwhy li{display:flex;gap:6px}.fwhy li i{font-style:normal;flex:none;width:12px}.fwatch{font-size:12px;color:var(--amber)}
-@media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
-@media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
+@media (max-width:1200px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1420px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p" "s s"}}
+@media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p" "s"}@media (max-width:760px){.fseas td.fsc{display:none}}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
 .calviews{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden}.calviews button{background:transparent;border:0;color:var(--mute);font:500 12px var(--font);padding:5px 11px;cursor:pointer}.calviews button+button{border-left:1px solid var(--pill-b)}.calviews button.on{background:var(--pill);color:var(--accent)}
 .calnav{display:flex;align-items:center;gap:8px;margin:4px 0 10px}.calnav b{font-size:15px;color:var(--strong);margin-left:4px}.calnav .btn{min-width:30px}
@@ -1079,7 +1093,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   <div class="subline"><span id="title">Binance Perpetuals</span><span>·</span><span class="clock" id="clock">Loading time…</span></div>
   <div class="layout"><main>
 
-  <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch bots backtest nbbwatch macroov macromomo macro">   <!-- scan settings: only where they change what you see -->
+  <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch bots backtest nbbwatch macroov macromomo macropair macro">   <!-- scan settings: only where they change what you see -->
     <button class="pillsum" id="pillSum" aria-expanded="false" aria-controls="exF"><span id="pillSumT">Scan settings</span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
     <label class="pill"><span>Exchange</span><select id="exF"><option value="binance" selected>Binance</option><option value="bybit">Bybit</option><option value="mexc">MEXC</option></select></label>
     <label class="pill"><span>Market</span><select id="market"><option value="futures" selected>Futures</option><option value="spot">Spot</option></select></label>
@@ -1174,6 +1188,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
       <span class="nwopts"><label class="tog"><input type="checkbox" id="nwBase"> Alert when a base forms</label><label class="tog"><input type="checkbox" id="nwOutside"> Outside sessions too</label>
       <button class="btn sm" id="nwPhone">📱 Phone alerts</button><button class="btn sm" id="nwEditB">Edit watch list</button></span></div>
     <div class="why">The next-base breakout on your trading timeframes: Gold on M5 through London, the Nasdaq on M1 at the US open. Read on closed candles from your broker (cTrader) when connected, otherwise MEXC or Binance. A trigger is a displacing close out of a base of 6+ candles; entry at that close, stop beyond the far side of the base, target 3R. Checks show whether it's with the trend, whether the base was swept first, whether there's room, and whether high-impact news is close.</div>
+    <div id="riskBar" class="riskbar calm" aria-live="polite"></div>
     <div id="nwEdit" class="nwedit" hidden></div>
     <div id="nwGrid" class="nwgrid"><div class="empty">Loading…</div></div>
   </section>
@@ -1192,10 +1207,10 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="fstrip" id="fundStrip"></div>
     <div id="fundRead"></div>
     <div class="fgrid" id="fundBody"><div class="empty">Loading…</div></div>
-    <p class="meta">Sources: your price feeds (cTrader, MEXC/Binance), US Treasury yields, FRED (free key), CFTC positioning, CoinGecko and Alternative.me, Forex Factory, and news RSS (FXStreet, MarketWatch, Investing.com, CoinDesk). Positioning and headlines go through the Mac app's relay or the web version's.</p>
+    <p class="meta">Sources: your price feeds (cTrader, MEXC/Binance), US Treasury yields, FRED (free key), BIS policy rates, ECB and Japan Ministry of Finance bond yields, CFTC positioning, CoinGecko and Alternative.me, Forex Factory, and news RSS (FXStreet, MarketWatch, Investing.com, CoinDesk). Rates, positioning and headlines go through the Mac app's relay or the web version's.</p>
   </section>
 
-  <section class="card macrocard xovhead" data-page="macroov macromomo">
+  <section class="card macrocard xovhead" data-page="macroov macromomo macropair">
     <div class="momohead"><h2 id="xovTitle">Forex, Metals &amp; Indices</h2><span class="meta xmeta">Binance TradFi perpetuals</span>
       <button class="btn xrun" style="margin-left:auto">Refresh</button></div>
     <div class="ctbar xctbar"></div>
@@ -1219,7 +1234,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   </section>
   <section class="xmovers" data-page="macroov">
     <div class="mcard" data-xc="fx"><div class="xmh"><h2>Forex <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Forex movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_fx"><div class="empty">Loading…</div></div></div>
-    <div class="mcard" data-xc="cmd"><div class="xmh"><h2>Metals &amp; Energy <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Metals &amp; Energy movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_cmd"><div class="empty">Loading…</div></div></div>
+    <div class="mcard" data-xc="cmd"><div class="xmh"><h2>Commodities <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Commodities movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_cmd"><div class="empty">Loading…</div></div></div>
     <div class="mcard" data-xc="idx"><div class="xmh"><h2>Indices <span class="meta">top 10 · 24h</span></h2><div class="xseg" role="group" aria-label="Indices movers"><button data-xm="g" class="on" aria-pressed="true">Gainers</button><button data-xm="l" aria-pressed="false">Losers</button></div></div><div class="xml" id="xMv_idx"><div class="empty">Loading…</div></div></div>
   </section>
 
@@ -1231,6 +1246,12 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
     <div class="why">The same three stages as the coin board: already running, pausing after a push, and starting a new trend out of bunched moving averages. Each instrument is listed in its strongest stage; stretched ones (3+ ATR from the 20) are flagged so you wait for a pullback instead of chasing. When your cTrader account is connected, its prices are used for anything it also lists.</div>
     <div class="xmtabs" id="xMomoTabs" role="tablist" aria-label="Asset class"></div>
     <div id="xMomo"><div class="empty">Loading…</div></div>
+  </section>
+
+  <section class="card ppwrap" data-page="macropair">
+    <div class="momohead"><h2>Pair Picker</h2><span class="meta">Markets that move together: which one to trade right now</span></div>
+    <div class="why">Pairs like EUR/USD and GBP/USD mostly move together, so pick the better one. First, which way the shared side leans (the dollar from its index and every dollar pair, the yen, or the stocks and metals trend). Then which of the two is stronger, from their cross or ratio (EUR/GBP, Gold ÷ Silver) since the session opened, over 24 hours and on the 1H and 4H moving averages. Selling the dollar: buy the stronger one. Buying it: sell the weaker one. Crosses and ratios are worked out from the two charts, so they work without your broker too.</div>
+    <div id="ppBody" class="ppgrid"><div class="empty">Loading…</div></div>
   </section>
 
   <section class="card macrocard" id="macro" data-page="macro">
@@ -2337,6 +2358,19 @@ function momentum(r) {                             // 0–100: RSI alignment 40,
 }
 
 /* ---- per-coin analysis (1H / 4H / Daily) ---- */
+function adrOf(kd, n = 14) {                      // average daily range (high minus low) of the last n full days; stub days (a Sunday open) left out
+  if (!kd || kd.t.length < 6) return null; const r = kd.h.map((h, i) => h - kd.l[i]).slice(-n - 6), med = [...r].sort((a, b) => a - b)[r.length >> 1];
+  const ok = r.filter(x => x > 0 && x >= med / 3).slice(-n); return ok.length >= 5 ? ok.reduce((a, b) => a + b, 0) / ok.length : null;
+}
+function dayRange(kd, ks) {                        // today so far: high and low of the closed candles since the current daily candle opened, against the average day
+  const adr = adrOf(kd); if (!adr) return null; const start = kd.t.at(-1) + 864e5; let hi = -Infinity, lo = Infinity;
+  ks.filter(Boolean).forEach(k => k.t.forEach((t, i) => { if (t >= start) { if (k.h[i] > hi) hi = k.h[i]; if (k.l[i] < lo) lo = k.l[i]; } }));
+  return { adr, start, hi: isFinite(hi) ? hi : null, lo: isFinite(lo) ? lo : null };
+}
+function dayUsed(d, px) {                          // the share of an average day's range covered so far, the live price included (null on a closed market)
+  if (!d || d.hi == null || !d.adr) return null; const hi = px != null && isFinite(px) ? Math.max(d.hi, px) : d.hi, lo = px != null && isFinite(px) ? Math.min(d.lo, px) : d.lo;
+  return { pct: Math.round((hi - lo) / d.adr * 100), hi, lo, adr: d.adr };
+}
 async function analyse(c, maFn) {
   const [k1h, k4h, k1d, k15] = await Promise.all([klines(c.symbol, "1h", 400), klines(c.symbol, "4h", 160), klines(c.symbol, "1d", 130),
                                                  klines(c.symbol, "15m", 200).catch(() => null)]);
@@ -2356,7 +2390,9 @@ async function analyse(c, maFn) {
   const dayParts = { structure: r1(s1h.pts * 0.8), rvol: r1(rvNowPts), vol: r1(volPts * 0.6), rs: 0, loc: lp };
   const swingParts = { structure: r1(0.5 * s4h.pts + 0.5 * s1d.pts), rvol: r1(rvolPts * 0.8), vol: r1(volPts * 0.6), rs: 0 };
   const sum = o => r1(Object.values(o).reduce((a, b) => a + b, 0));
-  return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
+  const intra = CT_SYMS.has(c.symbol) || TRADFI_SYMS.has(c.symbol) || isMX(c.symbol), kq = k15 && k15.t.length ? k15 : k1h;     // forex, metals, indices: opens for "since the session opened"
+  return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, day: dayRange(k1d, [k1h, k15]), ...(intra ? { opens: { t: kq.t.slice(kq === k15 ? -120 : -30), o: kq.o.slice(kq === k15 ? -120 : -30) },
+             c1: { t: k1h.t.slice(-220), c: k1h.c.slice(-220) }, c4: { t: k4h.t.slice(-160), c: k4h.c.slice(-160) } } : {}),   /* closes for the Pair Picker's crosses and ratios */ rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
            session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
@@ -2372,10 +2408,11 @@ const CT = { ws: null, state: "off", err: null, seq: 0, pending: new Map(), hb: 
              symbols: {}, byId: {}, broker: "", onSpot: null, connecting: null };
 const CT_KEY = "finder-ctrader";
 const CT_HOST = live => `wss://${live ? "live" : "demo"}.ctraderapi.com:5036`;
-const CT_PERIOD = { "15m": 7, "1h": 9, "4h": 10, "1d": 12 }, CT_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
-const CT_SPAN = { "15m": 7 * 86400e3, "1h": 35 * 86400e3, "4h": 120 * 86400e3, "1d": 365 * 86400e3 };   // calendar span per request (weekends included)
+const CT_PERIOD = { "15m": 7, "1h": 9, "4h": 10, "1d": 12, "1M": 14 }, CT_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3, "1M": 30.44 * 86400e3 };
+const CT_SPAN = { "15m": 7 * 86400e3, "1h": 35 * 86400e3, "4h": 120 * 86400e3, "1d": 365 * 86400e3, "1M": 5 * 365.25 * 86400e3 };   // calendar span per request (weekends included)
 const FX_PAIRS = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
   "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"];
+const FX_MORE = ["USDCNH", "USDSEK", "USDNOK", "USDMXN", "USDZAR", "USDSGD"];      // other dollar pairs: they count in the dollar's read, not in the 8-currency strength meter
 const CT_CFD = [      // [name (same as the exchange rows), broker symbol aliases, TradingView fallback, group]
   ["Gold", ["XAUUSD", "GOLD"], "OANDA:XAUUSD", "Metals"], ["Silver", ["XAGUSD", "SILVER"], "OANDA:XAGUSD", "Metals"],
   ["Platinum", ["XPTUSD", "PLATINUM"], "OANDA:XPTUSD", "Metals"], ["Palladium", ["XPDUSD", "PALLADIUM"], "OANDA:XPDUSD", "Metals"],
@@ -2388,12 +2425,17 @@ const CT_CFD = [      // [name (same as the exchange rows), broker symbol aliase
   ["Nikkei 225", ["JPN225", "JP225", "NIKKEI225", "JAPAN225"], "OANDA:JP225USD", "Indices"], ["Hang Seng", ["HK50", "HSI", "HONGKONG50", "HK33"], "TVC:HSI", "Indices"],
   ["DAX 40", ["GER40", "DE40", "GER30", "DAX40", "DE30"], "XETR:DAX", "Indices"], ["FTSE 100", ["UK100", "FTSE100"], "TVC:UKX", "Indices"],
   ["Euro Stoxx 50", ["EUSTX50", "EU50", "STOXX50", "ESTX50"], "TVC:SX5E", "Indices"], ["CAC 40", ["FRA40", "FR40", "CAC40"], "TVC:CAC40", "Indices"],
-  ["ASX 200", ["AUS200", "AU200", "ASX200"], "TVC:XJO", "Indices"], ["US Dollar Index", ["USDX", "DXY", "USDINDEX"], "TVC:DXY", "Indices"]];
+  ["ASX 200", ["AUS200", "AU200", "ASX200"], "TVC:XJO", "Indices"], ["US Dollar Index", ["USDX", "DXY", "USDINDEX"], "TVC:DXY", "Indices"],
+  // grains and softs: full names only (short codes like KC or CC can clash with share tickers)
+  ["Corn", ["CORN", "CORNUSD"], "CBOT:ZC1!", "Commodities"], ["Wheat", ["WHEAT", "WHEATUSD"], "CBOT:ZW1!", "Commodities"], ["Soybeans", ["SOYBEANS", "SOYBEAN", "SOYBEANUSD"], "CBOT:ZS1!", "Commodities"],
+  ["Coffee", ["COFFEE", "COFFEEUSD", "COFFEEARABICA"], "ICEUS:KC1!", "Commodities"], ["Cocoa", ["COCOA", "COCOAUSD"], "ICEUS:CC1!", "Commodities"], ["Sugar", ["SUGAR", "SUGARUSD", "SUGARRAW"], "ICEUS:SB1!", "Commodities"],
+  ["Cotton", ["COTTON", "COTTONUSD"], "ICEUS:CT1!", "Commodities"]];
 const CT_ALIAS = { "Gold": "XAU", "Silver": "XAG", "WTI Crude Oil": "CL", "S&P 500": "SPY", "Nasdaq 100": "QQQ" };   // so the macro read-out finds them
 const ctPrefer = () => ctConfigured() && (ctCfg() || {}).prefer !== false;          // use the broker's prices wherever it lists the market
 function ctList() {                                       // the broker markets The Finder reads: 28 forex pairs plus metals, energy and indices
   const list = [];
   FX_PAIRS.forEach(p => { const x = CT.symbols[p]; if (x) list.push({ x, name: p.slice(0, 3) + "/" + p.slice(3), group: "Forex", fb: "FX:" + p }); });
+  FX_MORE.forEach(p => { const x = CT.symbols[p]; if (x) list.push({ x, name: p.slice(0, 3) + "/" + p.slice(3), group: "Other Forex", fb: "FX:" + p }); });
   CT_CFD.forEach(([name, al, fb, group]) => { const x = al.map(a => CT.symbols[a]).find(Boolean); if (x) list.push({ x, name, group, fb, alias: CT_ALIAS[name] || null }); });
   return list;
 }
@@ -4439,7 +4481,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.26.1524";
+const APP_VERSION = "2026.11.05.1116";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6217,7 +6259,7 @@ run();
 /* ===================== Notification center: bell + drawer + toast cards ===================== */
 const NC_KEY = "finder-notifs", NC_DAYS = 7, NC_STATE = { filter: "All", ctErr: null, toasts: [] };
 const NC_TONE = { up: "var(--green)", down: "var(--red)", gold: "var(--accent)", blue: "var(--blue)", warn: "var(--amber)" };
-const NC_KINDS = ["All", "NBB Watch", "News", "Breakouts", "Setups", "Price", "Bots", "System"];
+const NC_KINDS = ["All", "NBB Watch", "Event risk", "News", "Breakouts", "Setups", "Price", "Bots", "System"];
 let NC = [];
 try { NC = JSON.parse(localStorage.getItem(NC_KEY) || "[]"); } catch (e) { NC = []; }
 const ncSave = () => { try { localStorage.setItem(NC_KEY, JSON.stringify(NC)); } catch (e) {} };
@@ -6330,7 +6372,7 @@ ncPrune(); ncSave(); ncRenderBell();
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"], ["fund", "Fundamentals"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
-  { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
+  { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macropair", "Pair Picker", "Pair Picker: Which Correlated Market to Trade"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
   { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
@@ -6338,7 +6380,7 @@ const PAGES = [
 const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
 const PAGE_INFO = {};
 PAGES.forEach(g => g.items.forEach(([id, label, title]) => PAGE_INFO[id] = { g: g.g, label, title: title || label }));
-const MACRO_PAGES = ["macro", "macroov", "macromomo"];
+const MACRO_PAGES = ["macro", "macroov", "macromomo", "macropair"];
 let page = "overview";
 function pageGroupName(g) { return g.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
 function renderNav() {
@@ -6388,6 +6430,7 @@ function navBadges() {
   set("screener", has ? data.all.length : "");
   { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n || MACRO.rows.length) : ""); }
   if (MACRO.rows.length) { const R = xMomoRows(xRows()); set("macromomo", R.momentum.length + R.awaiting.length + R.breakout.length); } else set("macromomo", "");
+  set("macropair", MACRO.rows.length && typeof ppGroups === "function" ? ppGroups(xRows()).filter(g => g.pick).length || "" : "");
   const fa = typeof activeFilters === "function" ? activeFilters().length : 0;
   set("filters", fa ? fa + " on" : "");
   let w = 0, al = 0;
@@ -6443,7 +6486,7 @@ try { if (localStorage.getItem("finder-navcol") === "1") navCollapse(true); } ca
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h && h !== page) goPage(h); });
 
 /* ===================== Gold, Oil & Indices page ===================== */
-const MACRO_GROUPS = ["Forex", "MEXC Forex", "Metals", "Energy", "Commodities", "Indices", "US Indices"];
+const MACRO_GROUPS = ["Forex", "MEXC Forex", "Other Forex", "Metals", "Energy", "Commodities", "Indices", "US Indices"];
 const macroSrcName = r => r.ct ? (CT.broker || "Broker") : r.mx ? "MEXC" : "Binance";
 const MACRO_TITLE = (g, rs = []) => `${g === "MEXC Forex" ? (MACRO.rows.some(r => r.group === "Forex") ? "More Forex" : "Forex") : g} <span class="meta">${[...new Set(rs.map(macroSrcName))].join(" + ")}</span>`;
 function fxSession(ms) {                              // forex: Sunday 5 PM to Friday 5 PM New York time
@@ -6499,13 +6542,17 @@ function macroReadHTML() {
   if (cs.length >= 4) chips.unshift(`<span class="mchip">Currency strength 24h ${cs.map(([c, v]) => `<b class="${v >= 0 ? "up" : "dn"}">${c} ${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}%</b>`).join(" ")}</span>`);
   return chips.join("") + (chips.length ? `<span class="meta">Trend = 4H and Daily stacks agree</span>` : "");
 }
+function dayTag(r) {                               // how much of an average day's range is already covered; 90%+ means most of the usual move is done
+  const u = dayUsed(r.day, r.price); if (!u) return "";
+  return `<span class="tag${u.pct >= 90 ? " flag" : ""}" title="Today's high to low so far is ${u.pct}% of an average day (${fmtPrice(u.adr)}, last 14 days).${u.pct >= 90 ? " Most of the usual move is done: breakouts often stall." : ""}">Day range ${u.pct}%</span>`;
+}
 function macroRowHTML(r, i) {
   const p = coinPlay(r), m = r.momo;
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
     <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${coin(r.symbol)}</span>${MACRO.rows.some(x => x.ct) && !r.ct ? `<span class="tag" title="Your broker doesn't list this one, so it comes from ${macroSrcName(r)}">${macroSrcName(r)}</span>` : ""}${mxInvTag(r)}${ratingHTML(r.rating)}</div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span>${m ? ` <span class="tag ${m.dir === "Long" ? "long" : "short"}">${MOMO_STAGE[m.stage]}</span>` : ""}</div>
       <div class="ln mstk"><span>1H ${chip(r.s1h)} 4H ${chip(r.s4h)} D ${chip(r.s1d)}</span><span class="rsis">RSI 1H ${rsiChip(r.rsi && r.rsi.h1)} 4H ${rsiChip(r.rsi && r.rsi.h4)}</span></div>
-      <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""}</div></div>
+      <div class="ln">${p.short}${p.kind === "setup" && p.lv && p.lv.trig ? ' <span class="tag long trig">Triggered</span>' : ""}${r.wicky ? ' <span class="tag flag">Wicky</span>' : ""} ${dayTag(r)}</div></div>
     <span class="sc" title="Day score">${r.dayScore}</span>${chartBtn(r.symbol)}</div>`;
 }
 function renderMacro() {
@@ -6600,11 +6647,20 @@ const X_CLASS = {
   "Precious metals": ["Gold", "Silver", "Platinum", "Palladium"],
   "Industrial metals": ["Copper", "Aluminium", "Nickel", "Zinc", "Lead"],
   "Energy": ["WTI Crude Oil", "Brent Crude Oil", "Natural Gas"],
+  "Grains & softs": ["Corn", "Wheat", "Soybeans", "Coffee", "Cocoa", "Sugar", "Cotton"],
   "US stocks": ["S&P 500", "Nasdaq 100", "Dow Jones", "Russell 2000", "Semiconductors"],
   "Asian stocks": ["Nikkei 225", "Hang Seng", "KOSPI", "ASX 200"],
   "European stocks": ["DAX 40", "FTSE 100", "Euro Stoxx 50", "CAC 40"],
 };
-const xRet = (r, w) => w === "24h" ? r.chg24h : w === "7d" ? (r.ret7 == null ? null : r.ret7 * 100) : (r.ret30 == null ? null : r.ret30 * 100);
+const X_SESS = [["Asia", 480], ["London", 720], ["New York", 1290]];        // major session opens, minutes after midnight PHT
+function xSessStart(now = Date.now()) {           // the latest of them: Asia 8 AM, London 12 PM or New York 9:30 PM (PHT)
+  const d0 = now - ((now + PHT_MS) % 864e5); let best = null;
+  [0, -1].forEach(b => X_SESS.forEach(([name, m]) => { const t = d0 + b * 864e5 + m * 60e3; if (t <= now && (!best || t > best.t)) best = { name, t }; }));
+  return best;
+}
+const xSessRet = (r, t0) => { const k = r.opens; if (!k || !k.t.length || !(r.price > 0)) return null; const i = k.t.findIndex(t => t >= t0);      // the first candle at or after the open
+  return i < 0 || k.t[i] - t0 > 30 * 60e3 || !(k.o[i] > 0) ? null : (r.price / k.o[i] - 1) * 100; };
+const xRet = (r, w) => w === "sess" ? xSessRet(r, xSessStart().t) : w === "24h" ? r.chg24h : w === "7d" ? (r.ret7 == null ? null : r.ret7 * 100) : (r.ret30 == null ? null : r.ret30 * 100);
 const avg = a => { const v = a.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((p, x) => p + x, 0) / v.length : null; };
 function xClassRet(rows, cls, w) { const ns = X_CLASS[cls]; return avg(rows.filter(r => ns.includes(r.name)).map(r => xRet(r, w))); }
 function xCcy(rows, w) {                               // each currency's change against the others it's quoted with, averaged
@@ -6643,7 +6699,7 @@ function xMoverRow(r, i) {
   return `<div class="mv" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span><div class="xinst"><b>${r.name.replace(/ \(.*\)$/, "")}</b><span class="meta">${(r.group || "").replace(/^MEXC /, "")}</span></div>
     <span class="mvp" data-mp="${r.symbol}">${fmtPrice(r.price)}</span><span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span></div>`;
 }
-const X_CLASSES = [["fx", "Forex"], ["cmd", "Metals & Energy"], ["idx", "Indices"]];
+const X_CLASSES = [["fx", "Forex"], ["cmd", "Commodities"], ["idx", "Indices"]];
 const xClassOf = r => /Forex/.test(r.group || "") ? "fx" : /Indices/.test(r.group || "") ? "idx" : "cmd";
 const XMV = { fx: "g", cmd: "g", idx: "g" };
 function renderXMovers(rows) {
@@ -6692,13 +6748,22 @@ function xFlowRead(rows) {                            // risk-on / risk-off, the
   return { key, label: L[0], cls: L[1], desc: L[2], invalid: L[3], checks: key === "off" ? off : on, other: key === "off" ? on : off, themes, cc, cl, W,
     lead: lead.slice(0, 6), lag: lead.slice(-6).reverse(), eqName };
 }
+let XCS = (() => { try { return localStorage.getItem("finder-xcs") || "sess"; } catch (e) { return "sess"; } })();
+function xCsHTML(rows) {                           // currency strength over the chosen window: since the session opened, 24 hours or 7 days
+  const S = xSessStart(), w = ["sess", "24h", "7d"].includes(XCS) ? XCS : "sess", L = Object.entries(xCcy(rows, w)).filter(([, v]) => v != null).sort((a, b) => b[1] - a[1]);
+  const sc = Math.max(...L.map(x => Math.abs(x[1])), { sess: 0.15, "24h": 0.4, "7d": 1.2 }[w]);          // the strongest mover fills the bar
+  const bar = (c, v) => { const wd = Math.min(50, Math.abs(v) / sc * 50);
+    return `<div class="xbar"><span class="xc">${c}</span><span class="xtrack"><i class="${v >= 0 ? "up" : "dn"}" style="${v >= 0 ? "left:50%" : `left:${50 - wd}%`};width:${wd}%"></i></span><span class="xv">${sgn(v)}</span></div>`; };
+  const lbl = { sess: `since ${S.name} opened (${phtHM(S.t)})`, "24h": "24 hours", "7d": "7 days" }[w];
+  const tabs = [["sess", "Session"], ["24h", "24h"], ["7d", "7d"]].map(([k, l]) => `<button data-xcs="${k}" class="${k === w ? "on" : ""}" aria-pressed="${k === w}">${l}</button>`).join("");
+  return `<div class="xmh xcsh"><h3 class="pbh3">Currency Strength <span class="meta">${lbl}, vs the others</span></h3><div class="xseg" role="group" aria-label="Currency strength window">${tabs}</div></div>
+    <div class="xbars">${L.length >= 3 ? L.map(([c, v]) => bar(c, v)).join("") : `<div class="empty">${w === "sess" && Date.now() - S.t < 20 * 60e3 ? `${S.name} just opened: this fills in at the next refresh.` : "Not enough data for this window yet (markets closed?)."}</div>`}</div>`;
+}
 function renderXFlow(rows) {
   const el = $("xFlow"), R = xFlowRead(rows);
   const ck = c => `<li class="${c.pass === true ? "ok" : c.pass === false ? "no" : "na"}"><span>${c.pass === true ? "✓" : c.pass === false ? "✗" : "–"}</span><b>${c.name}</b> ${c.val} <span class="mute">needs ${c.need}</span></li>`;
   const line = (name, by) => `<span>${name}</span>${R.W.map(w => `<span>${sgn(by[w])}</span>`).join("")}`;
   const ccys = Object.keys(R.cc["7d"]).sort((a, b) => (R.cc["7d"][b] ?? -99) - (R.cc["7d"][a] ?? -99));
-  const bar = (c, v) => { const w = v == null ? 0 : Math.min(50, Math.abs(v) / 3 * 50);
-    return `<div class="xbar"><span class="xc">${c}</span><span class="xtrack"><i class="${v >= 0 ? "up" : "dn"}" style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%"></i></span><span class="xv">${sgn(v)}</span></div>`; };
   const chipR = r => `<button class="qchip" data-s="${r.symbol}">${r.name} <span>${sgn(r.ret7 * 100)}</span></button>`;
   el.innerHTML = `
     <div class="pbhead"><h2>Money Flow</h2><span class="pblabel ${R.cls}">${R.label}</span><span class="meta">last 7 days · ${rows.length} instruments</span></div>
@@ -6711,7 +6776,7 @@ function renderXFlow(rows) {
           ${Object.keys(X_CLASS).filter(k => R.W.some(w => R.cl[k][w] != null)).map(k => line(k, R.cl[k])).join("")}
           ${["USD", "JPY", "CHF"].filter(c => R.cc["7d"][c] != null).map(c => line(c === "USD" ? "US dollar" : c === "JPY" ? "Japanese yen" : "Swiss franc", Object.fromEntries(R.W.map(w => [w, R.cc[w][c]])))).join("")}
         </div>
-        ${ccys.length >= 3 ? `<h3 class="pbh3">Currency Strength <span class="meta">7 days, vs the others</span></h3><div class="xbars">${ccys.map(c => bar(c, R.cc["7d"][c])).join("")}</div>` : ""}
+        ${ccys.length >= 3 ? xCsHTML(rows) : ""}
       </div>
       <div>
         <h3 class="pbh3">${R.key === "mixed" ? "Risk-on Needs" : "Why " + R.label}</h3><ul class="rck">${R.checks.map(ck).join("")}</ul>
@@ -6723,6 +6788,7 @@ function renderXFlow(rows) {
     </div>
     <p class="meta rotnote">Stocks up with the yen and franc sold is the classic risk-on pattern, and the reverse is risk-off, but these links break often (gold and stocks can rise together when the dollar falls). This card reports only what the last 7 days show and what would change the read; it doesn't say what comes next. Forex on MEXC is quoted against USD only, so the currency strengths there lean on one pair each.</p>`;
   el.querySelectorAll("[data-s]").forEach(b => b.onclick = () => openDetail(b.dataset.s));
+  el.querySelectorAll("[data-xcs]").forEach(b => b.onclick = () => { XCS = b.dataset.xcs; try { localStorage.setItem("finder-xcs", XCS); } catch (e) {} renderXFlow(xRows()); });
 }
 
 function xMomoRows(rows) {
@@ -6744,7 +6810,7 @@ function xMomoRowHTML(x, i) {
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
     <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${(r.group || "").replace(/^MEXC /, "")}</span>${mxInvTag(r)}${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span> · ${momoLine(r, m)}</div>
-      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
+      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${dayTag(r)}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
 }
 let XMOMO_TAB = "all";
@@ -6763,21 +6829,103 @@ function renderXMomo(rows) {
   bindRows(el);
   momoAlerts(all.fresh);
 }
+/* ===================== Pair Picker: markets that move together, and which one to trade (triads like EUR/USD vs GBP/USD with EUR/GBP and the dollar) ===================== */
+// legs in cross order: [instrument, +1 when it prices the other side in the shared one (EUR/USD: euros in dollars) or -1 the other way round (USD/CHF), the other side]
+const PP_GROUPS = [
+  { c: "USD", legs: [["EUR/USD", 1, "EUR"], ["GBP/USD", 1, "GBP"]] }, { c: "USD", legs: [["AUD/USD", 1, "AUD"], ["NZD/USD", 1, "NZD"]] },
+  { c: "USD", legs: [["USD/CHF", -1, "CHF"], ["USD/JPY", -1, "JPY"]] }, { c: "USD", legs: [["EUR/USD", 1, "EUR"], ["USD/CHF", -1, "CHF"]] },
+  { c: "USD", legs: [["AUD/USD", 1, "AUD"], ["USD/CAD", -1, "CAD"]] }, { c: "JPY", legs: [["EUR/JPY", 1, "EUR"], ["GBP/JPY", 1, "GBP"]] },
+  { c: "JPY", legs: [["AUD/JPY", 1, "AUD"], ["NZD/JPY", 1, "NZD"]] },
+  { theme: "US stocks", ratio: "Nasdaq ÷ S&P 500", legs: [["Nasdaq 100", 1, "Nasdaq"], ["S&P 500", 1, "S&P 500"]] },
+  { theme: "Precious metals", ratio: "Gold ÷ Silver", legs: [["Gold", 1, "Gold"], ["Silver", 1, "Silver"]] }];
+const CCY_NAME = { USD: "dollar", EUR: "euro", GBP: "pound", JPY: "yen", CHF: "franc", AUD: "Aussie", NZD: "kiwi", CAD: "Canadian dollar" };
+const ppCcy = c => CCY_NAME[c] || c;
+const ppDir = st => { const d = stDir(st); return d === "Long" ? 1 : d === "Short" ? -1 : 0; };
+const ppSgn = (v, th) => v == null ? 0 : v > th ? 1 : v < -th ? -1 : 0;
+function ppAlign(a, b, key) {                      // both legs' log prices, turned to "the other side in the shared one", on the candles both have
+  const A = a.r[key], B = b.r[key]; if (!A || !B) return null; const m = new Map(B.t.map((t, i) => [t, B.c[i]])), out = [];
+  A.t.forEach((t, i) => { const y = m.get(t); if (y > 0 && A.c[i] > 0) out.push([a.o * Math.log(A.c[i]), b.o * Math.log(y)]); });
+  return out.length >= 30 ? out : null;
+}
+function ppStack(P) {                              // the cross or ratio's 20/50/100 stack: +1 rising, -1 falling, 0 neither
+  if (!P || P.length < 101) return 0; const v = P.map(p => Math.exp(p[0] - p[1])), e20 = ema(v, 20).at(-1), e50 = ema(v, 50).at(-1), e100 = ema(v, 100).at(-1), x = v.at(-1);
+  return e20 > e50 && e50 > e100 && x > e50 ? 1 : e20 < e50 && e50 < e100 && x < e50 ? -1 : 0;
+}
+function ppCorr(P, n = 120) {                      // how closely their hourly moves line up over about 5 days (1 = in step)
+  if (!P || P.length < 40) return null; const Q = P.slice(-n - 1), x = [], y = [];
+  for (let i = 1; i < Q.length; i++) { x.push(Q[i][0] - Q[i - 1][0]); y.push(Q[i][1] - Q[i - 1][1]); }
+  const mx = x.reduce((p, v) => p + v, 0) / x.length, my = y.reduce((p, v) => p + v, 0) / y.length; let sxy = 0, sxx = 0, syy = 0;
+  x.forEach((v, i) => { sxy += (v - mx) * (y[i] - my); sxx += (v - mx) ** 2; syy += (y[i] - my) ** 2; });
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
+}
+function ppLean(rows, g, legs) {                   // which way the shared side leans; v > 0 favours buying the two "other sides" (EUR and GBP, or gold and silver)
+  const st = r => (ppDir(r.s1h.state) + ppDir(r.s4h.state)) / 2;
+  if (!g.c) { const v = legs.reduce((p, l) => p + st(l.r), 0) / legs.length; return { v, word: v >= 0.34 ? "trending up" : v <= -0.34 ? "trending down" : "mixed" }; }
+  const bk = []; rows.filter(r => /Forex/.test(r.group || "")).forEach(r => { const p = String(r.pair || r.name.replace("/", "")).toUpperCase(), sg = p.slice(0, 3) === g.c ? 1 : p.slice(3, 6) === g.c ? -1 : 0; if (sg) bk.push(sg * st(r)); });
+  const dx = g.c === "USD" ? rows.find(r => r.name === "US Dollar Index") : null, idx = dx ? st(dx) : null, bv = bk.length ? bk.reduce((p, v) => p + v, 0) / bk.length : null;
+  const c = bv == null ? idx : idx == null ? bv : (bv + idx) / 2; if (c == null) return null;
+  return { v: -c, c, idx, n: bk.length, sess: xCcy(rows, "sess")[g.c], word: c >= 0.34 ? "strong" : c <= -0.34 ? "weak" : "mixed" };
+}
+function ppGroups(rows) {
+  const S = xSessStart();
+  return PP_GROUPS.map(g => {
+    const legs = g.legs.map(([name, o, x]) => { const r = rows.find(r => r.name === name); return r ? { r, o, x, name } : null; }); if (legs.some(l => !l)) return null;
+    const [a, b] = legs, P1 = ppAlign(a, b, "c1"), P4 = ppAlign(a, b, "c4"), lr = (l, pct) => pct == null ? null : l.o * Math.log(1 + pct / 100);
+    const rel = (x, y) => x == null || y == null ? null : (Math.exp(x - y) - 1) * 100;      // the cross or ratio's change in %
+    const sess = rel(lr(a, xSessRet(a.r, S.t)), lr(b, xSessRet(b.r, S.t))), d24 = rel(lr(a, a.r.chg24h), lr(b, b.r.chg24h));
+    const st1 = ppStack(P1), st4 = ppStack(P4), corr = ppCorr(P1), rs = ppSgn(sess, 0.03) + ppSgn(d24, 0.05) + st1 + st4;
+    const strong = rs > 0 ? a : rs < 0 ? b : null, weak = rs > 0 ? b : rs < 0 ? a : null, lean = ppLean(rows, g, legs);
+    const trade = (l, buy) => l ? { l, dir: (buy ? 1 : -1) * l.o > 0 ? "Long" : "Short" } : null;
+    const up = trade(strong, true), dn = trade(weak, false), side = lean && lean.v >= 0.34 ? 1 : lean && lean.v <= -0.34 ? -1 : 0;
+    return { g, a, b, S, sess, d24, st1, st4, rs, corr, raw: corr == null ? null : corr * a.o * b.o, lean, side, up, dn, pick: side > 0 ? up : side < 0 ? dn : null };
+  }).filter(Boolean);
+}
+function ppCardHTML(x) {
+  const { g, a, b, S, lean: L } = x, fx = !!g.c, nm = c => fx ? ppCcy(c) : c, dirW = v => v > 0 ? "up" : v < 0 ? "down" : "flat";
+  const lbl = t => `${t.dir} ${t.l.name}`, ok = (v, txt) => `<span class="${v ? "ok" : "no"}">${v ? "✓" : "✗"} ${txt}</span>`;
+  const tags = t => { const r = t.l.r, d = t.dir === "Long" ? 1 : -1, u = dayUsed(r.day, r.price);
+    return ok(ppDir(r.s1h.state) === d, "1H stack agrees") + ok(ppDir(r.s4h.state) === d, "4H agrees") + (u ? ok(u.pct < 90, `day range ${u.pct}% used`) : ""); };
+  const cor = x.raw == null ? "" : `<span class="ppcor ${Math.abs(x.corr) < 0.5 ? "loose" : ""}" title="How closely their hourly moves have lined up over about 5 days: 1 means in step, −1 mirror images. Under 0.5 they're not really moving together.">${Math.abs(x.corr) < 0.5 ? "loosely linked" : x.raw > 0 ? "move together" : "move opposite"} ${x.raw.toFixed(2)}</span>`;
+  const leanH = !L ? `<span class="mute">no read yet</span>` : fx
+    ? `<b class="${L.c >= 0.34 ? "up" : L.c <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">${L.idx != null ? `index ${dirW(L.idx)} · ` : ""}${L.n} pairs on 1H/4H${L.sess != null ? ` · ${g.c} ${sgn(L.sess)} since ${S.name} opened` : ""}</span>`
+    : `<b class="${L.v >= 0.34 ? "up" : L.v <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">both on 1H and 4H</span>`;
+  const who = x.rs > 0 ? `${nm(a.x)} stronger` : x.rs < 0 ? `${nm(b.x)} stronger` : "neither clearly stronger";
+  const ifUp = fx ? `Selling the ${ppCcy(g.c)}` : "Going long", ifDn = fx ? `Buying the ${ppCcy(g.c)}` : "Going short";
+  const turn = x.side > 0 ? (fx ? `the ${ppCcy(g.c)} turns up` : `${g.theme.replace(/^Precious/, "precious")} turn down`) : (fx ? `the ${ppCcy(g.c)} turns down` : `${g.theme.replace(/^Precious/, "precious")} turn up`);
+  let pick;
+  if (x.pick) pick = `<div class="pppick ${x.pick.dir === "Long" ? "long" : "short"}" data-s="${x.pick.l.r.symbol}" role="button" tabindex="0" title="Open the chart"><span class="ppk">Pick</span><b>${lbl(x.pick)}</b>
+      <span class="meta">${x.side > 0 ? `${fx ? `${ifUp}: buy` : "Going long: buy"} the stronger one` : `${fx ? `${ifDn}: sell` : "Going short: sell"} the weaker one`}</span><div class="ppck">${tags(x.pick)}</div></div>
+      ${(x.side > 0 ? x.dn : x.up) ? `<div class="ppalt">If ${turn}: ${lbl(x.side > 0 ? x.dn : x.up)}</div>` : ""}`;
+  else if (x.up) pick = `<div class="ppno">${x.side ? "" : `No clear lean${fx ? ` on the ${ppCcy(g.c)}` : ""} yet: wait, or go with your own read.`}</div><div class="ppalt">${ifUp}: <b>${lbl(x.up)}</b> · ${ifDn}: <b>${lbl(x.dn)}</b></div>`;
+  else pick = `<div class="ppno">Neither is clearly stronger, so there's no edge in picking one: either works${x.side ? "" : ", or wait"}.</div>`;
+  return `<div class="ppcard"><div class="pph"><b>${a.name} vs ${b.name}</b>${cor}</div>
+    <div class="pprow"><span class="mute ppl">${fx ? `The ${ppCcy(g.c)}` : g.theme}</span>${leanH}</div>
+    <div class="pprow"><span class="mute ppl">${fx ? `${a.x}/${b.x}` : g.ratio}</span><b class="${x.rs ? "" : "mute"}">${who}</b> <span class="meta">${sgn(x.sess)} since ${S.name} · ${sgn(x.d24)} 24h · 1H ${dirW(x.st1)} · 4H ${dirW(x.st4)}</span></div>
+    ${pick}${x.raw != null && Math.abs(x.corr) < 0.5 ? `<div class="ppalt">They aren't moving together lately${x.pick ? ", so treat this pick lightly" : ": read each chart on its own"}.</div>` : ""}</div>`;
+}
+function renderPP(rows) {
+  const el = $("ppBody"); if (!el) return;
+  const G = ppGroups(rows), have = new Set(rows.map(r => r.name)), miss = PP_GROUPS.filter(g => g.legs.some(l => !have.has(l[0]))).map(g => g.legs.map(l => l[0]).join(" vs "));
+  el.innerHTML = (G.length ? G.map(ppCardHTML).join("") : `<div class="empty">None of these markets are loaded here.</div>`)
+    + (miss.length ? `<div class="ppmiss meta">Not available from this feed: ${miss.join(", ")}. Connecting cTrader brings in all of them.</div>` : "");
+  el.querySelectorAll("[data-s]").forEach(b => { b.onclick = () => openDetail(b.dataset.s); b.onkeydown = e => { if (e.key === "Enter") openDetail(b.dataset.s); }; });
+}
+setInterval(() => { if (page === "macropair" && !document.hidden && MACRO.rows.length) renderPP(xRows()); }, 30e3);
 function renderMacroBoards() {
-  if (page !== "macroov" && page !== "macromomo") { if (MACRO.rows.length && !MACRO.running) momoAlerts(xMomoRows(xRows()).fresh); return; }   // off-screen: just the breakout alerts
+  if (page !== "macroov" && page !== "macromomo" && page !== "macropair") { if (MACRO.rows.length && !MACRO.running) momoAlerts(xMomoRows(xRows()).fresh); return; }   // off-screen: just the breakout alerts
   const meta = $("macroMeta") ? $("macroMeta").textContent : "";
   document.querySelectorAll(".xmeta").forEach(e => e.textContent = meta);
   document.querySelectorAll(".xrun").forEach(b => { b.disabled = MACRO.running; b.textContent = MACRO.running ? "Loading…" : "Refresh"; });
   document.querySelectorAll(".xctbar").forEach(e => { e.innerHTML = ctBarHTML(); const o = e.querySelector("#ctOpen"); if (o) { o.removeAttribute("id"); o.onclick = openCTSettings; } });
-  if ($("xovTitle")) $("xovTitle").textContent = page === "macromomo" ? "Forex, Metals & Indices · Momentum" : "Forex, Metals & Indices · Overview";
+  if ($("xovTitle")) $("xovTitle").textContent = page === "macromomo" ? "Forex, Metals & Indices · Momentum" : page === "macropair" ? "Forex, Metals & Indices · Pair Picker" : "Forex, Metals & Indices · Overview";
   renderXHours();
   const rows = xRows();
   if (!rows.length) {
     const msg = MACRO.err ? `Couldn't load the data (${MACRO.err}). Press Refresh to try again.` : MACRO.running ? "Reading forex, metals and the indices…" : "Press Refresh to load forex, metals and the indices.";
-    ["xStat", "xMomo", ...X_CLASSES.map(([k]) => "xMv_" + k)].forEach(id => { if ($(id)) $(id).innerHTML = `<div class="empty">${msg}</div>`; }); if ($("xMomoTabs")) $("xMomoTabs").innerHTML = "";
+    ["xStat", "xMomo", "ppBody", ...X_CLASSES.map(([k]) => "xMv_" + k)].forEach(id => { if ($(id)) $(id).innerHTML = `<div class="empty">${msg}</div>`; }); if ($("xMomoTabs")) $("xMomoTabs").innerHTML = "";
     $("xFlow").innerHTML = `<h2>Money Flow</h2><div class="empty">${msg}</div>`; return;
   }
-  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows); if (typeof renderXCharts === "function") renderXCharts(rows);
+  renderXStat(rows); renderXMovers(rows); renderXFlow(rows); renderXMomo(rows); renderPP(rows); if (typeof renderXCharts === "function") renderXCharts(rows);
 }
 document.querySelectorAll(".xrun").forEach(b => b.onclick = () => macroScan(true));
 $("xmomoAlert").checked = momoAlertOn();
@@ -6847,8 +6995,8 @@ function openCTSettings() {
       <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label></details>
       ${c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${typeof trTitle === "function" ? trTitle(a.brokerTitleShort || "Broker") : a.brokerTitleShort || "Broker"} · ${a.traderLogin || a.ctidTraderAccountId} · ${a.isLive ? "Live" : "Demo"}</option>`).join("")}</select></label>` : ""}
-      ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.map(x => x[0])].filter(n => !got.some(o => o.name === n));
-        return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => o.group !== "Forex").map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => o.group === "Forex") ? `, plus ${got.filter(o => o.group === "Forex").length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
+      ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.filter(x => x[3] !== "Commodities").map(x => x[0])].filter(n => !got.some(o => o.name === n));
+        return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => !/Forex/.test(o.group)).map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => /Forex/.test(o.group)) ? `, plus ${got.filter(o => /Forex/.test(o.group)).length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
       <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
       <p class="meta">Saved in this browser only and sent only to cTrader. Each address keeps its own copy (the Mac app at localhost and the Vercel site), and renewing on one can sign the other out, so connect cTrader in just one of them. The token gives read access to prices and your account list; the app never places orders.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
@@ -7323,7 +7471,7 @@ const TA = {
     case "hlcc4": return h.map((x, i) => (x + l[i] + 2 * c[i]) / 4); default: return c.slice(); } },
 };
 const IND_SRC = ["close", "open", "high", "low", "hl2", "hlc3", "ohlc4", "hlcc4"], IND_MAS = ["EMA", "SMA", "WMA", "RMA", "HMA", "VWMA", "DEMA", "TEMA"];
-const IND_CATS = [["fav", "Favorites"], ["on", "On chart"], ["Moving averages", "Moving averages"], ["Trend", "Trend"], ["Volatility", "Volatility"], ["Oscillators", "Oscillators"], ["Volume", "Volume"], ["Sessions & levels", "Sessions & levels"]];
+const IND_CATS = [["fav", "Favorites"], ["on", "On chart"], ["Moving averages", "Moving averages"], ["Trend", "Trend"], ["Volatility", "Volatility"], ["Oscillators", "Oscillators"], ["Volume", "Volume"], ["Sessions & levels", "Sessions & levels"], ["Comparison", "Comparison"]];
 const IND_UTC_DAY = 864e5, IND_HR = 3600e3;
 const indFmtT = (h, m) => `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 const indParseT = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "").trim()); return m ? (+m[1] % 24) + (+m[2]) / 60 : null; };
@@ -7461,6 +7609,15 @@ const IND = {
     inputs: [{ k: "len", l: "Length", t: "int", d: 9, min: 1 }, { k: "src", l: "Source", t: "src", d: "close" }], plots: [{ k: "roc", l: "ROC", c: "#2962ff" }], levels: [{ v: 0, l: "Zero line" }],
     title: p => `ROC ${p.len} ${p.src}`, calc(P, p) { const s = TA.src(P, p.src); return { roc: s.map((v, i) => i >= p.len && s[i - p.len] ? (v - s[i - p.len]) / s[i - p.len] * 100 : null) }; } },
   /* ---- painted on the chart (sessions, levels, gaps, vertical lines) ---- */
+  cmp: { name: "Compare with another market", short: "Compare", cat: "Comparison", ownScale: true, desc: "Another market drawn over this chart on its own scale, e.g. the dollar index over gold",
+    inputs: [{ k: "sym", l: "Market (e.g. DXY, Gold, EUR/USD, NAS100)", t: "text", d: "DXY" }, { k: "inv", l: "Flip it (1 ÷ price), to see it move the same way", t: "bool", d: false }],
+    plots: [{ k: "cmp", l: "Compared", c: "#f7a600" }], title: p => `vs ${p.sym}${p.inv ? " (flipped)" : ""}`,
+    calc(P, p) { const a = chCmpLine(P, p.sym); return a ? { cmp: p.inv ? a.map(v => v ? 1 / v : null) : a } : {}; } },
+  ratio: { name: "Ratio to another market", short: "Ratio", cat: "Comparison", pane: true, desc: "This chart divided by another market (gold ÷ silver, Nasdaq ÷ S&P 500), with an average line",
+    inputs: [{ k: "sym", l: "Divide by (e.g. Silver, S&P 500, GBP/USD)", t: "text", d: "Silver" }, { k: "ma", l: "Average length", t: "int", d: 20, min: 1 }],
+    plots: [{ k: "r", l: "Ratio", c: "#26a69a" }, { k: "m", l: "Average", c: "#e8b04a" }], title: p => `÷ ${p.sym}`,
+    calc(P, p) { const a = chCmpLine(P, p.sym); if (!a) return {}; const r = P.c.map((c, i) => a[i] ? c / a[i] : null), f = r.findIndex(v => v != null);
+      const m = f < 0 ? r.map(() => null) : [...r.slice(0, f), ...TA.ma("EMA", r.slice(f).map(v => v == null ? NaN : v), p.ma)].map(v => v == null || !isFinite(v) ? null : v); return { r, m }; } },
   sess: { name: "Sessions", short: "Sessions", cat: "Sessions & levels", desc: "Asia, London, Pre-NY and NY AM boxes (times in PHT)", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
     inputs: [1, 2, 3, 4, 5].flatMap(j => { const s = CH_SESS[j - 1] || ["Extra", 0, 4, "120,123,134"]; return [
       { k: "on" + j, l: `Session ${j}`, t: "bool", d: j <= 4, grp: `Session ${j}` }, { k: "n" + j, l: "Name", t: "text", d: s[0], grp: `Session ${j}` },
@@ -7594,11 +7751,11 @@ function chIndDrop(P, id) {
   delete P.ix[id]; delete P.iv[id];
 }
 function chIndBuild(P, I) {
-  const D = IND[I.type], st = indStyle(I), p = { ...indDefaults(I.type), ...I.p }, scale = D.pane ? "ind_" + I.id : D.scale ? D.scale + "_" + I.id : "right", ser = {};
+  const D = IND[I.type], st = indStyle(I), p = { ...indDefaults(I.type), ...I.p }, scale = D.pane ? "ind_" + I.id : D.scale ? D.scale + "_" + I.id : D.ownScale ? "cmp_" + I.id : "right", ser = {};
   (D.plots || []).forEach(pl => {
     const s = st.plots[pl.k]; if (!s.on || pl.canvas) return;
     if (pl.k === "vma" && !p.ma) return; if (I.type === "vwap" && /^[ud][12]$/.test(pl.k) && !p["b" + pl.k[1]]) return;
-    const common = { priceScaleId: scale, priceLineVisible: false, crosshairMarkerVisible: false, lastValueVisible: pl.kind !== "hist" && !D.scale && st.lbl, title: "", ...(D.scale ? { priceFormat: { type: "volume" } } : {}) };
+    const common = { priceScaleId: scale, priceLineVisible: false, crosshairMarkerVisible: false, lastValueVisible: pl.kind !== "hist" && !D.scale && !D.ownScale && st.lbl, title: "", ...(D.scale ? { priceFormat: { type: "volume" } } : {}) };
     if (pl.kind === "hist" || pl.kind === "hist4") ser[pl.k] = P.chart.addHistogramSeries({ ...common, color: s.c, priceFormat: pl.kind === "hist" ? { type: "volume" } : undefined, base: 0 });
     else if (pl.kind === "dots") ser[pl.k] = P.chart.addLineSeries({ ...common, color: s.c, lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 1 + s.w, lineWidth: s.w });
     else ser[pl.k] = P.chart.addLineSeries({ ...common, color: s.c, lineWidth: s.w, lineStyle: CH_LWS[s.ls] || 0,
@@ -7631,6 +7788,29 @@ function chIndHistCol(x, pl, V, i, v) {
   if (pl.kind === "hist") return chHexA((V._dir || [])[i] === false ? s.c2 : s.c, s.al);
   const cols = s.cols || pl.cols, pv = i ? V[pl.k][i - 1] : null;
   return v >= 0 ? (pv == null || v >= pv ? cols[0] : cols[1]) : (pv == null || v <= pv ? cols[3] : cols[2]);
+}
+/* ---- Compare and Ratio: another market's candles on this chart's timeframe, fetched once and kept a minute (5 on slower charts) ---- */
+const CHCMP = {}, CHCMP_SYM = {};
+function chCmpSym(q) {                             // a typed market ("DXY", "Gold", "EUR/USD", "XAUUSD", "BTCUSDT") → the chart symbol for it
+  const t = String(q || "").trim(), hit = CHCMP_SYM[t]; if (!t) return null; if (hit && Date.now() - hit.at < 30e3) return hit.s;
+  const lo = t.toLowerCase().replace(/^(dxy|usdx|dollar index|dollar)$/, "us dollar index"), flat = lo.replace(/[^a-z0-9]/g, ""), list = chCatList("all");
+  const nm = x => chName(x).toLowerCase(), code = x => x.toLowerCase().replace(/^(ct|mx):/, "").replace(/[^a-z0-9]/g, "");
+  const s = list.find(x => nm(x) === lo) || list.find(x => code(x) === flat || code(x) === flat + "usdt") || list.find(x => nm(x).replace(/[^a-z0-9]/g, "") === flat)
+    || list.find(x => nm(x).startsWith(lo)) || (/^([A-Z0-9]+USDT|(CT|MX):\S+)$/.test(t) ? t : null);
+  CHCMP_SYM[t] = { s, at: Date.now() }; return s;
+}
+function chCmpData(sym, tf) {
+  const k = sym + "|" + tf, x = CHCMP[k] || (CHCMP[k] = {}), ttl = (CH_IV[tf] || 60e3) <= 15 * 60e3 ? 60e3 : 300e3;
+  if (!x.busy && (!x.at || Date.now() - x.at > ttl)) { x.busy = true;
+    (async () => { try { if (sym.startsWith("CT:")) CT_SYMS.add(sym); if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
+        const why = chSourceOK(sym); if (why) throw new Error(why); const kk = await klines(sym, tf, 500); x.t = kk.t; x.c = kk.c; x.err = null; } catch (e) { x.err = e.message; }
+      x.at = Date.now(); x.busy = false; CHP.forEach(P => { if (P.chart && P.t && P.t.length && chIndActive(P).some(I => IND[I.type] && IND[I.type].cat === "Comparison")) chIndData(P); }); chDirty = true; })();
+  }
+  return x.t && x.t.length ? x : null;
+}
+function chCmpLine(P, q) {                         // the other market's close on each of this chart's candles (its last one where it has none, e.g. a weekend)
+  const sym = chCmpSym(q); if (!sym || !P.t || !P.t.length) return null; const x = chCmpData(sym, P.tf); if (!x) return null;
+  const out = []; let j = 0, last = null; P.t.forEach(t => { while (j < x.t.length && x.t[j] <= t) last = x.c[j++]; out.push(x.t[0] <= t ? last : null); }); return out;
 }
 function chIndCalc(P, I) { const D = IND[I.type]; if (!D.calc) return {}; try { return D.calc(P, { ...indDefaults(I.type), ...I.p }) || {}; } catch (e) { return {}; } }
 function chIndData(P) {
@@ -9404,7 +9584,7 @@ function calGridRange() {                          // the days the week or month
 }
 function calEvHTML(x, now, wk) {
   const c = (CAL_IMPACTS.find(i => i[0] === x.impact) || CAL_IMPACTS[3])[1], name = x.type === "Earnings" ? x.title.split(" ·")[0] : x.title, past = x.at < now - 2 * 60e3;
-  const tip = [`${phtDay(x.at)} ${x.allDay ? "all day" : x.timeLbl || phtHM(x.at)}`, `${x.ccy} ${x.title}`, x.forecast ? "Forecast " + x.forecast : "", x.previous ? "Previous " + x.previous : "", x.note || ""].filter(Boolean).join("\n");
+  const tip = [`${phtDay(x.at)} ${x.allDay ? "all day" : x.timeLbl || phtHM(x.at)}`, `${x.ccy} ${x.title}`, (a => a ? `Actual ${a.txt}${a.word ? " (" + a.word + ")" : ""}` : "")(past ? calActual(x) : null), x.forecast ? "Forecast " + x.forecast : "", x.previous ? "Previous " + x.previous : "", x.note || ""].filter(Boolean).join("\n");
   return `<div class="calev ${past ? "past" : ""}" style="border-left-color:${c}" title="${xEsc(tip)}"><span class="t">${x.allDay ? "All day" : x.timeLbl || phtHM(x.at)}</span><b>${xEsc(x.ccy)}</b><span class="n">${xEsc(name)}</span>${wk && (x.forecast || x.previous) ? `<span class="fc">${x.forecast ? "F " + xEsc(x.forecast) : ""}${x.forecast && x.previous ? " · " : ""}${x.previous ? "P " + xEsc(x.previous) : ""}</span>` : ""}</div>`;
 }
 function calGrid(list, now) {                      // week: a column per day with every event; month: a cell per day with the top few
@@ -9426,9 +9606,9 @@ async function calFetch(force) {
     Object.keys(CAL.weeks).sort().slice(0, -3).forEach(k => delete CAL.weeks[k]);           // keep the last three weeks on this device
     lsSet(CAL_KEY, { items: CAL.items, at: CAL.at, weeks: CAL.weeks });
   } catch (e) { CAL.err = e.message || String(e); }
-  if (page === "calendar") calRender(); nwRenderAll();
+  if (page === "calendar") calRender(); nwRenderAll(); calActFetch();
 }
-function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
+function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items, riskCalItems()).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
 function calRange(view) {
   const now = Date.now(), today = phtDayKey(now) * 864e5 - PHT_MS, wk = weekStart(now);
   if (view === "today") return [today, today + 864e5]; if (view === "tomorrow") return [today + 864e5, today + 2 * 864e5]; if (view === "yesterday") return [today - 864e5, today];
@@ -9438,11 +9618,51 @@ function calRange(view) {
 }
 const calPass = (x, F) => F.imp.includes(x.impact) && (x.impact === "Holiday" || F.types.includes(x.type)) && (x.ccy === "All" || F.ccy.includes(x.ccy));
 const impDot = imp => { const c = (CAL_IMPACTS.find(i => i[0] === imp) || CAL_IMPACTS[3]); return `<i class="calimp" style="background:${c[1]}" title="${c[2]}"></i>`; };
+/* ---- actual results for the main US releases, from FRED once it has the new number (Forex Factory's free feed has none) ---- */
+const CAL_ACT = [   // [Forex Factory title, FRED series, how to read it, months back it covers ("q": last quarter, "w": last week), +1 when a higher number lifts the dollar, kind]
+  [/^CPI m\/m$/, "CPIAUCSL", "mom", 1, 1, "infl"], [/^CPI y\/y$/, "CPIAUCSL", "yoy", 1, 1, "infl"], [/^Core CPI m\/m$/, "CPILFESL", "mom", 1, 1, "infl"], [/^Core CPI y\/y$/, "CPILFESL", "yoy", 1, 1, "infl"],
+  [/^Core PCE Price Index m\/m$/, "PCEPILFE", "mom", 1, 1, "infl"], [/^PPI m\/m$/, "PPIFIS", "mom", 1, 1, "infl"], [/^Core PPI m\/m$/, "PPIFES", "mom", 1, 1, "infl"],
+  [/^Average Hourly Earnings m\/m$/, "CES0500000003", "mom", 1, 1, "infl"], [/^Non-Farm Employment Change$/, "PAYEMS", "chgK", 1, 1, "growth"], [/^Unemployment Rate$/, "UNRATE", "pct", 1, -1, "slack"],
+  [/^Unemployment Claims$/, "ICSA", "K", "w", -1, "slack"], [/^JOLTS Job Openings$/, "JTSJOL", "M", 2, 1, "growth"], [/^Retail Sales m\/m$/, "RSAFS", "mom", 1, 1, "growth"],
+  [/^Core Retail Sales m\/m$/, "RSFSXMV", "mom", 1, 1, "growth"], [/^(Advance|Prelim|Final) GDP q\/q$/, "A191RL1Q225SBEA", "pct", "q", 1, "growth"],
+  [/^Crude Oil Inventories$/, "EIA:PET.WCESTUS1.W", "chgM", "w", 0, "stocks"], [/^Natural Gas Storage$/, "EIA:NG.NW2_EPG0_SWO_R48_BCF.W", "chgB", "w", 0, "stocks"]];   // EIA: weekly stocks (no dollar read)
+const CALA = { s: {}, at: {}, busy: false };
+const calActDef = x => x && x.ccy === "USD" ? CAL_ACT.find(d => d[0].test(x.title)) || null : null;
+function calActual(x) {                            // { txt, diff, dir (+1 good for the dollar), word } once FRED has this release's number
+  const d = calActDef(x), s = d && (d[1].startsWith("EIA:") ? FUND.eia && FUND.eia.s && FUND.eia.s[d[1].slice(4)] : CALA.s[d[1]]); if (!s || !s.length || x.at > Date.now()) return null;
+  const ev = new Date(x.at); let o;
+  if (d[3] === "w") o = s.find(p => p[0] <= x.at - 2 * 864e5 && p[0] > x.at - 9 * 864e5);                  // claims: the week that ended the Saturday before
+  else { const mo = d[3] === "q" ? Math.floor(ev.getUTCMonth() / 3) * 3 - 3 : ev.getUTCMonth() - d[3]; o = s.find(p => p[0] === Date.UTC(ev.getUTCFullYear(), mo, 1)); }
+  if (!o) return null; const i = s.indexOf(o), v = o[1], p1 = s[i + 1] && s[i + 1][1], p12 = s[i + 12] && s[i + 12][1]; let txt;
+  if (d[2] === "mom") { if (!p1) return null; txt = ((v / p1 - 1) * 100).toFixed(1) + "%"; }
+  else if (d[2] === "yoy") { if (!p12) return null; txt = ((v / p12 - 1) * 100).toFixed(1) + "%"; }
+  else if (d[2] === "chgK") { if (p1 == null) return null; txt = Math.round(v - p1) + "K"; }
+  else if (d[2] === "chgM") { if (p1 == null) return null; txt = ((v - p1) / 1000).toFixed(1) + "M"; }                 // thousand barrels → million
+  else if (d[2] === "chgB") { if (p1 == null) return null; txt = Math.round(v - p1) + "B"; }
+  else if (d[2] === "K") txt = Math.round(v / 1000) + "K"; else if (d[2] === "M") txt = (v / 1000).toFixed(2) + "M"; else txt = v.toFixed(1) + "%";
+  const num = t => { const n = parseFloat(String(t).replace(/[^0-9.\-]/g, "")); return isFinite(n) ? n : null; }, fc = num(x.forecast), diff = fc == null ? null : +(num(txt) - fc).toFixed(3);
+  const word = !diff ? (fc == null ? "" : "as expected") : d[5] === "infl" ? (diff > 0 ? "hotter" : "cooler") : d[5] === "growth" ? (diff > 0 ? "stronger" : "weaker") : d[5] === "stocks" ? (diff > 0 ? "higher than expected" : "lower than expected") : (diff > 0 ? "weaker" : "stronger");
+  return { txt, diff, dir: diff ? Math.sign(diff) * d[4] : 0, word };
+}
+async function calActFetch() {                     // fetch the series behind last week's US releases that still lack a number (each at most every 10 minutes)
+  if (CALA.busy || typeof fredKey !== "function") return; const now = Date.now(), need = new Set();
+  let eia = false;
+  calAll().filter(x => x.at < now - 2 * 60e3 && x.at > now - 8 * 864e5).forEach(x => { const d = calActDef(x); if (!d || calActual(x)) return; if (d[1].startsWith("EIA:")) { eia = true; return; }
+    if (!CALA.at[d[1]] || now - CALA.at[d[1]] > 10 * 60e3) need.add(d[1]); });
+  if (eia && typeof fundEIA === "function") fundEIA(!(FUND.eia && FUND.eia.at && now - FUND.eia.at < 10 * 60e3) && !(FUND.eiaTry && now - FUND.eiaTry < 10 * 60e3)).then(() => { if (page === "calendar") calRender(); });   // stocks come with the EIA data
+  if (!need.size) return; CALA.busy = true; const k = fredKey();
+  await Promise.all([...need].map(async id => { try { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}${k ? "&api_key=" + encodeURIComponent(k) : ""}&file_type=json&sort_order=desc&limit=30`), j = await r.json().catch(() => null);
+    if (r.ok && j && j.observations) CALA.s[id] = j.observations.filter(o => o.value !== ".").map(o => [Date.parse(o.date), +o.value]); } catch (e) {} CALA.at[id] = Date.now(); }));
+  CALA.busy = false; if (page === "calendar") calRender(); if (page === "fund" && typeof fundRender === "function") fundRender();
+}
+function calLastSurprise() {                       // the latest US release in the last day that came in above or below forecast
+  const now = Date.now(); return calAll().filter(x => x.at < now && x.at > now - 24 * 3600e3 && calActDef(x)).map(x => ({ x, a: calActual(x) })).filter(o => o.a && o.a.dir).pop() || null;
+}
 function calRowHTML(x, now) {
-  const past = x.at < now - 2 * 60e3, soon = !past && x.at - now < 60 * 60e3;
+  const past = x.at < now - 2 * 60e3, soon = !past && x.at - now < 60 * 60e3, act = past ? calActual(x) : null;
   return `<tr class="${past ? "past" : ""}${soon ? " soon" : ""}"><td class="ct">${x.allDay ? "All day" : x.timeLbl || phtHM(x.at)}</td><td class="cc"><b>${xEsc(x.ccy)}</b></td><td class="ci">${impDot(x.impact)}</td>
     <td class="ce">${xEsc(x.title)}${x.note ? `<div class="meta">${xEsc(x.note)}</div>` : ""}</td><td class="cty"><span class="tag">${xEsc(x.type)}</span></td>
-    <td class="cf">${xEsc(x.forecast || "")}</td><td class="cp">${xEsc(x.previous || "")}</td><td class="cw ${past ? "mute" : soon ? "up" : ""}">${past ? "done" : "in " + inTxt(x.at - now)}</td></tr>`;
+    <td class="cf">${xEsc(x.forecast || "")}</td><td class="cp">${xEsc(x.previous || "")}</td><td class="cw ${past && !act ? "mute" : soon ? "up" : ""}">${act ? `<b class="${act.dir > 0 ? "up" : act.dir < 0 ? "dn" : ""}" title="Actual, worked out from FRED (can differ by 0.1 from the official headline). Green: good for the dollar">${xEsc(act.txt)}</b>${act.word ? ` <span class="mute">${act.word}</span>` : ""}` : past ? "done" : "in " + inTxt(x.at - now)}</td></tr>`;
 }
 function calTable(list, now) {
   if (!list.length) return `<div class="empty">Nothing matches your filter in this range.</div>`;
@@ -9544,11 +9764,82 @@ function calRemind() {
       { kind: "News", icon: "📅", tone: x.impact === "High" ? "down" : "warn", title: `${x.ccy} ${x.title} in ${inTxt(x.at - now)}` }); });
   Object.keys(seen).forEach(k => { if (now - seen[k] > 8 * 864e5) delete seen[k]; }); lsSet(CAL_SEEN_KEY, seen);
 }
-setInterval(() => { calFetch(false); calRemind(); }, 30e3);
+setInterval(() => { calFetch(false); calRemind(); calActFetch(); }, 30e3);
 setTimeout(() => { calFetch(false).then(calRemind); }, 4000);
 function calNextFor(ccys, aheadMin = 60, behindMin = 15) {      // the next high-impact release for these currencies, close to now
   const now = Date.now(); return calAll().find(x => x.impact === "High" && ccys.includes(x.ccy) && x.at > now - behindMin * 60e3 && x.at < now + aheadMin * 60e3) || null;
 }
+
+/* ===================== Event risk: what could move markets violently now or soon, and protecting open trades ===================== */
+const EVR_KEY = "finder-risk-events", RISK_SEEN = "finder-risk-seen";             // (RISK_KEY is position sizing's)
+const RISK_WORDS = /\b(war|invasion|invades?|missiles?|airstrikes?|attacks?|nuclear|terror\w*|coup|martial law|sanctions?|tariffs?|shutdown|default|emergency|intervention|intervenes?|circuit breakers?|halted|crash\w*|plunges?|bank run|collapse\w*|assassinat\w*|impeach\w*|resigns?|elections?|snap poll)\b/i;
+const RISK_SEVERE = /(?<!(?:trade|price|currency|bidding|tariff|culture|talent) )\b(war|invasion|invades?|missiles?|airstrikes?|drone strikes?|nuclear|coup|martial law|emergency (rate|meeting|cut)|circuit breakers?|intervention|intervenes?|bank run|assassinat\w*)\b/i;     // "trade war" etc. aren't shocks
+const riskOwn = () => (lsGet(EVR_KEY, []) || []).filter(e => e && e.at && e.title);
+function usElectionDay(y) { const dow = new Date(Date.UTC(y, 10, 1)).getUTCDay(); return 1 + (8 - dow) % 7 + 1; }      // the Tuesday after the first Monday of November
+function riskEvents(from, to) {                    // US election nights (by that rule, no guessed dates) and your own risk events: { id, at, hours, title, note, ccy }
+  const out = [], y0 = new Date(from).getUTCFullYear();
+  for (let y = y0; y <= y0 + 1; y++) if (y % 2 === 0) out.push({ id: "elec:" + y, at: nyAt(y, 11, usElectionDay(y), 19, 0), hours: 18, ccy: "USD", title: `US ${y % 4 === 0 ? "presidential" : "midterm"} election results`,
+    note: "Polls close from 7 PM New York time and results arrive overnight: the dollar, gold and US indices can gap and reverse hard" });
+  riskOwn().forEach(e => out.push({ id: "own:" + e.id, at: e.at, hours: e.hours || 6, ccy: e.ccy || "USD", title: e.title, note: e.note || "Your own risk event" }));
+  return out.filter(e => e.at + e.hours * 3600e3 >= from && e.at <= to).sort((a, b) => a.at - b.at);
+}
+function riskCalItems() {                          // in the calendar as high impact, so reminders and NBB Watch's "no high-impact news near" check see them
+  const now = Date.now(); return riskEvents(now - 21 * 864e5, now + 60 * 864e5).map(e => ({ id: "RISK|" + e.id, at: e.at, ccy: e.ccy, title: "⚠ " + e.title, impact: "High", type: "Misc",
+    note: `${e.note} (risky for about ${e.hours} hours)`, forecast: "", previous: "", src: "risk" }));
+}
+function riskRead(now = Date.now()) {              // { level: 0 calm, 1 elevated, 2 high, items: [{ lvl, id, short, txt }] }
+  const items = [], add = (lvl, id, short, txt) => items.push({ lvl, id, short, txt });
+  riskEvents(now - 2 * 864e5, now + 864e5).forEach(e => { const end = e.at + e.hours * 3600e3;
+    if (now >= e.at && now < end) add(2, e.id, e.title, `${e.title}: under way until ${phtDay(end).slice(0, 3)} ${phtHM(end)}. ${e.note}`);
+    else if (e.at > now && e.at - now < 12 * 3600e3) add(e.at - now < 3 * 3600e3 ? 2 : 1, e.id + ":soon", `${e.title} in ${inTxt(e.at - now)}`, `${e.title} starts ${phtDay(e.at).slice(0, 3)} ${phtHM(e.at)} (in ${inTxt(e.at - now)}). ${e.note}`); });
+  const N = (typeof FUND !== "undefined" && FUND.news && FUND.news.items) || [], hot = N.filter(x => x.t > now - 3 * 3600e3 && RISK_WORDS.test(x.title)), sev = hot.find(x => RISK_SEVERE.test(x.title));
+  if (sev) add(2, "news:" + sev.title.slice(0, 60), "shock headline", `Shock headline ${inTxt(Math.max(60e3, now - sev.t))} ago: "${sev.title}" (${sev.src})`);
+  else if (hot.length >= 3) add(1, "news3:" + hot[0].title.slice(0, 40), `${hot.length} risk headlines`, `${hot.length} risk headlines in 3 hours, e.g. "${hot[0].title}"`);
+  const vx = typeof MACRO !== "undefined" && MACRO.rows.find(r => r.name === "Volatility (VIX)");
+  if (vx && vx.chg24h >= 8) add(vx.chg24h >= 15 ? 2 : 1, "vix:" + phtDayKey(now), "fear jumping", `Fear is jumping: the VIX (via UVXY) is ${fPct(vx.chg24h, 0)} in 24 hours`);
+  Object.entries(NW_ST).forEach(([k, st]) => { const K = st.k; if (!K || K.t.length < 80) return; const n = Math.max(1, Math.round(3600e3 / (K.t[1] - K.t[0]))), m = K.h.length;     // last hour's range against the hours before it
+    const rng = (a, b) => Math.max(...K.h.slice(a, b)) - Math.min(...K.l.slice(a, b)), base = []; for (let i = m - n; i - n >= 0 && base.length < 48; i -= n) base.push(rng(i - n, i));
+    const avg = base.length >= 6 ? base.reduce((p, v) => p + v, 0) / base.length : 0, x = avg ? rng(m - n, m) / avg : 0, nm = k.split("|")[0];
+    if (x >= 3) add(x >= 5 ? 2 : 1, "vol:" + nm + ":" + Math.floor(now / 3600e3), `${nm} moving ${x.toFixed(1)}× normal`, `${nm} moved ${x.toFixed(1)}× its normal hourly range in the last hour: something is happening`); });
+  const ny = zClock(now, "America/New_York"); if (ny.wd === "Fri" && ny.m >= 13 * 60) add(1, "wknd:" + phtDayKey(now), "weekend gap", "Weekend ahead: open trades can gap at the Sunday open");
+  return { level: items.reduce((a, x) => Math.max(a, x.lvl), 0), items: items.sort((a, b) => b.lvl - a.lvl) };
+}
+function riskPositions() {                         // your real open trades (not the Bot Simulator's); R from the stop while it's still on the losing side
+  const out = [];
+  if (typeof CTT !== "undefined" && CTT.state === "ready") CTT.positions.forEach(p => { const td = p.tradeData || {}, x = CTT.byId[td.symbolId] || {}, buy = +td.tradeSide === 1, q = CTT.spots[td.symbolId] || {}, cur = buy ? q.bid : q.ask, en = +p.price, sl = +p.stopLoss || 0;
+    const locked = !!sl && (buy ? sl >= en : sl <= en); out.push({ id: "ct" + p.positionId, sym: x.symbolName || "#" + td.symbolId, buy, locked, noStop: !sl, r: cur && sl && !locked ? (cur - en) / Math.abs(en - sl) * (buy ? 1 : -1) : null, pnl: CTT.pnl[p.positionId] ?? null }); });
+  if (typeof mxtOn === "function" && mxtOn()) MXT.positions.forEach(p => out.push({ id: "mx" + p.positionId, sym: String(p.symbol).replace("_", ""), buy: +p.positionType === 1, locked: false, noStop: true, r: null, pnl: typeof mxtUpnl === "function" ? mxtUpnl(p) : null }));
+  return out;
+}
+const riskTip = "Expect gaps and fast reversals: take profit sooner, move stops to break-even at 1R, trade smaller or stand aside.";
+function riskTick() {                              // once a minute: alert on new high-risk reasons, and on open trades worth protecting
+  if (typeof fundNews === "function") fundNews(false).catch(() => {});                                   // headlines every 10 minutes, whatever page is open
+  const R = riskRead(), now = Date.now(), seen = lsGet(RISK_SEEN, {}) || {}; let dirty = false;
+  R.items.filter(x => x.lvl === 2 && !seen[x.id]).forEach(x => { seen[x.id] = now; dirty = true;
+    notify(`⚠️ Event risk: ${x.short}`, `${x.txt}. ${riskTip}`, { kind: "Event risk", icon: "⚠️", tone: "warn", title: `Event risk: ${x.short}` }); });
+  if (R.level) riskPositions().forEach(p => { const top = R.items[0], id = "pos:" + p.id + ":" + top.id; if (seen[id] || p.locked || !(p.r != null ? p.r >= 1.5 : p.noStop && p.pnl > 0)) return; seen[id] = now; dirty = true;
+    notify(`🛡️ Protect your ${p.sym} ${p.buy ? "long" : "short"}${p.r != null ? `: +${p.r.toFixed(1)}R open` : ""}`, `${top.txt}. Lock it in: take partial profit, or move the stop to break-even or beyond.${p.noStop ? " This trade has no stop loss." : ""}`,
+      { kind: "Event risk", icon: "🛡️", tone: "warn", title: `Protect your ${p.sym} trade` }); });
+  if (dirty) { Object.keys(seen).forEach(k => { if (now - seen[k] > 4 * 864e5) delete seen[k]; }); lsSet(RISK_SEEN, seen); }
+  if (page === "nbbwatch") riskRender();
+}
+function riskRender() {
+  const el = $("riskBar"); if (!el) return; const R = riskRead(), now = Date.now(), up = riskEvents(now, now + 14 * 864e5), open = el.querySelector("#rkForm") && !el.querySelector("#rkForm").hidden;     // includes ones under way, so yours can be removed
+  if (open && el.contains(document.activeElement)) return;                                               // don't wipe a risk event being typed
+  el.className = "riskbar " + ["calm", "elev", "high"][R.level];
+  el.innerHTML = `<div class="rkh"><b>${R.level === 2 ? "⚠️ Event risk: high" : R.level === 1 ? "⚠️ Event risk: elevated" : "✓ No event risk flagged"}</b>
+      <span class="meta">${R.level ? riskTip : "Watching election nights, your own risk events, shock headlines, fear (VIX), unusual moves in your NBB Watch markets and the weekend."}</span><button class="btn sm" id="rkAddB">＋ Risk event</button></div>
+    ${R.items.length ? `<ul class="rkl">${R.items.map(x => `<li class="${x.lvl === 2 ? "dn" : "fam"}">${xEsc(x.txt)}</li>`).join("")}</ul>` : ""}
+    ${up.length ? `<div class="rkup meta">Risk events: ${up.map(e => `<span>${xEsc(e.title)} · ${e.at <= now ? "now" : phtDay(e.at) + " " + phtHM(e.at)}${e.id.startsWith("own:") ? ` <button class="rkdel" data-rkdel="${xEsc(e.id.slice(4))}" title="Remove" aria-label="Remove ${xEsc(e.title)}">×</button>` : ""}</span>`).join(" · ")}</div>` : ""}
+    <form id="rkForm" class="rkform" ${open ? "" : "hidden"}><input id="rkT" placeholder="What (e.g. Supreme Court tariff ruling)" aria-label="Risk event" required><input id="rkD" type="date" aria-label="Date (PHT)" required>
+      <input id="rkH" type="time" value="22:00" aria-label="Time (PHT)" required><label class="meta">risky for <input id="rkN" type="number" min="1" max="72" value="6" aria-label="Hours"> hours</label><button class="btn sm primary">Add</button></form>`;
+  $("rkAddB").onclick = () => { const f = $("rkForm"); f.hidden = !f.hidden; if (!f.hidden) { $("rkD").value = new Date(now + PHT_MS).toISOString().slice(0, 10); $("rkT").focus(); } };
+  $("rkForm").onsubmit = ev => { ev.preventDefault(); const [y, mo, d] = $("rkD").value.split("-").map(Number), [h, mi] = $("rkH").value.split(":").map(Number), t = $("rkT").value.trim(); if (!t || !y) return;
+    lsSet(EVR_KEY, [...riskOwn(), { id: Date.now().toString(36), title: t, at: Date.UTC(y, mo - 1, d, h, mi) - PHT_MS, hours: Math.max(1, Math.min(72, +$("rkN").value || 6)) }]);
+    $("rkForm").hidden = true; document.activeElement.blur(); riskRender(); nwRenderAll(); };
+  el.querySelectorAll("[data-rkdel]").forEach(b => b.onclick = () => { lsSet(EVR_KEY, riskOwn().filter(e => e.id !== b.dataset.rkdel)); riskRender(); });
+}
+setInterval(riskTick, 60e3); setTimeout(riskTick, 8000);
 
 /* ===================== NBB Watch: Gold M5 (London), Nasdaq M1 (US open) — your broker's data first ===================== */
 const NW_KEY = "finder-nbbwatch", NW_LOG_KEY = "finder-nbbwatch-log";
@@ -9594,19 +9885,22 @@ async function nwFetch(it) {
   try {
     if (ctPrefer() && CT.state !== "ready" && !CT.connecting) { try { await ctConnect(); } catch (e) {} }
     const S = nwSym(it.name); if (!S) throw new Error("this market isn't available on your broker or exchange");
-    if (st.sym !== S.sym) { st.k = null; st.read = null; }
+    if (st.sym !== S.sym) { st.k = null; st.read = null; st.hk = null; st.kd = null; st.htfAt = 0; st.kdAt = 0; }
     st.sym = S.sym; st.src = S.src; st.ct = !!S.ct;
     if (needBars) {
       const k = await klines(S.sym, it.tf, 400), cut = k.t.findIndex(t => t + iv > Date.now()), kk = cut < 0 ? k : { t: k.t.slice(0, cut), o: k.o.slice(0, cut), h: k.h.slice(0, cut), l: k.l.slice(0, cut), c: k.c.slice(0, cut), qv: k.qv.slice(0, cut) };
       st.k = kk; st.read = nbbWatchRead(kk, iv); st.at = Date.now(); st.err = null;
       if (!st.htfAt || Date.now() - st.htfAt > 5 * 60e3) { try { const h = await klines(S.sym, NW_HTF[it.tf] || "1h", 150), c = h.c, e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), i = c.length - 1;
-        st.htf = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null; st.htfAt = Date.now(); } catch (e) {} }
+        st.htf = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null; st.hk = h; st.htfAt = Date.now(); } catch (e) {} }
+      if (!st.kdAt || Date.now() - st.kdAt > 30 * 60e3 || (st.kd && st.kd.t.length && Date.now() >= st.kd.t.at(-1) + 2 * 864e5)) {      // daily candles for the range used today; again once a new day closes
+        try { st.kd = await klines(S.sym, "1d", 30); st.kdAt = Date.now(); } catch (e) {} }
       nwSignals(it, st);
     }
     try { const fb = await formingBar(S.sym, it.tf); if (fb) { st.px = fb.c; st.fb = fb; st.pxAt = Date.now(); } } catch (e) {}
   } catch (e) { st.err = e.message || String(e); st.at = Date.now(); }
   st.busy = false; nwRender(it);
 }
+const nwDay = st => dayUsed(dayRange(st.kd, [st.hk, st.k]), st.px);       // today's range so far vs the average day (higher timeframe for the early hours, the chart's own bars for the rest)
 function nwSignals(it, st) {
   const r = st.read; if (!r) return;
   const sess = nwSession(it), now = Date.now(), dayAgo = now - 24 * 3600e3;
@@ -9614,11 +9908,11 @@ function nwSignals(it, st) {
     const m = r.trig, id = `${nwKey(it)}|${m.dir}|${m.tClose}`;
     if (!NW_LOG.some(x => x.id === id) && now - m.tClose < 3 * (CH_IV[it.tf] || 60e3)) {
       const news = calNextFor(nwCcys(it.name), 30, 15), sig = { id, name: it.name, tf: it.tf, sym: st.sym, src: st.src, dir: m.dir, entry: m.entry, stop: m.stop, tClose: m.tClose, at: now, inSess: sess.on,
-        withTf: r.stack === m.dir, withHtf: st.htf === m.dir, sweep: !!m.sweep, room: !!m.room, baseNo: m.baseNo, baseLen: m.baseLen, news: news ? `${news.ccy} ${news.title} at ${phtHM(news.at)}` : null };
+        withTf: r.stack === m.dir, withHtf: st.htf === m.dir, sweep: !!m.sweep, room: !!m.room, baseNo: m.baseNo, baseLen: m.baseLen, news: news ? `${news.ccy} ${news.title} at ${phtHM(news.at)}` : null, dayPct: (nwDay(st) || {}).pct ?? null };
       NW_LOG.unshift(sig); NW_LOG = NW_LOG.filter(x => x.at > now - 3 * 864e5).slice(0, 200); lsSet(NW_LOG_KEY, NW_LOG);
       if (it.alerts && (sess.on || NW.outside)) {
         const R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, f = v => fmtPrice(v);
-        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
+        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${sig.dayPct >= 90 ? ` Day range ${sig.dayPct}% used: most of the usual move is done.` : ""}${(R => R.level ? ` ⚠ Event risk: ${R.items[0].short}. Take profit sooner.` : "")(riskRead())}${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
           { sym: st.sym, kind: "NBB Watch", icon: "🥪", tone: m.dir === "Long" ? "up" : "down", title: `NBB ${m.dir.toLowerCase()}: ${it.name} ${CH_TFL[it.tf] || it.tf}` });
       }
     }
@@ -9639,12 +9933,12 @@ function nwCardHTML(it) {
   let state = `<div class="nwst none">Loading ${xEsc(it.name)} ${tfl}…</div>`;
   if (st.err && !r) state = `<div class="nwst none dn">Couldn't load: ${xEsc(st.err)}</div>`;
   else if (r) {
-    const ctx = `${tfl} ${r.stack ? `<b class="${r.stack === "Long" ? "up" : "dn"}">${r.stack === "Long" ? "bull" : "bear"} stack</b>` : "<b>no stack</b>"} · ${CH_TFL[NW_HTF[it.tf]] || ""} ${st.htf ? `<b class="${st.htf === "Long" ? "up" : "dn"}">${st.htf === "Long" ? "bull" : "bear"}</b>` : "<b>mixed</b>"} · RSI ${r.rsi != null ? r.rsi.toFixed(0) : "—"} · ATR ${f(r.atr)}`;
+    const du = nwDay(st), ctx = `${tfl} ${r.stack ? `<b class="${r.stack === "Long" ? "up" : "dn"}">${r.stack === "Long" ? "bull" : "bear"} stack</b>` : "<b>no stack</b>"} · ${CH_TFL[NW_HTF[it.tf]] || ""} ${st.htf ? `<b class="${st.htf === "Long" ? "up" : "dn"}">${st.htf === "Long" ? "bull" : "bear"}</b>` : "<b>mixed</b>"} · RSI ${r.rsi != null ? r.rsi.toFixed(0) : "—"} · ATR ${f(r.atr)}${du ? ` · <span class="nwday" title="Today's high to low so far (${f(du.lo)} to ${f(du.hi)}) is ${du.pct}% of an average day (${f(du.adr)}, last 14 days).${du.pct >= 90 ? " Most of the usual move is done: breakouts often stall." : ""}">Day range <b class="${du.pct >= 90 ? "fam" : ""}">${du.pct}%</b></span>` : ""}`;
     if (r.state === "trigger") { const m = r.trig, R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, ago = Math.max(0, Math.round((now - m.tClose) / 60e3));
       const ck = (ok, txt) => `<span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"} ${txt}</span>`;
       state = `<div class="nwst trig ${m.dir === "Long" ? "long" : "short"}">🚀 <b>NBB ${m.dir.toUpperCase()} triggered</b> <span class="mute">${ago ? ago + " min ago" : "just now"} (${phtHM(m.tClose)} close)</span>
         <div class="nwlv"><span>Entry <b>${f(m.entry)}</b></span><span>Stop <b>${f(m.stop)}</b></span><span>3R <b>${f(t3)}</b></span><span class="mute">base ${m.baseLen} candles${m.baseNo === 2 ? " · base #2 (prime)" : ""}</span></div>
-        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${ck(!news, "no high-impact news near")}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
+        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${du ? ck(du.pct < 90, du.pct < 90 ? `room in the day's range (${du.pct}% used)` : `day range ${du.pct}% used`) : ""}${ck(!news, "no high-impact news near")}${(R => ck(!R.level, R.level ? `event risk: ${xEsc(R.items[0].short)}` : "no event risk"))(riskRead())}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
     else if (r.state === "basing") state = `<div class="nwst base">🧱 <b>Basing</b> · ${r.base.len} candles, ${r.base.tall.toFixed(1)} ATR tall
         <div class="nwlv"><span class="up">Long above <b>${f(r.base.hi)}</b></span><span class="dn">Short below <b>${f(r.base.lo)}</b></span><span class="mute">${r.stack ? `trend favors ${r.stack.toLowerCase()}s` : "no clear trend: either side"}</span></div>
         <div class="meta">Trigger: a displacing close out of the base (body 1.5× the base's average) with the trend.</div></div>`;
@@ -9669,7 +9963,7 @@ function nwRenderAll() {
   $("nwGrid").innerHTML = NW.items.length ? NW.items.map(nwCardHTML).join("") : `<div class="empty">Add a market to watch with Edit watch list.</div>`;
   $("nwMeta").textContent = `${NW.items.length} market${NW.items.length === 1 ? "" : "s"} · ${ctPrefer() ? (CT.state === "ready" ? `${CT.broker} prices` : "connecting to cTrader…") : "exchange prices (connect cTrader for your broker's)"}`;
   $("nwBase").checked = !!NW.base; $("nwOutside").checked = !!NW.outside;
-  nwBind();
+  nwBind(); riskRender();
 }
 function nwBind() {
   document.querySelectorAll("[data-nwchart]").forEach(b => b.onclick = () => { const st = NW_ST[b.dataset.nwchart], it = NW.items.find(x => nwKey(x) === b.dataset.nwchart); if (!st || !st.sym) return;
@@ -9710,7 +10004,7 @@ function nwShown() { nwRenderAll(); nwTick(true); }
 
 /* ===================== Phone alerts: Telegram (your own bot; token kept in this browser only) ===================== */
 const TG_KEY = "finder-telegram";
-const TG_KINDS = [["NBB Watch", "NBB Watch triggers and bases"], ["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["Bots", "Bot simulator"], ["System", "System messages"]];
+const TG_KINDS = [["NBB Watch", "NBB Watch triggers and bases"], ["Event risk", "Event risk and protect-your-trade warnings"], ["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["Bots", "Bot simulator"], ["System", "System messages"]];
 const tgCfg = () => lsGet(TG_KEY, null), TG_OFF = ["Breakouts", "Bots", "System"];      // noisy kinds start switched off
 const tgKind = (c, k) => { const v = ((c || {}).kinds || {})[k]; return v == null ? !TG_OFF.includes(k) : !!v; };
 const tgOn = () => { const c = tgCfg(); return !!(c && c.token && c.chat); };
@@ -9765,8 +10059,8 @@ if ($("ncPhone")) $("ncPhone").onclick = () => { ncShow(false); openTGSettings()
 if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
 /* ===================== Fundamentals: a terminal-style page (markets, rates and central banks, yield curve, positioning, headlines, calendar) ===================== */
 const FUND_KEY = "finder-fund", FRED_LS = "finder-fred";
-let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
-const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news });
+let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, bis: null, fy: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
+const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news, bis: FUND.bis, fy: FUND.fy, seas: FUND.seas, cotf: FUND.cotf, eia: FUND.eia });
 const fredKey = () => String(lsGet(FRED_LS, "") || "").trim();
 async function fundText(url) { const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }
 // US Treasury daily yield curves (nominal par and real), no key needed
@@ -9786,31 +10080,160 @@ async function fundUST(force) {
   catch (e) { FUND.err.ust = e.message; }
 }
 // CFTC Commitments of Traders (legacy, futures only): large speculators' net position as % of open interest
-const COT_MK = [["Gold", "088691"], ["Silver", "084691"], ["Crude oil", "067651"], ["Copper", "085692"], ["Nasdaq 100", "209742"], ["S&P 500", "13874A"], ["US dollar index", "098662"],
-  ["Euro", "099741"], ["Pound", "096742"], ["Yen", "097741"], ["Aussie", "232741"], ["Canadian dollar", "090741"], ["Swiss franc", "092741"], ["Bitcoin (CME)", "133741"]];
+const COT_MK = [["Gold", "088691", "Metals & energy"], ["Silver", "084691", "Metals & energy"], ["Platinum", "076651", "Metals & energy"], ["Palladium", "075651", "Metals & energy"], ["Copper", "085692", "Metals & energy"],
+  ["Crude oil", "067651", "Metals & energy"], ["Natural gas", "023651", "Metals & energy"], ["Nasdaq 100", "209742", "Stocks & crypto"], ["S&P 500", "13874A", "Stocks & crypto"], ["Bitcoin (CME)", "133741", "Stocks & crypto"],
+  ["US dollar index", "098662", "Currencies"], ["Euro", "099741", "Currencies"], ["Pound", "096742", "Currencies"], ["Yen", "097741", "Currencies"], ["Aussie", "232741", "Currencies"], ["Kiwi", "112741", "Currencies"],
+  ["Canadian dollar", "090741", "Currencies"], ["Swiss franc", "092741", "Currencies"], ["Mexican peso", "095741", "Currencies"],
+  ["Corn", "002602", "Grains & softs"], ["Wheat", "001602", "Grains & softs"], ["Soybeans", "005602", "Grains & softs"], ["Coffee", "083731", "Grains & softs"], ["Cocoa", "073732", "Grains & softs"],
+  ["Sugar", "080732", "Grains & softs"], ["Cotton", "033661", "Grains & softs"]];
 async function fundCOT(force) {
-  if (!force && FUND.cot && Date.now() - FUND.cot.at < 12 * 3600e3) return;
+  if (!force && FUND.cot && Date.now() - FUND.cot.at < 12 * 3600e3 && COT_MK.every(m => (FUND.cot.codes || []).includes(m[1]))) return;      // newly added markets: fetch again
   const since = new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10);
-  const q = `$select=cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,noncomm_positions_long_all,noncomm_positions_short_all&$where=${encodeURIComponent(`cftc_contract_market_code in(${COT_MK.map(m => `'${m[1]}'`).join(",")}) AND report_date_as_yyyy_mm_dd > '${since}'`)}&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=2000`;
+  const q = `$select=cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,noncomm_positions_long_all,noncomm_positions_short_all&$where=${encodeURIComponent(`cftc_contract_market_code in(${COT_MK.map(m => `'${m[1]}'`).join(",")}) AND report_date_as_yyyy_mm_dd > '${since}'`)}&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=4000`;
   try { const rows = await getJSON("/proxy/cot?" + q, 2); if (!Array.isArray(rows) || !rows.length) throw new Error("no positioning data came back");
     const out = COT_MK.map(([name, code]) => { const w = rows.filter(r => String(r.cftc_contract_market_code).trim() === code).map(r => ({ t: Date.parse(r.report_date_as_yyyy_mm_dd), net: ((+r.noncomm_positions_long_all) - (+r.noncomm_positions_short_all)) / Math.max(1, +r.open_interest_all) * 100 })).filter(x => isFinite(x.net)).sort((a, b) => b.t - a.t);
       if (!w.length) return null; const yr = w.slice(0, 52).map(x => x.net), pct = Math.round(yr.filter(v => v <= w[0].net).length / yr.length * 100);
       return { name, code, t: w[0].t, net: w[0].net, chg: w[1] ? w[0].net - w[1].net : null, pct, hist: w.slice(0, 52).map(x => +x.net.toFixed(1)).reverse() }; }).filter(Boolean);
-    FUND.cot = { at: Date.now(), rows: out }; FUND.err.cot = null; }
+    FUND.cot = { at: Date.now(), rows: out, codes: COT_MK.map(m => m[1]) }; FUND.err.cot = null; }
   catch (e) { FUND.err.cot = e.message; }
 }
+// hedge funds: "leveraged funds" (CFTC's traders-in-financial-futures report) for currencies, indices and Bitcoin; "managed money" (disaggregated report) for commodities
+async function fundCOTFunds(force) {
+  if (!force && FUND.cotf && Date.now() - FUND.cotf.at < 12 * 3600e3 && COT_MK.every(m => (FUND.cotf.codes || []).includes(m[1]))) return;
+  const since = new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10), fin = m => /Stocks|Currencies/.test(m[2]), key = (r, re) => Object.keys(r).find(k => re.test(k));
+  const get = async (path, mk, cols) => { const tail = `$where=${encodeURIComponent(`cftc_contract_market_code in(${mk.map(m => `'${m[1]}'`).join(",")}) AND report_date_as_yyyy_mm_dd > '${since}'`)}&$order=report_date_as_yyyy_mm_dd%20DESC`;
+    try { return await getJSON(`${path}?$select=${cols}&${tail}&$limit=4000`, 2); } catch (e) { return getJSON(`${path}?${tail}&$limit=${mk.length * 4}`, 2); } };      // a column named differently: take them all, last few weeks only
+  const read = (rows, mk, L, S, AL, AS) => { const out = {}; mk.forEach(([, code]) => {
+    const w = (rows || []).filter(r => String(r.cftc_contract_market_code).trim() === code).map(r => { const oi = Math.max(1, +r[key(r, /^open_interest_all$/)] || 0), l = key(r, L), s = key(r, S), al = AL && key(r, AL), as = AS && key(r, AS);
+      return { t: Date.parse(r.report_date_as_yyyy_mm_dd), net: l && s ? (+r[l] - +r[s]) / oi * 100 : NaN, am: al && as ? (+r[al] - +r[as]) / oi * 100 : null }; }).filter(x => isFinite(x.net)).sort((a, b) => b.t - a.t);
+    if (!w.length) return; const yr = w.slice(0, 52).map(x => x.net);
+    out[code] = { t: w[0].t, net: w[0].net, chg: w[1] ? w[0].net - w[1].net : null, am: w[0].am, pct: yr.length >= 26 ? Math.round(yr.filter(v => v <= w[0].net).length / yr.length * 100) : null }; }); return out; };
+  const F = COT_MK.filter(fin), C = COT_MK.filter(m => !fin(m)), errs = [];
+  const [tff, dis] = await Promise.all([
+    get("/proxy/cot-tff", F, "cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,lev_money_positions_long,lev_money_positions_short,asset_mgr_positions_long,asset_mgr_positions_short").catch(e => { errs.push(e.message); return []; }),
+    get("/proxy/cot-dis", C, "cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,m_money_positions_long_all,m_money_positions_short_all").catch(e => { errs.push(e.message); return []; })]);
+  const rows = { ...read(tff, F, /^lev_money_positions_long/, /^lev_money_positions_short/, /^asset_mgr_positions_long/, /^asset_mgr_positions_short/), ...read(dis, C, /^m_money_positions_long/, /^m_money_positions_short/) };
+  if (Object.keys(rows).length) { FUND.cotf = { at: Date.now(), rows, codes: COT_MK.map(m => m[1]) }; FUND.err.cotf = errs.length === 2 ? errs[0] : null; } else FUND.err.cotf = errs[0] || "no hedge-fund data came back";
+}
+// EIA weekly oil and gas stocks (free key, like FRED's): crude without the strategic reserve, gasoline, distillates, Cushing (where WTI is delivered), gas storage
+const EIA_LS = "finder-eia", EIA_S = [["PET.WCESTUS1.W", "Crude oil", "M"], ["PET.WGTSTUS1.W", "Gasoline", "M"], ["PET.WDISTUS1.W", "Distillates", "M"],
+  ["PET.W_EPC0_SAX_YCUOK_MBBL.W", "Cushing", "M"], ["NG.NW2_EPG0_SWO_R48_BCF.W", "Natural gas storage", "B"]];
+const eiaKey = () => String(lsGet(EIA_LS, "") || "").trim();
+async function fundEIA(force) {
+  const k = eiaKey(), tag = k ? k.slice(-4) : "server", now = Date.now();
+  if (!force && FUND.eia && FUND.eia.at && now - FUND.eia.at < 3 * 3600e3 && FUND.eia.k === tag) return;
+  if (FUND.eiaBusy || (!force && FUND.eiaTry && now - FUND.eiaTry < 10 * 60e3 && !(FUND.eia && FUND.eia.k === tag))) return;      // after a failure, try again in 10 minutes
+  FUND.eiaBusy = true; FUND.eiaTry = now;
+  try { const s = {}; let keyErr = false;
+    await Promise.all(EIA_S.map(async ([id]) => { const r = await fetch(`/proxy/eia?series=${encodeURIComponent(id)}${k ? "&api_key=" + encodeURIComponent(k) : ""}`), j = await r.json().catch(() => null);
+      if (!r.ok || !j || j.error) { const m = j && j.error ? (j.error.message || j.error.code || j.error) : "HTTP " + r.status; if (/api_key|key/i.test(String(m))) keyErr = true; return; }
+      s[id] = ((j.response && j.response.data) || []).map(o => [Date.parse(o.period), +o.value]).filter(o => isFinite(o[0]) && isFinite(o[1])).sort((a, b) => b[0] - a[0]); }));
+    if (!Object.keys(s).length) throw new Error(keyErr ? (k ? "the EIA didn't accept that key" : "nokey") : "no stock data came back");
+    FUND.eia = { at: Date.now(), k: tag, s }; FUND.err.eia = null; }
+  catch (e) { FUND.err.eia = e.message; }
+  FUND.eiaBusy = false;
+}
+function eiaRead(id) {                             // latest level, change on the week, and against the average of the same week over the last 5 years
+  const s = FUND.eia && FUND.eia.s && FUND.eia.s[id]; if (!s || s.length < 2) return null; const [t, v] = s[0];
+  const past = [1, 2, 3, 4, 5].map(y => { const o = s.find(p => Math.abs(p[0] - (t - y * 364 * 864e5)) <= 4 * 864e5); return o ? o[1] : null; }).filter(x => x != null);
+  const avg5 = past.length >= 3 ? past.reduce((a, b) => a + b, 0) / past.length : null;
+  return { t, v, chg: v - s[1][1], vs5: avg5 ? (v / avg5 - 1) * 100 : null };
+}
 // FRED (free key): central-bank rates and a few US gauges
-const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly"],
-  ["RBA", "AUD", "IRSTCI01AUM156N", "OECD short rate, monthly"], ["BoC", "CAD", "IRSTCI01CAM156N", "OECD short rate, monthly"], ["SNB", "CHF", "IRSTCI01CHM156N", "OECD short rate, monthly"], ["RBNZ", "NZD", "IRSTCI01NZM156N", "OECD short rate, monthly"]];
+const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly", "GB"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly", "JP"],
+  ["RBA", "AUD", "IRSTCI01AUM156N", "OECD short rate, monthly", "AU"], ["BoC", "CAD", "IRSTCI01CAM156N", "OECD short rate, monthly", "CA"], ["SNB", "CHF", "IRSTCI01CHM156N", "OECD short rate, monthly", "CH"], ["RBNZ", "NZD", "IRSTCI01NZM156N", "OECD short rate, monthly", "NZ"]];
 const FUND_US = [["CPIAUCSL", "US inflation (CPI y/y)", "yoy"], ["UNRATE", "US unemployment", "lvl"], ["T10YIE", "10Y inflation expectations", "lvl"], ["BAMLH0A0HYM2", "Junk-bond spread (stress)", "lvl"], ["VIXCLS", "VIX (fear gauge)", "lvl"]];
+const FUND_MORE = ["GVZCLS", "OVXCLS", "DTWEXBGS", "WALCL", "WTREGEN", "RRPONTSYD", "DFF"];      // gold and oil volatility, the broad dollar, dollar liquidity, the Fed's effective rate
 async function fundFRED(force) {
   const k = fredKey(), tag = k ? k.slice(-4) : "server";        // no key pasted: the relay (Mac app or the web version) adds its own
-  if (!force && FUND.fred && FUND.fred.at && Date.now() - FUND.fred.at < 6 * 3600e3 && FUND.fred.k === tag) return;
+  if (!force && FUND.fred && FUND.fred.at && Date.now() - FUND.fred.at < 6 * 3600e3 && FUND.fred.k === tag && FUND.fred.s && FUND_MORE.every(id => id in FUND.fred.s)) return;
   const one = async id => { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}${k ? "&api_key=" + encodeURIComponent(k) : ""}&file_type=json&sort_order=desc&limit=420`), j = await r.json().catch(() => null);
     if (!r.ok || !j || j.error_message) throw new Error((j && j.error_message) || "HTTP " + r.status); return (j.observations || []).filter(o => o.value !== ".").map(o => [Date.parse(o.date), +o.value]); };
-  try { const ids = [...FUND_CB.map(c => c[2]), ...FUND_US.map(u => u[0])], res = await Promise.all(ids.map(id => one(id).catch(e => { if (/api_key|key/i.test(e.message)) throw e; return []; })));
+  try { const ids = [...FUND_CB.map(c => c[2]), ...FUND_US.map(u => u[0]), ...FUND_MORE], res = await Promise.all(ids.map(id => one(id).catch(e => { if (/api_key|key/i.test(e.message)) throw e; return []; })));
     FUND.fred = { at: Date.now(), k: tag, s: Object.fromEntries(ids.map((id, i) => [id, res[i].slice(0, 420)])) }; FUND.err.fred = null; }
   catch (e) { FUND.err.fred = !k && /api_key/i.test(e.message) ? "nokey" : /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
+}
+// rates outside the US, no key: BIS policy rates (daily) and 2Y/10Y government yields for the euro area (ECB) and Japan (Ministry of Finance)
+const csvSplit = l => { const o = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === "," && !q) { o.push(cur.trim()); cur = ""; } else cur += ch; } o.push(cur.trim()); return o; };
+function sdmxRows(txt) {                           // SDMX-CSV: header "REF_AREA" or "REF_AREA:Reference area", values "GB" or "GB: United Kingdom"
+  const L = String(txt || "").replace(/^\uFEFF/, "").trim().split(/\r?\n/); if (L.length < 2) return [];
+  const H = csvSplit(L[0]).map(h => h.split(":")[0].trim().toUpperCase());
+  return L.slice(1).map(l => { const c = csvSplit(l), o = {}; H.forEach((h, i) => o[h] = (c[i] || "").replace(/^([A-Z0-9_]+): .*$/, "$1")); return o; });
+}
+async function fundBIS(force) {
+  if (!force && FUND.bis && Date.now() - FUND.bis.at < 12 * 3600e3) return;
+  const since = new Date(Date.now() - 3 * 365 * 864e5).toISOString().slice(0, 10), by = {};
+  try { sdmxRows(await fundText("/proxy/rates/bis?startPeriod=" + since)).forEach(r => { const a = r.REF_AREA, t = Date.parse(r.TIME_PERIOD), v = parseFloat(r.OBS_VALUE); if (a && isFinite(t) && isFinite(v)) (by[a] = by[a] || []).push([t, v]); });
+    const s = {}; Object.entries(by).forEach(([a, L]) => { L.sort((x, y) => x[0] - y[0]); const k = [];        // keep the latest day plus the first day of each new rate, newest first
+      L.forEach(p => { if (!k.length || Math.abs(p[1] - k.at(-1)[1]) >= 0.001) k.push(p); }); if (k.at(-1)[0] !== L.at(-1)[0]) k.push(L.at(-1)); s[a] = k.reverse(); });
+    if (!Object.keys(s).length) throw new Error("no policy rates came back"); FUND.bis = { at: Date.now(), s }; FUND.err.bis = null; }
+  catch (e) { FUND.err.bis = e.message; }
+}
+function jgbParse(csv) {                           // Ministry of Finance: a title line, then "Date,1Y,2Y,…,10Y,…"; dates 2026/10/30 (or the era form R8.10.30)
+  const L = String(csv || "").split(/\r?\n/), hi = L.findIndex(l => /^\s*"?date"?\s*,/i.test(l)); if (hi < 0) return [];
+  const H = csvSplit(L[hi]).map(h => h.toUpperCase().replace(/\s+/g, "")), i2 = H.indexOf("2Y"), i10 = H.indexOf("10Y"), ERA = { M: 1867, T: 1911, S: 1925, H: 1988, R: 2018 };
+  return L.slice(hi + 1).map(l => { const c = csvSplit(l), d = c[0] || "", m = d.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/), e = d.match(/^([MTSHR])(\d{1,2})\.(\d{1,2})\.(\d{1,2})$/);
+    const t = m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : e ? Date.UTC(ERA[e[1]] + +e[2], +e[3] - 1, +e[4]) : NaN, v = {}; if (!isFinite(t)) return null;
+    if (i2 > 0 && isFinite(parseFloat(c[i2]))) v["2yr"] = parseFloat(c[i2]); if (i10 > 0 && isFinite(parseFloat(c[i10]))) v["10yr"] = parseFloat(c[i10]);
+    return Object.keys(v).length ? { t, v } : null; }).filter(Boolean);
+}
+async function fundYields(force) {
+  if (!force && FUND.fy && FUND.fy.at && Date.now() - FUND.fy.at < 6 * 3600e3) return;
+  const old = FUND.fy || {}, fy = { at: Date.now(), EU: old.EU || null, JP: old.JP || null }, errs = [], since = new Date(Date.now() - 75 * 864e5).toISOString().slice(0, 10);
+  const merge = (keep, add) => { const m = new Map((keep || []).map(r => [r.t, r])); add.forEach(r => m.set(r.t, r)); return [...m.values()].sort((a, b) => b.t - a.t).slice(0, 60); };
+  await Promise.all([
+    (async () => { const by = {}; sdmxRows(await fundText("/proxy/rates/ecb?startPeriod=" + since)).forEach(r => { const dt = r.DATA_TYPE_FM || String(r.KEY || "").split(".").pop(), k = dt === "SR_2Y" ? "2yr" : dt === "SR_10Y" ? "10yr" : null, t = Date.parse(r.TIME_PERIOD), v = parseFloat(r.OBS_VALUE);
+        if (k && isFinite(t) && isFinite(v)) (by[t] = by[t] || {})[k] = v; });
+      const rows = Object.entries(by).map(([t, v]) => ({ t: +t, v })); if (!rows.length) throw new Error("none"); fy.EU = merge(null, rows); })().catch(() => errs.push("euro area")),
+    (async () => { let rows = (fy.JP || []).concat(jgbParse(await fundText("/proxy/rates/jgb")));                      // this month's file; the full history once, when a month back is missing
+      if (!rows.some(r => r.t <= Date.now() - 32 * 864e5)) rows = jgbParse(await fundText("/proxy/rates/jgb-all").catch(() => "")).filter(r => r.t > Date.now() - 120 * 864e5).concat(rows);
+      if (!rows.length) throw new Error("none"); fy.JP = merge(null, rows); })().catch(() => errs.push("Japan"))]);
+  if (errs.length) fy.at = Date.now() - 5 * 3600e3;                                    // try again within the hour
+  FUND.fy = fy; FUND.err.fy = errs.length ? errs.join(" and ") : null;
+}
+// seasonality: how each calendar month has gone, from up to 20 years of your broker's monthly candles (the exchanges' perps are too young)
+const SEAS_MK = [["Gold", "Gold"], ["Silver", "Silver"], ["Nasdaq 100", "Nasdaq 100"], ["S&P 500", "S&P 500"], ["Dollar index", "US Dollar Index"], ["EUR/USD", "EUR/USD"],
+  ["GBP/USD", "GBP/USD"], ["USD/JPY", "USD/JPY"], ["Oil (WTI)", "WTI Crude Oil"]];
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function seasStats(k) {                            // monthly candles → per calendar month: average % change, share of years up, years counted
+  const by = Array.from({ length: 12 }, () => []);
+  k.t.forEach((t, i) => { if (k.o[i] > 0 && k.c[i] > 0) by[new Date(t + 3 * 864e5).getUTCMonth()].push((k.c[i] / k.o[i] - 1) * 100); });      // +3 days: a bar stamped late on the 31st (broker time) belongs to the next month
+  return by.map(a => a.length ? { avg: a.reduce((p, v) => p + v, 0) / a.length, up: Math.round(a.filter(v => v > 0).length / a.length * 100), n: a.length, ups: a.filter(v => v > 0).length } : null);
+}
+async function fundSeas(force) {
+  if (!force && FUND.seas && FUND.seas.at && Date.now() - FUND.seas.at < 24 * 3600e3) return;
+  if (typeof ctConfigured !== "function" || !ctConfigured()) { FUND.err.seas = "nobroker"; return; }
+  try { if (CT.state !== "ready") await ctConnect();
+    const now = Date.now(), d = new Date(now), mStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1), rows = {};
+    for (const [lbl, name] of SEAS_MK) { const o = ctList().find(x => x.name === name); if (!o) continue; const sym = "CT:" + o.x.symbolName; CT_SYMS.add(sym); const m = new Map();
+      for (let c = 0; c < 4; c++) { let k; try { k = await ctKlines(sym, "1M", 60, true, now - c * 5 * 365.25 * 864e5); } catch (e) { break; }      // newest 5 years first, then further back
+        k.t.forEach((t, i) => { if (t + 3 * 864e5 < mStart) m.set(t, [k.o[i], k.c[i]]); }); if (k.t.length < 50) break; }                    // this month isn't finished: left out
+      const ts = [...m.keys()].sort((a, b) => a - b); if (ts.length < 36) continue;
+      rows[lbl] = { sym, years: Math.round(ts.length / 12), from: ts[0], m: seasStats({ t: ts, o: ts.map(t => m.get(t)[0]), c: ts.map(t => m.get(t)[1]) }) }; }
+    if (!Object.keys(rows).length) throw new Error("no long price history came back"); FUND.seas = { at: Date.now(), rows }; FUND.err.seas = null; }
+  catch (e) { FUND.err.seas = e.message; }
+}
+const SUR_SIGN = { "US dollar": 1, "Gold": -1, "Silver": -1, "EUR/USD": -1, "USD/JPY": 1 };
+function surLine(card) {                           // the last day's US data surprise, turned into this card's direction (the Nasdaq only minds inflation)
+  const su = typeof calLastSurprise === "function" ? calLastSurprise() : null; if (!su) return null;
+  const sg = card === "Nasdaq 100" ? (calActDef(su.x)[5] === "infl" ? -1 : 0) : SUR_SIGN[card] || 0;
+  return sg ? [sg * su.a.dir, `US ${su.x.title} ${su.a.txt} vs ${su.x.forecast} expected: ${su.a.word}`] : null;
+}
+function seasLine(card) {                          // a card's seasonal lean: this calendar month up (or down) in at least 70% of years
+  const lbl = { "US dollar": "Dollar index" }[card] || card, R = FUND.seas && FUND.seas.rows && FUND.seas.rows[lbl], mi = new Date(Date.now() + PHT_MS).getUTCMonth(), x = R && R.m[mi];
+  if (!x || x.n < 5) return null; const mo = MON[mi];
+  return x.up >= 70 && x.avg > 0 ? [+1, `Seasonally strong: ${mo} was up in ${x.ups} of ${x.n} years (average ${fPct(x.avg, 1)})`]
+    : x.up <= 30 && x.avg < 0 ? [-1, `Seasonally weak: ${mo} was down in ${x.n - x.ups} of ${x.n} years (average ${fPct(x.avg, 1)})`] : null;
+}
+function fundSeasHTML() {
+  const S = FUND.seas, mi = new Date(Date.now() + PHT_MS).getUTCMonth(), ni = (mi + 1) % 12;
+  if (!S || !S.rows || !Object.keys(S.rows).length) return `<div class="empty">${FUND.err.seas === "nobroker" ? "Seasonality needs your cTrader account: it reads up to 20 years of monthly candles (the exchanges' contracts are only a year or two old)." : FUND.err.seas ? "Couldn't load long price history (" + xEsc(FUND.err.seas) + ")." : "Loading up to 20 years of monthly candles…"}</div>`;
+  const cell = (x, i) => { if (!x) return `<td class="fsc mu">·</td>`; const a = Math.min(1, Math.abs(x.avg) / 3), bg = x.avg >= 0 ? `rgba(38,166,154,${(0.12 + a * 0.6).toFixed(2)})` : `rgba(239,83,80,${(0.12 + a * 0.6).toFixed(2)})`;
+    return `<td class="fsc${i === mi ? " now" : ""}" style="background:${bg}" title="${MON[i]}: average ${fPct(x.avg, 1)}, up in ${x.ups} of ${x.n} years">${x.avg >= 0 ? "+" : "−"}${Math.abs(x.avg).toFixed(1)}</td>`; };
+  const txt = x => x ? `<span class="${x.up >= 60 ? "up" : x.up <= 40 ? "dn" : "mu"}">${fPct(x.avg, 1)}</span> <span class="mu">${x.ups}/${x.n} up</span>` : "—";
+  return `<div class="fseasw"><table class="ftbl fseas"><tr class="mu"><td></td>${MON.map((m, i) => `<td class="fsc${i === mi ? " now" : ""}">${m[0]}</td>`).join("")}<td class="r">${MON[mi]} (now)</td><td class="r">${MON[ni]}</td></tr>
+    ${Object.entries(S.rows).map(([lbl, R]) => `<tr data-fsym="${xEsc(R.sym)}" class="fclk" title="${R.years} years, from ${new Date(R.from).getUTCFullYear()}"><td>${xEsc(lbl)} <span class="mu">${R.years}y</span></td>${R.m.map(cell).join("")}<td class="r">${txt(R.m[mi])}</td><td class="r">${txt(R.m[ni])}</td></tr>`).join("")}</table></div>
+    <p class="meta fnote">Average change in each calendar month (open to close) from your broker's monthly candles. A lean, not a rule: a strong month still has down years.</p>`;
 }
 // headlines: free RSS feeds through the relay
 const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"]];
@@ -9828,7 +10251,7 @@ async function fundNews(force) {
 }
 async function fundLoad(force) {
   if (FUND.busy) { FUND.again = FUND.again || force || "soft"; return; } FUND.busy = true; fundRender();
-  await Promise.all([fundUST(force), fundCOT(force), fundFRED(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
+  await Promise.all([fundUST(force), fundCOT(force), fundCOTFunds(force), fundFRED(force), fundEIA(force), fundBIS(force), fundYields(force), fundSeas(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
   FUND.busy = false; fundSave(); fundRender();
   if (FUND.again) { const f = FUND.again === true; FUND.again = false; fundLoad(f); }       // asked again while busy (a new key, Refresh)
 }
@@ -9846,40 +10269,90 @@ function fundStrip() {
   return [m(["US Dollar Index", "USDX"], "DXY"), u && u.v["10yr"] != null ? cell("US10Y", u.v["10yr"].toFixed(2) + "%", FUND.ust.rows[1] && FUND.ust.rows[1].v["10yr"] != null ? `<span class="${fCls(u.v["10yr"] - FUND.ust.rows[1].v["10yr"])}">${((u.v["10yr"] - FUND.ust.rows[1].v["10yr"]) * 100 >= 0 ? "+" : "") + Math.round((u.v["10yr"] - FUND.ust.rows[1].v["10yr"]) * 100)}bp</span>` : "") : "",
     m(["Gold"], "Gold"), m(["Nasdaq 100"], "NAS100"), m(["WTI Crude Oil"], "WTI"), vix ? cell("VIX", vix[0][1].toFixed(1), "") : "", btc ? cell("BTC", fmtPrice(btc.price), `<span class="${fCls(btc.chg24h)}">${fPct(btc.chg24h)}</span>`) : ""].join("");
 }
+const fAt = (s, t) => { const o = s && s.find(x => x[0] <= t); return o ? o[1] : null; };      // a FRED series' value on or before a date (series are newest first)
+function fundRank(id) {                            // latest value, change on the day, and where it sits in its own past year (0 = lowest, 100 = highest)
+  const s = fundLast(id); if (!s) return null; const yr = s.filter(o => o[0] > s[0][0] - 365 * 864e5).map(o => o[1]);
+  return { v: s[0][1], chg: s[1] ? s[0][1] - s[1][1] : null, pct: Math.round(yr.filter(v => v <= s[0][1]).length / yr.length * 100), t: s[0][0] };
+}
+const fRankLbl = x => !x ? "" : x.pct >= 80 ? "high for the year" : x.pct <= 20 ? "low for the year" : "normal";
+function fundLiq() {                               // dollar liquidity in $bn: the Fed's balance sheet minus the Treasury's cash account and reverse repo; weekly (Wednesdays)
+  const W = fundLast("WALCL"), T = fundLast("WTREGEN"), R = fundLast("RRPONTSYD"); if (!W || !T || !R) return null;
+  const lv = t => { const w = fAt(W, t), g = fAt(T, t), r = fAt(R, t); return w == null || g == null || r == null ? null : w / 1000 - g / 1000 - r; };
+  const t = Math.min(W[0][0], T[0][0]), v = lv(t), m = lv(t - 28 * 864e5); return v == null ? null : { v, chg: m == null ? null : v - m, t };
+}
+function fundBroad() {                             // the Fed's broad trade-weighted dollar (26 currencies), with its 1-week change
+  const s = fundLast("DTWEXBGS"); if (!s) return null; const w = fAt(s, s[0][0] - 7 * 864e5);
+  return { v: s[0][1], d: s[1] ? (s[0][1] / s[1][1] - 1) * 100 : null, w: w ? (s[0][1] / w - 1) * 100 : null, t: s[0][0] };
+}
+function fundCuts() {                              // rough Fed cuts priced: the rate markets expect 6–12 months out (2 × 1-year − 6-month yield) vs the Fed's effective rate now
+  const R = FUND.ust && FUND.ust.rows, f = fundLast("DFF"); if (!R || !R.length || !f) return null;
+  const at = r => { if (!r || r.v["6mo"] == null || r.v["1yr"] == null) return null; const e = fAt(f, r.t); return e == null ? null : (e - (2 * r.v["1yr"] - r.v["6mo"])) / 0.25; };
+  const n = at(R[0]), then = at(R.find(r => r.t <= R[0].t - 28 * 864e5)); return n == null ? null : { n, then, eff: f[0][1] };
+}
+const fCutsTxt = n => { const h = Math.round(Math.abs(n) * 2) / 2; return h < 0.5 ? "no change" : `about ${h} ${n > 0 ? (h === 1 ? "cut" : "cuts") : (h === 1 ? "hike" : "hikes")}`; };
+function fRatio(parts) {                           // [[row, power], …]: a ratio or product of prices, with its 24h and 1-week change
+  if (parts.some(([r]) => !r || !(r.price > 0))) return null; const all = f => parts.every(([r]) => f(r) != null), prod = f => parts.reduce((p, [r, k]) => p * f(r) ** k, 1);
+  return { v: prod(r => r.price), d: all(r => r.chg24h) ? (prod(r => 1 + r.chg24h / 100) - 1) * 100 : null, w: all(r => r.ret7) ? (prod(r => 1 + r.ret7) - 1) * 100 : null };
+}
+const fGoldIn = () => { const au = fRow(["Gold", "XAUUSD"]); return { au, eur: fRatio([[au, 1], [fRow(["EUR/USD", "EURUSD"]), -1]]), jpy: fRatio([[au, 1], [fRow(["USD/JPY", "USDJPY"]), 1]]) }; };
 function fundWorld() {
   let h = `<table class="ftbl"><tr class="mu"><td></td><td class="r">Price</td><td class="r">24h</td><td class="r">1W</td></tr>`;
   FUND_WM.forEach(([grp, L]) => { h += `<tr><td class="fgrp" colspan="4">${grp}</td></tr>`;
     L.forEach(([lbl, names]) => { const r = fRow(names);
-      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
-      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
+      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from its six currencies (EUR, JPY, GBP, CAD, SEK, CHF); SEK needs your broker"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
+      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; });
+    const br = grp === "Commodities" && fRow(["Brent Crude Oil", "UKOIL"]), wt = br && fRow(["WTI Crude Oil", "USOIL"]);
+    if (br && wt && Math.abs(br.price - wt.price) < 0.25 * wt.price) { /* both in dollars a barrel; anything wider is a feed mismatch */ const sp = br.price - wt.price, was = k => br.price / (1 + k(br)) - wt.price / (1 + k(wt)), d = br.chg24h != null && wt.chg24h != null ? sp - was(r => r.chg24h / 100) : null, w = br.ret7 != null && wt.ret7 != null ? sp - was(r => r.ret7) : null;
+      const f = v => v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2);
+      h += `<tr title="Brent's premium over WTI, in dollars a barrel. Widening: tighter supply outside the US (often Middle East or Russia news); narrowing: the US market tightening"><td>Brent − WTI</td><td class="r">${sp < 0 ? "−" : ""}$${Math.abs(sp).toFixed(2)}</td><td class="r ${fCls(d)}">${f(d)}</td><td class="r ${fCls(w)}">${f(w)}</td></tr>`; }
+    const B = grp === "FX" && fundBroad();
+    if (B) h += `<tr title="The Fed's trade-weighted dollar against 26 currencies (a wider view than the dollar index, which is mostly the euro) · as of ${new Date(B.t).toISOString().slice(0, 10)}"><td>Broad dollar <span class="mu">Fed</span></td><td class="r">${B.v.toFixed(2)}</td><td class="r ${fCls(B.d)}">${fPct(B.d)}</td><td class="r ${fCls(B.w)}">${B.w != null ? fPct(B.w, 1) : "—"}</td></tr>`; });
   const G = EXT.global, F = EXT.fng, mf = typeof medianFunding === "function" && data ? medianFunding() : null, vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2");
-  h += `<tr><td class="fgrp" colspan="4">Risk &amp; crypto</td></tr>
+  const gv = fundRank("GVZCLS"), ov = fundRank("OVXCLS"), lq = fundLiq(), GI = fGoldIn(), gs = fRatio([[GI.au, 1], [fRow(["Silver", "XAGUSD"]), -1]]), cg = fRatio([[fRow(["Copper"]), 1], [GI.au, -1]]);
+  const ratioRow = (lbl, x, fmt, tip) => x ? `<tr title="${tip}"><td>${lbl}</td><td class="r">${fmt(x.v)}</td><td class="r ${fCls(x.d)}">${fPct(x.d)}</td><td class="r ${fCls(x.w)}">${x.w != null ? fPct(x.w, 1) : "—"}</td></tr>` : "";
+  const ratios = [ratioRow("Gold ÷ Silver", gs, v => v.toFixed(1), "Ounces of silver that buy one of gold. Rising: gold leading (caution in metals); falling: silver leading (appetite for risk)"),
+    ratioRow("Copper ÷ Gold", cg, v => v.toPrecision(4), "Rising: growth hopes (copper) beating fear (gold); it tends to move with the 10-year yield. The level depends on your feed's copper units, so watch the change"),
+    ratioRow("Gold in euros", GI.eur, fmtPrice, "Gold priced in euros. If gold rises in dollars but not here, the move is mostly a weaker dollar"),
+    ratioRow("Gold in yen", GI.jpy, fmtPrice, "Gold priced in yen. Rising in every currency means real demand for gold, not just a weak dollar")].join("");
+  if (ratios) h += `<tr><td class="fgrp" colspan="4">Ratios</td></tr>${ratios}`;
+  const eRows = EIA_S.map(([id, lbl, u]) => { const x = eiaRead(id); if (!x) return ""; const f = v => u === "M" ? (v / 1000).toFixed(1) + "M" : Math.round(v) + "B";
+    return `<tr title="${lbl}: ${u === "M" ? "million barrels" : "billion cubic feet"}, week to ${new Date(x.t).toISOString().slice(0, 10)}. A fall (draw) usually helps the price. Last column: against the same week's average over the last 5 years"><td>${lbl}</td><td class="r">${f(x.v)}</td><td class="r ${fCls(-x.chg)}">${x.chg >= 0 ? "+" : "−"}${f(Math.abs(x.chg))}</td><td class="r ${x.vs5 == null ? "mu" : fCls(-x.vs5)}">${x.vs5 == null ? "—" : fPct(x.vs5, 0) + " vs 5y"}</td></tr>`; }).join("");
+  const eNote = !eiaKey() && FUND.err.eia === "nokey" ? `<tr><td colspan="4"><div class="fkey"><span>Weekly oil and gas stocks come from the EIA. Add your free key (eia.gov/opendata → Register):</span><input id="eiaKey" placeholder="Paste EIA key" aria-label="EIA API key" autocomplete="off"><button class="btn sm" id="eiaSave">Save</button></div></td></tr>`
+    : FUND.err.eia && !eRows ? `<tr><td colspan="4" class="dn">Couldn't load oil stocks: ${xEsc(FUND.err.eia)}.${eiaKey() ? ` <button class="btn sm" id="eiaClear">Change key</button>` : ""}</td></tr>` : "";
+  if (eRows || eNote) h += `<tr><td class="fgrp" colspan="4">Oil &amp; gas stocks <span class="mu">EIA, weekly · level · week · vs 5y</span></td></tr>${eRows}${eNote}`;
+  const volRow = (lbl, x, tip) => `<tr title="${tip}"><td>${lbl}</td><td class="r">${x ? x.v.toFixed(1) : "—"}</td><td class="r ${x && x.chg != null ? fCls(-x.chg) : "mu"}">${x && x.chg != null ? (x.chg >= 0 ? "+" : "") + x.chg.toFixed(1) : ""}</td><td class="r ${x && x.pct >= 80 ? "fam" : "mu"}">${fRankLbl(x)}</td></tr>`;
+  h += `<tr><td class="fgrp" colspan="4">Volatility &amp; liquidity</td></tr>
     <tr><td>VIX (fear gauge)</td><td class="r">${vix ? vix[0][1].toFixed(1) : "—"}</td><td class="r ${vix && vix[1] ? fCls(-(vix[0][1] - vix[1][1])) : "mu"}">${vix && vix[1] ? (vix[0][1] - vix[1][1] >= 0 ? "+" : "") + (vix[0][1] - vix[1][1]).toFixed(1) : ""}</td><td class="r mu">${vix ? (vix[0][1] < 15 ? "calm" : vix[0][1] < 22 ? "normal" : "stressed") : ""}</td></tr>
     <tr><td>Junk-bond spread</td><td class="r">${hy ? hy[0][1].toFixed(2) + "%" : "—"}</td><td class="r ${hy && hy[1] ? fCls(-(hy[0][1] - hy[1][1])) : "mu"}">${hy && hy[1] ? ((hy[0][1] - hy[1][1]) * 100 >= 0 ? "+" : "") + Math.round((hy[0][1] - hy[1][1]) * 100) + "bp" : ""}</td><td class="r mu">${hy ? (hy[0][1] < 3.5 ? "relaxed" : hy[0][1] < 5 ? "normal" : "stress") : ""}</td></tr>
+    ${volRow("Gold volatility (GVZ)", gv, "How much gold options expect it to move (30 days), against its own past year. High: wider swings, so wider stops and smaller size")}
+    ${volRow("Oil volatility (OVX)", ov, "How much oil options expect it to move (30 days), against its own past year")}
+    <tr title="The Fed's balance sheet minus the Treasury's cash account and reverse repo: roughly the spare dollars in the system. Rising tends to help stocks, Bitcoin and gold · weekly, as of ${lq ? new Date(lq.t).toISOString().slice(0, 10) : "—"}"><td>Dollar liquidity <span class="mu">Fed</span></td><td class="r">${lq ? "$" + (lq.v / 1000).toFixed(2) + "tn" : "—"}</td><td></td><td class="r ${lq && lq.chg != null ? fCls(lq.chg) : "mu"}">${lq && lq.chg != null ? (lq.chg >= 0 ? "+" : "−") + "$" + Math.abs(Math.round(lq.chg)) + "bn 4w" : ""}</td></tr>
+    <tr><td class="fgrp" colspan="4">Crypto</td></tr>
     <tr><td>Crypto Fear &amp; Greed</td><td class="r">${F ? F.v : "—"}</td><td class="r ${F && F.prev != null ? fCls(F.v - F.prev) : "mu"}">${F && F.prev != null ? (F.v - F.prev >= 0 ? "+" : "") + (F.v - F.prev) : ""}</td><td class="r mu">${F ? xEsc(String(F.cls).toLowerCase()) : ""}</td></tr>
     <tr><td>Crypto market cap</td><td class="r">${G ? "$" + fmtVol(G.mcap).replace(" ", "") : "—"}</td><td class="r ${fCls(G && G.chg)}">${G ? fPct(G.chg) : ""}</td><td></td></tr>
     <tr><td>BTC dominance</td><td class="r">${G ? G.btcDom.toFixed(1) + "%" : "—"}</td><td></td><td></td></tr>
     <tr><td>Funding (median, 8h)</td><td class="r">${mf != null ? (mf * 100).toFixed(3) + "%" : "—"}</td><td></td><td class="r mu">${mf != null ? (mf > 0.0003 ? "longs paying up" : mf < 0 ? "shorts paying" : "normal") : ""}</td></tr></table>`;
   return h;
 }
-function fundBank(id) {                           // a bank's rate, its last real move and stance (monthly OECD series wiggle a few bp: ignore under 10bp)
-  const s = fundLast(id), out = { rate: null, asOf: null, mv: null, mvAt: null, stance: "" }; if (!s) return out;
-  const th = id.startsWith("IRSTCI") ? 0.1 : 0.001; out.rate = s[0][1]; out.asOf = s[0][0];
+function fundBank(id, bis) {                      // a bank's rate, its last real move and stance: BIS's daily policy rate when loaded, else FRED (monthly OECD series wiggle a few bp: ignore under 10bp)
+  const b = bis && FUND.bis && FUND.bis.s && FUND.bis.s[bis], s = b && b.length ? b : fundLast(id), out = { rate: null, asOf: null, mv: null, mvAt: null, stance: "", bis: s === b }; if (!s) return out;
+  const th = !out.bis && id.startsWith("IRSTCI") ? 0.1 : 0.001; out.rate = s[0][1]; out.asOf = s[0][0];
   const j = s.findIndex(o => Math.abs(o[1] - out.rate) >= th); if (j > 0) { out.mv = Math.round((out.rate - s[j][1]) * 100); out.mvAt = s[j - 1][0]; }
   out.stance = out.mv == null ? "on hold" : Date.now() - out.mvAt < 200 * 864e5 ? (out.mv < 0 ? "cutting" : "hiking") : "on hold"; return out;
 }
 function fundCB() {
   const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
   const meet = ccy => { if (ccy === "USD" && nextFOMC) return nextFOMC; const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && /rate|policy|cash rate|statement/i.test(e.title) && e.type === "Central Bank"); return x ? x.at : null; };
-  const rows = FUND_CB.map(([bank, ccy, id, what]) => { const s = fundLast(id), m = meet(ccy);
-    let rate, asOf, mv, mvAt, stance;
-    ({ rate, asOf, mv, mvAt, stance } = fundBank(id));
-    return `<tr><td><b>${bank}</b> <span class="mu">${ccy}</span></td><td class="r" title="${xEsc(what)}${asOf ? " · as of " + new Date(asOf).toISOString().slice(0, 10) : ""}">${rate != null ? rate.toFixed(2) + "%" : "—"}</td>
+  const fed = fundBank("DFEDTARU").rate, fedMid = fed != null ? fed - 0.125 : null;                 // the middle of the Fed's 0.25-wide range
+  const rows = FUND_CB.map(([bank, ccy, id, what, bis]) => { const m = meet(ccy), { rate, asOf, mv, mvAt, stance, bis: fromBis } = fundBank(id, bis);
+    const gap = ccy === "USD" || rate == null || fedMid == null ? null : rate - fedMid;
+    return `<tr><td><b>${bank}</b> <span class="mu">${ccy}</span></td><td class="r" title="${fromBis ? "policy rate (BIS, daily)" : xEsc(what)}${asOf ? " · as of " + new Date(asOf).toISOString().slice(0, 10) : ""}">${rate != null ? rate.toFixed(2) + "%" : "—"}</td>
+      <td class="r ${gap == null ? "mu" : fCls(gap)}" title="${gap == null ? "" : `Holding ${ccy} instead of dollars ${gap >= 0 ? "earns" : "costs"} about ${Math.abs(gap).toFixed(2)}% a year (before the broker's markup)`}">${gap == null ? "—" : (gap > 0 ? "+" : gap < 0 ? "−" : "") + Math.abs(gap).toFixed(2)}</td>
       <td class="r ${mv == null ? "mu" : fCls(mv)}">${mv == null ? "—" : (mv > 0 ? "+" : "") + mv + "bp " + new Date(mvAt).toLocaleString("en-US", { month: "short", year: "2-digit", timeZone: "UTC" })}</td>
-      <td class="r">${m ? `${phtDay(m).slice(4)} <span class="mu">· ${inTxt(m - now)}</span>` : "—"}</td><td>${stance ? `<span class="fk ${stance === "cutting" ? "up" : stance === "hiking" ? "dn" : ""}">${stance}</span>` : ""}</td></tr>`; }).join("");
-  const note = !k && (FUND.err.fred === "nokey" || !(FUND.fred && FUND.fred.s)) ? `<div class="fkey"><span>Rates come from FRED. Add your free key (fred.stlouisfed.org → My account → API keys):</span><input id="fredKey" placeholder="Paste FRED key" aria-label="FRED API key" autocomplete="off"><button class="btn sm" id="fredSave">Save</button></div>`
+      <td class="r" ${m ? `title="in ${inTxt(m - now)}"` : ""}>${m ? `${phtDay(m).slice(4)} <span class="mu">· ${m - now >= 2 * 864e5 ? Math.floor((m - now) / 864e5) + "d" : inTxt(m - now)}</span>` : "—"}</td><td>${stance ? `<span class="fk ${stance === "cutting" ? "up" : stance === "hiking" ? "dn" : ""}">${stance}</span>` : ""}</td></tr>`; }).join("");
+  const note = !k && (FUND.err.fred === "nokey" || !(FUND.fred && FUND.fred.s)) ? `<div class="fkey"><span>The Fed and ECB rates and the US gauges come from FRED. Add your free key (fred.stlouisfed.org → My account → API keys):</span><input id="fredKey" placeholder="Paste FRED key" aria-label="FRED API key" autocomplete="off"><button class="btn sm" id="fredSave">Save</button></div>`
     : FUND.err.fred ? `<div class="fkey dn">${xEsc(FUND.err.fred)}. <button class="btn sm" id="fredClear">Change key</button></div>` : "";
-  return `<table class="ftbl"><tr class="mu"><td>Bank</td><td class="r">Rate</td><td class="r">Last move</td><td class="r">Next meeting</td><td>Stance</td></tr>${rows}</table>${note}`;
+  return `<table class="ftbl"><tr class="mu"><td>Bank</td><td class="r">Rate</td><td class="r" title="This bank's rate minus the Fed's (middle of its range), in percentage points">vs Fed</td><td class="r">Last move</td><td class="r">Next meeting</td><td>Stance</td></tr>${rows}</table>${note}`;
 }
 function fundCurve() {
   const R = FUND.ust && FUND.ust.rows; if (!R || !R.length) return `<div class="empty">${FUND.err.ust ? "Couldn't load US Treasury yields (" + xEsc(FUND.err.ust) + ")" : "Loading US Treasury yields…"}</div>`;
@@ -9896,17 +10369,42 @@ function fundCurve() {
       <g fill="var(--mute)" font-size="10" text-anchor="middle">${T.map((k, i) => `<text x="${X(i).toFixed(1)}" y="110">${k.replace("mo", "M").replace("yr", "Y")}</text>`).join("")}</g></svg></div>
     <div class="fkv">${kv("2Y", a.v["2yr"] != null ? a.v["2yr"].toFixed(2) : "—", d2)}${kv("10Y", a.v["10yr"] != null ? a.v["10yr"].toFixed(2) : "—", d10)}${kv("10Y minus 2Y", s != null ? (s >= 0 ? "+" : "") + s + "bp" : "—")}${kv("10Y real", rr && rr.v["10yr"] != null ? rr.v["10yr"].toFixed(2) : "—", dr)}
       ${(() => { const c = fundLast("CPIAUCSL"), u = fundLast("UNRATE"), be = fundLast("T10YIE"); const y = c && c[12] ? (c[0][1] / c[12][1] - 1) * 100 : null;
-        return kv("US CPI y/y", y != null ? y.toFixed(1) + "%" : "—") + kv("Unemployment", u ? u[0][1].toFixed(1) + "%" : "—") + kv("10Y inflation exp.", be ? be[0][1].toFixed(2) + "%" : "—"); })()}</div></div>
+        const fc = fundCuts(), fcd = fc && fc.then != null ? Math.round((fc.n - fc.then) * 2) / 2 : null;
+        return `<span class="mu" title="Rough: the Fed rate markets expect 6 to 12 months out (from the 6-month and 1-year Treasury yields) against the Fed's effective rate today${fc ? ` (${fc.eff.toFixed(2)}%)` : ""}. Change is against a month ago.">Fed cuts priced</span><b>${fc ? fCutsTxt(fc.n) : "—"}${fcd ? ` <span class="${fcd > 0 ? "up" : "dn"}">${fcd > 0 ? "+" : "−"}${Math.abs(fcd)}</span>` : ""}</b>`
+          + kv("US CPI y/y", y != null ? y.toFixed(1) + "%" : "—") + kv("Unemployment", u ? u[0][1].toFixed(1) + "%" : "—") + kv("10Y inflation exp.", be ? be[0][1].toFixed(2) + "%" : "—"); })()}</div></div>
     <p class="meta fnote">Falling real yields usually help gold and the Nasdaq; a rising 2Y means the market expects fewer Fed cuts.</p>`;
+}
+function fundGaps() {                             // US minus euro-area / Japan yields, now and the change over about a month (in % points)
+  const U = FUND.ust && FUND.ust.rows, F = FUND.fy || {};
+  const gap = (A, B, k) => { const has = r => r.v[k] != null, a0 = A && A.find(has), b0 = B && B.find(has); if (!a0 || !b0) return null;
+    const a1 = A.find(r => has(r) && r.t <= a0.t - 28 * 864e5), b1 = B.find(r => has(r) && r.t <= b0.t - 28 * 864e5), now = a0.v[k] - b0.v[k];
+    return { now, chg: a1 && b1 ? now - (a1.v[k] - b1.v[k]) : null, asOf: Math.min(a0.t, b0.t) }; };
+  return { eu2: gap(U, F.EU, "2yr"), eu10: gap(U, F.EU, "10yr"), jp2: gap(U, F.JP, "2yr"), jp10: gap(U, F.JP, "10yr") };
+}
+function fundGapsHTML() {
+  const G = fundGaps(), bp = v => v == null ? "" : ` <span class="${fCls(v)}">${v >= 0 ? "+" : "−"}${Math.abs(Math.round(v * 100))}</span>`;
+  const cell = g => `<td class="r">${g ? g.now.toFixed(2) + bp(g.chg) : "—"}</td>`;
+  const read = (g, them, pair) => !g || g.chg == null ? `<span class="mu">${g ? "needs a month of data" : ""}</span>` : Math.abs(g.chg) < 0.1 ? `<span class="mu">steady</span>`      // coloured by where it pushes the pair
+    : `${g.chg > 0 ? "widening" : "narrowing"}: <b class="${g.chg * pair > 0 ? "up" : "dn"}">helps ${g.chg > 0 ? "the dollar" : them}</b>`;
+  if (!G.eu2 && !G.eu10 && !G.jp2 && !G.jp10) return `<div class="fph fsub">Yield gaps <span>US minus euro area and Japan</span></div><div class="empty">${FUND.err.fy ? "Couldn't load " + xEsc(FUND.err.fy) + " yields. They need the Mac app's relay or the web version." : "Loading euro-area and Japan yields…"}</div>`;
+  return `<div class="fph fsub">Yield gaps <span>US minus the others · bp change in a month</span></div>
+    <table class="ftbl fgaps"><tr class="mu"><td></td><td class="r">2Y</td><td class="r">10Y</td><td>Lately</td></tr>
+    <tr><td title="US minus euro-area yields"><b>EUR/USD</b> <span class="mu">US − euro</span></td>${cell(G.eu2)}${cell(G.eu10)}<td title="EUR/USD follows the 2-year gap most">${read(G.eu2, "the euro", -1)}</td></tr>
+    <tr><td title="US minus Japan yields"><b>USD/JPY</b> <span class="mu">US − Japan</span></td>${cell(G.jp2)}${cell(G.jp10)}<td title="USD/JPY follows the 10-year gap most">${read(G.jp10, "the yen", 1)}</td></tr></table>
+    <p class="meta fnote">Money goes where it earns more: a wider gap usually lifts USD/JPY and weighs on EUR/USD. Euro area is the ECB's AAA government curve, close to German Bunds${FUND.err.fy ? ` · couldn't load ${xEsc(FUND.err.fy)} just now` : ""}.</p>`;
 }
 function fundCOTHTML() {
   const C = FUND.cot; if (!C || !C.rows.length) return `<div class="empty">${FUND.err.cot ? "Couldn't load positioning (" + xEsc(FUND.err.cot) + "). It needs the Mac app's relay or the web version." : "Loading positioning…"}</div>`;
   const mx = Math.max(30, ...C.rows.map(r => Math.abs(r.net)));
-  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:38%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td></tr>${C.rows.map(r => `<tr><td>${xEsc(r.name)}</td>
+  const HF = FUND.cotf && FUND.cotf.rows, hf = r => { const f = HF && HF[r.code]; if (!f) return `<td class="r mu">—</td>`;
+    const fin = /Stocks|Currencies/.test((COT_MK.find(m => m[1] === r.code) || [])[2] || ""), x = f.pct != null && (f.pct >= 90 || f.pct <= 10);
+    return `<td class="r ${fCls(f.net)}" title="${fin ? "Leveraged funds (hedge funds)" : "Managed money (hedge funds and CTAs)"}: net ${(f.net >= 0 ? "+" : "") + f.net.toFixed(1)}% of open interest${f.chg != null ? `, ${(f.chg >= 0 ? "+" : "") + f.chg.toFixed(1)} on the week` : ""}${f.am != null ? `. Asset managers: ${(f.am >= 0 ? "+" : "") + f.am.toFixed(0)}%` : ""}${f.pct != null ? `. ${f.pct}${f.pct % 100 >= 11 && f.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][f.pct % 10] || "th"} percentile of the year` : ""}">${(f.net >= 0 ? "+" : "") + f.net.toFixed(0)}%${f.chg != null ? ` <span class="${fCls(f.chg)}">${(f.chg >= 0 ? "+" : "") + f.chg.toFixed(1)}</span>` : ""}${x ? ` <span class="fam">!</span>` : ""}</td>`; };
+  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:34%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td><td class="r" title="Hedge funds only: leveraged funds for currencies, indices and Bitcoin; managed money for commodities. Net % of open interest and the change on the week; ! = an extreme for the year">Hedge funds</td></tr>${C.rows.map((r, i) => { const g = (COT_MK.find(m => m[0] === r.name) || [])[2], pg = i ? (COT_MK.find(m => m[0] === C.rows[i - 1].name) || [])[2] : null;
+    return `${g && g !== pg ? `<tr><td class="fgrp" colspan="6">${g}</td></tr>` : ""}<tr><td>${xEsc(r.name)}</td>
     <td><div class="fbar"><i style="${r.net >= 0 ? `left:50%;width:${(r.net / mx * 50).toFixed(1)}%;background:var(--green)` : `right:50%;width:${(-r.net / mx * 50).toFixed(1)}%;background:var(--red)`}"></i></div></td>
     <td class="r ${fCls(r.net)}">${(r.net >= 0 ? "+" : "") + r.net.toFixed(0)}%</td><td class="r ${fCls(r.chg)}">${r.chg == null ? "" : (r.chg >= 0 ? "+" : "") + r.chg.toFixed(1)}</td>
-    <td class="r ${r.pct >= 90 || r.pct <= 10 ? "fam" : "mu"}" title="${r.pct >= 90 ? "Near the most long of the year" : r.pct <= 10 ? "Near the most short of the year" : ""}">${r.pct}${r.pct % 100 >= 11 && r.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][r.pct % 10] || "th"}${r.pct >= 90 || r.pct <= 10 ? " · extreme" : ""}</td></tr>`).join("")}</table>
-    <p class="meta fnote">Large speculators (CFTC), as of ${new Date(C.rows[0].t).toISOString().slice(0, 10)}; published Fridays. Extremes often come before reversals.</p>`;
+    <td class="r ${r.pct >= 90 || r.pct <= 10 ? "fam" : "mu"}" title="${r.pct >= 90 ? "Near the most long of the year" : r.pct <= 10 ? "Near the most short of the year" : ""}">${r.pct}${r.pct % 100 >= 11 && r.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][r.pct % 10] || "th"}${r.pct >= 90 || r.pct <= 10 ? " · extreme" : ""}</td>${hf(r)}</tr>`; }).join("")}</table>
+    <p class="meta fnote">Large speculators (CFTC), as of ${new Date(C.rows[0].t).toISOString().slice(0, 10)}; published Fridays. Hedge funds are the fast money inside that group. Extremes often come before reversals.${FUND.err.cotf && !HF ? ` Hedge-fund split couldn't load (${xEsc(FUND.err.cotf)}).` : ""}</p>`;
 }
 function fundNewsHTML() {
   const N = FUND.news; if (!N || !N.items.length) return `<div class="empty">${FUND.err.news ? "Couldn't load headlines: " + xEsc(FUND.err.news) + "." : "Loading headlines…"}</div>`;
@@ -9920,9 +10418,9 @@ function fundCalHTML() {
     : `<div class="empty">No high-impact events coming up this week.</div>`;
 }
 // ---- the read: what the numbers add up to for Gold, the Nasdaq, the dollar and Bitcoin, in one look ----
-function fDollar() {                               // the dollar index; without one, an estimate from its main pairs (ICE weights, Swedish krona left out)
+function fDollar() {                               // the dollar index; without one, an estimate from its pairs (ICE weights; the krona only when your broker lists USD/SEK)
   const r = fRow(["US Dollar Index", "USDX", "DXY"]); if (r) return { sym: r.symbol, price: r.price, chg: r.chg24h, w: r.ret7 != null ? r.ret7 * 100 : null };
-  const P = [[["EUR/USD", "EURUSD"], -0.576], [["USD/JPY", "USDJPY"], 0.136], [["GBP/USD", "GBPUSD"], -0.119], [["USD/CAD", "USDCAD"], 0.091], [["USD/CHF", "USDCHF"], 0.036]].map(([n, w]) => [fRow(n), w]).filter(x => x[0]);
+  const P = [[["EUR/USD", "EURUSD"], -0.576], [["USD/JPY", "USDJPY"], 0.136], [["GBP/USD", "GBPUSD"], -0.119], [["USD/CAD", "USDCAD"], 0.091], [["USD/CHF", "USDCHF"], 0.036], [["USD/SEK", "USDSEK"], 0.042]].map(([n, w]) => [fRow(n), w]).filter(x => x[0]);
   if (P.length < 3) return null; const W = P.reduce((a, x) => a + Math.abs(x[1]), 0), sum = f => P.reduce((a, [r, w]) => a + (f(r) == null ? 0 : w * f(r)), 0) / W;
   return { est: true, chg: sum(r => r.chg24h), w: P.every(([r]) => r.ret7 != null) ? sum(r => r.ret7 * 100) : null };
 }
@@ -9937,6 +10435,7 @@ function fundSignals() {
 }
 function fundCardsData() {
   const S = fundSignals(), mf = typeof medianFunding === "function" && data ? medianFunding() : null, btc = typeof bySym !== "undefined" && bySym.BTCUSDT;
+  const RK = riskRead(), rkL = RK.level ? [0, `Event risk: ${RK.items[0].short}. Take profit sooner, stops to break-even at 1R`] : null;     // first among the warnings
   const trend = (w, lbl) => w == null ? null : w >= 1 ? [+1, `${lbl} up ${w.toFixed(1)}% this week`] : w <= -1 ? [-1, `${lbl} down ${Math.abs(w).toFixed(1)}% this week`] : null;
   const realL = S.real == null ? null : S.real <= -0.08 ? [+1, `Real yields falling (${Math.round(S.real * 100)}bp in a month)`] : S.real >= 0.08 ? [-1, `Real yields rising (+${Math.round(S.real * 100)}bp in a month)`] : null;
   const usdW = S.dollar && S.dollar.w;
@@ -9944,15 +10443,39 @@ function fundCardsData() {
   const evL = S.ev ? [0, `${S.ev.ccy} ${S.ev.title} ${phtDay(S.ev.at).slice(0, 3)} ${S.ev.timeLbl || phtHM(S.ev.at)} (in ${inTxt(S.ev.at - Date.now())}): expect spikes`] : S.fomc ? [0, `Fed decision in ${inTxt(S.fomc - Date.now())}: expect spikes`] : null;
   const fedL = (good) => !S.fed || S.fed === "on hold" ? null : S.fed === "cutting" ? [good, "The Fed is cutting rates"] : [-good, "The Fed is raising rates"];
   const riskL = (good) => S.risk === "on" ? [good, `Risk appetite is up (VIX ${S.vix.toFixed(0)})`] : S.risk === "off" ? [-good, `Markets are nervous (VIX ${S.vix.toFixed(0)})`] : null;
-  const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]);
+  const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]), eur = fRow(["EUR/USD", "EURUSD"]), jpy = fRow(["USD/JPY", "USDJPY"]), G = fundGaps();
+  const now = Date.now(), evFor = ccys => { const e = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now && x.at < now + 36 * 3600e3 && x.impact === "High" && ccys.includes(x.ccy))[0];
+    return e ? [0, `${e.ccy} ${e.title} ${phtDay(e.at).slice(0, 3)} ${e.timeLbl || phtHM(e.at)} (in ${inTxt(e.at - now)}): expect spikes`] : evL; };
+  const gapL = (g, name, sign) => !g || g.chg == null ? null : g.chg >= 0.1 ? [sign, `${name} yield gap widening (+${Math.round(g.chg * 100)}bp in a month)`] : g.chg <= -0.1 ? [-sign, `${name} yield gap narrowing (${Math.round(g.chg * 100)}bp in a month)`] : null;
+  const bank = (id, bis, name, sign) => { const st = fundBank(id, bis).stance; return st === "cutting" ? [-sign, `The ${name} is cutting rates`] : st === "hiking" ? [sign, `The ${name} is raising rates`] : null; };
+  const gv = fundRank("GVZCLS"), lq = fundLiq(), GI = fGoldIn(), gW = gold && gold.ret7 != null ? gold.ret7 * 100 : null, gE = GI.eur && GI.eur.w;
+  const dolL = gW == null || gE == null || Math.abs(gW) < 1 || (Math.sign(gE) === Math.sign(gW) && Math.abs(gE) >= Math.abs(gW) / 3) ? null
+    : [0, `Mostly the dollar: gold is ${gE >= 0 ? "+" : "−"}${Math.abs(gE).toFixed(1)}% in euros this week (${gW >= 0 ? "+" : "−"}${Math.abs(gW).toFixed(1)}% in dollars)`];
+  const gvL = gv && gv.pct >= 80 ? [0, `Gold volatility high for the year (GVZ ${gv.v.toFixed(0)}): wider stops, smaller size`] : null;
+  const lqL = !lq || lq.chg == null ? null : lq.chg >= 100 ? [+1, `Dollar liquidity rising (+$${Math.round(lq.chg)}bn in 4 weeks)`] : lq.chg <= -100 ? [-1, `Dollar liquidity draining (−$${Math.round(-lq.chg)}bn in 4 weeks)`] : null;
+  const ag = fRow(["Silver", "XAGUSD"]), wti = fRow(["WTI Crude Oil", "USOIL"]), ov = fundRank("OVXCLS"), gsr = fRatio([[gold, 1], [ag, -1]]);
+  const usdL = usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null;
+  const gsrL = !gsr || gsr.w == null ? null : gsr.w <= -1 ? [+1, `Silver outpacing gold (gold ÷ silver ${gsr.w.toFixed(1)}% this week)`] : gsr.w >= 1 ? [-1, `Silver lagging gold (gold ÷ silver +${gsr.w.toFixed(1)}% this week)`] : null;
+  const oilEv = (() => { const e = (typeof calAll === "function" ? calAll() : []).find(x => x.at > now && x.at < now + 36 * 3600e3 && /crude oil inventor|OPEC/i.test(x.title));
+    return e ? [0, `${e.title} ${phtDay(e.at).slice(0, 3)} ${e.timeLbl || phtHM(e.at)} (in ${inTxt(e.at - now)}): expect spikes`] : null; })();
+  const ovL = ov && ov.pct >= 80 ? [0, `Oil volatility high for the year (OVX ${ov.v.toFixed(0)}): wider stops, smaller size`] : null;
+  const cr = eiaRead("PET.WCESTUS1.W"), crL = !cr || Date.now() - cr.t > 10 * 864e5 ? null : cr.chg <= -2000 ? [+1, `US crude stocks fell ${(-cr.chg / 1000).toFixed(1)}M barrels last week`] : cr.chg >= 2000 ? [-1, `US crude stocks rose ${(cr.chg / 1000).toFixed(1)}M barrels last week`] : null;
+  const yen = S.cot("Yen"), yenCrowd = !yen ? null : yen.pct >= 90 ? [0, "Speculators heavily long the yen: if they bail, USD/JPY can jump"] : yen.pct <= 10 ? [0, "Speculators heavily short the yen: if they bail, USD/JPY can drop fast"] : null;
+  const yenRisk = S.risk === "on" ? [+1, `Risk appetite is up (VIX ${S.vix.toFixed(0)}): the yen is usually sold`] : S.risk === "off" ? [-1, `Markets are nervous (VIX ${S.vix.toFixed(0)}): money hides in the yen`] : null;
   return [
-    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
-    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
+    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), evL, gvL, dolL, crowd(S.cot("Gold"), "gold")] },      // warnings show two at most: the coming release, then volatility
+    { k: "Silver", sym: ag && ag.symbol, px: ag && ag.price, chg: ag && ag.chg24h, L: [realL, usdL, gsrL, fedL(+1), trend(ag && ag.ret7 != null ? ag.ret7 * 100 : null, "Silver"), evL, crowd(S.cot("Silver"), "silver")] },
+    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), lqL, trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
     { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
       L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
-    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
+    { k: "EUR/USD", sym: eur && eur.symbol, px: eur && eur.price, chg: eur && eur.chg24h, L: [gapL(G.eu2, "US–euro 2-year", -1), fedL(+1), bank("ECBDFR", null, "ECB", +1),
+      trend(eur && eur.ret7 != null ? eur.ret7 * 100 : null, "EUR/USD"), crowd(S.cot("Euro"), "euro"), evFor(["USD", "EUR"])] },
+    { k: "USD/JPY", sym: jpy && jpy.symbol, px: jpy && jpy.price, chg: jpy && jpy.chg24h, L: [gapL(G.jp10, "US–Japan 10-year", +1), yenRisk, fedL(-1), bank("IRSTCI01JPM156N", "JP", "BoJ", -1),
+      trend(jpy && jpy.ret7 != null ? jpy.ret7 * 100 : null, "USD/JPY"), yenCrowd, evFor(["USD", "JPY"])] },
+    { k: "Oil (WTI)", sym: wti && wti.symbol, px: wti && wti.price, chg: wti && wti.chg24h, L: [crL, usdL, riskL(+1), trend(wti && wti.ret7 != null ? wti.ret7 * 100 : null, "Oil"), oilEv || evL, ovL, crowd(S.cot("Crude oil"), "oil")] },
+    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), lqL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
-  ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
+  ].map(c => { const L = [rkL, ...c.L, surLine(c.k), seasLine(c.k)].filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
     return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
 }
 function fundReadHTML() {
@@ -9961,8 +10484,11 @@ function fundReadHTML() {
   if (S.real != null && Math.abs(S.real) >= 0.08) bits.push(S.real < 0 ? "real yields falling" : "real yields rising");
   if (S.dollar && S.dollar.w != null && Math.abs(S.dollar.w) >= 0.5) bits.push(S.dollar.w < 0 ? "dollar weaker" : "dollar stronger");
   if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
+  const fc = fundCuts(); if (fc) bits.push(`${fCutsTxt(fc.n).replace(/^about /, "≈")} priced`);
+  const su = typeof calLastSurprise === "function" ? calLastSurprise() : null; if (su) bits.push(`<b>${xEsc(su.x.title)}</b> ${xEsc(su.a.txt)} vs ${xEsc(su.x.forecast)} (${su.a.word})`);
+  const RK = riskRead(); if (RK.level) bits.unshift(`<b class="${RK.level === 2 ? "dn" : "fam"}" title="${xEsc(RK.items.map(x => x.txt).join("\n"))}">⚠ Event risk: ${xEsc(RK.items[0].short)}</b>`);
   const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
-  const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
+  const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from its six currencies (EUR, JPY, GBP, CAD, SEK, CHF); SEK needs your broker">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
     <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;
   return `<div class="fread"><div class="fhead"><span class="mu">Today's read</span>${bits.join(" · ") || `<span class="mu">Fills in as the data loads.</span>`}</div><div class="fcards">${C.map(card).join("")}</div>
     <p class="meta fnote" style="margin:6px 2px 0">▲ pushes the price up, ▼ pushes it down, ⚠ a warning. A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</p></div>`;
@@ -9980,17 +10506,21 @@ function fundRender() {
   const at = [FUND.ust && FUND.ust.at, FUND.cot && FUND.cot.at, FUND.news && FUND.news.at].filter(Boolean);
   $("fundMeta").textContent = FUND.busy ? "Updating…" : at.length ? `updated ${phtHM(Math.max(...at))} PHT` : "";
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
-  const keep = document.activeElement && document.activeElement.id === "fredKey" ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
+  const keep = document.activeElement && ["fredKey", "eiaKey"].includes(document.activeElement.id) ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
   $("fundRead").innerHTML = fundReadHTML();
   $("fundRead").querySelectorAll("[data-fsym]").forEach(c => c.onclick = () => typeof openInCharts === "function" && openInCharts(c.dataset.fsym));
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
-    <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
+    <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}${fundGapsHTML()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
+    <div class="fp fseasp"><div class="fph">Seasonality <span>average change by calendar month</span></div>${fundSeasHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
   el.querySelectorAll("[data-fsym]").forEach(tr => tr.onclick = () => typeof openInCharts === "function" && openInCharts(tr.dataset.fsym));
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
+  if ($("eiaSave")) $("eiaSave").onclick = () => { const v = $("eiaKey").value.trim(); if (!/^[A-Za-z0-9]{20,64}$/.test(v)) { toast("That doesn't look like an EIA key (about 40 letters and numbers)."); return; }
+    lsSet(EIA_LS, v); $("eiaKey").blur(); FUND.eia = null; FUND.err.eia = null; fundEIA(true).then(fundRender); };
+  if ($("eiaClear")) $("eiaClear").onclick = () => { lsSet(EIA_LS, ""); FUND.eia = null; FUND.err.eia = null; FUND.eiaTry = 0; fundRender(); };
 }
 function fundShown() { fundRender(); fundLoad(false); if (typeof macroScan === "function") macroScan(false).catch(() => {}); }
 $("fundRefresh").onclick = () => fundLoad(true);

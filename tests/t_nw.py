@@ -41,6 +41,8 @@ async def run(pw, phone):
     await q("() => { document.getElementById('exF').value = 'mexc'; goPage('nbbwatch'); }"); await asyncio.sleep(8)
     print("nw meta:", await q("() => document.getElementById('nwMeta').textContent"))
     print("nw cards:", await q("() => [...document.querySelectorAll('.nwcard')].map(c => c.querySelector('.nwh').innerText.replace(/\\s+/g,' ') + ' :: ' + c.querySelector('.nwst').innerText.replace(/\\s+/g,' ').slice(0, 110)).join(' || ')"))
+    await asyncio.sleep(3)
+    print("nw day range:", await q("() => Object.entries(NW_ST).map(([k, s]) => k + ' daily ' + (s.kd ? s.kd.t.length : 0) + ' · ' + ((document.querySelector(`[data-nw=\"${CSS.escape(k)}\"] .nwday`) || {}).textContent || 'none') + ' ' + JSON.stringify(nwDay(s) && { pct: nwDay(s).pct, adr: +nwDay(s).adr.toFixed(2) })).join(' | ')"))
     print("nw syms:", await q("() => Object.entries(NW_ST).map(([k, s]) => k + '=' + s.sym + ' bars ' + (s.k ? s.k.t.length : 0) + ' state ' + (s.read && s.read.state) + ' spec ' + !!s.spec).join(' | ')"))
     # synthetic NBB trigger on 5m candles: trend up, 8-candle base, displacing breakout
     trig = await q("""() => { const k = { t: [], o: [], h: [], l: [], c: [], qv: [] }; let p = 100; const t0 = Date.now() - 200 * 300e3;
@@ -48,11 +50,15 @@ async def run(pw, phone):
       for (let i = 0; i < 9; i++) { const o = p, c = p + (i % 2 ? 0.15 : -0.15); k.t.push(t0 + k.t.length * 300e3); k.o.push(o); k.c.push(c); k.h.push(Math.max(o, c) + 0.1); k.l.push(Math.min(o, c) - 0.1); k.qv.push(1); }
       const o = p, c = p + 1.6; k.t.push(Date.now() - 300e3); k.o.push(o); k.c.push(c); k.h.push(c + 0.05); k.l.push(o - 0.05); k.qv.push(1);
       const r = nbbWatchRead(k, 300e3); if (!r) return 'no read';
-      const it = NW.items[0], st = NW_ST[nwKey(it)]; st.k = k; st.read = r; nwSignals(it, st); nwRender(it);
+      const it = NW.items[0], st = NW_ST[nwKey(it)]; st.k = k; st.read = r; st.hk = null; st.px = k.c.at(-1);
+      st.kd = { t: [], o: [], h: [], l: [], c: [], qv: [] }; for (let i = 20; i >= 1; i--) { st.kd.t.push(Date.now() - 3 * 3600e3 - i * 864e5); st.kd.h.push(150); st.kd.l.push(130); st.kd.o.push(140); st.kd.c.push(140); st.kd.qv.push(1); }   // average day 20, today began 3 hours ago
+      nwSignals(it, st); nwRender(it);
       return r.state + ' ' + (r.trig ? r.trig.dir + ' E ' + r.trig.entry.toFixed(2) + ' S ' + r.trig.stop.toFixed(2) + ' tClose ' + Math.round((r.trig.tClose - Date.now()) / 1000) + 's' : ''); }""")
     print("synthetic:", trig)
     await asyncio.sleep(1.5)
     print("trigger card:", await q("() => document.querySelector('.nwcard .nwst').innerText.replace(/\\s+/g,' ').slice(0, 300)"))
+    print("trigger checklist:", await q("() => (document.querySelector('.nwcard .nwck') || {innerText: 'none'}).innerText.replace(/\\s+/g,' ')"), "| logged day%:", await q("() => NW_LOG[0] && NW_LOG[0].dayPct"))
+    print("exhausted day:", await q("() => { const it = NW.items[0], st = NW_ST[nwKey(it)]; st.kd.h = st.kd.h.map(() => 133); st.busy = true; nwRender(it); st.busy = false; return [...document.querySelectorAll('.nwcard .nwck span')].find(s => /day/.test(s.textContent)).outerHTML + ' · ' + document.querySelector('.nwcard .nwday').innerText; }"))
     print("alert:", await q("() => NC.filter(n => n.kind === 'NBB Watch').map(n => n.title + ' :: ' + n.detail.slice(0, 90)).join(' | ')"), "| tg:", [m["text"][:60] for m in TG_LOG if "NBB" in m["text"]][:1])
     print("log:", await q("() => (document.querySelector('.nwlog') || {innerText: ''}).innerText.replace(/\\s+/g,' ')"))
     print("awake pings:", AWAKE_LOG[:2])

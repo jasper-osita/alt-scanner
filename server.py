@@ -65,8 +65,15 @@ def relay_earnings(q):
 UST_TYPES = ("daily_treasury_yield_curve", "daily_treasury_real_yield_curve")
 RSS_FEEDS = {"fxstreet": "https://www.fxstreet.com/rss/news", "marketwatch": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
              "investing": "https://www.investing.com/rss/news_25.rss", "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/"}
+RATE_SRC = {   # rates outside the US, no keys (mirrors api/rates.js): BIS policy rates, ECB euro-area curve, Japan's JGB yields
+    "bis": "https://stats.bis.org/api/v1/data/WS_CBPOL/D.GB+JP+AU+CA+CH+NZ/all",
+    "ecb": "https://data-api.ecb.europa.eu/service/data/YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_2Y+SR_10Y",
+    "jgb": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv",
+    "jgb-all": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv"}
 FRED_SERIES = {"DFEDTARU", "ECBDFR", "IRSTCI01GBM156N", "IRSTCI01JPM156N", "IRSTCI01AUM156N", "IRSTCI01CAM156N", "IRSTCI01CHM156N", "IRSTCI01NZM156N",
-               "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS"}
+               "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS", "GVZCLS", "OVXCLS", "DTWEXBGS", "WALCL", "WTREGEN", "RRPONTSYD", "DFF",
+               # calendar actuals (CAL_ACT in index.html): core CPI, core PCE, PPI, payrolls, hourly earnings, retail sales, claims, GDP, JOLTS
+               "CPILFESL", "PCEPILFE", "PPIFIS", "PPIFES", "PAYEMS", "CES0500000003", "RSAFS", "RSFSXMV", "ICSA", "A191RL1Q225SBEA", "JTSJOL"}
 def fred_key():                                    # FRED_API_KEY, or the file ~/.finder-fred-key (one line); read each time so no restart is needed
     k = os.environ.get("FRED_API_KEY", "")
     if not k:
@@ -74,14 +81,30 @@ def fred_key():                                    # FRED_API_KEY, or the file ~
             with open(os.path.expanduser("~/.finder-fred-key")) as f: k = f.read()
         except OSError: k = ""
     return k.strip()
+EIA_SERIES = {"PET.WCESTUS1.W", "PET.WGTSTUS1.W", "PET.WDISTUS1.W", "PET.W_EPC0_SAX_YCUOK_MBBL.W", "NG.NW2_EPG0_SWO_R48_BCF.W"}   # crude (ex SPR), gasoline, distillates, Cushing, gas storage
+def eia_key():                                     # EIA_API_KEY, or the file ~/.finder-eia-key (one line); free at eia.gov/opendata
+    k = os.environ.get("EIA_API_KEY", "")
+    if not k:
+        try:
+            with open(os.path.expanduser("~/.finder-eia-key")) as f: k = f.read()
+        except OSError: k = ""
+    return k.strip()
 def relay_fund(path, q):
     import re
+    if path == "/proxy/eia":                       # EIA weekly oil and gas stocks (the app's pasted key, else this Mac's own)
+        from urllib.parse import parse_qs, urlencode
+        p = {k: v[0] for k, v in parse_qs(q).items()}
+        if p.get("series") not in EIA_SERIES: return 400, b'{"error":"series not allowed"}'
+        key = (p.get("api_key") or eia_key()).strip()
+        if not re.match(r"^[A-Za-z0-9]{20,64}$", key): return 400, b'{"error":"no api_key: save it in ~/.finder-eia-key or paste a key in the app"}'
+        return cached_get("eia" + p["series"] + key[-4:], f"https://api.eia.gov/v2/seriesid/{p['series']}?" + urlencode({"api_key": key, "length": 400}), 1800, BROWSER)
     m = re.match(r"^/proxy/ust/([a-z_]+)/(\d{4})$", path)
     if m and m.group(1) in UST_TYPES:
         t, y = m.group(1), m.group(2)
         return cached_get("ust" + t + y, f"https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{y}/all?type={t}&field_tdr_date_value={y}&page&_format=csv", 3600, {**BROWSER, "Accept": "text/csv,*/*"})
-    if path == "/proxy/cot":
-        return cached_get("cot" + q, "https://publicreporting.cftc.gov/resource/6dca-aqww.json?" + q, 6 * 3600, BROWSER)
+    cot = {"/proxy/cot": "6dca-aqww", "/proxy/cot-tff": "gpe5-46if", "/proxy/cot-dis": "72hh-3qpy"}.get(path)   # legacy, traders in financial futures, disaggregated
+    if cot:
+        return cached_get(path + q, f"https://publicreporting.cftc.gov/resource/{cot}.json?" + q, 6 * 3600, BROWSER)
     if path == "/proxy/fred/series/observations":
         from urllib.parse import parse_qs, urlencode
         p = {k: v[0] for k, v in parse_qs(q).items()}
@@ -90,6 +113,17 @@ def relay_fund(path, q):
         if not re.match(r"^[a-z0-9]{20,40}$", key, re.I): return 400, b'{"error_message":"no api_key: save it in ~/.finder-fred-key or paste a key in the app"}'
         p.update(api_key=key, file_type="json", sort_order="desc"); p["limit"] = str(min(1000, int(p.get("limit") or 420)))
         return cached_get("fred" + p["series_id"] + key[-4:], "https://api.stlouisfed.org/fred/series/observations?" + urlencode(p), 1800, BROWSER)
+    m = re.match(r"^/proxy/rates/([a-z-]+)$", path)
+    if m and m.group(1) in RATE_SRC:
+        from urllib.parse import parse_qs, urlencode
+        src, p = m.group(1), {}
+        if src in ("bis", "ecb"):
+            since = (parse_qs(q).get("startPeriod") or [""])[0]
+            if since and not re.match(r"^\d{4}-\d{2}-\d{2}$", since): return 400, b"startPeriod must be YYYY-MM-DD"
+            if since: p["startPeriod"] = since
+            p.update({"detail": "dataonly", "format": "csv"} if src == "bis" else {"format": "csvdata"})
+        url = RATE_SRC[src] + ("?" + urlencode(p) if p else "")
+        return cached_get("rates" + src + urlencode(p), url, 86400 if src == "jgb-all" else 3 * 3600, {**BROWSER, "Accept": "text/csv, application/vnd.sdmx.data+csv;version=1.0.0, */*"})
     m = re.match(r"^/proxy/rss/([a-z]+)$", path)
     if m and m.group(1) in RSS_FEEDS:
         return cached_get("rss" + m.group(1), RSS_FEEDS[m.group(1)], 300, {**BROWSER, "Accept": "application/rss+xml,application/xml,text/xml,*/*"})
@@ -128,9 +162,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
             return
         path, _, query = self.path.partition("?")
-        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/")):
+        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/", "/proxy/rates/", "/proxy/eia")):
             code, body = relay_fund(path, query)
-            ctype = "text/csv" if path.startswith("/proxy/ust/") else "application/xml" if path.startswith("/proxy/rss/") else "application/json"
+            ctype = "text/csv" if path.startswith(("/proxy/ust/", "/proxy/rates/")) else "application/xml" if path.startswith("/proxy/rss/") else "application/json"
             self.send_response(code)
             self.send_header("Content-Type", ctype); self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2139">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2244">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4476,7 +4476,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.04.2139";
+const APP_VERSION = "2026.11.04.2244";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9978,7 +9978,7 @@ if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
 /* ===================== Fundamentals: a terminal-style page (markets, rates and central banks, yield curve, positioning, headlines, calendar) ===================== */
 const FUND_KEY = "finder-fund", FRED_LS = "finder-fred";
 let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, bis: null, fy: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
-const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news, bis: FUND.bis, fy: FUND.fy, seas: FUND.seas });
+const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news, bis: FUND.bis, fy: FUND.fy, seas: FUND.seas, cotf: FUND.cotf });
 const fredKey = () => String(lsGet(FRED_LS, "") || "").trim();
 async function fundText(url) { const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }
 // US Treasury daily yield curves (nominal par and real), no key needed
@@ -10014,6 +10014,24 @@ async function fundCOT(force) {
       return { name, code, t: w[0].t, net: w[0].net, chg: w[1] ? w[0].net - w[1].net : null, pct, hist: w.slice(0, 52).map(x => +x.net.toFixed(1)).reverse() }; }).filter(Boolean);
     FUND.cot = { at: Date.now(), rows: out, codes: COT_MK.map(m => m[1]) }; FUND.err.cot = null; }
   catch (e) { FUND.err.cot = e.message; }
+}
+// hedge funds: "leveraged funds" (CFTC's traders-in-financial-futures report) for currencies, indices and Bitcoin; "managed money" (disaggregated report) for commodities
+async function fundCOTFunds(force) {
+  if (!force && FUND.cotf && Date.now() - FUND.cotf.at < 12 * 3600e3 && COT_MK.every(m => (FUND.cotf.codes || []).includes(m[1]))) return;
+  const since = new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10), fin = m => /Stocks|Currencies/.test(m[2]), key = (r, re) => Object.keys(r).find(k => re.test(k));
+  const get = async (path, mk, cols) => { const tail = `$where=${encodeURIComponent(`cftc_contract_market_code in(${mk.map(m => `'${m[1]}'`).join(",")}) AND report_date_as_yyyy_mm_dd > '${since}'`)}&$order=report_date_as_yyyy_mm_dd%20DESC`;
+    try { return await getJSON(`${path}?$select=${cols}&${tail}&$limit=4000`, 2); } catch (e) { return getJSON(`${path}?${tail}&$limit=${mk.length * 4}`, 2); } };      // a column named differently: take them all, last few weeks only
+  const read = (rows, mk, L, S, AL, AS) => { const out = {}; mk.forEach(([, code]) => {
+    const w = (rows || []).filter(r => String(r.cftc_contract_market_code).trim() === code).map(r => { const oi = Math.max(1, +r[key(r, /^open_interest_all$/)] || 0), l = key(r, L), s = key(r, S), al = AL && key(r, AL), as = AS && key(r, AS);
+      return { t: Date.parse(r.report_date_as_yyyy_mm_dd), net: l && s ? (+r[l] - +r[s]) / oi * 100 : NaN, am: al && as ? (+r[al] - +r[as]) / oi * 100 : null }; }).filter(x => isFinite(x.net)).sort((a, b) => b.t - a.t);
+    if (!w.length) return; const yr = w.slice(0, 52).map(x => x.net);
+    out[code] = { t: w[0].t, net: w[0].net, chg: w[1] ? w[0].net - w[1].net : null, am: w[0].am, pct: yr.length >= 26 ? Math.round(yr.filter(v => v <= w[0].net).length / yr.length * 100) : null }; }); return out; };
+  const F = COT_MK.filter(fin), C = COT_MK.filter(m => !fin(m)), errs = [];
+  const [tff, dis] = await Promise.all([
+    get("/proxy/cot-tff", F, "cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,lev_money_positions_long,lev_money_positions_short,asset_mgr_positions_long,asset_mgr_positions_short").catch(e => { errs.push(e.message); return []; }),
+    get("/proxy/cot-dis", C, "cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,m_money_positions_long_all,m_money_positions_short_all").catch(e => { errs.push(e.message); return []; })]);
+  const rows = { ...read(tff, F, /^lev_money_positions_long/, /^lev_money_positions_short/, /^asset_mgr_positions_long/, /^asset_mgr_positions_short/), ...read(dis, C, /^m_money_positions_long/, /^m_money_positions_short/) };
+  if (Object.keys(rows).length) { FUND.cotf = { at: Date.now(), rows, codes: COT_MK.map(m => m[1]) }; FUND.err.cotf = errs.length === 2 ? errs[0] : null; } else FUND.err.cotf = errs[0] || "no hedge-fund data came back";
 }
 // FRED (free key): central-bank rates and a few US gauges
 const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly", "GB"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly", "JP"],
@@ -10127,7 +10145,7 @@ async function fundNews(force) {
 }
 async function fundLoad(force) {
   if (FUND.busy) { FUND.again = FUND.again || force || "soft"; return; } FUND.busy = true; fundRender();
-  await Promise.all([fundUST(force), fundCOT(force), fundFRED(force), fundBIS(force), fundYields(force), fundSeas(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
+  await Promise.all([fundUST(force), fundCOT(force), fundCOTFunds(force), fundFRED(force), fundBIS(force), fundYields(force), fundSeas(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
   FUND.busy = false; fundSave(); fundRender();
   if (FUND.again) { const f = FUND.again === true; FUND.again = false; fundLoad(f); }       // asked again while busy (a new key, Refresh)
 }
@@ -10267,12 +10285,15 @@ function fundGapsHTML() {
 function fundCOTHTML() {
   const C = FUND.cot; if (!C || !C.rows.length) return `<div class="empty">${FUND.err.cot ? "Couldn't load positioning (" + xEsc(FUND.err.cot) + "). It needs the Mac app's relay or the web version." : "Loading positioning…"}</div>`;
   const mx = Math.max(30, ...C.rows.map(r => Math.abs(r.net)));
-  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:38%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td></tr>${C.rows.map((r, i) => { const g = (COT_MK.find(m => m[0] === r.name) || [])[2], pg = i ? (COT_MK.find(m => m[0] === C.rows[i - 1].name) || [])[2] : null;
-    return `${g && g !== pg ? `<tr><td class="fgrp" colspan="5">${g}</td></tr>` : ""}<tr><td>${xEsc(r.name)}</td>
+  const HF = FUND.cotf && FUND.cotf.rows, hf = r => { const f = HF && HF[r.code]; if (!f) return `<td class="r mu">—</td>`;
+    const fin = /Stocks|Currencies/.test((COT_MK.find(m => m[1] === r.code) || [])[2] || ""), x = f.pct != null && (f.pct >= 90 || f.pct <= 10);
+    return `<td class="r ${fCls(f.net)}" title="${fin ? "Leveraged funds (hedge funds)" : "Managed money (hedge funds and CTAs)"}: net ${(f.net >= 0 ? "+" : "") + f.net.toFixed(1)}% of open interest${f.chg != null ? `, ${(f.chg >= 0 ? "+" : "") + f.chg.toFixed(1)} on the week` : ""}${f.am != null ? `. Asset managers: ${(f.am >= 0 ? "+" : "") + f.am.toFixed(0)}%` : ""}${f.pct != null ? `. ${f.pct}${f.pct % 100 >= 11 && f.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][f.pct % 10] || "th"} percentile of the year` : ""}">${(f.net >= 0 ? "+" : "") + f.net.toFixed(0)}%${f.chg != null ? ` <span class="${fCls(f.chg)}">${(f.chg >= 0 ? "+" : "") + f.chg.toFixed(1)}</span>` : ""}${x ? ` <span class="fam">!</span>` : ""}</td>`; };
+  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:34%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td><td class="r" title="Hedge funds only: leveraged funds for currencies, indices and Bitcoin; managed money for commodities. Net % of open interest and the change on the week; ! = an extreme for the year">Hedge funds</td></tr>${C.rows.map((r, i) => { const g = (COT_MK.find(m => m[0] === r.name) || [])[2], pg = i ? (COT_MK.find(m => m[0] === C.rows[i - 1].name) || [])[2] : null;
+    return `${g && g !== pg ? `<tr><td class="fgrp" colspan="6">${g}</td></tr>` : ""}<tr><td>${xEsc(r.name)}</td>
     <td><div class="fbar"><i style="${r.net >= 0 ? `left:50%;width:${(r.net / mx * 50).toFixed(1)}%;background:var(--green)` : `right:50%;width:${(-r.net / mx * 50).toFixed(1)}%;background:var(--red)`}"></i></div></td>
     <td class="r ${fCls(r.net)}">${(r.net >= 0 ? "+" : "") + r.net.toFixed(0)}%</td><td class="r ${fCls(r.chg)}">${r.chg == null ? "" : (r.chg >= 0 ? "+" : "") + r.chg.toFixed(1)}</td>
-    <td class="r ${r.pct >= 90 || r.pct <= 10 ? "fam" : "mu"}" title="${r.pct >= 90 ? "Near the most long of the year" : r.pct <= 10 ? "Near the most short of the year" : ""}">${r.pct}${r.pct % 100 >= 11 && r.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][r.pct % 10] || "th"}${r.pct >= 90 || r.pct <= 10 ? " · extreme" : ""}</td></tr>`; }).join("")}</table>
-    <p class="meta fnote">Large speculators (CFTC), as of ${new Date(C.rows[0].t).toISOString().slice(0, 10)}; published Fridays. Extremes often come before reversals.</p>`;
+    <td class="r ${r.pct >= 90 || r.pct <= 10 ? "fam" : "mu"}" title="${r.pct >= 90 ? "Near the most long of the year" : r.pct <= 10 ? "Near the most short of the year" : ""}">${r.pct}${r.pct % 100 >= 11 && r.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][r.pct % 10] || "th"}${r.pct >= 90 || r.pct <= 10 ? " · extreme" : ""}</td>${hf(r)}</tr>`; }).join("")}</table>
+    <p class="meta fnote">Large speculators (CFTC), as of ${new Date(C.rows[0].t).toISOString().slice(0, 10)}; published Fridays. Hedge funds are the fast money inside that group. Extremes often come before reversals.${FUND.err.cotf && !HF ? ` Hedge-fund split couldn't load (${xEsc(FUND.err.cotf)}).` : ""}</p>`;
 }
 function fundNewsHTML() {
   const N = FUND.news; if (!N || !N.items.length) return `<div class="empty">${FUND.err.news ? "Couldn't load headlines: " + xEsc(FUND.err.news) + "." : "Loading headlines…"}</div>`;

@@ -399,6 +399,18 @@ def cot_json():
             lo = int(oi * (0.4 + n / 200)); sh = int(oi * 0.4)
             rows.append({"cftc_contract_market_code": code, "report_date_as_yyyy_mm_dd": (d - dt.timedelta(weeks=w)).isoformat() + "T00:00:00.000", "open_interest_all": str(oi), "noncomm_positions_long_all": str(lo), "noncomm_positions_short_all": str(sh)})
     return rows
+def cot_funds_json(kind):                         # hedge funds: leveraged funds (+ asset managers) for financials, managed money for commodities
+    import datetime as dt
+    codes = {"099741": (18, 3, 22), "097741": (-25, -2, 10), "209742": (6, -1, 30)} if kind == "tff" else {"088691": (45, 2, None), "067651": (-5, -1, None)}
+    rows, d = [], dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 1) % 7 + 3)
+    for code, (net, chg, am) in codes.items():
+        for w in range(52):
+            n = net - chg * (1 if w else 0) - w * 0.3 * (1 if net > 0 else -1); oi = 400000; lo = int(oi * (0.3 + n / 200)); sh = int(oi * 0.3)
+            r = {"cftc_contract_market_code": code, "report_date_as_yyyy_mm_dd": (d - dt.timedelta(weeks=w)).isoformat() + "T00:00:00.000", "open_interest_all": str(oi)}
+            if kind == "tff": r.update({"lev_money_positions_long": str(lo), "lev_money_positions_short": str(sh), "asset_mgr_positions_long": str(int(oi * (0.2 + am / 200))), "asset_mgr_positions_short": str(int(oi * 0.2))})
+            else: r.update({"m_money_positions_long_all": str(lo), "m_money_positions_short_all": str(sh)})
+            rows.append(r)
+    return rows
 def fred_json(sid):
     import datetime as dt
     vals = {"DFEDTARU": [(0, 3.75), (40, 4.0), (120, 4.25)], "ECBDFR": [(0, 2.0), (130, 2.25)], "CPIAUCSL": None, "UNRATE": [(0, 4.4)], "T10YIE": [(0, 2.31)], "BAMLH0A0HYM2": [(0, 3.12), (1, 3.18)], "VIXCLS": [(0, 16.4), (1, 17.2)],
@@ -464,6 +476,11 @@ async def route_fund(route):
         _, _, _, typ, year = p.path.split("/")
         return await route.fulfill(status=200, content_type="text/csv", body=ust_csv("real" in typ, year))
     if p.path == "/proxy/cot": return await route.fulfill(status=200, content_type="application/json", body=json.dumps(cot_json()))
+    if p.path in ("/proxy/cot-tff", "/proxy/cot-dis"):
+        if "$select" in p.query and not FUND_SRV.get("cotsel", True): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"code": "query.soql.no-such-column", "message": "No such column"}))
+        rows = cot_funds_json("tff" if p.path.endswith("tff") else "dis")
+        if "$select" not in p.query: rows = sorted(rows, key=lambda r: r["report_date_as_yyyy_mm_dd"], reverse=True)[:int(parse_qs(p.query).get("$limit", ["999"])[0])]   # all columns, newest rows only
+        return await route.fulfill(status=200, content_type="application/json", body=json.dumps(rows))
     if p.path.startswith("/proxy/fred/"):
         q = parse_qs(p.query)
         if not q.get("api_key", [""])[0] and not FUND_SRV["key"]: return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_message": "no api_key: add FRED_API_KEY in Vercel or paste a key in the app"}))

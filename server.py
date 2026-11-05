@@ -87,8 +87,9 @@ def relay_fund(path, q):
     if m and m.group(1) in UST_TYPES:
         t, y = m.group(1), m.group(2)
         return cached_get("ust" + t + y, f"https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{y}/all?type={t}&field_tdr_date_value={y}&page&_format=csv", 3600, {**BROWSER, "Accept": "text/csv,*/*"})
-    if path == "/proxy/cot":
-        return cached_get("cot" + q, "https://publicreporting.cftc.gov/resource/6dca-aqww.json?" + q, 6 * 3600, BROWSER)
+    cot = {"/proxy/cot": "6dca-aqww", "/proxy/cot-tff": "gpe5-46if", "/proxy/cot-dis": "72hh-3qpy"}.get(path)   # legacy, traders in financial futures, disaggregated
+    if cot:
+        return cached_get(path + q, f"https://publicreporting.cftc.gov/resource/{cot}.json?" + q, 6 * 3600, BROWSER)
     if path == "/proxy/fred/series/observations":
         from urllib.parse import parse_qs, urlencode
         p = {k: v[0] for k, v in parse_qs(q).items()}

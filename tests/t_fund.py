@@ -91,6 +91,12 @@ async def main():
         await q("() => goPage('calendar')"); await asyncio.sleep(1)
         print("40) calendar rows:", await q("() => [...document.querySelectorAll('.caltbl tbody tr:not(.calday)')].filter(tr => /CPI m\\/m|Non-Farm|Claims/.test(tr.innerText)).map(tr => tr.querySelector('.ce').innerText.split('\\n')[0] + ' → ' + tr.querySelector('.cw').innerText).join(' | ')"))
         await q("() => goPage('fund')"); await asyncio.sleep(0.5)
+        HF = "() => [...document.querySelectorAll('.fcot tr')].filter(tr => /^(Euro|Yen|Nasdaq 100|Gold|Crude oil|Silver)\\b/.test(tr.innerText.trim())).map(tr => tr.children[0].innerText.trim() + ' ' + tr.lastElementChild.innerText.replace(/\\s+/g, ' ') + (tr.lastElementChild.title ? ' {' + tr.lastElementChild.title + '}' : '')).join(' / ')"
+        print("41) hedge funds:", await q(HF), "| header:", await q("() => [...document.querySelectorAll('.fcot tr.mu td')].map(td => td.textContent).join(' | ')"))
+        FUND_SRV["cotsel"] = False
+        await q("() => { FUND.cotf = null; return fundCOTFunds(true); }"); await q("() => fundRender()")
+        print("42) columns named differently, fallback:", await q(HF), "| years for rank:", await q("() => FUND.cotf && Object.values(FUND.cotf.rows).map(r => r.pct).join(',')"))
+        FUND_SRV["cotsel"] = True
         print("24) rates panel, nothing cut off:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4); }"))
         await pg.set_viewport_size({"width": 1180, "height": 1000}); await asyncio.sleep(0.3)
         print("24b) at 1180px:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [Math.round(p.width), [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4)]; }"))

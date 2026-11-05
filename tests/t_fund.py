@@ -97,6 +97,15 @@ async def main():
         await q("() => { FUND.cotf = null; return fundCOTFunds(true); }"); await q("() => fundRender()")
         print("42) columns named differently, fallback:", await q(HF), "| years for rank:", await q("() => FUND.cotf && Object.values(FUND.cotf.rows).map(r => r.pct).join(',')"))
         FUND_SRV["cotsel"] = True
+        EIA = "() => [...document.querySelectorAll('.fworld tr')].filter(tr => /OIL & GAS|^(Crude oil|Gasoline|Distillates|Cushing|Natural gas storage)|EIA/i.test(tr.innerText.trim())).map(tr => tr.innerText.replace(/\\s+/g, ' ').trim()).join(' / ')"
+        print("43) EIA, no key yet:", await q(EIA))
+        await pg.fill("#eiaKey", "eia0123456789abcdef0123456789abcdef01234"); await q("() => document.getElementById('eiaSave').click()")
+        await wait("() => FUND.eia && FUND.eia.s && !FUND.eiaBusy", 15); await q("() => fundRender()")
+        print("44) EIA with a key:", await q(EIA), "| key sent:", any("/proxy/eia" in h and "api_key=eia0" in h for h in FUND_HITS[-8:]))
+        print("45) oil card:", await q("() => (fundCardsData().find(c => c.k === 'Oil (WTI)').L.find(x => /crude stocks/.test(x[1])) || [0, 'none']).join(' ')"))
+        await q("""() => { const now = Date.now(), d = new Date(now), wed = now - ((d.getUTCDay() + 4) % 7 || 7) * 864e5;
+          CAL.items = [...CAL.items, { id: 'USD|Crude Oil Inventories|' + wed, at: wed, ccy: 'USD', title: 'Crude Oil Inventories', impact: 'Medium', type: ffType('Crude Oil Inventories'), forecast: '-1.2M', previous: '' }]; }""")
+        print("46) calendar actual:", await q("() => { const x = calAll().find(x => x.title === 'Crude Oil Inventories'); const a = calActual(x); return new Date(x.at).toISOString().slice(0, 10) + ' ' + (a ? a.txt + ' vs ' + x.forecast + ' (' + a.word + ', dollar ' + a.dir + ')' : 'waiting'); }"))
         print("24) rates panel, nothing cut off:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4); }"))
         await pg.set_viewport_size({"width": 1180, "height": 1000}); await asyncio.sleep(0.3)
         print("24b) at 1180px:", await q("() => { const p = document.querySelector('.fcb').getBoundingClientRect(); return [Math.round(p.width), [...document.querySelectorAll('.fcb td')].filter(td => td.getBoundingClientRect().right > p.right + 1).map(td => td.innerText.trim()).slice(0, 4)]; }"))

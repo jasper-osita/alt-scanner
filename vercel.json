@@ -89,6 +89,10 @@
       "destination": "https://publicreporting.cftc.gov/resource/6dca-aqww.json"
     },
     {
+      "source": "/proxy/eia",
+      "destination": "/api/eia"
+    },
+    {
       "source": "/proxy/cot-tff",
       "destination": "https://publicreporting.cftc.gov/resource/gpe5-46if.json"
     },

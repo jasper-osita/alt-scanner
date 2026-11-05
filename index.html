@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.04.2244">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.05.0927">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -4476,7 +4476,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.04.2244";
+const APP_VERSION = "2026.11.05.0927";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -9619,11 +9619,12 @@ const CAL_ACT = [   // [Forex Factory title, FRED series, how to read it, months
   [/^Core PCE Price Index m\/m$/, "PCEPILFE", "mom", 1, 1, "infl"], [/^PPI m\/m$/, "PPIFIS", "mom", 1, 1, "infl"], [/^Core PPI m\/m$/, "PPIFES", "mom", 1, 1, "infl"],
   [/^Average Hourly Earnings m\/m$/, "CES0500000003", "mom", 1, 1, "infl"], [/^Non-Farm Employment Change$/, "PAYEMS", "chgK", 1, 1, "growth"], [/^Unemployment Rate$/, "UNRATE", "pct", 1, -1, "slack"],
   [/^Unemployment Claims$/, "ICSA", "K", "w", -1, "slack"], [/^JOLTS Job Openings$/, "JTSJOL", "M", 2, 1, "growth"], [/^Retail Sales m\/m$/, "RSAFS", "mom", 1, 1, "growth"],
-  [/^Core Retail Sales m\/m$/, "RSFSXMV", "mom", 1, 1, "growth"], [/^(Advance|Prelim|Final) GDP q\/q$/, "A191RL1Q225SBEA", "pct", "q", 1, "growth"]];
+  [/^Core Retail Sales m\/m$/, "RSFSXMV", "mom", 1, 1, "growth"], [/^(Advance|Prelim|Final) GDP q\/q$/, "A191RL1Q225SBEA", "pct", "q", 1, "growth"],
+  [/^Crude Oil Inventories$/, "EIA:PET.WCESTUS1.W", "chgM", "w", 0, "stocks"], [/^Natural Gas Storage$/, "EIA:NG.NW2_EPG0_SWO_R48_BCF.W", "chgB", "w", 0, "stocks"]];   // EIA: weekly stocks (no dollar read)
 const CALA = { s: {}, at: {}, busy: false };
 const calActDef = x => x && x.ccy === "USD" ? CAL_ACT.find(d => d[0].test(x.title)) || null : null;
 function calActual(x) {                            // { txt, diff, dir (+1 good for the dollar), word } once FRED has this release's number
-  const d = calActDef(x), s = d && CALA.s[d[1]]; if (!s || !s.length || x.at > Date.now()) return null;
+  const d = calActDef(x), s = d && (d[1].startsWith("EIA:") ? FUND.eia && FUND.eia.s && FUND.eia.s[d[1].slice(4)] : CALA.s[d[1]]); if (!s || !s.length || x.at > Date.now()) return null;
   const ev = new Date(x.at); let o;
   if (d[3] === "w") o = s.find(p => p[0] <= x.at - 2 * 864e5 && p[0] > x.at - 9 * 864e5);                  // claims: the week that ended the Saturday before
   else { const mo = d[3] === "q" ? Math.floor(ev.getUTCMonth() / 3) * 3 - 3 : ev.getUTCMonth() - d[3]; o = s.find(p => p[0] === Date.UTC(ev.getUTCFullYear(), mo, 1)); }
@@ -9631,14 +9632,19 @@ function calActual(x) {                            // { txt, diff, dir (+1 good 
   if (d[2] === "mom") { if (!p1) return null; txt = ((v / p1 - 1) * 100).toFixed(1) + "%"; }
   else if (d[2] === "yoy") { if (!p12) return null; txt = ((v / p12 - 1) * 100).toFixed(1) + "%"; }
   else if (d[2] === "chgK") { if (p1 == null) return null; txt = Math.round(v - p1) + "K"; }
+  else if (d[2] === "chgM") { if (p1 == null) return null; txt = ((v - p1) / 1000).toFixed(1) + "M"; }                 // thousand barrels → million
+  else if (d[2] === "chgB") { if (p1 == null) return null; txt = Math.round(v - p1) + "B"; }
   else if (d[2] === "K") txt = Math.round(v / 1000) + "K"; else if (d[2] === "M") txt = (v / 1000).toFixed(2) + "M"; else txt = v.toFixed(1) + "%";
   const num = t => { const n = parseFloat(String(t).replace(/[^0-9.\-]/g, "")); return isFinite(n) ? n : null; }, fc = num(x.forecast), diff = fc == null ? null : +(num(txt) - fc).toFixed(3);
-  const word = !diff ? (fc == null ? "" : "as expected") : d[5] === "infl" ? (diff > 0 ? "hotter" : "cooler") : d[5] === "growth" ? (diff > 0 ? "stronger" : "weaker") : (diff > 0 ? "weaker" : "stronger");
+  const word = !diff ? (fc == null ? "" : "as expected") : d[5] === "infl" ? (diff > 0 ? "hotter" : "cooler") : d[5] === "growth" ? (diff > 0 ? "stronger" : "weaker") : d[5] === "stocks" ? (diff > 0 ? "higher than expected" : "lower than expected") : (diff > 0 ? "weaker" : "stronger");
   return { txt, diff, dir: diff ? Math.sign(diff) * d[4] : 0, word };
 }
 async function calActFetch() {                     // fetch the series behind last week's US releases that still lack a number (each at most every 10 minutes)
   if (CALA.busy || typeof fredKey !== "function") return; const now = Date.now(), need = new Set();
-  calAll().filter(x => x.at < now - 2 * 60e3 && x.at > now - 8 * 864e5).forEach(x => { const d = calActDef(x); if (d && !calActual(x) && (!CALA.at[d[1]] || now - CALA.at[d[1]] > 10 * 60e3)) need.add(d[1]); });
+  let eia = false;
+  calAll().filter(x => x.at < now - 2 * 60e3 && x.at > now - 8 * 864e5).forEach(x => { const d = calActDef(x); if (!d || calActual(x)) return; if (d[1].startsWith("EIA:")) { eia = true; return; }
+    if (!CALA.at[d[1]] || now - CALA.at[d[1]] > 10 * 60e3) need.add(d[1]); });
+  if (eia && typeof fundEIA === "function") fundEIA(!(FUND.eia && FUND.eia.at && now - FUND.eia.at < 10 * 60e3) && !(FUND.eiaTry && now - FUND.eiaTry < 10 * 60e3)).then(() => { if (page === "calendar") calRender(); });   // stocks come with the EIA data
   if (!need.size) return; CALA.busy = true; const k = fredKey();
   await Promise.all([...need].map(async id => { try { const r = await fetch(`/proxy/fred/series/observations?series_id=${id}${k ? "&api_key=" + encodeURIComponent(k) : ""}&file_type=json&sort_order=desc&limit=30`), j = await r.json().catch(() => null);
     if (r.ok && j && j.observations) CALA.s[id] = j.observations.filter(o => o.value !== ".").map(o => [Date.parse(o.date), +o.value]); } catch (e) {} CALA.at[id] = Date.now(); }));
@@ -9978,7 +9984,7 @@ if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
 /* ===================== Fundamentals: a terminal-style page (markets, rates and central banks, yield curve, positioning, headlines, calendar) ===================== */
 const FUND_KEY = "finder-fund", FRED_LS = "finder-fred";
 let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, bis: null, fy: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
-const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news, bis: FUND.bis, fy: FUND.fy, seas: FUND.seas, cotf: FUND.cotf });
+const fundSave = () => lsSet(FUND_KEY, { ust: FUND.ust, real: FUND.real, cot: FUND.cot, fred: FUND.fred, news: FUND.news, bis: FUND.bis, fy: FUND.fy, seas: FUND.seas, cotf: FUND.cotf, eia: FUND.eia });
 const fredKey = () => String(lsGet(FRED_LS, "") || "").trim();
 async function fundText(url) { const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }
 // US Treasury daily yield curves (nominal par and real), no key needed
@@ -10032,6 +10038,30 @@ async function fundCOTFunds(force) {
     get("/proxy/cot-dis", C, "cftc_contract_market_code,report_date_as_yyyy_mm_dd,open_interest_all,m_money_positions_long_all,m_money_positions_short_all").catch(e => { errs.push(e.message); return []; })]);
   const rows = { ...read(tff, F, /^lev_money_positions_long/, /^lev_money_positions_short/, /^asset_mgr_positions_long/, /^asset_mgr_positions_short/), ...read(dis, C, /^m_money_positions_long/, /^m_money_positions_short/) };
   if (Object.keys(rows).length) { FUND.cotf = { at: Date.now(), rows, codes: COT_MK.map(m => m[1]) }; FUND.err.cotf = errs.length === 2 ? errs[0] : null; } else FUND.err.cotf = errs[0] || "no hedge-fund data came back";
+}
+// EIA weekly oil and gas stocks (free key, like FRED's): crude without the strategic reserve, gasoline, distillates, Cushing (where WTI is delivered), gas storage
+const EIA_LS = "finder-eia", EIA_S = [["PET.WCESTUS1.W", "Crude oil", "M"], ["PET.WGTSTUS1.W", "Gasoline", "M"], ["PET.WDISTUS1.W", "Distillates", "M"],
+  ["PET.W_EPC0_SAX_YCUOK_MBBL.W", "Cushing", "M"], ["NG.NW2_EPG0_SWO_R48_BCF.W", "Natural gas storage", "B"]];
+const eiaKey = () => String(lsGet(EIA_LS, "") || "").trim();
+async function fundEIA(force) {
+  const k = eiaKey(), tag = k ? k.slice(-4) : "server", now = Date.now();
+  if (!force && FUND.eia && FUND.eia.at && now - FUND.eia.at < 3 * 3600e3 && FUND.eia.k === tag) return;
+  if (FUND.eiaBusy || (!force && FUND.eiaTry && now - FUND.eiaTry < 10 * 60e3 && !(FUND.eia && FUND.eia.k === tag))) return;      // after a failure, try again in 10 minutes
+  FUND.eiaBusy = true; FUND.eiaTry = now;
+  try { const s = {}; let keyErr = false;
+    await Promise.all(EIA_S.map(async ([id]) => { const r = await fetch(`/proxy/eia?series=${encodeURIComponent(id)}${k ? "&api_key=" + encodeURIComponent(k) : ""}`), j = await r.json().catch(() => null);
+      if (!r.ok || !j || j.error) { const m = j && j.error ? (j.error.message || j.error.code || j.error) : "HTTP " + r.status; if (/api_key|key/i.test(String(m))) keyErr = true; return; }
+      s[id] = ((j.response && j.response.data) || []).map(o => [Date.parse(o.period), +o.value]).filter(o => isFinite(o[0]) && isFinite(o[1])).sort((a, b) => b[0] - a[0]); }));
+    if (!Object.keys(s).length) throw new Error(keyErr ? (k ? "the EIA didn't accept that key" : "nokey") : "no stock data came back");
+    FUND.eia = { at: Date.now(), k: tag, s }; FUND.err.eia = null; }
+  catch (e) { FUND.err.eia = e.message; }
+  FUND.eiaBusy = false;
+}
+function eiaRead(id) {                             // latest level, change on the week, and against the average of the same week over the last 5 years
+  const s = FUND.eia && FUND.eia.s && FUND.eia.s[id]; if (!s || s.length < 2) return null; const [t, v] = s[0];
+  const past = [1, 2, 3, 4, 5].map(y => { const o = s.find(p => Math.abs(p[0] - (t - y * 364 * 864e5)) <= 4 * 864e5); return o ? o[1] : null; }).filter(x => x != null);
+  const avg5 = past.length >= 3 ? past.reduce((a, b) => a + b, 0) / past.length : null;
+  return { t, v, chg: v - s[1][1], vs5: avg5 ? (v / avg5 - 1) * 100 : null };
 }
 // FRED (free key): central-bank rates and a few US gauges
 const FUND_CB = [["Fed", "USD", "DFEDTARU", "target rate (upper)"], ["ECB", "EUR", "ECBDFR", "deposit rate"], ["BoE", "GBP", "IRSTCI01GBM156N", "OECD short rate, monthly", "GB"], ["BoJ", "JPY", "IRSTCI01JPM156N", "OECD short rate, monthly", "JP"],
@@ -10145,7 +10175,7 @@ async function fundNews(force) {
 }
 async function fundLoad(force) {
   if (FUND.busy) { FUND.again = FUND.again || force || "soft"; return; } FUND.busy = true; fundRender();
-  await Promise.all([fundUST(force), fundCOT(force), fundCOTFunds(force), fundFRED(force), fundBIS(force), fundYields(force), fundSeas(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
+  await Promise.all([fundUST(force), fundCOT(force), fundCOTFunds(force), fundFRED(force), fundEIA(force), fundBIS(force), fundYields(force), fundSeas(force), fundNews(force), typeof calFetch === "function" ? calFetch(false) : null, typeof loadMarketExternal === "function" && (force || !EXT.global) ? loadMarketExternal().catch(() => {}) : null]);
   FUND.busy = false; fundSave(); fundRender();
   if (FUND.again) { const f = FUND.again === true; FUND.again = false; fundLoad(f); }       // asked again while busy (a new key, Refresh)
 }
@@ -10209,6 +10239,11 @@ function fundWorld() {
     ratioRow("Gold in euros", GI.eur, fmtPrice, "Gold priced in euros. If gold rises in dollars but not here, the move is mostly a weaker dollar"),
     ratioRow("Gold in yen", GI.jpy, fmtPrice, "Gold priced in yen. Rising in every currency means real demand for gold, not just a weak dollar")].join("");
   if (ratios) h += `<tr><td class="fgrp" colspan="4">Ratios</td></tr>${ratios}`;
+  const eRows = EIA_S.map(([id, lbl, u]) => { const x = eiaRead(id); if (!x) return ""; const f = v => u === "M" ? (v / 1000).toFixed(1) + "M" : Math.round(v) + "B";
+    return `<tr title="${lbl}: ${u === "M" ? "million barrels" : "billion cubic feet"}, week to ${new Date(x.t).toISOString().slice(0, 10)}. A fall (draw) usually helps the price. Last column: against the same week's average over the last 5 years"><td>${lbl}</td><td class="r">${f(x.v)}</td><td class="r ${fCls(-x.chg)}">${x.chg >= 0 ? "+" : "−"}${f(Math.abs(x.chg))}</td><td class="r ${x.vs5 == null ? "mu" : fCls(-x.vs5)}">${x.vs5 == null ? "—" : fPct(x.vs5, 0) + " vs 5y"}</td></tr>`; }).join("");
+  const eNote = !eiaKey() && FUND.err.eia === "nokey" ? `<tr><td colspan="4"><div class="fkey"><span>Weekly oil and gas stocks come from the EIA. Add your free key (eia.gov/opendata → Register):</span><input id="eiaKey" placeholder="Paste EIA key" aria-label="EIA API key" autocomplete="off"><button class="btn sm" id="eiaSave">Save</button></div></td></tr>`
+    : FUND.err.eia && !eRows ? `<tr><td colspan="4" class="dn">Couldn't load oil stocks: ${xEsc(FUND.err.eia)}.${eiaKey() ? ` <button class="btn sm" id="eiaClear">Change key</button>` : ""}</td></tr>` : "";
+  if (eRows || eNote) h += `<tr><td class="fgrp" colspan="4">Oil &amp; gas stocks <span class="mu">EIA, weekly · level · week · vs 5y</span></td></tr>${eRows}${eNote}`;
   const volRow = (lbl, x, tip) => `<tr title="${tip}"><td>${lbl}</td><td class="r">${x ? x.v.toFixed(1) : "—"}</td><td class="r ${x && x.chg != null ? fCls(-x.chg) : "mu"}">${x && x.chg != null ? (x.chg >= 0 ? "+" : "") + x.chg.toFixed(1) : ""}</td><td class="r ${x && x.pct >= 80 ? "fam" : "mu"}">${fRankLbl(x)}</td></tr>`;
   h += `<tr><td class="fgrp" colspan="4">Volatility &amp; liquidity</td></tr>
     <tr><td>VIX (fear gauge)</td><td class="r">${vix ? vix[0][1].toFixed(1) : "—"}</td><td class="r ${vix && vix[1] ? fCls(-(vix[0][1] - vix[1][1])) : "mu"}">${vix && vix[1] ? (vix[0][1] - vix[1][1] >= 0 ? "+" : "") + (vix[0][1] - vix[1][1]).toFixed(1) : ""}</td><td class="r mu">${vix ? (vix[0][1] < 15 ? "calm" : vix[0][1] < 22 ? "normal" : "stressed") : ""}</td></tr>
@@ -10347,6 +10382,7 @@ function fundCardsData() {
   const oilEv = (() => { const e = (typeof calAll === "function" ? calAll() : []).find(x => x.at > now && x.at < now + 36 * 3600e3 && /crude oil inventor|OPEC/i.test(x.title));
     return e ? [0, `${e.title} ${phtDay(e.at).slice(0, 3)} ${e.timeLbl || phtHM(e.at)} (in ${inTxt(e.at - now)}): expect spikes`] : null; })();
   const ovL = ov && ov.pct >= 80 ? [0, `Oil volatility high for the year (OVX ${ov.v.toFixed(0)}): wider stops, smaller size`] : null;
+  const cr = eiaRead("PET.WCESTUS1.W"), crL = !cr || Date.now() - cr.t > 10 * 864e5 ? null : cr.chg <= -2000 ? [+1, `US crude stocks fell ${(-cr.chg / 1000).toFixed(1)}M barrels last week`] : cr.chg >= 2000 ? [-1, `US crude stocks rose ${(cr.chg / 1000).toFixed(1)}M barrels last week`] : null;
   const yen = S.cot("Yen"), yenCrowd = !yen ? null : yen.pct >= 90 ? [0, "Speculators heavily long the yen: if they bail, USD/JPY can jump"] : yen.pct <= 10 ? [0, "Speculators heavily short the yen: if they bail, USD/JPY can drop fast"] : null;
   const yenRisk = S.risk === "on" ? [+1, `Risk appetite is up (VIX ${S.vix.toFixed(0)}): the yen is usually sold`] : S.risk === "off" ? [-1, `Markets are nervous (VIX ${S.vix.toFixed(0)}): money hides in the yen`] : null;
   return [
@@ -10359,7 +10395,7 @@ function fundCardsData() {
       trend(eur && eur.ret7 != null ? eur.ret7 * 100 : null, "EUR/USD"), crowd(S.cot("Euro"), "euro"), evFor(["USD", "EUR"])] },
     { k: "USD/JPY", sym: jpy && jpy.symbol, px: jpy && jpy.price, chg: jpy && jpy.chg24h, L: [gapL(G.jp10, "US–Japan 10-year", +1), yenRisk, fedL(-1), bank("IRSTCI01JPM156N", "JP", "BoJ", -1),
       trend(jpy && jpy.ret7 != null ? jpy.ret7 * 100 : null, "USD/JPY"), yenCrowd, evFor(["USD", "JPY"])] },
-    { k: "Oil (WTI)", sym: wti && wti.symbol, px: wti && wti.price, chg: wti && wti.chg24h, L: [usdL, riskL(+1), trend(wti && wti.ret7 != null ? wti.ret7 * 100 : null, "Oil"), oilEv || evL, ovL, crowd(S.cot("Crude oil"), "oil")] },
+    { k: "Oil (WTI)", sym: wti && wti.symbol, px: wti && wti.price, chg: wti && wti.chg24h, L: [crL, usdL, riskL(+1), trend(wti && wti.ret7 != null ? wti.ret7 * 100 : null, "Oil"), oilEv || evL, ovL, crowd(S.cot("Crude oil"), "oil")] },
     { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), lqL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
   ].map(c => { const L = [...c.L, surLine(c.k), seasLine(c.k)].filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
@@ -10392,7 +10428,7 @@ function fundRender() {
   const at = [FUND.ust && FUND.ust.at, FUND.cot && FUND.cot.at, FUND.news && FUND.news.at].filter(Boolean);
   $("fundMeta").textContent = FUND.busy ? "Updating…" : at.length ? `updated ${phtHM(Math.max(...at))} PHT` : "";
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
-  const keep = document.activeElement && document.activeElement.id === "fredKey" ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
+  const keep = document.activeElement && ["fredKey", "eiaKey"].includes(document.activeElement.id) ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
   $("fundRead").innerHTML = fundReadHTML();
   $("fundRead").querySelectorAll("[data-fsym]").forEach(c => c.onclick = () => typeof openInCharts === "function" && openInCharts(c.dataset.fsym));
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
@@ -10404,6 +10440,9 @@ function fundRender() {
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
+  if ($("eiaSave")) $("eiaSave").onclick = () => { const v = $("eiaKey").value.trim(); if (!/^[A-Za-z0-9]{20,64}$/.test(v)) { toast("That doesn't look like an EIA key (about 40 letters and numbers)."); return; }
+    lsSet(EIA_LS, v); $("eiaKey").blur(); FUND.eia = null; FUND.err.eia = null; fundEIA(true).then(fundRender); };
+  if ($("eiaClear")) $("eiaClear").onclick = () => { lsSet(EIA_LS, ""); FUND.eia = null; FUND.err.eia = null; FUND.eiaTry = 0; fundRender(); };
 }
 function fundShown() { fundRender(); fundLoad(false); if (typeof macroScan === "function") macroScan(false).catch(() => {}); }
 $("fundRefresh").onclick = () => fundLoad(true);

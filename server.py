@@ -81,8 +81,23 @@ def fred_key():                                    # FRED_API_KEY, or the file ~
             with open(os.path.expanduser("~/.finder-fred-key")) as f: k = f.read()
         except OSError: k = ""
     return k.strip()
+EIA_SERIES = {"PET.WCESTUS1.W", "PET.WGTSTUS1.W", "PET.WDISTUS1.W", "PET.W_EPC0_SAX_YCUOK_MBBL.W", "NG.NW2_EPG0_SWO_R48_BCF.W"}   # crude (ex SPR), gasoline, distillates, Cushing, gas storage
+def eia_key():                                     # EIA_API_KEY, or the file ~/.finder-eia-key (one line); free at eia.gov/opendata
+    k = os.environ.get("EIA_API_KEY", "")
+    if not k:
+        try:
+            with open(os.path.expanduser("~/.finder-eia-key")) as f: k = f.read()
+        except OSError: k = ""
+    return k.strip()
 def relay_fund(path, q):
     import re
+    if path == "/proxy/eia":                       # EIA weekly oil and gas stocks (the app's pasted key, else this Mac's own)
+        from urllib.parse import parse_qs, urlencode
+        p = {k: v[0] for k, v in parse_qs(q).items()}
+        if p.get("series") not in EIA_SERIES: return 400, b'{"error":"series not allowed"}'
+        key = (p.get("api_key") or eia_key()).strip()
+        if not re.match(r"^[A-Za-z0-9]{20,64}$", key): return 400, b'{"error":"no api_key: save it in ~/.finder-eia-key or paste a key in the app"}'
+        return cached_get("eia" + p["series"] + key[-4:], f"https://api.eia.gov/v2/seriesid/{p['series']}?" + urlencode({"api_key": key, "length": 400}), 1800, BROWSER)
     m = re.match(r"^/proxy/ust/([a-z_]+)/(\d{4})$", path)
     if m and m.group(1) in UST_TYPES:
         t, y = m.group(1), m.group(2)
@@ -147,7 +162,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
             return
         path, _, query = self.path.partition("?")
-        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/", "/proxy/rates/")):
+        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/", "/proxy/rates/", "/proxy/eia")):
             code, body = relay_fund(path, query)
             ctype = "text/csv" if path.startswith(("/proxy/ust/", "/proxy/rates/")) else "application/xml" if path.startswith("/proxy/rss/") else "application/json"
             self.send_response(code)

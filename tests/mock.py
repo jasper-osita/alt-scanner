@@ -487,6 +487,16 @@ async def route_fund(route):
         if q.get("api_key", [""])[0].startswith("bad"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_code": 400, "error_message": "Bad Request.  The value for variable api_key is not registered."}))
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps(fred_json(q.get("series_id", [""])[0])))
     if p.path.startswith("/proxy/rss/"): return await route.fulfill(status=200, content_type="application/xml", body=rss_xml(p.path.split("/")[-1]))
+    if p.path == "/proxy/eia":                     # EIA v2 seriesid: weekly stocks, last week a 3.1M-barrel crude draw and a 45 Bcf gas build
+        import datetime as dt
+        q = parse_qs(p.query); sid = q.get("series", [""])[0]
+        if not q.get("api_key", [""])[0] and not FUND_SRV.get("eiakey"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error": "no api_key: add EIA_API_KEY in Vercel or paste a key in the app"}))
+        base = {"PET.WCESTUS1.W": (421500, 424600, 430000), "PET.WGTSTUS1.W": (209800, 210900, 214000), "PET.WDISTUS1.W": (118200, 117500, 125000),
+                "PET.W_EPC0_SAX_YCUOK_MBBL.W": (22100, 22900, 33000), "NG.NW2_EPG0_SWO_R48_BCF.W": (3800, 3755, 3700)}.get(sid)
+        if not base: return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error": "series not allowed"}))
+        fri = dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 4) % 7 or 7)
+        data = [{"period": (fri - dt.timedelta(weeks=w)).isoformat(), "value": base[0] if w == 0 else base[1] if w == 1 else base[2], "units": "MBBL"} for w in range(320)]
+        return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"response": {"data": data}}))
     if p.path.startswith("/proxy/rates/"):
         src = p.path.split("/")[-1]
         if not FUND_SRV["rates"]: return await route.fulfill(status=502, content_type="text/csv", body="couldn't reach the source")
@@ -494,4 +504,4 @@ async def route_fund(route):
         return await route.fulfill(status=200 if body else 400, content_type="text/csv", body=body() if body else "unknown source")
     return await route.fulfill(status=404, body="")
 async def setup_fund(ctx):
-    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**", "**/proxy/rates/**"]: await ctx.route(pat, route_fund)
+    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**", "**/proxy/rates/**", "**/proxy/eia*"]: await ctx.route(pat, route_fund)

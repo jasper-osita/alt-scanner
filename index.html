@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.26.1524">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.09.0827">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -614,8 +614,21 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 #ncDrawer.open{transform:none;visibility:visible}
 .nchead{display:flex;align-items:center;gap:10px;padding:16px 18px 10px}.nchead h2{margin:0;font:600 18px var(--display);color:var(--strong)}
 .ncnew{font-size:12px;font-weight:700;color:var(--on-accent);background:var(--accent);border-radius:9px;padding:1px 7px}
-.nclink{background:transparent;border:0;color:var(--accent);font-size:12.5px;cursor:pointer;padding:4px}.nchead .nclink{margin-left:auto}
-.ncx{background:var(--pill);border:1px solid var(--pill-b);border-radius:7px;width:30px;height:28px;cursor:pointer;font-size:16px;line-height:1}
+.nclink{background:transparent;border:0;color:var(--accent);font-size:12.5px;cursor:pointer;padding:4px}.ncgap{flex:1}
+.ncx{background:var(--pill);border:1px solid var(--pill-b);border-radius:7px;width:30px;height:28px;cursor:pointer;font-size:16px;line-height:1;color:var(--text)}
+.ncx svg{display:block;margin:auto}.ncx[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--active)}
+.ncset{flex:1;overflow-y:auto;padding:0 18px 14px;font-size:13px}
+.ncsintro{margin:0 0 10px;color:var(--mute);font-size:12.5px;line-height:1.5}
+.ncsgrid{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ncsrow{display:grid;grid-template-columns:minmax(0,1fr) repeat(5,44px);align-items:center;padding:8px 10px;border-top:1px solid var(--line)}
+.ncsrow:first-child{border-top:0}.ncshd{background:var(--pill);font-size:11px;color:var(--mute);padding:7px 10px}.ncshd span{text-align:center;cursor:help}
+.ncsl{min-width:0;display:flex;flex-direction:column;gap:1px}.ncsl b{color:var(--text);font-weight:600}.ncsl small{color:var(--mute);font-size:11px;line-height:1.35}
+.ncshd .ncsl{text-align:left;cursor:default}
+.ncsrow input{justify-self:center;width:16px;height:16px;margin:0;cursor:pointer}.ncsrow input:disabled{cursor:not-allowed;opacity:.35}
+.ncsrow.off .ncsl b{color:var(--mute);text-decoration:line-through}
+.ncslegend{margin:12px 0 0;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mute);line-height:1.45}
+.ncslegend div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px}.ncslegend dt{color:var(--text);font-weight:600}.ncslegend dd{margin:0}
+.ncslegend .nclink{padding:0;font-size:12px}.ncsacts{margin-top:12px}.ncsacts .nclink{padding:4px 0}
 .ncchips{display:flex;gap:6px;flex-wrap:wrap;padding:0 18px 10px}
 .ncchips button{background:transparent;color:var(--mute);border:1px solid var(--pill-b);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
 .ncchips button.on{background:var(--active);color:var(--strong);border-color:var(--accent)}
@@ -1309,10 +1322,11 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="ncScrim" hidden></div>
 <aside id="ncDrawer" aria-label="Notifications" aria-hidden="true">
-  <div class="nchead"><h2>Notifications</h2><span class="ncnew" id="ncNew" hidden></span>
-    <button class="nclink" id="ncReadAll">Mark all read</button><button class="ncx" id="ncClose" aria-label="Close notifications">×</button></div>
+  <div class="nchead"><h2 id="ncTitle">Notifications</h2><span class="ncnew" id="ncNew" hidden></span><span class="ncgap"></span>
+    <button class="nclink" id="ncReadAll">Mark all read</button><button class="ncx" id="ncSetBtn" aria-label="Notification settings" aria-pressed="false" title="Choose which alerts you get"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button><button class="ncx" id="ncClose" aria-label="Close notifications">×</button></div>
   <div class="ncchips" id="ncChips" role="tablist" aria-label="Filter notifications"></div>
   <div class="nclist" id="ncList"></div>
+  <div class="ncset" id="ncSet" hidden></div>
   <div class="ncfoot"><span>Kept for 7 days on this device</span>
     <label class="tog"><input type="checkbox" id="ncMacro"> Forex &amp; gold triggers</label><button class="nclink" id="ncPhone">📱 Phone</button><button class="nclink" id="ncClear">Clear all</button></div>
 </aside>
@@ -4030,8 +4044,10 @@ function beep() {
   try { const A = new (window.AudioContext || window.webkitAudioContext)(), o = A.createOscillator(), g = A.createGain();
     o.connect(g); g.connect(A.destination); o.frequency.value = 880; g.gain.value = 0.05; o.start(); setTimeout(() => { o.stop(); A.close(); }, 180); } catch (e) {}
 }
-async function notify(title, body, meta = {}) {
-  ncAdd({ title: meta.title || title, detail: body, sym: meta.sym || null, kind: meta.kind || "Setups", icon: meta.icon || "🔔", tone: meta.tone || "gold", action: meta.action || null }); beep();
+function notify(title, body, meta = {}) {             // sound and pop-up follow your Notification settings (ncAdd)
+  return ncAdd({ title: meta.title || title, detail: body, sym: meta.sym || null, kind: meta.kind || "Setups", icon: meta.icon || "🔔", tone: meta.tone || "gold", action: meta.action || null }, { title, body });
+}
+async function ncPopup(title, body) {                 // the device's own notification (needs the browser's permission)
   try {
     if ("Notification" in window && Notification.permission === "granted") {
       const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
@@ -4439,7 +4455,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.26.1524";
+const APP_VERSION = "2026.11.09.0827";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6229,11 +6245,27 @@ function ncAgo(t) {
   const d = new Date(t + PHT_MS), y = new Date(Date.now() + PHT_MS - 864e5);
   return d.toISOString().slice(0, 10) === y.toISOString().slice(0, 10) ? "Yesterday" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
-function ncAdd(n) {
-  const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), read: false, ...n };
+/* Notification settings: per kind, on/off plus banner, sound and pop-up (phone = Telegram, kept in its own settings) */
+const NC_PREF_KEY = "finder-nc-prefs", NC_QUIET = ["Bots", "System"];   // these two start without sound or pop-up
+const NC_TYPES = [["NBB Watch", "NBB Watch", "Triggers and bases"], ["News", "News", "Calendar reminders"], ["Setups", "Setups", "Watchlist, forex and gold triggers"],
+  ["Breakouts", "Breakouts", "Price breaking its 20/50/100"], ["Price", "Price alerts", "Your price levels"], ["Bots", "Bot trades", "Bot simulator opens and closes"], ["System", "System", "cTrader connection and orders"]];
+const NC_WAYS = [["on", "On", "Keep it in the bell. Off mutes it everywhere."], ["banner", "Banner", "The card in the corner of The Finder."], ["sound", "Sound", "A short beep."],
+  ["device", "Pop-up", "Your computer's or phone's own notification, seen even when The Finder is in the background."], ["phone", "Phone", "A Telegram message."]];
+let NC_PREF = {}; try { NC_PREF = JSON.parse(localStorage.getItem(NC_PREF_KEY) || "{}") || {}; } catch (e) { NC_PREF = {}; }
+let ncPhoneHook = null, ncBeepAt = 0;                // ncPhoneHook: set by the Telegram code (extras script)
+const ncPrefSave = () => { try { localStorage.setItem(NC_PREF_KEY, JSON.stringify(NC_PREF)); } catch (e) {} };
+function ncPref(kind) {
+  const s = NC_PREF[kind] || {}, loud = !NC_QUIET.includes(kind), v = (k, d) => s[k] == null ? d : !!s[k];
+  return { on: v("on", true), banner: v("banner", true), sound: v("sound", loud), device: v("device", loud) };
+}
+function ncAdd(n, push) {                            // push: the pop-up's title and body (built from the notification when missing)
+  const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), read: false, ...n }, p = ncPref(item.kind);
+  if (!p.on) { item.muted = true; return item; }     // turned off: not kept, no banner, sound, pop-up or phone message
   NC.unshift(item); ncPrune(); ncSave(); ncRenderBell();
   if (ncOpen()) ncRenderList();
-  ncToast(item);
+  if (p.banner) ncToast(item);
+  if (p.sound && Date.now() - ncBeepAt > 1500) { ncBeepAt = Date.now(); beep(); }   // one beep for a burst
+  if (p.device) ncPopup(push ? push.title : (item.sym ? (MACRO.by[item.sym] ? MACRO.by[item.sym].name : coin(item.sym)) + ": " : "") + item.title, push ? push.body : item.detail || "");
   return item;
 }
 const ncOpen = () => $("ncDrawer").classList.contains("open");
@@ -6241,7 +6273,7 @@ function ncRenderBell() {
   const n = NC.filter(x => !x.read).length, el = $("bellCt");
   el.hidden = !n; el.textContent = n > 99 ? "99+" : n;
   $("bellBtn").setAttribute("aria-label", n ? `Notifications, ${n} unread` : "Notifications");
-  $("ncNew").hidden = !n; $("ncNew").textContent = `${n} new`;
+  $("ncNew").hidden = !n || !!NC_STATE.set; $("ncNew").textContent = `${n} new`;
 }
 function ncItemHTML(n, cls = "ncitem") {
   return `<button class="${cls}${n.read ? "" : " unread"}" data-nc="${n.id}" style="--nc:${NC_TONE[n.tone] || NC_TONE.gold}">
@@ -6261,7 +6293,40 @@ function ncRenderList() {
 function ncShow(open) {
   $("ncDrawer").classList.toggle("open", open); $("ncDrawer").setAttribute("aria-hidden", String(!open));
   $("ncScrim").hidden = !open; $("bellBtn").setAttribute("aria-expanded", String(open));
-  if (open) { ncRenderList(); setTimeout(() => $("ncClose").focus(), 50); } else $("bellBtn").focus({ preventScroll: true });
+  if (open) { ncSetView(false); ncRenderList(); setTimeout(() => $("ncClose").focus(), 50); } else $("bellBtn").focus({ preventScroll: true });
+}
+function ncSetView(on) {                             // the drawer swaps its list for Notification settings
+  NC_STATE.set = on;
+  $("ncSet").hidden = !on; $("ncChips").hidden = on; $("ncList").hidden = on; $("ncReadAll").hidden = on;
+  $("ncTitle").textContent = on ? "Notification settings" : "Notifications"; $("ncSetBtn").setAttribute("aria-pressed", String(on));
+  ncRenderBell(); if (on) ncRenderSet(); else ncRenderList();
+}
+function ncAskPopup() {
+  try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().then(() => { if (NC_STATE.set) ncRenderSet(); }); } catch (e) {}
+}
+function ncRenderSet() {
+  const ph = ncPhoneHook, phOn = !!(ph && ph.ready()), perm = "Notification" in window ? Notification.permission : "none";
+  const note = { device: perm === "denied" ? " <b>Blocked by your browser</b>: allow notifications for this site in its settings." : perm === "none" ? " Not available in this browser."
+      : perm === "default" ? " Your browser asks for permission the first time you turn one on." : "",
+    phone: phOn ? ` <button class="nclink" data-ncphone>Phone settings</button>` : ` Not set up yet. <button class="nclink" data-ncphone>Set up phone alerts</button>` };
+  const rows = NC_TYPES.map(([k, l, d]) => { const p = ncPref(k);
+    return `<div class="ncsrow${p.on ? "" : " off"}" data-ncrow="${k}"><span class="ncsl"><b>${ncEsc(l)}</b><small>${ncEsc(d)}</small></span>${NC_WAYS.map(([w, wl]) => {
+      const v = w === "phone" ? phOn && ph.get(k) : p[w], dis = w !== "on" && (!p.on || (w === "phone" && !phOn));
+      return `<input type="checkbox" data-nck="${k}" data-ncw="${w}" aria-label="${ncEsc(l)}: ${wl}"${v ? " checked" : ""}${dis ? " disabled" : ""}>`; }).join("")}</div>`; }).join("");
+  $("ncSet").innerHTML = `<p class="ncsintro">Pick which alerts reach you and how. Turning one off stops it everywhere, including your phone.</p>
+    <div class="ncsgrid" role="group" aria-label="Alerts and how they reach you"><div class="ncsrow ncshd" aria-hidden="true"><span class="ncsl">Alert</span>${NC_WAYS.map(([, wl, h]) => `<span title="${ncEsc(h)}">${wl}</span>`).join("")}</div>${rows}</div>
+    <dl class="ncslegend">${NC_WAYS.map(([w, wl, h]) => `<div><dt>${wl}</dt><dd>${h}${note[w] || ""}</dd></div>`).join("")}</dl>
+    <div class="ncsacts"><button class="nclink" id="ncSetReset">Reset to defaults</button></div>`;
+  $("ncSet").querySelectorAll("[data-ncw]").forEach(x => x.onchange = () => {
+    const k = x.dataset.nck, w = x.dataset.ncw;
+    if (w === "phone") { if (ph) ph.set(k, x.checked); return; }
+    NC_PREF[k] = { ...(NC_PREF[k] || {}), [w]: x.checked }; ncPrefSave();
+    if (w === "device" && x.checked) ncAskPopup();
+    if (w === "on") { const row = x.closest("[data-ncrow]"); row.classList.toggle("off", !x.checked);
+      row.querySelectorAll("[data-ncw]").forEach(y => { if (y.dataset.ncw !== "on") y.disabled = !x.checked || (y.dataset.ncw === "phone" && !phOn); }); }
+  });
+  $("ncSet").querySelectorAll("[data-ncphone]").forEach(b => b.onclick = () => { if (ph) ph.setup(); });
+  $("ncSetReset").onclick = () => { NC_PREF = {}; ncPrefSave(); if (ph) ph.reset(); ncRenderSet(); };
 }
 function ncGo(id) {                                  // open the market behind a notification, the same popup as the boards
   const n = NC.find(x => x.id === id); if (!n) return;
@@ -6317,6 +6382,7 @@ function macroAlerts(rows) {                           // newly triggered setups
 }
 $("bellBtn").onclick = () => { ncClearToasts(); ncShow(!ncOpen()); };
 $("ncClose").onclick = () => ncShow(false);
+$("ncSetBtn").onclick = () => ncSetView(!NC_STATE.set);
 $("ncScrim").onclick = () => ncShow(false);
 $("ncReadAll").onclick = () => { NC.forEach(n => n.read = true); ncSave(); ncRenderBell(); ncRenderList(); };
 $("ncClear").onclick = () => { NC = []; ncSave(); ncRenderBell(); ncRenderList(); };
@@ -9726,7 +9792,10 @@ async function tgPump() {
 function tgSend(text) { return new Promise(res => { if (TGQ.length > 20) TGQ.shift(); TGQ.push({ text, res: (ok, why) => res({ ok, why }) }); tgPump(); }); }
 const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
 const _ncAdd = ncAdd;
-ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
+ncAdd = function (n, push) { const it = _ncAdd(n, push); try { const c = tgCfg(); if (!it.muted && tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
+ncPhoneHook = { ready: tgOn, get: k => tgKind(tgCfg(), k), setup: () => { ncShow(false); openTGSettings(); },      // the Phone column in Notification settings
+  set: (k, on) => { const c = tgCfg() || {}; lsSet(TG_KEY, { ...c, kinds: { ...(c.kinds || {}), [k]: on } }); },
+  reset: () => { const c = tgCfg(); if (c && c.kinds) { delete c.kinds; lsSet(TG_KEY, c); } } };
 function openTGSettings() {
   killChart();
   const c = tgCfg() || {}, kinds = c.kinds || {}, local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
@@ -9737,7 +9806,7 @@ function openTGSettings() {
         <li>Open your new bot and send it any message (e.g. "hi").</li><li>Paste the token here and press <b>Find my chat ID</b>, then <b>Send test</b>.</li></ol>
       <label>Bot token<input id="tgToken" type="password" autocomplete="off" value="${xEsc(c.token || "")}" placeholder="123456789:AA…"></label>
       <label>Chat ID<span class="tgrow"><input id="tgChat" autocomplete="off" value="${xEsc(c.chat || "")}" placeholder="e.g. 123456789"><button class="btn sm" id="tgFind">Find my chat ID</button></span></label>
-      <div class="tgkinds"><div class="meta">Send these to your phone:</div>${TG_KINDS.map(([k, l]) => `<label class="chk"><input type="checkbox" data-tgk="${k}" ${tgKind(c, k) ? "checked" : ""}> ${l}</label>`).join("")}</div>
+      <div class="tgkinds"><div class="meta">Send these to your phone:</div>${TG_KINDS.map(([k, l]) => `<label class="chk"><input type="checkbox" data-tgk="${k}" ${tgKind(c, k) ? "checked" : ""}> ${l}${ncPref(k).on ? "" : ' <span class="mute">(turned off in Notification settings)</span>'}</label>`).join("")}</div>
       ${local ? `<label class="chk"><input type="checkbox" id="tgAwake" ${c.awake === false ? "" : "checked"}> Keep this Mac awake during my NBB Watch sessions (so alerts keep coming; the Mac still sleeps if you close the lid on battery)</label>` : ""}
       <p class="meta">Saved in this browser only and sent only to Telegram. Each device with a token sends its own alerts, so set this up on the Mac app only to avoid doubles. For alerts while the Mac is off, see "Cloud watcher" in the README.</p>
       <div class="meta" id="tgMsg" aria-live="polite"></div>

@@ -920,6 +920,31 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fcard .ft{display:flex;align-items:baseline;gap:8px}.fcard .ft b{font:700 14px var(--display);color:var(--strong)}.fcard .ft .fpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13px}
 .fverd{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--pill);color:var(--mute)}.fverd.up{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}.fverd.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
 .fwhy{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.35}.fwhy li{display:flex;gap:6px}.fwhy li i{font-style:normal;flex:none;width:12px}.fwatch{font-size:12px;color:var(--amber)}
+.fcard:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* market brief (floating, page dimmed behind) */
+dialog#fbDlg{width:min(940px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;font-variant-numeric:tabular-nums}dialog#fbDlg:not([open]){display:none}
+dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62);backdrop-filter:blur(2px)}
+.fbh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px}.fbh h3{margin:0 2px 0 6px;font:700 20px var(--display);color:var(--strong)}
+.fbpx{font:600 20px var(--display);color:var(--strong);margin:0 2px 0 8px}.fbib{width:30px;height:30px;border-radius:8px;border:1px solid var(--pill-b);background:var(--pill);color:var(--text);cursor:pointer;font-size:15px;line-height:1;padding:0}.fbib:hover{background:var(--hover)}
+.fbb{flex:1;min-height:0;overflow-y:auto}.fbf{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 16px;border-top:1px solid var(--line);font-size:11.5px}.fbkeys{margin-left:auto}
+.fbkeys kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid var(--pill-b);border-bottom-width:2px;border-radius:4px;font:11px var(--font);text-align:center;color:var(--text)}
+.fbal{margin:10px 16px 0;padding:8px 10px;border-radius:8px;font-size:12.5px;line-height:1.45;background:var(--pill)}.fbal.shock{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--strong)}
+.fbal.soon,.fbal.out{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--strong)}.fbal a{color:var(--strong);text-decoration:none}.fbal a:hover{text-decoration:underline}
+.fbnew{display:inline-block;padding:0 5px;border-radius:4px;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.03em}
+.fblean{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:12px 16px;border-bottom:1px solid var(--line)}.fbvr{display:flex;align-items:center;gap:10px;font-size:12px}
+.fbmeter{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:10px 0 4px}.fbmeter i{height:9px;border-radius:3px;background:var(--pill)}
+.fbmeter i.r2{background:color-mix(in srgb,var(--red) 55%,transparent)}.fbmeter i.r1{background:color-mix(in srgb,var(--red) 28%,transparent)}.fbmeter i.g1{background:color-mix(in srgb,var(--green) 28%,transparent)}.fbmeter i.g2{background:color-mix(in srgb,var(--green) 55%,transparent)}
+.fbmeter i.on{background:var(--text);outline:2px solid var(--accent);outline-offset:1px}.fbml{display:flex;justify-content:space-between;font-size:11px;color:var(--mute)}
+.fbsay{margin:0 0 8px;font-size:13.5px;line-height:1.45}.fbtip{background:var(--pill);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45}
+.fblv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}.fblv>div{background:var(--panel);padding:8px 12px;font-size:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fblv b{color:var(--strong);font-size:13px}.fblv1{padding:8px 16px;font-size:12px;border-bottom:1px solid var(--line)}
+.fbcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fbcols>div{min-width:0}.fbcols>div+div{border-left:1px solid var(--line)}
+.fbs{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4}.fbcols>div>.fbs:last-child{border-bottom:0}
+.fbsh{display:flex;align-items:center;gap:8px;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}.fbsh span{margin-left:auto;color:var(--mute);font-weight:500;letter-spacing:0;text-transform:none}
+.fbs .ftbl td{padding:5px 0;white-space:normal}.fbs .ftbl td+td{padding-left:8px}.fbst{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.fbccs{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.fbccs>.mu{width:42px;font-size:11.5px}.fbcc{padding:1px 6px;border-radius:5px;background:var(--pill);font-size:11.5px}.fbcc i{font-style:normal}.fbcc.on{outline:1px solid var(--accent)}
+.fbpos{display:flex;align-items:center;gap:12px}.fbnews{display:flex;flex-direction:column}.fbnews a{display:block;padding:5px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none}.fbnews a:hover .fnt{text-decoration:underline}
+@media (max-width:760px){dialog#fbDlg{max-height:94vh;width:98vw}.fblean,.fbcols{grid-template-columns:minmax(0,1fr)}.fbcols>div+div{border-left:0;border-top:1px solid var(--line)}.fblv{grid-template-columns:repeat(2,minmax(0,1fr))}.fbkeys{display:none}}
 @media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
 @media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
@@ -9847,11 +9872,11 @@ async function fundFRED(force) {
   catch (e) { FUND.err.fred = !k && /api_key/i.test(e.message) ? "nokey" : /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
 }
 // headlines: free RSS feeds through the relay
-const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"]];
+const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"], ["financialjuice", "FinancialJuice"]];   // FinancialJuice: a fast news wire
 const FUND_TAGS = [["FED", /\b(Fed|FOMC|Powell|Waller|Williams|rate cut|rate hike)\b/i], ["GOLD", /\b(gold|bullion|XAU)\b/i], ["NDX", /\b(Nasdaq|Nvidia|Apple|Microsoft|Tesla|Meta|Alphabet|tech stocks|S&P 500|Wall Street)\b/i],
   ["OIL", /\b(oil|OPEC|crude|Brent|WTI)\b/i], ["JPY", /\b(yen|BoJ|Ueda|USD\/JPY)\b/i], ["EUR", /\b(euro|ECB|Lagarde|EUR\/USD)\b/i], ["GBP", /\b(pound|sterling|BoE|Bailey|GBP\/USD)\b/i], ["USD", /\b(dollar|DXY|Treasur(y|ies)|yields?)\b/i], ["CRYPTO", /\b(bitcoin|crypto|ether|BTC|ETF flows?)\b/i]];
 async function fundNews(force) {
-  if (!force && FUND.news && Date.now() - FUND.news.at < 10 * 60e3) return;
+  if (!force && FUND.news && Date.now() - FUND.news.at < 2 * 60e3) return;                // every 2 minutes on this page; every minute while a market brief is open
   const items = [], errs = [];
   await Promise.all(FUND_RSS.map(async ([k, name]) => { try { const doc = new DOMParser().parseFromString(await fundText("/proxy/rss/" + k), "text/xml");
     [...doc.querySelectorAll("item")].slice(0, 25).forEach(it => { const g = s => (it.querySelector(s) || {}).textContent || "", title = g("title").trim(), link = g("link").trim(), t = Date.parse(g("pubDate")) || Date.parse(g("date")) || 0;
@@ -9884,8 +9909,8 @@ function fundWorld() {
   let h = `<table class="ftbl"><tr class="mu"><td></td><td class="r">Price</td><td class="r">24h</td><td class="r">1W</td></tr>`;
   FUND_WM.forEach(([grp, L]) => { h += `<tr><td class="fgrp" colspan="4">${grp}</td></tr>`;
     L.forEach(([lbl, names]) => { const r = fRow(names);
-      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
-      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
+      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF" data-fmk="US dollar" class="fclk"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
+      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}"` : ""} data-fmk="${lbl === "Dollar index" ? "US dollar" : lbl}" class="fclk"><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
   const G = EXT.global, F = EXT.fng, mf = typeof medianFunding === "function" && data ? medianFunding() : null, vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2");
   h += `<tr><td class="fgrp" colspan="4">Risk &amp; crypto</td></tr>
     <tr><td>VIX (fear gauge)</td><td class="r">${vix ? vix[0][1].toFixed(1) : "—"}</td><td class="r ${vix && vix[1] ? fCls(-(vix[0][1] - vix[1][1])) : "mu"}">${vix && vix[1] ? (vix[0][1] - vix[1][1] >= 0 ? "+" : "") + (vix[0][1] - vix[1][1]).toFixed(1) : ""}</td><td class="r mu">${vix ? (vix[0][1] < 15 ? "calm" : vix[0][1] < 22 ? "normal" : "stressed") : ""}</td></tr>
@@ -9936,7 +9961,7 @@ function fundCurve() {
 function fundCOTHTML() {
   const C = FUND.cot; if (!C || !C.rows.length) return `<div class="empty">${FUND.err.cot ? "Couldn't load positioning (" + xEsc(FUND.err.cot) + "). It needs the Mac app's relay or the web version." : "Loading positioning…"}</div>`;
   const mx = Math.max(30, ...C.rows.map(r => Math.abs(r.net)));
-  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:38%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td></tr>${C.rows.map(r => `<tr><td>${xEsc(r.name)}</td>
+  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:38%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td></tr>${C.rows.map(r => `<tr ${FB_COT[r.name] ? `data-fmk="${FB_COT[r.name]}" class="fclk"` : ""}><td>${xEsc(r.name)}</td>
     <td><div class="fbar"><i style="${r.net >= 0 ? `left:50%;width:${(r.net / mx * 50).toFixed(1)}%;background:var(--green)` : `right:50%;width:${(-r.net / mx * 50).toFixed(1)}%;background:var(--red)`}"></i></div></td>
     <td class="r ${fCls(r.net)}">${(r.net >= 0 ? "+" : "") + r.net.toFixed(0)}%</td><td class="r ${fCls(r.chg)}">${r.chg == null ? "" : (r.chg >= 0 ? "+" : "") + r.chg.toFixed(1)}</td>
     <td class="r ${r.pct >= 90 || r.pct <= 10 ? "fam" : "mu"}" title="${r.pct >= 90 ? "Near the most long of the year" : r.pct <= 10 ? "Near the most short of the year" : ""}">${r.pct}${r.pct % 100 >= 11 && r.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][r.pct % 10] || "th"}${r.pct >= 90 || r.pct <= 10 ? " · extreme" : ""}</td></tr>`).join("")}</table>
@@ -9996,7 +10021,7 @@ function fundReadHTML() {
   if (S.dollar && S.dollar.w != null && Math.abs(S.dollar.w) >= 0.5) bits.push(S.dollar.w < 0 ? "dollar weaker" : "dollar stronger");
   if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
   const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
-  const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
+  const card = c => `<div class="fcard" data-fmk="${xEsc(c.k)}" role="button" tabindex="0" title="Open the ${xEsc(c.k)} brief"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
     <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;
   return `<div class="fread"><div class="fhead"><span class="mu">Today's read</span>${bits.join(" · ") || `<span class="mu">Fills in as the data loads.</span>`}</div><div class="fcards">${C.map(card).join("")}</div>
     <p class="meta fnote" style="margin:6px 2px 0">▲ pushes the price up, ▼ pushes it down, ⚠ a warning. A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</p></div>`;
@@ -10016,12 +10041,12 @@ function fundRender() {
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
   const keep = document.activeElement && document.activeElement.id === "fredKey" ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
   $("fundRead").innerHTML = fundReadHTML();
-  $("fundRead").querySelectorAll("[data-fsym]").forEach(c => c.onclick = () => typeof openInCharts === "function" && openInCharts(c.dataset.fsym));
+  $("fundRead").querySelectorAll("[data-fmk]").forEach(c => { c.onclick = () => fbOpen(c.dataset.fmk); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(c.dataset.fmk); } }; });
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
-  el.querySelectorAll("[data-fsym]").forEach(tr => tr.onclick = () => typeof openInCharts === "function" && openInCharts(tr.dataset.fsym));
+  el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk));            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
@@ -10029,6 +10054,256 @@ function fundRender() {
 function fundShown() { fundRender(); fundLoad(false); if (typeof macroScan === "function") macroScan(false).catch(() => {}); }
 $("fundRefresh").onclick = () => fundLoad(true);
 setInterval(() => { if (page === "fund" && document.visibilityState === "visible") { fundRender(); fundLoad(false); } }, 60e3);
+/* ===================== Market brief: click a market on Fundamentals → a floating box with what you need for your bias ===================== */
+// k: the market; n: names to find its row; kind: which rules apply; ccy (or b/q for a pair): whose banks and news matter; tag: headline tags;
+// cot: CFTC market (cw: how to say it); sess: its usual window on the session clock (your NBB Watch window wins); earn: big tech earnings matter
+const FB_MK = [
+  { k: "Nasdaq 100", n: ["Nasdaq 100", "NAS100"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], cot: "Nasdaq 100", cw: "Nasdaq futures", sess: ["NY AM", 21.5, 24], earn: true },
+  { k: "S&P 500", n: ["S&P 500", "US500"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], cot: "S&P 500", cw: "S&P futures", sess: ["NY AM", 21.5, 24], earn: true },
+  { k: "Dow 30", n: ["Dow Jones", "US30"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], sess: ["NY AM", 21.5, 24] },
+  { k: "DAX 40", n: ["DAX 40", "GER40"], kind: "idx", ccy: ["EUR"], tag: ["EUR"], sess: ["London", 12, 18] },
+  { k: "Nikkei 225", n: ["Nikkei 225", "JP225"], kind: "idx", ccy: ["JPY"], tag: ["JPY"], sess: ["Asia", 8, 12] },
+  { k: "US dollar", dollar: true, kind: "usd", ccy: ["USD"], tag: ["USD", "FED"], cot: "US dollar index", cw: "the dollar", sess: ["NY AM", 21.5, 24] },
+  { k: "EUR/USD", n: ["EUR/USD", "EURUSD"], kind: "fx", b: "EUR", q: "USD", tag: ["EUR", "USD", "FED"], cot: "Euro", cw: "the euro", sess: ["London", 12, 18] },
+  { k: "GBP/USD", n: ["GBP/USD", "GBPUSD"], kind: "fx", b: "GBP", q: "USD", tag: ["GBP", "USD", "FED"], cot: "Pound", cw: "the pound", sess: ["London", 12, 18] },
+  { k: "USD/JPY", n: ["USD/JPY", "USDJPY"], kind: "fx", b: "USD", q: "JPY", tag: ["JPY", "USD", "FED"], cot: "Yen", cw: "the yen", sess: ["Asia", 8, 12] },
+  { k: "AUD/USD", n: ["AUD/USD", "AUDUSD"], kind: "fx", b: "AUD", q: "USD", tag: ["USD", "FED"], cot: "Aussie", cw: "the Aussie", sess: ["Asia", 8, 12] },
+  { k: "USD/CAD", n: ["USD/CAD", "USDCAD"], kind: "fx", b: "USD", q: "CAD", tag: ["OIL", "USD", "FED"], cot: "Canadian dollar", cw: "the Canadian dollar", sess: ["NY AM", 21.5, 24] },
+  { k: "USD/CHF", n: ["USD/CHF", "USDCHF"], kind: "fx", b: "USD", q: "CHF", tag: ["USD", "FED"], cot: "Swiss franc", cw: "the franc", sess: ["London", 12, 18] },
+  { k: "Gold", n: ["Gold", "XAUUSD"], kind: "gold", ccy: ["USD"], tag: ["GOLD", "FED", "USD"], cot: "Gold", cw: "gold", sess: ["London", 12, 18] },
+  { k: "Silver", n: ["Silver", "XAGUSD"], kind: "gold", ccy: ["USD"], tag: ["GOLD", "FED"], cot: "Silver", cw: "silver", sess: ["London", 12, 18] },
+  { k: "WTI crude", n: ["WTI Crude Oil", "USOIL"], kind: "oil", ccy: ["USD"], tag: ["OIL"], cot: "Crude oil", cw: "oil", sess: ["NY AM", 21.5, 24] },
+  { k: "Copper", n: ["Copper"], kind: "copper", ccy: ["USD"], tag: ["USD"], cot: "Copper", cw: "copper", sess: ["London", 12, 18] },
+  { k: "Bitcoin", btc: true, kind: "btc", ccy: ["USD"], tag: ["CRYPTO", "FED"], cot: "Bitcoin (CME)", cw: "Bitcoin futures", sess: ["NY AM", 21.5, 24] }];
+const FB_COT = Object.fromEntries(FB_MK.filter(m => m.cot).map(m => [m.cot, m.k]));
+const FB_BANK = Object.fromEntries(FUND_CB.map(([bank, ccy, id]) => [ccy, { bank, id }]));
+const FB_THR = { fx: 0.15, usd: 0.15, idx: 0.3, gold: 0.25, oil: 0.5, copper: 0.4, btc: 0.8 };   // % in 3 minutes that counts as a sudden move (15% of an average day once known)
+const FB_RISK = { USD: -1, JPY: -1, CHF: -1, AUD: 1, NZD: 1, CAD: 1 };                     // how a currency does when markets are calm: +1 gains, −1 loses (safe havens)
+const FB_CC = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"];
+const FB = { k: null, lv: {}, earn: null, earnAt: 0, shock: {}, t: null }, FBM = {};          // FBM: live price samples per market, last 6 minutes
+const fbMk = k => FB_MK.find(m => m.k === k);
+const fbCcys = m => m.kind === "fx" ? [m.b, m.q] : m.ccy;
+function fbRow(m) {
+  if (m.btc) return typeof bySym !== "undefined" ? bySym.BTCUSDT || bySym.BTC_USDT || null : null;
+  if (m.dollar) { const d = fDollar(); return d && d.sym ? MACRO.by[d.sym] || null : null; }
+  return fRow(m.n) || null;
+}
+function fbQuote(m) {
+  const r = fbRow(m); if (r) return { price: r.price, chg: r.chg24h, w: r.ret7 != null ? r.ret7 * 100 : null, sym: r.symbol, r };
+  const d = m.dollar && fDollar(); return d ? { price: null, chg: d.chg, w: d.w, est: true } : null;
+}
+function fbDrivers(m, S) {                         // the forces on this market now; v: +1 pushes it up, −1 down, 0 neither
+  const D = [], q = fbQuote(m), usdW = S.dollar && S.dollar.w, rr = FUND.real && FUND.real.rows[0], u = FUND.ust && FUND.ust.rows[0];
+  const bp = x => (x >= 0 ? "+" : "−") + Math.abs(Math.round(x * 100)) + "bp";
+  const add = (name, now, chg, raw, g, say, cond) => { if (raw == null) return; D.push({ name, now, chg, v: raw * g, say: raw > 0 ? say[0] : raw < 0 ? say[1] : null, up: g > 0 ? cond[0] : cond[1], dn: g > 0 ? cond[1] : cond[0] }); };
+  const real = g => add("Real yield (10Y)", rr && rr.v["10yr"] != null ? rr.v["10yr"].toFixed(2) + "%" : "—", S.real == null ? "" : bp(S.real) + " in a month", S.real == null ? null : S.real <= -0.08 ? 1 : S.real >= 0.08 ? -1 : 0, g,
+    ["falling real yields", "rising real yields"], ["real yields fall 8bp or more in a month", "real yields rise 8bp or more in a month"]);
+  const dollar = g => add(`US dollar${S.dollar && S.dollar.est ? " (est.)" : ""}`, S.dollar && S.dollar.price ? fmtPrice(S.dollar.price) : "—", usdW == null ? "" : fPct(usdW, 1) + " this week", usdW == null ? null : usdW <= -0.5 ? 1 : usdW >= 0.5 ? -1 : 0, g,
+    ["a weaker dollar", "a stronger dollar"], ["the dollar drops 0.5% or more this week", "the dollar rises 0.5% or more this week"]);
+  const bank = (c, g) => { const b = FB_BANK[c]; if (!b) return; const f = fundBank(b.id);      // g: the effect when this bank cuts
+    add(`${b.bank} rate`, f.rate != null ? f.rate.toFixed(2) + "%" : "—", f.stance || "", f.rate == null ? null : f.stance === "cutting" ? 1 : f.stance === "hiking" ? -1 : 0, g,
+      [`the ${b.bank} cutting`, `the ${b.bank} hiking`], [`the ${b.bank} starts cutting`, `the ${b.bank} starts raising rates`]); };
+  const risk = g => add("Risk mood (VIX)", S.vix != null ? S.vix.toFixed(1) : "—", S.risk === "on" ? "calm" : S.risk === "off" ? "nervous" : S.risk ? "mixed" : "", S.risk ? (S.risk === "on" ? 1 : S.risk === "off" ? -1 : 0) : null, g,
+    ["calm markets", "nervous markets"], ["markets calm down (VIX under 18)", "markets get nervous (VIX over 25)"]);
+  const y2 = g => add("US 2-year yield", u && u.v["2yr"] != null ? u.v["2yr"].toFixed(2) + "%" : "—", S.y2 == null ? "" : bp(S.y2) + " in a month", S.y2 == null ? null : S.y2 >= 0.1 ? 1 : S.y2 <= -0.1 ? -1 : 0, g,
+    ["a rising US 2-year (fewer Fed cuts)", "a falling US 2-year (more Fed cuts)"], ["the US 2-year rises 10bp or more in a month", "the US 2-year falls 10bp or more in a month"]);
+  const trend = (w, lbl) => add(`${lbl} this week`, q && q.price ? fmtPrice(q.price) : "—", w == null ? "" : fPct(w, 1), w == null ? null : w >= 1 ? 1 : w <= -1 ? -1 : 0, 1,
+    [`${lbl} rising this week`, `${lbl} falling this week`], [`${lbl} gains 1% or more on the week`, `${lbl} loses 1% or more on the week`]);
+  if (m.kind === "gold") { real(1); dollar(1); bank("USD", 1); }
+  else if (m.kind === "idx") { risk(1); if (m.ccy[0] === "USD") { real(1); bank("USD", 1); } else bank(m.ccy[0], 1);
+    if (m.ccy[0] === "JPY") { const yj = fRow(["USD/JPY", "USDJPY"]), w = yj && yj.ret7 != null ? yj.ret7 * 100 : null;
+      add("Yen this week", yj ? fmtPrice(yj.price) : "—", w == null ? "" : "USD/JPY " + fPct(w, 1), w == null ? null : w >= 1 ? 1 : w <= -1 ? -1 : 0, 1, ["a weaker yen (helps exporters)", "a stronger yen"], ["the yen weakens 1% or more this week", "the yen strengthens 1% or more this week"]); } }
+  else if (m.kind === "usd") { y2(1); bank("USD", -1); risk(-1); }
+  else if (m.kind === "fx") { [[m.b, 1], [m.q, -1]].forEach(([c, s]) => { bank(c, -s); if (c === "USD") y2(s); }); const g = Math.sign((FB_RISK[m.b] || 0) - (FB_RISK[m.q] || 0)); if (g) risk(g); }
+  else { risk(1); dollar(1); }                       // oil, copper, Bitcoin
+  trend(m.dollar ? usdW : q && q.w, m.dollar ? "The dollar" : m.k);
+  return D;
+}
+function fbWhen(x, now = Date.now()) { return x.at - now > 6 * 864e5 ? phtDay(x.at).slice(4) : `${phtDayKey(x.at) === phtDayKey(now) ? "Today" : phtDay(x.at).slice(0, 3)} ${x.earn ? x.timeLbl : x.timeLbl || phtHM(x.at)}`; }
+function fbEvents(m) {                             // high-impact events for this market's currencies, the next Fed decision, big tech earnings
+  const cc = fbCcys(m), now = Date.now();
+  const out = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now - 30 * 60e3 && x.at < now + 7 * 864e5 && cc.includes(x.ccy) && x.type !== "Earnings" && (x.impact === "High" || (m.kind === "oil" && /crude|oil|EIA|OPEC/i.test(x.title))));
+  if (cc.includes("USD") && !out.some(x => /FOMC|Federal Funds/i.test(x.title))) { const t = FOMC_DATES.map(fomcAt).find(t => t > now - 30 * 60e3); if (t && t < now + 60 * 864e5) out.push({ at: t, ccy: "USD", title: "Fed decision", impact: "High" }); }
+  if (m.earn && FB.earn) FB.earn.forEach(x => { if (x.at > now - 30 * 60e3) out.push(x); });
+  return out.sort((a, b) => a.at - b.at);
+}
+async function fbEarn() {                          // the biggest Nasdaq names reporting in the next 7 days
+  FB.earnAt = Date.now();
+  try { const now = Date.now(), rows = await earnRange(now, now + 7 * 864e5);
+    FB.earn = rows.filter(r => NDX_T1.includes(r.sym)).map(r => { const pre = r.time === "time-pre-market", post = r.time === "time-after-hours";
+      return { at: nyAt(r.y, r.m, r.d, pre ? 7 : post ? 16 : 9, pre ? 0 : post ? 5 : 30), ccy: "USD", title: `${r.sym} earnings`, impact: "High", earn: true, timeLbl: pre ? "before the open" : post ? "after the close" : "time TBA" }; }); }
+  catch (e) { FB.earn = FB.earn || []; }
+  if (FB.k) fbRender();
+}
+const fbNews = m => ((FUND.news && FUND.news.items) || []).filter(x => m.tag.includes(x.tag) && x.t > Date.now() - 36 * 3600e3);
+function fbWarn(m, S) {
+  const W = [], c = m.cot && S.cot(m.cot), now = Date.now(), ev = fbEvents(m).find(x => x.at > now && x.at - now < 36 * 3600e3);
+  if (c && (c.pct >= 90 || c.pct <= 10)) W.push(`Crowded: speculators hold their biggest ${c.pct >= 90 ? "long" : "short"} on ${m.cw} in a year. Moves against the crowd can be sharp.`);
+  if (S.vix != null && S.vix >= 25) W.push(`Fear gauge high (VIX ${S.vix.toFixed(0)}): bigger swings than usual.`);
+  if (ev) W.push(`${ev.ccy} ${ev.title} ${fbWhen(ev)} (in ${inTxt(ev.at - now)}): expect spikes.`);
+  if (m.btc) { const mf = typeof medianFunding === "function" && data ? medianFunding() : null; if (mf != null && mf > 0.0003) W.push("Funding is high: longs are crowded.");
+    if (S.fng != null && S.fng >= 75) W.push(`Extreme greed (${S.fng}): late to chase.`); else if (S.fng != null && S.fng <= 25) W.push(`Extreme fear (${S.fng}): often near lows.`); }
+  return W;
+}
+function fbSay(D, sc) {                            // the read in one line
+  const up = D.filter(x => x.v > 0).map(x => x.say), dn = D.filter(x => x.v < 0).map(x => x.say), L = a => a.length <= 1 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a.at(-1);
+  const parts = [up.length ? `${sc <= -2 ? "For it" : sc >= 2 ? "Pushing it up" : "Helping"}: ${L(up)}.` : "", dn.length ? `${sc >= 2 || (!up.length && sc > -2) ? "Against it" : sc <= -2 ? "Pushing it down" : "Against it"}: ${L(dn)}.` : ""].filter(Boolean);
+  const end = sc >= 2 ? "Favour longs; the chart still picks the entry." : sc <= -2 ? "Favour shorts; the chart still picks the entry." : up.length && dn.length ? "Neither side wins: let the chart pick the direction."
+    : up.length || dn.length ? "Not enough for a lean: let the chart lead." : D.length ? "Nothing big is pushing it either way right now: let the chart lead." : "Fills in as the data loads.";
+  return [...parts, end].join(" ");
+}
+function fbTip(D, sc) {                            // the one change that would tip it, or what would undo the lean
+  if (sc >= 2 || sc <= -2) { const s = Math.sign(sc), f = D.filter(x => x.v === s && Math.abs(sc - x.v) < 2).map(x => s > 0 ? x.dn : x.up);
+    return f.length ? `<span class="mu">It fades if</span> ${xEsc(f[0])}.` : `<span class="mu">A strong lean: it would take two changes to undo it.</span>`; }
+  const tw = D.filter(x => x.v < 1 && sc - x.v + 1 >= 2).map(x => x.up), hw = D.filter(x => x.v > -1 && sc - x.v - 1 <= -2).map(x => x.dn);
+  const p = [tw.length ? `<b class="up">Tailwind</b> if ${xEsc(tw[0])}` : "", hw.length ? `<b class="dn">Headwind</b> if ${xEsc(hw[0])}` : ""].filter(Boolean);
+  return p.length ? `<span class="mu">What would tip it:</span> ${p.join(". ")}.` : `<span class="mu">What would tip it:</span> two more things would need to line up.`;
+}
+async function fbLevels(m) {                       // 1H candles for the session levels and the average day (refreshed every 5 minutes while open)
+  const q = fbQuote(m), c = FB.lv[m.k]; if (!q || !q.sym || (c && (c.busy || Date.now() - c.at < 5 * 60e3))) return;
+  FB.lv[m.k] = { ...(c || {}), busy: true };
+  try { const k = await klines(q.sym, "1h", 400); FB.lv[m.k] = { at: Date.now(), k }; } catch (e) { FB.lv[m.k] = { ...(c || {}), at: Date.now(), err: e.message || "no candles" }; }
+  if (FB.k === m.k) fbRender();
+}
+function fbLvCalc(m, price) {                      // Asia range, yesterday, week open, today's range against the average day
+  const c = FB.lv[m.k], k = c && c.k; if (!k || !k.t.length || !(price > 0)) return null;
+  const H = 3600e3, D = 864e5, now = Date.now();
+  const dayOf = t => m.btc ? Math.floor(t / D) : Math.floor((t + PHT_MS - sessShift(t) * H - 5 * H) / D);   // a trading day starts 5 PM New York (UTC midnight for Bitcoin)
+  const days = new Map(); k.t.forEach((t, i) => { const d = dayOf(t); let x = days.get(d); if (!x) days.set(d, x = { o: k.o[i], h: k.h[i], l: k.l[i], n: 0 }); x.h = Math.max(x.h, k.h[i]); x.l = Math.min(x.l, k.l[i]); x.n++; });
+  const today = dayOf(now), t0 = days.get(today), td = { o: t0 ? t0.o : price, h: Math.max(t0 ? t0.h : price, price), l: Math.min(t0 ? t0.l : price, price) };
+  const full = [...days.entries()].filter(([d, x]) => d < today && x.n >= (m.btc ? 20 : 12)).sort((a, b) => a[0] - b[0]), last = full.slice(-14).map(([, x]) => x.h - x.l);
+  const yd = full.length ? full.at(-1)[1] : null, adr = last.length >= 5 ? last.reduce((a, b) => a + b, 0) / last.length : null; c.adr = adr;
+  const wd = new Date(today * D).getUTCDay(), mon = today - ((wd + 6) % 7); let wo = null;
+  for (let i = 0; i < k.t.length; i++) if (dayOf(k.t[i]) >= mon) { wo = k.o[i]; break; }
+  const sd = t => { const d = sessD(t); return [Math.floor(d.getTime() / D), d.getUTCHours()]; }, [nd, nh] = sd(now); let ah = -Infinity, al = Infinity;
+  k.t.forEach((t, i) => { const [d, h] = sd(t); if (d === nd && h >= 8 && h < 12) { ah = Math.max(ah, k.h[i]); al = Math.min(al, k.l[i]); } });
+  if (nh >= 8 && nh < 12) { ah = Math.max(ah, price); al = Math.min(al, price); }
+  return { td, yd, adr, wo, asia: isFinite(ah) ? { h: ah, l: al, forming: nh < 12 } : null, asiaLater: nh < 8 };
+}
+function fbFedExp() {                              // what the 2-year says the market expects from the Fed
+  const u = FUND.ust && FUND.ust.rows[0], f = fundBank("DFEDTARU"); if (!u || u.v["2yr"] == null || f.rate == null) return null;
+  const gap = u.v["2yr"] - (f.rate - 0.125), s = gap > 0.25 ? "hike" : gap < -0.25 ? "cut" : "hold";
+  return { two: u.v["2yr"], fed: f.rate, gap, s, txt: s === "hike" ? "The market expects more hikes: a hot inflation number is partly priced in, a cool one would surprise."
+    : s === "cut" ? "The market expects cuts: a cool number is partly priced in, a hot one would surprise." : "The market expects the Fed to hold: a surprise either way would move it." };
+}
+function fbStrength() {                            // each currency's average move against the others you scan, today and this week
+  const acc = {}; let n = 0;
+  (MACRO.rows || []).forEach(r => { const s = String(r.symbol).replace(/^(CT:|MX:)/, ""); if (!/^[A-Z]{6}$/.test(s) || r.chg24h == null) return; const b = s.slice(0, 3), q = s.slice(3); if (!FB_CC.includes(b) || !FB_CC.includes(q)) return; n++;
+    [[b, 1], [q, -1]].forEach(([c, sg]) => { const a = acc[c] || (acc[c] = { d: 0, n: 0, w: 0, nw: 0 }); a.d += sg * r.chg24h; a.n++; if (r.ret7 != null) { a.w += sg * r.ret7 * 100; a.nw++; } }); });
+  return n < 4 ? null : Object.entries(acc).filter(([, a]) => a.n >= 2).map(([c, a]) => ({ c, d: a.d / a.n, w: a.nw ? a.w / a.nw : null }));
+}
+function fbMeet(ccy) {
+  const now = Date.now(); if (ccy === "USD") return FOMC_DATES.map(fomcAt).find(t => t > now) || null;
+  const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && e.type === "Central Bank" && /rate|policy|cash rate|statement/i.test(e.title)); return x ? x.at : null;
+}
+/* sudden moves: live prices sampled every 2 seconds; a jump of 15% of an average day (or FB_THR) inside 3 minutes is flagged, usually before any headline */
+function fbShockOf(m, a, now) {
+  const w = a.filter(x => x[0] >= now - 3 * 60e3); if (w.length < 6 || a[0][0] > now - 2 * 60e3) return null;          // live ticks only, watched for 2 minutes
+  const p = w.at(-1)[1]; let ref = w[0]; w.forEach(x => { if (Math.abs(p - x[1]) > Math.abs(p - ref[1])) ref = x; });
+  const d = p - ref[1], adr = FB.lv[m.k] && FB.lv[m.k].adr, thr = adr ? 0.15 * adr : p * FB_THR[m.kind] / 100;
+  return Math.abs(d) >= thr ? { d, pct: d / ref[1] * 100, mins: Math.max(1, Math.round((now - ref[0]) / 60e3)) } : null;
+}
+function fbSample() {
+  const now = Date.now();
+  FB_MK.forEach(m => { const q = fbQuote(m); if (!q || !(q.price > 0)) return; const a = FBM[m.k] || (FBM[m.k] = []);
+    if (!a.length || a.at(-1)[1] !== q.price) a.push([now, q.price]); while (a.length && a[0][0] < now - 6 * 60e3) a.shift();
+    const sh = fbShockOf(m, a, now), prev = FB.shock[m.k]; if (!sh || (prev && now - prev.at < 15 * 60e3 && Math.sign(prev.d) === Math.sign(sh.d))) return;
+    FB.shock[m.k] = { ...sh, at: now };
+    if (((typeof NW !== "undefined" && NW.items) || []).some(x => x.name === m.k) || ["Gold", "Nasdaq 100"].includes(m.k))
+      ncAdd({ kind: "News", icon: "⚡", tone: "warn", sym: q.sym || null, title: `${m.k} ${sh.d > 0 ? "jumped" : "dropped"} ${fPct(sh.pct)} in ${sh.mins} min`, detail: "A move this fast is usually news. Click it on Fundamentals for the headlines and what's due." }); });
+  if (FB.k && $("fbDlg") && $("fbDlg").open) fbRender();
+}
+setInterval(fbSample, 2000);
+function fbAlerts(m) {                             // the top strip: a sudden move, an event due or just out, a fresh headline
+  const A = [], now = Date.now(), sh = FB.shock[m.k];
+  if (sh && now - sh.at < 20 * 60e3) A.push(["shock", `⚡ Sudden move: ${sh.d > 0 ? "up" : "down"} ${fmtPrice(Math.abs(sh.d))} (${fPct(sh.pct)}) in ${sh.mins} min, ${now - sh.at < 60e3 ? "just now" : inTxt(now - sh.at) + " ago"}. A jump this fast is usually news: check the headlines below.`]);
+  fbEvents(m).forEach(x => { const dt = x.at - now;
+    if (dt > 0 && dt <= 15 * 60e3) A.push(["soon", `⏱ ${x.ccy} ${xEsc(x.title)} in ${dt < 60e3 ? "under a minute" : inTxt(dt)}: expect spikes, don't enter right before it.`]);
+    else if (dt <= 0 && dt > -20 * 60e3) A.push(["out", `📢 ${x.ccy} ${xEsc(x.title)} came out ${dt > -60e3 ? "just now" : inTxt(-dt) + " ago"}: the move after it is the news.`]); });
+  const n = fbNews(m)[0]; if (n && now - n.t < 30 * 60e3) A.push(["news", `<span class="fbnew">NEW</span> <span class="mu">${now - n.t < 60e3 ? "just now" : inTxt(now - n.t) + " ago"}</span> <a href="${xEsc(n.link)}" target="_blank" rel="noopener noreferrer">${xEsc(n.title)}</a> <span class="mu">· ${xEsc(n.src)}</span>`]);
+  return A.slice(0, 4);                             // the newest few: a busy hour shouldn't push the brief off the screen
+}
+function fbRender() {
+  const m = fbMk(FB.k), dlg = $("fbDlg"); if (!m || !dlg || !dlg.open) return;
+  const S = fundSignals(), q = fbQuote(m), D = fbDrivers(m, S), W = fbWarn(m, S), sc = D.reduce((a, x) => a + x.v, 0), now = Date.now();
+  const v = sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", D.some(x => x.v) ? "Mixed: no strong lean" : D.length ? "No lean right now" : "Not enough data yet"];
+  const nf = D.filter(x => x.v > 0).length, na = D.filter(x => x.v < 0).length, sym = q && q.sym ? q.sym.replace(/^(CT:|MX:)/, "").replace("_", "") : "";
+  const set = (el, h) => { if (el._h === h) return; const lost = el.contains(document.activeElement); el.innerHTML = h; el._h = h; if (lost) dlg.focus(); };   // redraw only what changed; keep the keyboard in the box
+  set($("fbHead"), `<button class="fbib" data-fbs="-1" aria-label="Previous market">‹</button><button class="fbib" data-fbs="1" aria-label="Next market">›</button>
+    <h3 id="fbTitle">${xEsc(m.k)}</h3>${sym ? `<span class="fk">${xEsc(sym)}</span>` : q && q.est ? `<span class="fk">est.</span>` : ""}
+    <b class="fbpx">${q && q.price ? fmtPrice(q.price) : "—"}</b><span class="${fCls(q && q.chg)}">${q && q.chg != null ? fPct(q.chg) + " today" : ""}</span><span class="${fCls(q && q.w)}">${q && q.w != null ? "· " + fPct(q.w, 1) + " this week" : ""}</span>
+    <span style="flex:1"></span><button class="btn sm" id="fbCopy">Copy brief</button>${q && q.sym ? `<button class="btn sm primary" id="fbChart">Open chart</button>` : ""}<button class="fbib" id="fbX" aria-label="Close">✕</button>`);
+  const lv = q && q.price ? fbLvCalc(m, q.price) : null, lc = FB.lv[m.k], px = q && q.price, rel = (lbl, x) => x == null || !px ? "" : `${px >= x ? "above" : "under"} ${lbl} by ${fmtPrice(Math.abs(px - x))}`;
+  const room = lv && lv.adr ? (lv.td.h - lv.td.l) / lv.adr : null;
+  const lvH = !q || !q.sym ? "" : !lv ? `<div class="fblv1 mu">${lc && lc.err ? "Couldn't load candles for the levels (" + xEsc(lc.err) + ")." : "Loading today's levels…"}</div>` : `<div class="fblv">
+      <div><span class="mu">Asia range</span>${lv.asia ? `<b>${fmtPrice(lv.asia.l)} – ${fmtPrice(lv.asia.h)}</b><span>${px > lv.asia.h ? `above the Asia high by ${fmtPrice(px - lv.asia.h)}` : px < lv.asia.l ? `under the Asia low by ${fmtPrice(lv.asia.l - px)}` : "inside the Asia range"}${lv.asia.forming ? " · still forming" : ""}</span>` : `<b>—</b><span>${lv.asiaLater ? `starts ${sessLbl(8)}` : "no candles"}</span>`}</div>
+      <div><span class="mu">Yesterday</span>${lv.yd ? `<b>${fmtPrice(lv.yd.l)} – ${fmtPrice(lv.yd.h)}</b><span>${px > lv.yd.h ? `above yesterday's high by ${fmtPrice(px - lv.yd.h)}` : px < lv.yd.l ? `under yesterday's low by ${fmtPrice(lv.yd.l - px)}` : "inside yesterday's range"}</span>` : "<b>—</b>"}</div>
+      <div><span class="mu">Week open</span>${lv.wo != null ? `<b>${fmtPrice(lv.wo)}</b><span>${rel("it", lv.wo)}</span>` : "<b>—</b>"}</div>
+      <div><span class="mu">Room left today</span>${room != null ? `<b class="${room >= 1 ? "dn" : room >= 0.7 ? "fam" : "up"}">${Math.round(room * 100)}% of an average day used</b><span>${room >= 1 ? "bigger than a normal day: late to chase" : room >= 0.7 ? "most of a normal day is done" : "room left to run"} · avg ${fmtPrice(lv.adr)}</span>` : "<b>—</b><span>needs a few days of candles</span>"}</div></div>`;
+  const tagE = x => x.v > 0 ? `<span class="fk up">▲ helps</span>` : x.v < 0 ? `<span class="fk dn">▼ hurts</span>` : `<span class="fk">– neutral</span>`;
+  const drv = D.length ? `<table class="ftbl">${D.map(x => `<tr><td>${xEsc(x.name)}</td><td class="r">${xEsc(x.now)}</td><td class="r">${xEsc(x.chg)}</td><td class="r">${tagE(x)}</td></tr>`).join("")}</table>` : `<div class="mu">Fills in as rates, yields and prices load.</div>`;
+  const usd = fbCcys(m).includes("USD"), fe = usd ? fbFedExp() : null, cs = m.kind === "fx" || m.kind === "usd" ? fbStrength() : null, c = m.cot && S.cot(m.cot);
+  const csRow = (L, key) => L.filter(x => x[key] != null).sort((a, b) => b[key] - a[key]).map(x => `<span class="fbcc ${[m.b, m.q, m.dollar ? "USD" : ""].includes(x.c) ? "on" : ""}"><b>${x.c}</b> <i class="${fCls(x[key])}">${(x[key] >= 0 ? "+" : "") + x[key].toFixed(2)}%</i></span>`).join("");
+  const spark = h => { if (!h || h.length < 4) return ""; const lo = Math.min(...h), hi = Math.max(...h), Y = x => (26 - (x - lo) / (hi - lo || 1) * 24).toFixed(1);
+    return `<svg width="140" height="28" viewBox="0 0 140 28" role="img" aria-label="Net position over the past year"><polyline points="${h.map((x, i) => `${(i / (h.length - 1) * 140).toFixed(1)},${Y(x)}`).join(" ")}" fill="none" stroke="var(--mute)" stroke-width="1.5"/><circle cx="140" cy="${Y(h.at(-1))}" r="2.5" fill="var(--accent)"/></svg>`; };
+  const gap = m.kind === "fx" ? (() => { const fb = FB_BANK[m.b] && fundBank(FB_BANK[m.b].id), fq = FB_BANK[m.q] && fundBank(FB_BANK[m.q].id); if (!fb || !fq || fb.rate == null || fq.rate == null) return "";
+    const row = (c, f) => { const t = fbMeet(c); return `<tr><td><b>${FB_BANK[c].bank}</b> <span class="mu">${c}</span></td><td class="r">${f.rate.toFixed(2)}%</td><td><span class="fk ${f.stance === "cutting" ? "dn" : f.stance === "hiking" ? "up" : ""}">${f.stance}</span></td><td class="r mu">${t ? "next " + phtDay(t).slice(4) : ""}</td></tr>`; };
+    const g = fb.rate - fq.rate; return `<div class="fbs"><div class="fbsh">Rate gap</div><table class="ftbl">${row(m.b, fb)}${row(m.q, fq)}</table><div>Gap <b>${Math.abs(g).toFixed(2)} points</b> <span class="mu">in favour of ${g >= 0 ? m.b : m.q}</span></div></div>`; })() : "";
+  const ev = fbEvents(m).filter(x => x.at > now - 30 * 60e3).slice(0, 7), news = fbNews(m).slice(0, 6), r = q && q.r;
+  const dDir = r && r.s1d ? stDir(r.s1d.state) : null, lean = sc >= 2 ? "Long" : sc <= -2 ? "Short" : null, stTag = s => { const x = (s && s.state) || "—"; return `<span class="fk ${/^Bull stack/.test(x) ? "up" : /^Bear stack/.test(x) ? "dn" : ""}">${xEsc(x.replace("Pullback in ", "pullback in ").replace("Bull stack", "bull stack").replace("Bear stack", "bear stack"))}</span>`; };
+  const ao = r ? [r.aots4h, r.aots1h].filter(Boolean) : [];
+  const chartH = !r || !r.s1h ? `<div class="mu">Shows once this market is in the last scan.</div>` : `<div class="fbst"><span>1H ${stTag(r.s1h)}</span><span>4H ${stTag(r.s4h)}</span><span>D ${stTag(r.s1d)}</span>${r.rsi ? `<span class="mu">RSI 1H ${r.rsi.h1 != null ? Math.round(r.rsi.h1) : "—"} · 4H ${r.rsi.h4 != null ? Math.round(r.rsi.h4) : "—"}</span>` : ""}</div>
+      <div class="mu">${ao.length ? ao.map(a => `${a.tf} ${a.stage.toLowerCase()} ${a.dir === "Long" ? "long" : "short"}`).join(" · ") + " (beyond the 20/50/100, stacked)" : "Not beyond the 20/50/100 (no AOTS)."}</div>
+      <div>${lean && dDir ? (lean === dDir ? `<b class="up">Fundamentals and the daily trend agree</b>: favour ${lean.toLowerCase()}s.` : `<b class="dn">Fundamentals and the daily trend disagree</b>: size down or wait.`) : dDir ? `Fundamentals are mixed: follow the daily trend (${dDir.toLowerCase()}).` : "The daily trend is tangled: let the NBB setup decide."}</div>`;
+  const win = (() => { const it = ((typeof NW !== "undefined" && NW.items) || []).find(x => x.name === m.k); if (it) return `NBB Watch ${CH_TFL[it.tf] || it.tf} · ${xEsc(nwSession(it).label)}`;
+    const [nm, a, b] = m.sess, h = sessH(), on = h >= a && h < b; return `${nm} ${sessLbl(a)} – ${sessLbl(b)} PHT · ${on ? `<b class="fam">live now</b>, ${inTxt((b - h) * 3600e3)} left` : `opens in <b class="fam">${inTxt((((a - h) + 24) % 24) * 3600e3)}</b>`}`; })();
+  const body = $("fbBody"), keep = body.scrollTop, idx = Math.max(-3, Math.min(3, sc)) + 3;
+  set(body, `${fbAlerts(m).map(([t, h]) => `<div class="fbal ${t}">${h}</div>`).join("")}
+    <div class="fblean"><div><div class="fbvr"><span class="fverd ${v[0]}">${v[1]}</span><span class="mu">${nf} for · ${na} against${W.length ? ` · ${W.length} warning${W.length > 1 ? "s" : ""}` : ""}</span></div>
+      <div class="fbmeter" role="img" aria-label="Lean ${sc} on a scale from minus 3 to plus 3">${["r2", "r1", "", "", "", "g1", "g2"].map((cl, i) => `<i class="${cl}${i === idx ? " on" : ""}"></i>`).join("")}</div>
+      <div class="fbml"><span>Headwind: favour shorts</span><span>Mixed</span><span>Tailwind: favour longs</span></div></div>
+      <div><p class="fbsay">${xEsc(fbSay(D, sc))}</p><div class="fbtip">${fbTip(D, sc)}</div></div></div>
+    ${lvH}
+    <div class="fbcols"><div>
+      <div class="fbs"><div class="fbsh">What moves ${xEsc(m.k)} <span>now · change · effect</span></div>${drv}${W.length ? `<ul class="fwhy">${W.map(t => `<li class="fwatch"><i>⚠</i><span>${xEsc(t)}</span></li>`).join("")}</ul>` : ""}</div>
+      ${fe ? `<div class="fbs"><div class="fbsh">What the market expects from the Fed</div><div>US 2-year <b>${fe.two.toFixed(2)}%</b> vs Fed <b>${fe.fed.toFixed(2)}%</b>: <b class="${fe.s === "hike" ? "dn" : fe.s === "cut" ? "up" : ""}">${fe.s === "hike" ? "more hikes" : fe.s === "cut" ? "cuts" : "a hold"} priced in</b></div><div class="mu">${fe.txt}</div></div>` : ""}
+      ${gap}
+      ${cs ? `<div class="fbs"><div class="fbsh">Currency strength <span>strongest → weakest</span></div><div class="fbccs"><span class="mu">Today</span>${csRow(cs, "d")}</div><div class="fbccs"><span class="mu">Week</span>${csRow(cs, "w")}</div></div>` : ""}
+      ${c ? `<div class="fbs"><div class="fbsh">Positioning <span>CFTC large speculators</span></div><div class="fbpos"><b class="${fCls(c.net)}">${(c.net >= 0 ? "+" : "") + c.net.toFixed(0)}% net ${c.net >= 0 ? "long" : "short"}</b>${spark(c.hist)}</div>
+        <div><span class="${fCls(c.chg)}">${c.chg == null ? "" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(1)}</span> <span class="mu">this week ·</span> ${c.pct}${c.pct % 100 >= 11 && c.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][c.pct % 10] || "th"} <span class="mu">of the year${c.pct >= 90 || c.pct <= 10 ? "" : ": not crowded"}</span>${m.cot === "Yen" || m.cot === "Canadian dollar" || m.cot === "Swiss franc" ? ` <span class="mu">(this is ${m.cw}: long here pushes ${m.k} down)</span>` : ""}</div></div>` : ""}
+    </div><div>
+      <div class="fbs"><div class="fbsh">Coming up <span>what moves ${xEsc(m.k)}</span></div>${ev.length ? `<table class="ftbl">${ev.map(x => `<tr><td class="fam" style="white-space:nowrap">${xEsc(fbWhen(x))}</td><td><b>${xEsc(x.ccy)}</b> ${xEsc(x.title)}</td><td class="r mu">${x.forecast && !x.earn ? "F " + xEsc(x.forecast) + (x.previous ? " · P " + xEsc(x.previous) : "") : x.at > now + 60e3 ? "in " + inTxt(x.at - now) : x.at > now ? "in under a minute" : "just out"}</td></tr>`).join("")}</table>` : `<div class="mu">No high-impact events in the next 7 days.</div>`}</div>
+      <div class="fbs"><div class="fbsh">Headlines <span>${FUND.news ? "checked " + phtHM(FUND.news.at) : ""}</span></div>${news.length ? `<div class="fbnews">${news.map(x => `<a href="${xEsc(x.link)}" target="_blank" rel="noopener noreferrer"><span class="fam">${x.t ? phtHM(x.t) : ""}</span>${now - x.t < 30 * 60e3 ? ` <span class="fbnew">NEW</span>` : ""} <span class="fk">${xEsc(x.tag)}</span> <span class="fnt">${xEsc(x.title)}</span> <span class="mu">· ${xEsc(x.src)}</span></a>`).join("")}</div>` : `<div class="mu">${FUND.news ? "No headlines on this in the last day." : FUND.err.news ? xEsc(FUND.err.news) : "Loading headlines…"}</div>`}</div>
+      <div class="fbs"><div class="fbsh">Chart check <span>from the last scan</span></div>${chartH}</div>
+      <div class="fbs"><div class="fbsh">Your window</div><div>${win}</div></div>
+    </div></div>`);
+  body.scrollTop = keep;
+  dlg.querySelectorAll("[data-fbs]").forEach(b => b.onclick = () => fbStep(+b.dataset.fbs));
+  $("fbX").onclick = () => dlg.close();
+  if ($("fbChart")) $("fbChart").onclick = () => { dlg.close(); openInCharts(q.sym); };
+  $("fbCopy").onclick = async () => { const T = s => String(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    const t = [`${m.k}${sym ? " (" + sym + ")" : ""} ${q && q.price ? fmtPrice(q.price) : ""}, ${q && q.chg != null ? fPct(q.chg) + " today" : ""}${q && q.w != null ? ", " + fPct(q.w, 1) + " this week" : ""} · ${fmtPHT(new Date(now + PHT_MS))}`,
+      `Lean: ${v[1]} (score ${sc}: ${nf} for, ${na} against)`, `Read: ${fbSay(D, sc)}`, T(fbTip(D, sc)),
+      "Drivers: " + D.map(x => `${x.v > 0 ? "▲" : x.v < 0 ? "▼" : "–"} ${x.name} ${x.now} ${x.chg}`.trim()).join("; "), ...W.map(x => "⚠ " + x),
+      ...fbAlerts(m).map(([, h]) => T(h)), lv ? T($("fbBody").querySelector(".fblv") ? $("fbBody").querySelector(".fblv").innerText.replace(/\n/g, " ") : "") : "",
+      fe ? `Fed: 2Y ${fe.two.toFixed(2)}% vs Fed ${fe.fed.toFixed(2)}%: ${fe.txt}` : "", c ? `Positioning: ${c.net.toFixed(0)}% net, ${c.pct}th of the year` : "",
+      ev.length ? "Coming up: " + ev.map(x => `${fbWhen(x)} ${x.ccy} ${x.title}`).join("; ") : "", news.length ? "Headlines: " + news.slice(0, 4).map(x => `${phtHM(x.t)} ${x.title} (${x.src})`).join("; ") : "",
+      r && r.s1h ? `Chart: 1H ${r.s1h.state}, 4H ${r.s4h.state}, D ${r.s1d.state}` : ""].filter(Boolean).join("\n");
+    const b = $("fbCopy"); try { await navigator.clipboard.writeText(t); b.textContent = "Copied ✓"; } catch (e) { b.textContent = "Copy blocked"; } setTimeout(() => { if ($("fbCopy")) $("fbCopy").textContent = "Copy brief"; }, 1500); };
+}
+function fbOpen(k) {
+  const m = fbMk(k); if (!m) return; FB.k = k; let d = $("fbDlg");
+  if (!d) { d = document.createElement("dialog"); d.id = "fbDlg"; d.tabIndex = -1; d.setAttribute("aria-labelledby", "fbTitle"); document.body.appendChild(d);
+    d.innerHTML = `<div class="fbh" id="fbHead"></div><div class="fbb" id="fbBody"></div><div class="fbf meta"><span>A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</span><span class="fbkeys"><kbd>←</kbd> <kbd>→</kbd> switch market · <kbd>Esc</kbd> or click outside to close</span></div>`;
+    d.addEventListener("click", e => { if (e.target === d) d.close(); });
+    document.addEventListener("keydown", e => { if (!d.open || !(e.key === "ArrowLeft" || e.key === "ArrowRight") || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); fbStep(e.key === "ArrowRight" ? 1 : -1); });
+    d.addEventListener("close", () => { if (d.open) return; FB.k = null; clearInterval(FB.t); FB.t = null; }); }      // (a late close after reopening is ignored)
+  if (!d.open) d.showModal(); $("fbBody").scrollTop = 0; $("fbHead")._h = $("fbBody")._h = null;
+  fbRender(); fbLevels(m); if (m.earn && Date.now() - FB.earnAt > 3600e3) fbEarn();
+  const news = () => (FUND.news && Date.now() - FUND.news.at < 20e3 ? Promise.resolve() : fundNews(true)).then(() => { if (FB.k) fbRender(); }).catch(() => {});
+  news(); clearInterval(FB.t); FB.t = setInterval(() => { if (!FB.k) return; news(); const x = fbMk(FB.k); if (x) fbLevels(x); }, 60e3);     // headlines every minute while open
+}
+const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k); };
 if (page === "fund") fundShown();
 
 setTimeout(() => { try { ctOAuthReturn(); } catch (e) {} }, 0);

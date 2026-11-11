@@ -15,7 +15,7 @@ const src = html.slice(a + '<script id="core">'.length, html.indexOf("</script>"
 const ctx = { console, fetch: (...x) => globalThis.fetch(...x), URL, Intl, Date, Math, JSON, Promise, setTimeout, clearTimeout,
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, document: { querySelectorAll: () => [] }, navigator: {}, location: { hostname: "cloud" } };
 ctx.window = ctx; vm.createContext(ctx);
-vm.runInContext(src + "\n;this.__F = { nbbWatchRead, mxKlinesF, mxRowsToK, ffNorm, fmtNum };", ctx);
+vm.runInContext(src + "\n;this.__F = { nbbWatchRead, mxKlinesF, mxRowsToK, ffNorm, fmtNum, sessD };", ctx);
 const fmtP = v => v >= 1000 ? v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : F.fmtNum(v);
 const F = ctx.__F;
 
@@ -30,7 +30,7 @@ async function send(id, text) {
   const j = await r.json().catch(() => ({})); if (!j.ok) { delete state.sent[id]; console.log("Telegram refused:", j.description || r.status); }
 }
 const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-const PHT = 8 * 3600e3, phtMin = ms => { const d = new Date(ms + PHT); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
+const PHT = 8 * 3600e3, sessMin = ms => { const d = F.sessD(ms); return d.getUTCHours() * 60 + d.getUTCMinutes(); };   // the app's session clock: PHT in US summer, 1 hour behind PHT in US winter
 const hm = s => { const [h, m] = String(s).split(":").map(Number); return h * 60 + (m || 0); };
 const phtHM = ms => { const d = new Date(ms + PHT); let h = d.getUTCHours(); const m = String(d.getUTCMinutes()).padStart(2, "0"); return `${h % 12 || 12}:${m} ${h >= 12 ? "PM" : "AM"}`; };
 const IV = { "1m": 60e3, "3m": 180e3, "5m": 300e3, "15m": 900e3, "30m": 1800e3, "1h": 3600e3 };
@@ -38,7 +38,7 @@ function weekendClosed(ms) {                         // forex, metals and index 
   const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value);
   const m = (+p.hour % 24) * 60 + +p.minute; return p.weekday === "Sat" || (p.weekday === "Sun" && m < 1020) || (p.weekday === "Fri" && m >= 1020);
 }
-const inSession = (it, ms) => { const m = phtMin(ms), x = hm(it.from), y = hm(it.to); return (y <= x ? (m >= x || m < y) : (m >= x && m < y)) && !weekendClosed(ms); };
+const inSession = (it, ms) => { const m = sessMin(ms), x = hm(it.from), y = hm(it.to); return (y <= x ? (m >= x || m < y) : (m >= x && m < y)) && !weekendClosed(ms); };
 
 // 1) NBB on MEXC's perpetuals during your sessions
 for (const it of CFG.nbb || []) {

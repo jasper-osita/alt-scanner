@@ -7,6 +7,8 @@ Single-page screener PWA for Jas (Philippines, PHT = UTC+8). Crypto boards (Bina
 Pepperstone cTrader account, a TradingView-style Charts engine, NBB Watch, economic calendar, alerts.
 Trading scope: NBB setup; Gold M5 in London, NAS100 M1 at the US open; AOTS = price beyond 20/50/100 with them stacked.
 Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:30–21:30, NY AM 21:30–24, NY PM 0–4.
+These are New York based and written as in US summer time: from November to March (New York winter time) they all land 1 hour later in PHT.
+Never compare session times with plain PHT: use the session clock in core (`sessD`/`sessH`, New York + 12h; `sessLbl` shows today's PHT; `nyDst`/`ukDst`, `CLK_SHIFT`). Test: `t_dst`.
 
 ## Files
 - `index.html` (~850 KB, everything). Scripts in order: `<script id="core">` (DOM-free, also run by cloud/watch.mjs in Node),

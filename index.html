@@ -1345,8 +1345,27 @@ const TREND_MOVE = 8, TREND_RVOL = 1.8, FUNDING_EXTREME = 0.0005, SPOT_MIN_VOL =
 const MX_MIN_VOL = 1e6;
 const DAY_MIN_VOL = { futures: 50e6, spot: 20e6 }, SWING_MIN_VOL = 20e6, AOTS_MIN_VOL = 10e6;
 const RATE = { futures: 1500, spot: 4000 };          // request weight per minute we allow ourselves (Binance caps 2400 / 6000)
-const SESS = {"Asia":[8,9,10,11], "London":[12,13,14,15,16,17], "NY AM":[21,22,23]};
+const SESS = {"Asia":[8,9,10,11], "London":[12,13,14,15,16,17], "NY AM":[21,22,23]};   // session-clock hours (sessD below)
 const PHT_MS = 8 * 3600 * 1000;
+// Daylight saving. The session map is New York based: its times are written as PHT while New York is on summer time (the NY open at 21:30).
+// From the first Sunday of November to the second Sunday of March New York is 13 hours behind, so every session lands 1 hour later in PHT.
+// The session clock reads New York time + 12 hours: compare session times against it, and show them with sessLbl (today's real PHT).
+const DST_Y = {};
+function dstRange(y) {                               // [US start, US end, UK start, UK end] in UTC ms
+  if (DST_Y[y]) return DST_Y[y];
+  const sun = (m, n) => { const w = new Date(Date.UTC(y, m, 1)).getUTCDay(); return Date.UTC(y, m, 1 + (7 - w) % 7 + 7 * (n - 1)); };
+  const lastSun = m => { const d = new Date(Date.UTC(y, m + 1, 0)); return Date.UTC(y, m, d.getUTCDate() - d.getUTCDay()); };
+  return DST_Y[y] = [sun(2, 2) + 7 * 3600e3, sun(10, 1) + 6 * 3600e3, lastSun(2) + 3600e3, lastSun(9) + 3600e3];
+}
+const nyDst = ms => { const r = dstRange(new Date(ms).getUTCFullYear()); return ms >= r[0] && ms < r[1]; };
+const ukDst = ms => { const r = dstRange(new Date(ms).getUTCFullYear()); return ms >= r[2] && ms < r[3]; };
+const CLK_SHIFT = { ny: ms => nyDst(ms) ? 0 : 1, uk: ms => ukDst(ms) ? 0 : 1, fixed: () => 0 };   // hours a city's times land later in PHT than in its summer
+const sessShift = (ms = Date.now()) => CLK_SHIFT.ny(ms);
+const sessD = (ms = Date.now()) => new Date(ms + PHT_MS - sessShift(ms) * 3600e3);          // the session clock: read it with getUTCHours / getUTCDay
+const sessH = (ms = Date.now()) => { const d = sessD(ms); return d.getUTCHours() + d.getUTCMinutes() / 60; };
+const hLbl = h => { h = ((h % 24) + 24) % 24; const H = Math.floor(h + 1e-9), M = Math.round((h - H) * 60);
+  return H === 12 && !M ? "12:00 NN" : H === 0 && !M ? "12:00 MN" : `${H % 12 || 12}:${String(M).padStart(2, "0")} ${H >= 12 ? "PM" : "AM"}`; };   // 21.5 → "9:30 PM"
+const sessLbl = (h, ms = Date.now()) => hLbl(h + sessShift(ms));                            // a session-clock hour as that day's real PHT time
 let MODE = "futures", SPOT_BASE = SPOT_HOSTS[0];
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -1550,7 +1569,7 @@ function bestSession(k) {
   Object.keys(SESS).forEach(s => b[s] = []);
   k.t.forEach((t, i) => {
     if (t < cutoff) return;
-    const hr = new Date(t + PHT_MS).getUTCHours();
+    const hr = sessD(t).getUTCHours();
     for (const [s, hrs] of Object.entries(SESS)) if (hrs.includes(hr)) b[s].push((k.h[i] - k.l[i]) / k.c[i] * 100);
   });
   const avg = {}; for (const [s, v] of Object.entries(b)) if (v.length) avg[s] = r2(v.reduce((x, y) => x + y, 0) / v.length);
@@ -1852,18 +1871,18 @@ function nbbLong(k, a) {
 }
 /* NBB A-grade: the three checks that held on the study coins, 111 other coins and the 6 months before (all fresh breakouts, 3R target, 48h).
    A-grade: about 40% close in profit, +0.14 to +0.28R per trade after fees. The rest: −0.02 to −0.11R. */
-const NBB_WIN = [8, 19.5];                                 // PHT hours: Asia, London and the London lunch hour
+const NBB_WIN = [8, 19.5];                                 // session-clock hours: Asia, London and the London lunch hour (8:00 AM – 7:30 PM PHT in US summer)
 const NBB_MAX_AGE = 74;                                    // 1H candles the trend has been stacked (about 3 days)
 function nbbGrade(m, btcDir1, btcDir4, T) {
   if (!m || m.model !== "NBB" || m.missed) return null;
-  const d = new Date((T ?? Date.now()) + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  const T0 = T ?? Date.now(), d = new Date(T0 + PHT_MS), h = sessH(T0);
   const hh = d.getUTCHours() % 12 || 12, ap = d.getUTCHours() >= 12 ? "PM" : "AM", at = `${hh}:${String(d.getUTCMinutes()).padStart(2, "0")} ${ap}`;
   const inWin = h >= NBB_WIN[0] && h < NBB_WIN[1], w = x => x === "Long" ? "up" : "down";
   const btcOk = btcDir1 === m.dir && btcDir4 === m.dir, age = m.trendAge;
   const items = [
     ["BTC", btcOk, `BTC 1H ${btcDir1 ? "stacked " + w(btcDir1) : "tangled"}, 4H ${btcDir4 ? "stacked " + w(btcDir4) : "tangled"}${btcOk ? ": both with you" : ": needs both with you"}`],
     ["Young trend", age != null && age <= NBB_MAX_AGE, age == null ? "trend age unknown" : `1H stacked for ${age} candle${age === 1 ? "" : "s"} (${NBB_MAX_AGE} or fewer, about 3 days)`],
-    ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the 8:00 AM – 7:30 PM window`]];
+    ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the ${sessLbl(NBB_WIN[0], T0)} – ${sessLbl(NBB_WIN[1], T0)} window`]];
   return { pass: items.every(x => x[1]), n: items.filter(x => x[1]).length, of: items.length, items };
 }
 /* V-Trade A-grade: a with-trend V while BTC agrees. Tested on the same three data sets (2R, 48h):
@@ -2052,7 +2071,7 @@ function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
    1 bias (4H, else Daily) → 2 POI: session high/low, PDH/PDL or an unfilled 1H/4H FVG → 3 price interacts with the POI →
    4 on the 15m it sweeps the local lows → 5 a strong change in state of delivery engulfs the sweep candle →
    6 the order block it leaves → 7 limit order at the OB. Missing any one = no trade. Written for longs; shorts run mirrored. */
-const OB_SESS = [["Asia", 0, 240], ["London", 240, 600], ["New York", 810, 1200]];     // UTC minutes (PHT 8 AM–12 NN, 12 NN–6 PM, 9:30 PM–4 AM)
+const OB_SESS = [["Asia", 0, 240], ["London", 240, 600], ["New York", 810, 1200]];     // UTC minutes in US summer (PHT 8 AM–12 NN, 12 NN–6 PM, 9:30 PM–4 AM); 1 hour later in US winter
 const obLastClosed = (k, iv, T) => { let i = k.t.length - 1; while (i >= 0 && k.t[i] + iv > T) i--; return i; };
 const stDir = st => /^(Bull stack|Pullback in bull)$/.test(st) ? "Long" : /^(Bear stack|Pullback in bear)$/.test(st) ? "Short" : null;
 function obFVGs(k, label, look) {                         // unfilled bullish gaps (bearish ones on a mirrored chart)
@@ -2070,7 +2089,7 @@ function obPOIs(k15, k1, k4, kd, T) {
   const jd = obLastClosed(kd, D, T); if (jd >= 0) pois.push({ kind: "swing", label: "Previous Day Low", lv: kd.l[jd] });
   for (let day = Math.floor(T / D) * D - D; day <= T; day += D) {        // completed sessions in the last ~30 hours
     for (const [name, a, b] of OB_SESS) {
-      const st = day + a * 60e3, en = day + b * 60e3; if (en > T || en < T - 30 * 3600e3) continue;
+      const sh = sessShift(day + a * 60e3) * 3600e3, st = day + a * 60e3 + sh, en = day + b * 60e3 + sh; if (en > T || en < T - 30 * 3600e3) continue;
       let lo = Infinity; for (let i = 0; i < k15.t.length; i++) if (k15.t[i] >= st && k15.t[i] + Q <= en) lo = Math.min(lo, k15.l[i]);
       if (isFinite(lo)) pois.push({ kind: "swing", label: `${name} Low`, lv: lo });
     }
@@ -2903,6 +2922,7 @@ function nyAt(y, m, d, hh = 9, mm = 30) {           // a New York wall-clock tim
   return guess - off;
 }
 const ymd = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+const fomcAt = s => { const [y, m, d] = s.split("-").map(Number); return nyAt(y, m, d, 14, 0); };      // the decision, 2:00 PM New York
 function nthWd(y, m, wd, n) { const first = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); return 1 + ((wd - first + 7) % 7) + 7 * (n - 1); }
 function lastWd(y, m, wd) { const days = new Date(Date.UTC(y, m, 0)).getUTCDate(), last = new Date(Date.UTC(y, m - 1, days)).getUTCDay(); return days - ((last - wd + 7) % 7); }
 function easter(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
@@ -2965,17 +2985,24 @@ function fmtPHT(d) {
   let h = d.getUTCHours(), m = String(d.getUTCMinutes()).padStart(2, "0"), ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12;
   return `${days[d.getUTCDay()]}, ${h}:${m} ${ap} PHT`;
 }
-function buildRibbon() { $("bar").innerHTML = SEGMENTS.map(s => `<div class="seg" data-s="${s.s}" data-e="${s.e}" style="flex:${s.e - s.s}" title="${s.name}">${s.e - s.s >= 1.5 ? s.name : ""}</div>`).join(""); }
+let ribbonShift = null;
+function buildRibbon() {                                 // the PHT day, 0–24; sessions slide 1 hour later while New York is on winter time
+  const sh = ribbonShift = sessShift(), segs = [];
+  SEGMENTS.forEach(x => { const s = x.s + sh, e = x.e + sh; if (e > 24) { segs.push({ ...x, s, e: 24 }, { ...x, s: 0, e: e - 24 }); } else segs.push({ ...x, s, e }); });
+  segs.sort((a, b) => a.s - b.s);
+  $("bar").innerHTML = segs.map(s => `<div class="seg" data-s="${s.s}" data-e="${s.e}" style="flex:${s.e - s.s}" title="${s.name}">${s.e - s.s >= 1.5 ? s.name : ""}</div>`).join("");
+}
 let sessTick = 0;
 function tickClock() {
   if (data && data.env && ++sessTick % 2 === 0 && typeof renderSessions === "function") renderSessions();
-  const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
+  if (ribbonShift !== sessShift()) buildRibbon();
+  const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6, sh = ribbonShift, hs = sessH();
   $("clock").innerHTML = `<b>${fmtPHT(d)}</b>${weekend ? " · weekend, thin liquidity" : ""}${data ? ` · last scan ${fmtPHT(new Date(Date.parse(data.at) + PHT_MS)).split(", ")[1]}` : ""}`;
   let cur = "";
-  document.querySelectorAll(".seg").forEach(el => { const on = h >= +el.dataset.s && h < +el.dataset.e; el.classList.toggle("on", on); if (on) cur = el.title; el.classList.toggle("window", +el.dataset.s >= NBB[0] && +el.dataset.e <= NBB[1]); });
+  document.querySelectorAll(".seg").forEach(el => { const on = h >= +el.dataset.s && h < +el.dataset.e; el.classList.toggle("on", on); if (on) cur = el.title; el.classList.toggle("window", +el.dataset.s >= NBB[0] + sh && +el.dataset.e <= NBB[1] + sh); });
   $("now").style.left = ($("bar").getBoundingClientRect().width * h / 24) + "px";
-  const toWin = h < NBB[0] ? NBB[0] - h : (h >= NBB[1] ? 24 - h + NBB[0] : 0);
-  $("sessNote").innerHTML = toWin === 0 ? `<b>NBB window is open</b> until 7:30 PM (London, 12–6 PM, is the best of it).` : `Now in ${cur}. NBB window opens in <b>${Math.floor(toWin)}h ${Math.round((toWin % 1) * 60)}m</b> (8:00 AM).`;
+  const toWin = hs < NBB[0] ? NBB[0] - hs : (hs >= NBB[1] ? 24 - hs + NBB[0] : 0);
+  $("sessNote").innerHTML = toWin === 0 ? `<b>NBB window is open</b> until ${sessLbl(NBB[1])} (London, ${sessLbl(12)} – ${sessLbl(18)}, is the best of it).` : `Now in ${cur}. NBB window opens in <b>${Math.floor(toWin)}h ${Math.round((toWin % 1) * 60)}m</b> (${sessLbl(NBB[0])}).`;
 }
 
 /* ---- formatting ---- */
@@ -3616,7 +3643,7 @@ const MODELS = {
       "<b>Basing</b> = price still inside the base; mark its high and low", "<b>Breakout</b> = the candle that just closed broke out beyond the base edge in the trend direction, body ≥ 1.5× the base's average body",
       "<b>Missed breakout</b> = it broke out 1–2 candles ago: no trigger, don't chase. Wait for the next base or a retest of the base edge",
       "Leaked out on small candles = drift, rejected", "Also reports: FVG left, base swept first, base # (2nd is prime), room to the next swing level ≥ 2R",
-      "<b>A-grade</b> needs all three: BTC stacked with you on both the 1H and the 4H · the 1H trend stacked for 74 candles or fewer (about 3 days) · the breakout closes between 8:00 AM and 7:30 PM PHT"],
+      "<b>A-grade</b> needs all three: BTC stacked with you on both the 1H and the 4H · the 1H trend stacked for 74 candles or fewer (about 3 days) · the breakout closes between 8:00 AM and 7:30 PM PHT (9:00 AM – 8:30 PM while New York is on winter time, November to March)"],
     trade: "Enter at the breakout close. Stop just beyond the far side of the base (don't tighten it). One target at 3R; if neither the stop nor 3R is hit within 48 hours, close at market.", grade: "A-grade when all three checks pass. Tested on 71 coins, 111 other coins and the 6 months before: A-grade NBB closed in profit about 40% of the time for +0.14 to +0.28R per trade after fees (3R target, 48 hours); NBB failing any check averaged −0.02 to −0.11R. Expect losing streaks of 8–10 trades." },
   "Bounce": { icon: "⤴️", name: "Bounce (OEZ)", tf: "1H", alias: "OEZ",
     what: "With-trend continuation. After an impulse leg, price pulls back into the OEZ (62–79% fib of that leg), taps a fresh POI and continues. Buying the discount inside a trend, not calling a reversal.",
@@ -3648,7 +3675,7 @@ const MODELS = {
     trade: "Enter on a with-pullback trigger mid-leg. TP at the 4H OEZ near edge only. Stop beyond the last LTF swing.", grade: "Caps at B-Silver, 2R. New model: hypothesis until the scoreboard proves it." },
   "ORB": { icon: "⭕", name: "ORB (Opening Range Breakout)", tf: "15m",
     what: "The NY opening range (first 15 minutes after 9:30 NY) is the base; trade a displacing close outside it. A Next-Base Breakout anchored to the session's first base.",
-    rules: ["Range = the 9:30–9:45 NY 15m candle (9:30 PM PHT now; 10:30 PM PHT after US daylight saving ends Nov 1)", "<b>Range set</b> = marked, no break yet",
+    rules: ["Range = the 9:30–9:45 NY 15m candle (9:30 PM PHT while New York is on summer time, 10:30 PM PHT from November to March)", "<b>Range set</b> = marked, no break yet",
       "<b>Broke the range</b> = 15m close outside it with body ≥ 1.5× average", "<b>Sweep, then break</b> = the opposite side was swept first (A-grade)", "Only shown 9:30–10:30 NY, and only for the day-trade candidates (they're the coins with 15m data)"],
     trade: "Enter the breakout close or the retest of the broken edge. Stop beyond the far side of the range. 2–3R, hard close by 11:00 NY.", grade: "Sweep-then-break with trend = A; clean break = B." },
   "Leader": { icon: "🦅", name: "Leader Pullback (Claude's day setup)", tf: "1H",
@@ -4367,12 +4394,12 @@ function renderScorecard() {
 
 /* ===================== Session Picks: what to day trade in Asia, London and New York ===================== */
 const SESSION_DEFS = [
-  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, window: "8:00 AM – 12:00 NN", models: ["NBB", "Leader", "Bounce", "Breaker", "V-Trade"] },
-  { key: "London", label: "🇬🇧 London", start: 12, end: 18, window: "12:00 NN – 6:00 PM", models: ["NBB", "Leader", "Bounce", "Breaker", "Fade"] },
-  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, window: "9:30 PM – 12:00 MN", models: ["ORB", "AMD", "Leader", "Bounce"] },
+  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, models: ["NBB", "Leader", "Bounce", "Breaker", "V-Trade"] },
+  { key: "London", label: "🇬🇧 London", start: 12, end: 18, models: ["NBB", "Leader", "Bounce", "Breaker", "Fade"] },
+  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, models: ["ORB", "AMD", "Leader", "Bounce"] },
 ];
 function sessionStatus(def) {
-  const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  const h = sessH();
   const fmt = x => `${Math.floor(x)}h ${Math.round((x % 1) * 60)}m`;
   if (h >= def.start && h < def.end) return { cls: "live", text: `Live now · ends in ${fmt(def.end - h)}`, order: 0 };
   if (h < def.start) return { cls: "soon", text: `Starts in ${fmt(def.start - h)}`, order: 1 + (def.start - h) / 24 };
@@ -4423,7 +4450,7 @@ function renderSessions() {
   const nextKey = defs.slice().sort((a, b) => a.st.order - b.st.order)[0].d.key;
   el.innerHTML = defs.map(({ d, st }) => `
     <div class="sess ${st.cls} ${d.key === nextKey ? "next" : ""}">
-      <div class="sesshead"><h3>${d.label}</h3><span class="sesstime">${d.window} PHT</span></div>
+      <div class="sesshead"><h3>${d.label}</h3><span class="sesstime">${sessLbl(d.start)} – ${sessLbl(d.end)} PHT</span></div>
       <div class="sessstat ${st.cls}">${st.text}${d.key === nextKey && st.cls !== "live" ? " · up next" : ""}</div>
       ${picks[d.key].length ? picks[d.key].map((x, i) => { const p = coinPlay(x.r), lv = p.lv;
         return `<div class="row" data-s="${x.r.symbol}" tabindex="0" role="button">
@@ -4868,8 +4895,8 @@ const btUse = () => { try { return localStorage.getItem(BT_USE_KEY) !== "off"; }
 const IV_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 const MODEL_HOLD_H = { Reset20: 240, OB: 12 };                     // swing setups can be held up to 10 days
 const SESS_LABELS = ["🇯🇵 Asia", "🇬🇧 London", "🇬🇧 Lunch", "🇺🇸 Pre-NY", "🇺🇸 NY AM", "🇺🇸 NY PM", "💤 Out"];
-function sessOf(ms) {                                   // your session map, PHT
-  const d = new Date(ms + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+function sessOf(ms) {                                   // your session map, on the session clock (1 hour later in PHT while New York is on winter time)
+  const h = sessH(ms);
   return h >= 8 && h < 12 ? "🇯🇵 Asia" : h >= 12 && h < 18 ? "🇬🇧 London" : h >= 18 && h < 19.5 ? "🇬🇧 Lunch" : h >= 19.5 && h < 21.5 ? "🇺🇸 Pre-NY"
        : h >= 21.5 ? "🇺🇸 NY AM" : h < 4 ? "🇺🇸 NY PM" : "💤 Out";
 }
@@ -7239,7 +7266,7 @@ function chIndSettings(I, back) {
         const v = p[x.k], id = "ci_" + x.k;
         const ctl = x.t === "bool" ? `<input type="checkbox" id="${id}" data-in="${x.k}" ${v ? "checked" : ""}>`
           : x.t === "sel" || x.t === "src" ? `<select id="${id}" data-in="${x.k}">${(x.t === "src" ? IND_SRC : x.o).map(o => `<option ${o === v ? "selected" : ""}>${o}</option>`).join("")}</select>`
-          : x.t === "time" ? `<input type="time" id="${id}" data-in="${x.k}" value="${chEsc(v)}">`
+          : x.t === "time" ? `<input type="time" id="${id}" data-in="${x.k}" value="${chEsc(x.z ? indShiftT(v, CLK_SHIFT[indZone(x, p)](Date.now())) : v)}">`
           : x.t === "text" ? `<input type="text" id="${id}" data-in="${x.k}" value="${chEsc(v)}" maxlength="24">`
           : `<input type="number" id="${id}" data-in="${x.k}" value="${v}" ${x.min != null ? `min="${x.min}"` : ""} ${x.max != null ? `max="${x.max}"` : ""} step="${x.step || (x.t === "int" ? 1 : "any")}">`;
         return h + `<div class="chsr ${x.t === "bool" ? "chk" : ""}"><label for="${id}">${chEsc(x.l)}</label>${ctl}</div>`; }).join("");
@@ -7247,7 +7274,8 @@ function chIndSettings(I, back) {
         const x = D.inputs.find(y => y.k === el.dataset.in); let v = el.type === "checkbox" ? el.checked : el.value;
         if (x.t === "int" || x.t === "num") { v = x.t === "int" ? parseInt(v, 10) : parseFloat(v); if (!isFinite(v)) return; if (x.min != null) v = Math.max(x.min, v); if (x.max != null) v = Math.min(x.max, v); }
         if (x.t === "time" && indParseT(v) == null) return;
-        I.p = { ...I.p, [x.k]: v }; apply(); }));
+        if (x.t === "time" && x.z) v = indShiftT(v, -CLK_SHIFT[indZone(x, { ...indDefaults(I.type), ...I.p })](Date.now()));
+        I.p = { ...I.p, [x.k]: v }; apply(); if (x.zsel) render(); }));
     } else if (tab === "style") {
       const S = I.s = I.s || {}, row = (lbl, inner, on, key) => `<div class="chsr sty">${on != null ? `<input type="checkbox" ${on ? "checked" : ""} data-on="${key}" aria-label="Show ${chEsc(lbl)}">` : "<i></i>"}<label>${chEsc(lbl)}</label><span class="ctl">${inner}</span></div>`;
       const wsel = (k, w) => `<select data-w="${k}" aria-label="Line width">${[1, 2, 3, 4].map(n => `<option value="${n}" ${n === w ? "selected" : ""}>${n}px</option>`).join("")}</select>`;
@@ -7327,6 +7355,10 @@ const IND_CATS = [["fav", "Favorites"], ["on", "On chart"], ["Moving averages", 
 const IND_UTC_DAY = 864e5, IND_HR = 3600e3;
 const indFmtT = (h, m) => `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 const indParseT = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "").trim()); return m ? (+m[1] % 24) + (+m[2]) / 60 : null; };
+// time inputs that follow a city's clocks: kept as PHT during that city's summer time, shown and painted 1 hour later in its winter
+const IND_ZONES = ["New York", "London", "Doesn't move"], IND_Z = { "New York": "ny", "London": "uk", "Doesn't move": "fixed" };
+const indZone = (x, p) => IND_Z[typeof x.z === "function" ? x.z(p) : x.z] || "fixed";
+const indShiftT = (s, hrs) => { const h = indParseT(s); if (h == null || !hrs) return s; const mins = Math.round((((h + hrs) % 24) + 24) % 24 * 60) % 1440; return indFmtT(Math.floor(mins / 60), mins % 60); };
 /* higher-timeframe and daily candles used by some indicators (levels, pivots, MTF fair value gaps) */
 const IND_HTF = {};
 function indHTF(sym, tf, n = 300) {
@@ -7461,10 +7493,10 @@ const IND = {
     inputs: [{ k: "len", l: "Length", t: "int", d: 9, min: 1 }, { k: "src", l: "Source", t: "src", d: "close" }], plots: [{ k: "roc", l: "ROC", c: "#2962ff" }], levels: [{ v: 0, l: "Zero line" }],
     title: p => `ROC ${p.len} ${p.src}`, calc(P, p) { const s = TA.src(P, p.src); return { roc: s.map((v, i) => i >= p.len && s[i - p.len] ? (v - s[i - p.len]) / s[i - p.len] * 100 : null) }; } },
   /* ---- painted on the chart (sessions, levels, gaps, vertical lines) ---- */
-  sess: { name: "Sessions", short: "Sessions", cat: "Sessions & levels", desc: "Asia, London, Pre-NY and NY AM boxes (times in PHT)", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
+  sess: { name: "Sessions", short: "Sessions", cat: "Sessions & levels", desc: "Asia, London, Pre-NY and NY AM boxes (times in PHT; they move 1 hour later while New York is on winter time)", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
     inputs: [1, 2, 3, 4, 5].flatMap(j => { const s = CH_SESS[j - 1] || ["Extra", 0, 4, "120,123,134"]; return [
       { k: "on" + j, l: `Session ${j}`, t: "bool", d: j <= 4, grp: `Session ${j}` }, { k: "n" + j, l: "Name", t: "text", d: s[0], grp: `Session ${j}` },
-      { k: "a" + j, l: "Start (PHT)", t: "time", d: indFmtT(Math.floor(s[1]), Math.round(s[1] % 1 * 60)), grp: `Session ${j}` }, { k: "b" + j, l: "End (PHT)", t: "time", d: indFmtT(Math.floor(s[2]) % 24, Math.round(s[2] % 1 * 60)), grp: `Session ${j}` }]; })
+      { k: "a" + j, l: "Start (PHT)", t: "time", z: "New York", d: indFmtT(Math.floor(s[1]), Math.round(s[1] % 1 * 60)), grp: `Session ${j}` }, { k: "b" + j, l: "End (PHT)", t: "time", z: "New York", d: indFmtT(Math.floor(s[2]) % 24, Math.round(s[2] % 1 * 60)), grp: `Session ${j}` }]; })
       .concat([{ k: "lbl", l: "Show names", t: "bool", d: true }, { k: "box", l: "Outline", t: "bool", d: true }]),
     colors: [1, 2, 3, 4, 5].map(j => ({ k: "c" + j, l: `Session ${j}`, c: "#" + (CH_SESS[j - 1] ? CH_SESS[j - 1][3] : "120,123,134").split(",").map(x => (+x).toString(16).padStart(2, "0")).join("") })),
     fills: [{ k: "bg", l: "Box fill", c: "#808080", al: 0.10, noColor: true }],
@@ -7475,7 +7507,7 @@ const IND = {
       for (let j = 1; j <= 5; j++) { if (!p["on" + j]) continue; const a = indParseT(p["a" + j]), b0 = indParseT(p["b" + j]); if (a == null || b0 == null) continue;
         const b = b0 <= a ? b0 + 24 : b0, col = st.col["c" + j];
         for (let day = Math.floor((t0 + PHT_MS) / D) * D - PHT_MS - D; day <= t1; day += D) {
-          const s = day + a * IND_HR, e = day + b * IND_HR, i0 = Math.max(0, chIdx(P, s - 1) + 1); let hi = -Infinity, lo = Infinity, i = i0;
+          const sh = sessShift(day + a * IND_HR) * IND_HR, s = day + a * IND_HR + sh, e = day + b * IND_HR + sh, i0 = Math.max(0, chIdx(P, s - 1) + 1); let hi = -Infinity, lo = Infinity, i = i0;
           for (; i < P.t.length && P.t[i] < e; i++) { hi = Math.max(hi, P.h[i]); lo = Math.min(lo, P.l[i]); }
           if (i === i0 || !isFinite(hi) || P.t[i0] >= e) continue;
           const x0 = chX(P, P.t[i0]) - bs / 2, x1 = chX(P, P.t[i - 1] + iv) - bs / 2, y0 = chY(P, hi), y1 = chY(P, lo);
@@ -7485,14 +7517,15 @@ const IND = {
           if (p.lbl && x1 - x0 > 34) { g.font = "11px " + chFont(); g.fillStyle = chHexA(col, 0.95); g.textAlign = "center"; g.textBaseline = "top"; g.fillText(p["n" + j], (x0 + x1) / 2, y0 + 3); g.textAlign = "left"; }
         } } } },
   vlines: { name: "Vertical Lines (time of day)", short: "Time lines", cat: "Sessions & levels", desc: "Lines at chosen times every day, e.g. midnight New York or the NY open", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
-    inputs: [1, 2, 3, 4].flatMap(j => { const d = [["NY midnight", "12:00"], ["NY open", "21:30"], ["London open", "15:00"], ["Asia open", "08:00"]][j - 1]; return [
-      { k: "on" + j, l: `Line ${j}`, t: "bool", d: j <= 2, grp: `Line ${j}` }, { k: "n" + j, l: "Label", t: "text", d: d[0], grp: `Line ${j}` }, { k: "t" + j, l: "Time (PHT)", t: "time", d: d[1], grp: `Line ${j}` }]; }),
+    inputs: [1, 2, 3, 4].flatMap(j => { const d = [["NY midnight", "12:00", "New York"], ["NY open", "21:30", "New York"], ["London open", "15:00", "London"], ["Asia open", "08:00", "Doesn't move"]][j - 1]; return [
+      { k: "on" + j, l: `Line ${j}`, t: "bool", d: j <= 2, grp: `Line ${j}` }, { k: "n" + j, l: "Label", t: "text", d: d[0], grp: `Line ${j}` },
+      { k: "z" + j, l: "Moves with daylight saving in", t: "sel", o: IND_ZONES, d: d[2], zsel: true, grp: `Line ${j}` }, { k: "t" + j, l: "Time (PHT)", t: "time", z: p => p["z" + j], d: d[1], grp: `Line ${j}` }]; }),
     colors: [{ k: "c1", l: "Line 1", c: "#9a9ca1" }, { k: "c2", l: "Line 2", c: "#2962ff" }, { k: "c3", l: "Line 3", c: "#9c27b0" }, { k: "c4", l: "Line 4", c: "#e8b04a" }], title: () => "Time lines",
     paint(g, P, I, V, k) {
       const r = P.chart.timeScale().getVisibleLogicalRange(); if (!r || !P.t.length) return; const H = k.H, D = IND_UTC_DAY;
       const t0 = chTimeAt(P, Math.floor(r.from)), t1 = chTimeAt(P, Math.ceil(r.to));
-      for (let j = 1; j <= 4; j++) { if (!I.p["on" + j]) continue; const hh = indParseT(I.p["t" + j]); if (hh == null) continue; const col = k.st.col["c" + j];
-        for (let day = Math.floor((t0 + PHT_MS) / D) * D - PHT_MS; day <= t1 + D; day += D) { const t = day + hh * IND_HR; if (t < t0 || t > t1) continue; const x = chX(P, t); if (x == null) continue;
+      for (let j = 1; j <= 4; j++) { if (!I.p["on" + j]) continue; const hh = indParseT(I.p["t" + j]); if (hh == null) continue; const col = k.st.col["c" + j], zf = CLK_SHIFT[IND_Z[I.p["z" + j]] || "fixed"];
+        for (let day = Math.floor((t0 + PHT_MS) / D) * D - PHT_MS - D; day <= t1 + D; day += D) { const t0d = day + hh * IND_HR, t = t0d + zf(t0d) * IND_HR; if (t < t0 || t > t1) continue; const x = chX(P, t); if (x == null) continue;
           g.strokeStyle = col; g.lineWidth = 1; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); g.setLineDash([]);
           g.font = "10.5px " + chFont(); g.fillStyle = col; g.textBaseline = "top"; g.fillText(I.p["n" + j], x + 3, 3); } } } },
   levels: { name: "Previous Day / Week / Month High & Low", short: "Levels", cat: "Sessions & levels", desc: "Yesterday's, last week's and last month's highs and lows, plus today's open", canvasOnly: true,
@@ -8397,8 +8430,8 @@ function ovcSyms(mode) {                           // your last pick, else Bitco
   const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
   return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
 }
-function ovcSessTf(sym) {                         // the timeframe a session asks for (PHT, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
-  if (!sym) return null; const d = new Date(Date.now() + PHT_MS), wd = d.getUTCDay(), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+function ovcSessTf(sym) {                         // the timeframe a session asks for (session clock, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
+  if (!sym) return null; const d = sessD(), wd = d.getUTCDay(), h = sessH();
   if (wd < 1 || wd > 5) return null; const n = chName(sym);
   if (/Nasdaq 100/.test(n) && h >= 21.5) return "1m";
   if (/^Gold/.test(n) && h >= 12 && h < 18) return "5m";
@@ -8406,6 +8439,7 @@ function ovcSessTf(sym) {                         // the timeframe a session ask
 }
 function ovcSessApply(load) {                     // switch on entering or leaving a session window only, so your own pick inside the window stands
   if (OVC.on !== "x") return; const o = OVC.st.x || {}, ps = [CHP[0], CHP[1]];
+  if ($("ovcAuto")) $("ovcAuto").title = `Nasdaq 100 switches to 1m for the US open (${sessLbl(21.5)} to ${sessLbl(24)}) and Gold to 5m for London (${sessLbl(12)} to ${sessLbl(18)}) on weekdays, then back to your own pick`;
   let want = ps.map(P => o.auto !== false ? ovcSessTf(P.psym) : null);
   if (o.link) { const w = want.find(Boolean) || null; want = want.map(() => w); }
   ps.forEach((P, i) => { const key = (want[i] || "") + "|" + P.psym; if (P.sessKey === key) return; P.sessKey = key;
@@ -9578,11 +9612,11 @@ function nwCcys(name) {
   return /DAX|Euro Stoxx|CAC/.test(name) ? ["EUR", "USD"] : /FTSE/.test(name) ? ["GBP", "USD"] : /Nikkei/.test(name) ? ["JPY", "USD"] : /Hang Seng/.test(name) ? ["CNY", "USD"] : /ASX/.test(name) ? ["AUD", "USD"] : ["USD"];
 }
 const hm = s => { const [h, m] = String(s || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
-function nwSession(it, now = Date.now()) {
-  const d = new Date(now + PHT_MS), m = d.getUTCHours() * 60 + d.getUTCMinutes(), a = hm(it.from), b = hm(it.to), wrap = b <= a;
+function nwSession(it, now = Date.now()) {               // from/to are kept on the session clock (PHT in US summer) and land 1 hour later in PHT in US winter
+  const d = sessD(now), m = d.getUTCHours() * 60 + d.getUTCMinutes(), a = hm(it.from), b = hm(it.to), wrap = b <= a;
   const on = wrap ? (m >= a || m < b) : (m >= a && m < b), closed = typeof fxSession === "function" && fxSession(now).cls === "closed";
   const toStart = ((a - m) + 1440) % 1440, toEnd = ((b - m) + 1440) % 1440;
-  const fm = x => phtHM(Date.UTC(2000, 0, 1, Math.floor(x / 60), x % 60) - PHT_MS);
+  const fm = x => hLbl(x / 60 + sessShift(now));
   return { on: on && !closed, closed, soon: !on && toStart <= 15, label: closed ? "Market closed (weekend)" : on ? `In session until ${fm(b)} · ${inTxt(toEnd * 60e3)} left` : `Session ${fm(a)}–${fm(b)} · opens in ${inTxt(toStart * 60e3)}` };
 }
 async function nwFetch(it) {
@@ -9680,13 +9714,13 @@ function nwEditor() {
   const names = nwNames(), tfs = ["1m", "3m", "5m", "15m", "30m", "1h"];
   const row = (it, i) => `<div class="nwer" data-i="${i}"><select data-k="name">${names.map(n => `<option ${n === it.name ? "selected" : ""}>${xEsc(n)}</option>`).join("")}</select>
     <select data-k="tf">${tfs.map(t => `<option value="${t}" ${t === it.tf ? "selected" : ""}>${CH_TFL[t]}</option>`).join("")}</select>
-    <label>from <input type="time" data-k="from" value="${it.from}"></label><label>to <input type="time" data-k="to" value="${it.to}"></label>
+    <label>from <input type="time" data-k="from" value="${indShiftT(it.from, sessShift())}"></label><label>to <input type="time" data-k="to" value="${indShiftT(it.to, sessShift())}"></label>
     <label class="tog"><input type="checkbox" data-k="alerts" ${it.alerts ? "checked" : ""}> Alerts</label><button class="btn sm" data-rm="${i}" aria-label="Remove">✕</button></div>`;
   const items = NW.items.map(x => ({ ...x }));
   const box = $("nwEdit"); box.hidden = false;
-  const draw = () => { box.innerHTML = `<div class="meta">Session times are your time (PHT). Alerts fire inside the session; turn on "Outside sessions too" to hear them all the time.</div>${items.map(row).join("")}
+  const draw = () => { box.innerHTML = `<div class="meta">Session times are your time (PHT) today; they move 1 hour by themselves when New York changes its clocks (March and November). Alerts fire inside the session; turn on "Outside sessions too" to hear them all the time.</div>${items.map(row).join("")}
     <div class="nweacts"><button class="btn sm" id="nwAdd">+ Add a market</button><span style="flex:1"></span><button class="btn sm" id="nwDef">Defaults</button><button class="btn sm" id="nwCancel">Cancel</button><button class="btn primary sm" id="nwSaveB">Save</button></div>`;
-    box.querySelectorAll(".nwer").forEach(r => r.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { const it = items[+r.dataset.i], k = el.dataset.k; it[k] = el.type === "checkbox" ? el.checked : el.value; }));
+    box.querySelectorAll(".nwer").forEach(r => r.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { const it = items[+r.dataset.i], k = el.dataset.k; it[k] = el.type === "checkbox" ? el.checked : el.type === "time" ? indShiftT(el.value, -sessShift()) : el.value; }));
     box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { items.splice(+b.dataset.rm, 1); draw(); });
     $("nwAdd").onclick = () => { items.push({ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }); draw(); };
     $("nwDef").onclick = () => { items.splice(0, items.length, ...NW_DEF.map(x => ({ ...x }))); draw(); };
@@ -9869,7 +9903,7 @@ function fundBank(id) {                           // a bank's rate, its last rea
   out.stance = out.mv == null ? "on hold" : Date.now() - out.mvAt < 200 * 864e5 ? (out.mv < 0 ? "cutting" : "hiking") : "on hold"; return out;
 }
 function fundCB() {
-  const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
+  const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(fomcAt).find(t => t > now) : null;
   const meet = ccy => { if (ccy === "USD" && nextFOMC) return nextFOMC; const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && /rate|policy|cash rate|statement/i.test(e.title) && e.type === "Central Bank"); return x ? x.at : null; };
   const rows = FUND_CB.map(([bank, ccy, id, what]) => { const s = fundLast(id), m = meet(ccy);
     let rate, asOf, mv, mvAt, stance;
@@ -9932,7 +9966,7 @@ function fundSignals() {
   const vixV = vix ? vix[0][1] : null, hyWk = hy && hy[5] ? hy[0][1] - hy[5][1] : null;
   const risk = vixV == null ? null : vixV > 25 || (hyWk != null && hyWk > 0.25) ? "off" : vixV < 18 && (!hy || hy[0][1] < 4) ? "on" : "mixed";
   const ev = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now && x.at < now + 36 * 3600e3 && x.impact === "High" && x.ccy === "USD")[0];
-  const fomc = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
+  const fomc = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(fomcAt).find(t => t > now) : null;
   return { real: back(R, "10yr"), y2: back(N, "2yr"), dollar: fDollar(), fed: fed.rate != null ? fed.stance : null, risk, vix: vixV, fng: F ? F.v : null, ev, fomc: fomc && fomc - now < 4 * 864e5 ? fomc : null, cot };
 }
 function fundCardsData() {

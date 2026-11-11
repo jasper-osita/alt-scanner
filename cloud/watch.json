@@ -1,5 +1,5 @@
 {
-  "_help": "Cloud watcher settings (no secrets here). Session times are PHT (24h). Markets use MEXC's perpetuals, because your cTrader login never leaves your browser. maxAgeMin: how old a trigger can be and still be sent (GitHub's 5-minute schedule often runs late).",
+  "_help": "Cloud watcher settings (no secrets here). Session times are PHT (24h) as in US summer time; from November to March, while New York is on winter time, the watcher runs them 1 hour later, like the app. Markets use MEXC's perpetuals, because your cTrader login never leaves your browser. maxAgeMin: how old a trigger can be and still be sent (GitHub's 5-minute schedule often runs late).",
   "nbb": [
     { "name": "Gold", "contract": "XAU_USDT", "tf": "5m", "from": "12:00", "to": "18:00", "maxAgeMin": 15 },
     { "name": "Nasdaq 100", "contract": "NAS100_USDT", "tf": "1m", "from": "21:30", "to": "23:00", "maxAgeMin": 5 }

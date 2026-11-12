@@ -64,7 +64,8 @@ def relay_earnings(q):
 # Fundamentals page: US Treasury yield curves, CFTC positioning, FRED series (your own free key, passed through) and news RSS.
 UST_TYPES = ("daily_treasury_yield_curve", "daily_treasury_real_yield_curve")
 RSS_FEEDS = {"fxstreet": "https://www.fxstreet.com/rss/news", "marketwatch": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
-             "investing": "https://www.investing.com/rss/news_25.rss", "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/"}
+             "investing": "https://www.investing.com/rss/news_25.rss", "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+             "financialjuice": "https://www.financialjuice.com/feed.ashx?xy=rss"}
 FRED_SERIES = {"DFEDTARU", "ECBDFR", "IRSTCI01GBM156N", "IRSTCI01JPM156N", "IRSTCI01AUM156N", "IRSTCI01CAM156N", "IRSTCI01CHM156N", "IRSTCI01NZM156N",
                "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS"}
 def fred_key():                                    # FRED_API_KEY, or the file ~/.finder-fred-key (one line); read each time so no restart is needed
@@ -92,7 +93,7 @@ def relay_fund(path, q):
         return cached_get("fred" + p["series_id"] + key[-4:], "https://api.stlouisfed.org/fred/series/observations?" + urlencode(p), 1800, BROWSER)
     m = re.match(r"^/proxy/rss/([a-z]+)$", path)
     if m and m.group(1) in RSS_FEEDS:
-        return cached_get("rss" + m.group(1), RSS_FEEDS[m.group(1)], 300, {**BROWSER, "Accept": "application/rss+xml,application/xml,text/xml,*/*"})
+        return cached_get("rss" + m.group(1), RSS_FEEDS[m.group(1)], 60, {**BROWSER, "Accept": "application/rss+xml,application/xml,text/xml,*/*"})
     return 404, b'{"error":"unknown source"}'
 # Keep this Mac awake while a trading session is on (asked for by the app; caffeinate stops by itself after the time given).
 AWAKE = {"proc": None, "until": 0}

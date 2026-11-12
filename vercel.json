@@ -107,6 +107,10 @@
     {
       "source": "/proxy/rss/coindesk",
       "destination": "https://www.coindesk.com/arc/outboundfeeds/rss/"
+    },
+    {
+      "source": "/proxy/rss/financialjuice",
+      "destination": "https://www.financialjuice.com/feed.ashx?xy=rss"
     }
   ]
 }

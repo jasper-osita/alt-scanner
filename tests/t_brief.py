@@ -70,6 +70,26 @@ async def main():
         print("12) refreshes while open:", await q("() => !!FB.t"))
         await q("() => document.getElementById('fbChart').click()"); await asyncio.sleep(1)
         print("13) Open chart:", await q("() => [page, CH.sym, document.getElementById('fbDlg').open]"))
+        # headline alerts on any page (we're on Charts now)
+        await q("""() => { const t = Date.now(); FUND.news.items.unshift({ title: 'Gold plunges as Powell signals more hikes', link: 'https://example.com/g', t: t - 90e3, src: 'FinancialJuice', tag: 'GOLD' },
+            { title: 'Gold edges up in quiet trade', link: 'https://example.com/q', t: t - 60e3, src: 'FXStreet', tag: 'GOLD' }, { title: 'US CPI hotter than expected at 0.5%', link: 'https://example.com/c', t: t - 30e3, src: 'FXStreet', tag: 'MACRO' },
+            { title: 'Oil soars on supply fears', link: 'https://example.com/o', t: t - 30e3, src: 'FXStreet', tag: 'OIL' }); window.__n0 = NC.length; naCheck(); }""")
+        print("15) headline alerts:", await q("() => NC.slice(0, NC.length - window.__n0).map(n => n.title + ' [' + n.action + ' → ' + n.mk + ']').join(' | ')"))
+        print("    again (no repeats):", await q("() => { const n = NC.length; naCheck(); return NC.length - n; }"), "| telegram text:", await q("() => tgText(NC[0]).replace(/\\n/g, ' / ').slice(0, 150)"))
+        await q("() => ncGo(NC[0].id)"); await asyncio.sleep(0.6)
+        print("    Open brief:", await q("() => [page, FB.k, document.getElementById('fbDlg').open]"))
+        # the release read: prices 2 minutes after a high-impact release
+        await q("""() => { const now = Date.now(), x = { id: 'T|cpi', at: now - 150e3, ccy: 'USD', title: 'Test CPI m/m', impact: 'High', type: 'Inflation' }; CAL.items.push(x);
+            const p = rxPx(); RX_PRE[x.id] = { ...p, gold: p.gold && p.gold * 1.006, nas: p.nas && p.nas * 1.005, eu: p.eu && p.eu * 1.003 }; window.__n1 = NC.length; rxTick(now); fbRender(); }""")
+        print("16) release read:", await q("() => JSON.stringify({ read: RX_LIVE['T|cpi'].read, gold: +RX_LIVE['T|cpi'].mv.gold.toFixed(2), nas: +RX_LIVE['T|cpi'].mv.nas.toFixed(2) })"), "| alert:", await q("() => NC.length > window.__n1 ? NC[0].title + ' · ' + NC[0].detail : 'none'"))
+        print("    strip:", await q("() => [...document.querySelectorAll('.fbal.out')].map(x => x.innerText).find(t => /Test CPI/.test(t))"))
+        await q("() => { rxTick(Date.now() + 7.6 * 60e3); CAL.items.push({ id: 'T|cpi2', at: Date.now() + 20 * 60e3, ccy: 'USD', title: 'Test CPI m/m', impact: 'High', type: 'Inflation' }); fbRender(); }")
+        print("    kept:", await q("() => RX.length && RX[0].title + ' ' + RX[0].read10"), "| last time:", await q("() => { const r = [...document.querySelectorAll('#fbBody .ftbl tr')].find(tr => /Test CPI/.test(tr.innerText) && /last time/.test(tr.innerText)); return r ? r.innerText.replace(/\\s+/g, ' ') : 'none'; }"))
+        # the US open levels on the Nasdaq brief
+        await q("() => fbOpen('Nasdaq 100')"); await wait("() => FB.lv['Nasdaq 100'] && (FB.lv['Nasdaq 100'].k15 || FB.lv['Nasdaq 100'].err)", 30); await q("() => fbRender()")
+        print("17) Nasdaq levels:", await q("() => (document.querySelector('.fblv') || document.querySelector('.fblv1')).innerText.replace(/\\s+/g, ' ')"))
+        print("    US open helper:", await q("() => { const u = fbLvCalc(fbMk('Nasdaq 100'), fbQuote(fbMk('Nasdaq 100')).price).us; return JSON.stringify({ pc: u.pc, on: !!u.on, open: u.open, openPHT: phtHM(u.openAt), or: !!u.or }); }"))
+        await pg.keyboard.press("Escape")
         await pg.set_viewport_size({"width": 390, "height": 844}); await q("() => goPage('fund')"); await asyncio.sleep(0.5); await q("() => fbOpen('Nasdaq 100')"); await asyncio.sleep(0.4)
         print("14) phone:", await q("() => { const d = document.getElementById('fbDlg'), r = d.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), d.scrollWidth <= d.clientWidth + 1, document.getElementById('fbBody').scrollWidth <= document.getElementById('fbBody').clientWidth + 1, getComputedStyle(document.querySelector('.fbcols')).gridTemplateColumns.split(' ').length]; }"))
         await pg.screenshot(path=f"{OUT}/brief_phone.png")

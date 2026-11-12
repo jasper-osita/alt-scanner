@@ -936,7 +936,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .fbmeter i.r2{background:color-mix(in srgb,var(--red) 55%,transparent)}.fbmeter i.r1{background:color-mix(in srgb,var(--red) 28%,transparent)}.fbmeter i.g1{background:color-mix(in srgb,var(--green) 28%,transparent)}.fbmeter i.g2{background:color-mix(in srgb,var(--green) 55%,transparent)}
 .fbmeter i.on{background:var(--text);outline:2px solid var(--accent);outline-offset:1px}.fbml{display:flex;justify-content:space-between;font-size:11px;color:var(--mute)}
 .fbsay{margin:0 0 8px;font-size:13.5px;line-height:1.45}.fbtip{background:var(--pill);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45}
-.fblv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}.fblv>div{background:var(--panel);padding:8px 12px;font-size:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fblv{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}.fblv>div{background:var(--panel);padding:8px 12px;font-size:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .fblv b{color:var(--strong);font-size:13px}.fblv1{padding:8px 16px;font-size:12px;border-bottom:1px solid var(--line)}
 .fbcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fbcols>div{min-width:0}.fbcols>div+div{border-left:1px solid var(--line)}
 .fbs{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4}.fbcols>div>.fbs:last-child{border-bottom:0}
@@ -2994,6 +2994,19 @@ const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO",
 const NDX_T2 = ["AMD", "PLTR", "ASML", "TMUS", "CSCO", "PEP", "LIN", "INTU", "ISRG", "AMGN", "ADBE", "QCOM", "TXN", "BKNG", "AMAT", "MU", "LRCX", "KLAC", "ADI", "PANW", "SHOP", "ARM", "APP",
   "CMCSA", "HON", "ADP", "VRTX", "GILD", "SBUX", "MELI", "CRWD", "INTC", "MSTR", "CDNS", "SNPS", "MRVL", "ABNB", "PYPL", "FTNT", "ORLY", "CTAS", "MAR", "REGN", "WDAY", "DASH", "TTD", "DDOG"];
 function earnImpact(sym, capUsd) { return NDX_T1.includes(sym) ? "High" : NDX_T2.includes(sym) || capUsd >= 300e9 ? "Medium" : "Low"; }
+// headlines: tags, what counts as market-moving, an RSS reader that needs no browser and the feeds (the app reads them through its relays)
+const NEWS_TAGS = [["FED", /\b(Fed|FOMC|Powell|Waller|Williams|rate cut|rate hike)\b/i], ["GOLD", /\b(gold|bullion|XAU)\b/i], ["NDX", /\b(Nasdaq|Nvidia|Apple|Microsoft|Tesla|Meta|Alphabet|tech stocks|S&P 500|Wall Street)\b/i],
+  ["OIL", /\b(oil|OPEC|crude|Brent|WTI)\b/i], ["JPY", /\b(yen|BoJ|Ueda|USD\/JPY)\b/i], ["EUR", /\b(euro|ECB|Lagarde|EUR\/USD)\b/i], ["GBP", /\b(pound|sterling|BoE|Bailey|GBP\/USD)\b/i], ["USD", /\b(dollar|DXY|Treasur(y|ies)|yields?)\b/i], ["CRYPTO", /\b(bitcoin|crypto|ether|BTC|ETF flows?)\b/i], ["MACRO", /\b(CPI|inflation|payrolls|NFP|jobs report|jobless|unemployment|GDP|PCE|retail sales|tariffs?|trade war|sanctions?|war|missiles?|attacks?|invasion|ceasefire|shutdown|default|downgrade[sd]?|Trump|White House)\b/i]];
+const NEWS_BIG = /\b(breaking|flash|urgent|just in|unexpected(ly)?|surprise[sd]?|emergency|intervention|intervene[sd]?|rate (cut|hike)s?|(cuts|hikes|raises|holds|keeps) (interest )?rates|FOMC|Powell|Fed chair|CPI|inflation|payrolls|NFP|jobs report|unemployment rate|GDP|PCE|tariffs?|sanctions?|war|missiles?|attacks?|invasion|ceasefire|default|downgrade[sd]?|shutdown|halt(ed|s)?|plunges?|plummets?|soars?|surges?|crash(es|ed)?|tumbles?|spikes?|record high|all-time high)\b/i;
+const newsTag = t => (NEWS_TAGS.find(([, re]) => re.test(t)) || [""])[0];
+const newsBig = t => NEWS_BIG.test(t);
+function rssItems(xml) {
+  const un = s => String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&").trim();
+  return (String(xml || "").match(/<item[\s>][\s\S]*?<\/item>/g) || []).map(it => { const g = tag => { const m = it.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`)); return m ? un(m[1]) : ""; };
+    return { title: g("title"), link: g("link"), t: Date.parse(g("pubDate")) || Date.parse(g("dc:date")) || 0 }; }).filter(x => x.title);
+}
+const NEWS_FEEDS = { fxstreet: "https://www.fxstreet.com/rss/news", marketwatch: "https://feeds.content.dowjones.io/public/rss/mw_topstories", investing: "https://www.investing.com/rss/news_25.rss",
+  coindesk: "https://www.coindesk.com/arc/outboundfeeds/rss/", financialjuice: "https://www.financialjuice.com/feed.ashx?xy=rss" };
 </script>
 <script>/* ===================== UI ===================== */
 const $ = id => document.getElementById(id);
@@ -6321,6 +6334,7 @@ function ncGo(id) {                                  // open the market behind a
   if (ncOpen()) ncShow(false);
   ncDropToast(id);
   if (n.action === "ctrader") { goPage("macro"); openCTSettings(); return; }
+  if (n.action === "brief") { goPage("fund"); if (typeof fbOpen === "function") setTimeout(() => fbOpen(n.mk), 60); return; }      // a headline or a release read: that market's brief
   if (!n.sym) return;
   if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
   if (n.sym.startsWith("CT:") || isMX(n.sym) || TRADFI_SYMS.has(n.sym)) { goPage("macro"); toast(`<b>${coin(n.sym)}</b> loads with the Forex, Gold &amp; Indices page; open it there.`); return; }
@@ -6330,7 +6344,7 @@ function ncToast(n) {
   const box = $("ncToasts"), el = document.createElement("div");
   el.className = "nctoast"; el.dataset.t = n.id; el.style.setProperty("--nc", NC_TONE[n.tone] || NC_TONE.gold); el.setAttribute("role", "status");
   el.innerHTML = `<span class="ncic" aria-hidden="true">${ncEsc(n.icon)}</span><div class="ncbody"><div class="nct">${n.sym ? `<b>${ncEsc(coin(n.sym))}</b>` : ""}${ncEsc(n.title)}</div>${n.detail ? `<div class="ncd">${ncEsc(n.detail)}</div>` : ""}
-    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
+    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : n.action === "brief" ? "Open brief" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
   const go = el.querySelector(".go"); if (go) go.onclick = () => ncGo(n.id);
   el.querySelector(".no").onclick = () => ncDropToast(n.id);
   let timer = null; const arm = () => { clearTimeout(timer); timer = setTimeout(() => ncDropToast(n.id), matchMedia("(max-width:760px)").matches ? 5000 : 8000); };
@@ -9783,7 +9797,7 @@ async function tgPump() {
   tgBusy = false;
 }
 function tgSend(text) { return new Promise(res => { if (TGQ.length > 20) TGQ.shift(); TGQ.push({ text, res: (ok, why) => res({ ok, why }) }); tgPump(); }); }
-const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
+const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.url ? "\n" + xEsc(n.url) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
 const _ncAdd = ncAdd;
 ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
 function openTGSettings() {
@@ -9873,8 +9887,7 @@ async function fundFRED(force) {
 }
 // headlines: free RSS feeds through the relay
 const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"], ["financialjuice", "FinancialJuice"]];   // FinancialJuice: a fast news wire
-const FUND_TAGS = [["FED", /\b(Fed|FOMC|Powell|Waller|Williams|rate cut|rate hike)\b/i], ["GOLD", /\b(gold|bullion|XAU)\b/i], ["NDX", /\b(Nasdaq|Nvidia|Apple|Microsoft|Tesla|Meta|Alphabet|tech stocks|S&P 500|Wall Street)\b/i],
-  ["OIL", /\b(oil|OPEC|crude|Brent|WTI)\b/i], ["JPY", /\b(yen|BoJ|Ueda|USD\/JPY)\b/i], ["EUR", /\b(euro|ECB|Lagarde|EUR\/USD)\b/i], ["GBP", /\b(pound|sterling|BoE|Bailey|GBP\/USD)\b/i], ["USD", /\b(dollar|DXY|Treasur(y|ies)|yields?)\b/i], ["CRYPTO", /\b(bitcoin|crypto|ether|BTC|ETF flows?)\b/i]];
+const FUND_TAGS = NEWS_TAGS;                       // (in core: the cloud watcher tags headlines the same way)
 async function fundNews(force) {
   if (!force && FUND.news && Date.now() - FUND.news.at < 2 * 60e3) return;                // every 2 minutes on this page; every minute while a market brief is open
   const items = [], errs = [];
@@ -9884,6 +9897,7 @@ async function fundNews(force) {
       if (title && /^https?:\/\//.test(link)) items.push({ title, link, t, src: name, tag: (FUND_TAGS.find(([, re]) => re.test(title)) || [""])[0] }); }); } catch (e) { errs.push(name); } }));
   if (items.length) { const seen = new Set(); FUND.news = { at: Date.now(), items: items.sort((a, b) => b.t - a.t).filter(x => { const k = x.title.toLowerCase().slice(0, 60); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 60) }; }
   FUND.err.news = errs.length === FUND_RSS.length ? "headlines need the Mac app's relay (or the web version's)" : null;
+  try { if (typeof naCheck === "function") naCheck(); } catch (e) {}
 }
 async function fundLoad(force) {
   if (FUND.busy) { FUND.again = FUND.again || force || "soft"; return; } FUND.busy = true; fundRender();
@@ -10135,7 +10149,7 @@ async function fbEarn() {                          // the biggest Nasdaq names r
   catch (e) { FB.earn = FB.earn || []; }
   if (FB.k) fbRender();
 }
-const fbNews = m => ((FUND.news && FUND.news.items) || []).filter(x => m.tag.includes(x.tag) && x.t > Date.now() - 36 * 3600e3);
+const fbNews = m => ((FUND.news && FUND.news.items) || []).filter(x => (m.tag.includes(x.tag) || x.tag === "MACRO") && x.t > Date.now() - 36 * 3600e3);   // MACRO: data, tariffs, wars: they move everything
 function fbWarn(m, S) {
   const W = [], c = m.cot && S.cot(m.cot), now = Date.now(), ev = fbEvents(m).find(x => x.at > now && x.at - now < 36 * 3600e3);
   if (c && (c.pct >= 90 || c.pct <= 10)) W.push(`Crowded: speculators hold their biggest ${c.pct >= 90 ? "long" : "short"} on ${m.cw} in a year. Moves against the crowd can be sharp.`);
@@ -10162,7 +10176,8 @@ function fbTip(D, sc) {                            // the one change that would 
 async function fbLevels(m) {                       // 1H candles for the session levels and the average day (refreshed every 5 minutes while open)
   const q = fbQuote(m), c = FB.lv[m.k]; if (!q || !q.sym || (c && (c.busy || Date.now() - c.at < 5 * 60e3))) return;
   FB.lv[m.k] = { ...(c || {}), busy: true };
-  try { const k = await klines(q.sym, "1h", 400); FB.lv[m.k] = { at: Date.now(), k }; } catch (e) { FB.lv[m.k] = { ...(c || {}), at: Date.now(), err: e.message || "no candles" }; }
+  try { const usIdx = m.kind === "idx" && m.ccy[0] === "USD", [k, k15] = await Promise.all([klines(q.sym, "1h", 400), usIdx ? klines(q.sym, "15m", 400).catch(() => null) : null]);
+    FB.lv[m.k] = { at: Date.now(), k, k15 }; } catch (e) { FB.lv[m.k] = { ...(c || {}), at: Date.now(), err: e.message || "no candles" }; }
   if (FB.k === m.k) fbRender();
 }
 function fbLvCalc(m, price) {                      // Asia range, yesterday, week open, today's range against the average day
@@ -10178,7 +10193,17 @@ function fbLvCalc(m, price) {                      // Asia range, yesterday, wee
   const sd = t => { const d = sessD(t); return [Math.floor(d.getTime() / D), d.getUTCHours()]; }, [nd, nh] = sd(now); let ah = -Infinity, al = Infinity;
   k.t.forEach((t, i) => { const [d, h] = sd(t); if (d === nd && h >= 8 && h < 12) { ah = Math.max(ah, k.h[i]); al = Math.min(al, k.l[i]); } });
   if (nh >= 8 && nh < 12) { ah = Math.max(ah, price); al = Math.min(al, price); }
-  return { td, yd, adr, wo, asia: isFinite(ah) ? { h: ah, l: al, forming: nh < 12 } : null, asiaLater: nh < 8 };
+  return { td, yd, adr, wo, asia: isFinite(ah) ? { h: ah, l: al, forming: nh < 12 } : null, asiaLater: nh < 8, us: c.k15 ? fbUsLv(c.k15, price, now) : null };
+}
+function fbUsLv(k, price, now) {                   // the US open, New York time: yesterday's 4 PM close, the overnight range up to 9:30, the open and its gap, the first 15 minutes
+  const H = 3600e3, D = 864e5, nyT = t => sessD(t).getTime() - 12 * H, nyD = t => Math.floor(nyT(t) / D), nyM = t => Math.round((nyT(t) % D) / 60e3);
+  let S = nyD(now) + (nyM(now) >= 960 ? 1 : 0); while ([0, 6].includes(new Date(S * D).getUTCDay())) S++;          // the session coming up (or on now)
+  const sd = new Date(S * D), openAt = nyAt(sd.getUTCFullYear(), sd.getUTCMonth() + 1, sd.getUTCDate(), 9, 30);
+  let pc = null, pcI = -1; for (let i = k.t.length - 1; i >= 0; i--) if (nyD(k.t[i]) < S && nyM(k.t[i]) === 945) { pc = k.c[i]; pcI = i; break; }
+  let oh = -Infinity, ol = Infinity, op = null, orh = null, orl = null;
+  k.t.forEach((t, i) => { if (pcI >= 0 && i > pcI && t < openAt) { oh = Math.max(oh, k.h[i]); ol = Math.min(ol, k.l[i]); } if (t === openAt) { op = k.o[i]; orh = k.h[i]; orl = k.l[i]; } });
+  if (now < openAt && pcI >= 0) { oh = Math.max(oh, price); ol = Math.min(ol, price); }
+  return { pc, on: isFinite(oh) ? { h: oh, l: ol } : null, op, or: orh != null ? { h: orh, l: orl } : null, openAt, open: now >= openAt };
 }
 function fbFedExp() {                              // what the 2-year says the market expects from the Fed
   const u = FUND.ust && FUND.ust.rows[0], f = fundBank("DFEDTARU"); if (!u || u.v["2yr"] == null || f.rate == null) return null;
@@ -10196,6 +10221,40 @@ function fbMeet(ccy) {
   const now = Date.now(); if (ccy === "USD") return FOMC_DATES.map(fomcAt).find(t => t > now) || null;
   const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && e.type === "Central Bank" && /rate|policy|cash rate|statement/i.test(e.title)); return x ? x.at : null;
 }
+/* the release read: Forex Factory's free feed has no actual results, so read the market's own reaction 2 and 10 minutes after a high-impact release
+   (USD: dollar up with gold and the Nasdaq down = hot / strong / hawkish). Needs live prices (cTrader connected); kept in finder-react for "last time". */
+const RX_KEY = "finder-react", RX_CCY = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD"], RX_PRE = {}, RX_LIVE = {}; let RX = lsGet(RX_KEY, []);
+const RX_MK = { USD: "Gold", EUR: "EUR/USD", GBP: "GBP/USD", JPY: "USD/JPY", AUD: "AUD/USD", CAD: "USD/CAD" };
+const RX_BASK = { gold: "Gold", nas: "Nasdaq 100", eu: "EUR/USD", uj: "USD/JPY", gu: "GBP/USD", au: "AUD/USD", uc: "USD/CAD" };
+function rxPx(at) {                                // basket prices now, or the last live sample before `at`
+  const o = {}; for (const [k, mk] of Object.entries(RX_BASK)) { if (at) { const a = (FBM[mk] || []).filter(x => x[0] <= at && x[0] > at - 5 * 60e3); o[k] = a.length ? a.at(-1)[1] : null; }
+    else { const q = fbQuote(fbMk(mk)); o[k] = q && q.price > 0 ? q.price : null; } } return o;
+}
+function rxMoves(a, b) {
+  const p = k => a[k] && b[k] ? (b[k] / a[k] - 1) * 100 : null, avg = L => { const v = L.filter(x => x != null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+  const eu = p("eu"), uj = p("uj"), gu = p("gu"), au = p("au"), uc = p("uc"), neg = x => x == null ? null : -x;
+  return { usd: avg([neg(eu), uj, neg(gu), neg(au), uc]), gold: p("gold"), nas: p("nas"), EUR: eu, GBP: gu, AUD: au, JPY: neg(uj), CAD: neg(uc) };
+}
+function rxRead(x, mv) {
+  const w = x.type === "Inflation" ? ["hot", "cool"] : /Central Bank|Speeches/.test(x.type || "") ? ["hawkish", "dovish"] : ["strong", "weak"];
+  if (x.ccy === "USD") { const h = (mv.usd >= 0.08) + (mv.gold != null && mv.gold <= -0.12) + (mv.nas != null && mv.nas <= -0.12), d = (mv.usd != null && mv.usd <= -0.08) + (mv.gold >= 0.12) + (mv.nas >= 0.12);
+    return h >= 2 && !d ? w[0] : d >= 2 && !h ? w[1] : null; }
+  const c = mv[x.ccy]; return c == null ? null : c >= 0.1 ? w[0] : c <= -0.1 ? w[1] : null;
+}
+const rxTxt = (mv, ccy) => ccy === "USD" ? [["dollar", mv.usd], ["Gold", mv.gold], ["Nasdaq", mv.nas]].filter(x => x[1] != null).map(([l, v]) => `${l} ${fPct(v)}`).join(", ") : mv[ccy] != null ? `${ccy} ${fPct(mv[ccy])} against the dollar` : "";
+function rxTick(now = Date.now()) {
+  const ev = (typeof calAll === "function" ? calAll() : []).filter(x => x.impact === "High" && RX_CCY.includes(x.ccy) && x.at > now - 12 * 60e3 && x.at < now + 2 * 60e3);
+  ev.forEach(x => {
+    if (now < x.at && now >= x.at - 90e3 && !RX_PRE[x.id]) RX_PRE[x.id] = rxPx();
+    if (now >= x.at + 2 * 60e3 && !RX_LIVE[x.id]) { const pre = RX_PRE[x.id] || (RX_PRE[x.id] = rxPx(x.at)); if (!Object.values(pre).some(Boolean)) { RX_LIVE[x.id] = { none: true }; return; }
+      const mv = rxMoves(pre, rxPx()), read = rxRead(x, mv); RX_LIVE[x.id] = { mv, read, at: now };
+      const mine = naMine().some(m => fbCcys(m).includes(x.ccy));
+      if (read && mine) ncAdd({ kind: "News", icon: "📢", tone: "warn", action: "brief", mk: x.ccy === "USD" ? naMine()[0].k : RX_MK[x.ccy], title: `${x.ccy} ${x.title} read as ${read}`, detail: `${rxTxt(mv, x.ccy)} in the first 2 minutes.` }); }
+    const L = RX_LIVE[x.id]; if (now >= x.at + 10 * 60e3 && L && !L.none && !L.done) { const mv = rxMoves(RX_PRE[x.id], rxPx()); L.done = true; L.mv10 = mv; L.read10 = rxRead(x, mv);
+      RX = [{ ccy: x.ccy, title: x.title, at: x.at, mv2: L.mv, mv10: mv, read: L.read, read10: L.read10 }, ...RX.filter(y => !(y.title === x.title && y.at === x.at))].slice(0, 200); lsSet(RX_KEY, RX); }
+  });
+}
+const rxLast = x => RX.find(y => y.ccy === x.ccy && y.title === x.title && y.at < x.at - 60e3);       // the same event's last release
 /* sudden moves: live prices sampled every 2 seconds; a jump of 15% of an average day (or FB_THR) inside 3 minutes is flagged, usually before any headline */
 function fbShockOf(m, a, now) {
   const w = a.filter(x => x[0] >= now - 3 * 60e3); if (w.length < 6 || a[0][0] > now - 2 * 60e3) return null;          // live ticks only, watched for 2 minutes
@@ -10211,6 +10270,7 @@ function fbSample() {
     FB.shock[m.k] = { ...sh, at: now };
     if (((typeof NW !== "undefined" && NW.items) || []).some(x => x.name === m.k) || ["Gold", "Nasdaq 100"].includes(m.k))
       ncAdd({ kind: "News", icon: "⚡", tone: "warn", sym: q.sym || null, title: `${m.k} ${sh.d > 0 ? "jumped" : "dropped"} ${fPct(sh.pct)} in ${sh.mins} min`, detail: "A move this fast is usually news. Click it on Fundamentals for the headlines and what's due." }); });
+  try { rxTick(now); } catch (e) {}
   if (FB.k && $("fbDlg") && $("fbDlg").open) fbRender();
 }
 setInterval(fbSample, 2000);
@@ -10219,7 +10279,8 @@ function fbAlerts(m) {                             // the top strip: a sudden mo
   if (sh && now - sh.at < 20 * 60e3) A.push(["shock", `⚡ Sudden move: ${sh.d > 0 ? "up" : "down"} ${fmtPrice(Math.abs(sh.d))} (${fPct(sh.pct)}) in ${sh.mins} min, ${now - sh.at < 60e3 ? "just now" : inTxt(now - sh.at) + " ago"}. A jump this fast is usually news: check the headlines below.`]);
   fbEvents(m).forEach(x => { const dt = x.at - now;
     if (dt > 0 && dt <= 15 * 60e3) A.push(["soon", `⏱ ${x.ccy} ${xEsc(x.title)} in ${dt < 60e3 ? "under a minute" : inTxt(dt)}: expect spikes, don't enter right before it.`]);
-    else if (dt <= 0 && dt > -20 * 60e3) A.push(["out", `📢 ${x.ccy} ${xEsc(x.title)} came out ${dt > -60e3 ? "just now" : inTxt(-dt) + " ago"}: the move after it is the news.`]); });
+    else if (dt <= 0 && dt > -20 * 60e3) { const L = x.id && RX_LIVE[x.id], R = L && !L.none ? (L.done ? { mv: L.mv10, read: L.read10, w: "10" } : { mv: L.mv, read: L.read, w: "2" }) : null;
+      A.push(["out", `📢 ${x.ccy} ${xEsc(x.title)} came out ${dt > -60e3 ? "just now" : inTxt(-dt) + " ago"}: ${R ? `${R.read ? `<b>read as ${R.read}</b>` : "no clear read"} (${xEsc(rxTxt(R.mv, x.ccy))} in ${R.w} min).` : dt > -2 * 60e3 && RX_PRE[x.id] ? "reading the reaction…" : "the move after it is the news."}`]); } });
   const n = fbNews(m)[0]; if (n && now - n.t < 30 * 60e3) A.push(["news", `<span class="fbnew">NEW</span> <span class="mu">${now - n.t < 60e3 ? "just now" : inTxt(now - n.t) + " ago"}</span> <a href="${xEsc(n.link)}" target="_blank" rel="noopener noreferrer">${xEsc(n.title)}</a> <span class="mu">· ${xEsc(n.src)}</span>`]);
   return A.slice(0, 4);                             // the newest few: a busy hour shouldn't push the brief off the screen
 }
@@ -10235,10 +10296,15 @@ function fbRender() {
     <span style="flex:1"></span><button class="btn sm" id="fbCopy">Copy brief</button>${q && q.sym ? `<button class="btn sm primary" id="fbChart">Open chart</button>` : ""}<button class="fbib" id="fbX" aria-label="Close">✕</button>`);
   const lv = q && q.price ? fbLvCalc(m, q.price) : null, lc = FB.lv[m.k], px = q && q.price, rel = (lbl, x) => x == null || !px ? "" : `${px >= x ? "above" : "under"} ${lbl} by ${fmtPrice(Math.abs(px - x))}`;
   const room = lv && lv.adr ? (lv.td.h - lv.td.l) / lv.adr : null;
+  const us = lv && lv.us, pos = (lo, hi, a, b) => px > hi ? `above ${a} by ${fmtPrice(px - hi)}` : px < lo ? `under ${b} by ${fmtPrice(lo - px)}` : "inside it";
+  const usH = !us ? "" : `<div><span class="mu">Overnight range</span>${us.on ? `<b>${fmtPrice(us.on.l)} – ${fmtPrice(us.on.h)}</b><span>${pos(us.on.l, us.on.h, "the overnight high", "the overnight low")}${us.open ? "" : " · still forming"}</span>` : "<b>—</b>"}</div>
+      <div><span class="mu">Yesterday's close (4 PM NY)</span>${us.pc != null ? `<b>${fmtPrice(us.pc)}</b><span>${us.op != null ? `opened with a gap ${us.op >= us.pc ? "up" : "down"} of ${fmtPrice(Math.abs(us.op - us.pc))} (${fPct((us.op / us.pc - 1) * 100)})` : rel("it", us.pc)}</span>` : "<b>—</b>"}</div>
+      <div><span class="mu">US open, first 15 min</span>${us.or ? `<b>${fmtPrice(us.or.l)} – ${fmtPrice(us.or.h)}</b><span>open ${fmtPrice(us.op)} · ${px > us.or.h ? "broke above the first 15 min" : px < us.or.l ? "broke below the first 15 min" : "inside the first 15 min"}</span>`
+        : us.open ? `<b>forming</b><span>opened ${phtHM(us.openAt)}, the first 15 minutes close at ${phtHM(us.openAt + 15 * 60e3)}</span>` : `<b>${phtHM(us.openAt)}</b><span>opens in ${inTxt(us.openAt - now)}</span>`}</div>`;
   const lvH = !q || !q.sym ? "" : !lv ? `<div class="fblv1 mu">${lc && lc.err ? "Couldn't load candles for the levels (" + xEsc(lc.err) + ")." : "Loading today's levels…"}</div>` : `<div class="fblv">
-      <div><span class="mu">Asia range</span>${lv.asia ? `<b>${fmtPrice(lv.asia.l)} – ${fmtPrice(lv.asia.h)}</b><span>${px > lv.asia.h ? `above the Asia high by ${fmtPrice(px - lv.asia.h)}` : px < lv.asia.l ? `under the Asia low by ${fmtPrice(lv.asia.l - px)}` : "inside the Asia range"}${lv.asia.forming ? " · still forming" : ""}</span>` : `<b>—</b><span>${lv.asiaLater ? `starts ${sessLbl(8)}` : "no candles"}</span>`}</div>
+      ${usH}${us ? "" : `<div><span class="mu">Asia range</span>${lv.asia ? `<b>${fmtPrice(lv.asia.l)} – ${fmtPrice(lv.asia.h)}</b><span>${px > lv.asia.h ? `above the Asia high by ${fmtPrice(px - lv.asia.h)}` : px < lv.asia.l ? `under the Asia low by ${fmtPrice(lv.asia.l - px)}` : "inside the Asia range"}${lv.asia.forming ? " · still forming" : ""}</span>` : `<b>—</b><span>${lv.asiaLater ? `starts ${sessLbl(8)}` : "no candles"}</span>`}</div>`}
       <div><span class="mu">Yesterday</span>${lv.yd ? `<b>${fmtPrice(lv.yd.l)} – ${fmtPrice(lv.yd.h)}</b><span>${px > lv.yd.h ? `above yesterday's high by ${fmtPrice(px - lv.yd.h)}` : px < lv.yd.l ? `under yesterday's low by ${fmtPrice(lv.yd.l - px)}` : "inside yesterday's range"}</span>` : "<b>—</b>"}</div>
-      <div><span class="mu">Week open</span>${lv.wo != null ? `<b>${fmtPrice(lv.wo)}</b><span>${rel("it", lv.wo)}</span>` : "<b>—</b>"}</div>
+      ${us ? "" : `<div><span class="mu">Week open</span>${lv.wo != null ? `<b>${fmtPrice(lv.wo)}</b><span>${rel("it", lv.wo)}</span>` : "<b>—</b>"}</div>`}
       <div><span class="mu">Room left today</span>${room != null ? `<b class="${room >= 1 ? "dn" : room >= 0.7 ? "fam" : "up"}">${Math.round(room * 100)}% of an average day used</b><span>${room >= 1 ? "bigger than a normal day: late to chase" : room >= 0.7 ? "most of a normal day is done" : "room left to run"} · avg ${fmtPrice(lv.adr)}</span>` : "<b>—</b><span>needs a few days of candles</span>"}</div></div>`;
   const tagE = x => x.v > 0 ? `<span class="fk up">▲ helps</span>` : x.v < 0 ? `<span class="fk dn">▼ hurts</span>` : `<span class="fk">– neutral</span>`;
   const drv = D.length ? `<table class="ftbl">${D.map(x => `<tr><td>${xEsc(x.name)}</td><td class="r">${xEsc(x.now)}</td><td class="r">${xEsc(x.chg)}</td><td class="r">${tagE(x)}</td></tr>`).join("")}</table>` : `<div class="mu">Fills in as rates, yields and prices load.</div>`;
@@ -10272,7 +10338,7 @@ function fbRender() {
       ${c ? `<div class="fbs"><div class="fbsh">Positioning <span>CFTC large speculators</span></div><div class="fbpos"><b class="${fCls(c.net)}">${(c.net >= 0 ? "+" : "") + c.net.toFixed(0)}% net ${c.net >= 0 ? "long" : "short"}</b>${spark(c.hist)}</div>
         <div><span class="${fCls(c.chg)}">${c.chg == null ? "" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(1)}</span> <span class="mu">this week ·</span> ${c.pct}${c.pct % 100 >= 11 && c.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][c.pct % 10] || "th"} <span class="mu">of the year${c.pct >= 90 || c.pct <= 10 ? "" : ": not crowded"}</span>${m.cot === "Yen" || m.cot === "Canadian dollar" || m.cot === "Swiss franc" ? ` <span class="mu">(this is ${m.cw}: long here pushes ${m.k} down)</span>` : ""}</div></div>` : ""}
     </div><div>
-      <div class="fbs"><div class="fbsh">Coming up <span>what moves ${xEsc(m.k)}</span></div>${ev.length ? `<table class="ftbl">${ev.map(x => `<tr><td class="fam" style="white-space:nowrap">${xEsc(fbWhen(x))}</td><td><b>${xEsc(x.ccy)}</b> ${xEsc(x.title)}</td><td class="r mu">${x.forecast && !x.earn ? "F " + xEsc(x.forecast) + (x.previous ? " · P " + xEsc(x.previous) : "") : x.at > now + 60e3 ? "in " + inTxt(x.at - now) : x.at > now ? "in under a minute" : "just out"}</td></tr>`).join("")}</table>` : `<div class="mu">No high-impact events in the next 7 days.</div>`}</div>
+      <div class="fbs"><div class="fbsh">Coming up <span>what moves ${xEsc(m.k)}</span></div>${ev.length ? `<table class="ftbl">${ev.map(x => { const ls = rxLast(x); return `<tr><td class="fam" style="white-space:nowrap">${xEsc(fbWhen(x))}</td><td><b>${xEsc(x.ccy)}</b> ${xEsc(x.title)}${ls ? `<div class="mu">last time: ${ls.read10 || ls.read ? "read as " + (ls.read10 || ls.read) + " · " : ""}${xEsc(rxTxt(ls.mv10 || ls.mv2, x.ccy))} in 10 min</div>` : ""}</td><td class="r mu">${x.at <= now && x.id && RX_LIVE[x.id] && RX_LIVE[x.id].read ? `<b class="fam">${RX_LIVE[x.id].read}</b>` : x.forecast && !x.earn ? "F " + xEsc(x.forecast) + (x.previous ? " · P " + xEsc(x.previous) : "") : x.at > now + 60e3 ? "in " + inTxt(x.at - now) : x.at > now ? "in under a minute" : "just out"}</td></tr>`; }).join("")}</table>` : `<div class="mu">No high-impact events in the next 7 days.</div>`}</div>
       <div class="fbs"><div class="fbsh">Headlines <span>${FUND.news ? "checked " + phtHM(FUND.news.at) : ""}</span></div>${news.length ? `<div class="fbnews">${news.map(x => `<a href="${xEsc(x.link)}" target="_blank" rel="noopener noreferrer"><span class="fam">${x.t ? phtHM(x.t) : ""}</span>${now - x.t < 30 * 60e3 ? ` <span class="fbnew">NEW</span>` : ""} <span class="fk">${xEsc(x.tag)}</span> <span class="fnt">${xEsc(x.title)}</span> <span class="mu">· ${xEsc(x.src)}</span></a>`).join("")}</div>` : `<div class="mu">${FUND.news ? "No headlines on this in the last day." : FUND.err.news ? xEsc(FUND.err.news) : "Loading headlines…"}</div>`}</div>
       <div class="fbs"><div class="fbsh">Chart check <span>from the last scan</span></div>${chartH}</div>
       <div class="fbs"><div class="fbsh">Your window</div><div>${win}</div></div>
@@ -10304,6 +10370,19 @@ function fbOpen(k) {
   news(); clearInterval(FB.t); FB.t = setInterval(() => { if (!FB.k) return; news(); const x = fbMk(FB.k); if (x) fbLevels(x); }, 60e3);     // headlines every minute while open
 }
 const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k); };
+/* ===================== Headline alerts: market-moving headlines on your markets, on any page, checked every 2 minutes ===================== */
+const NA_KEY = "finder-news-seen"; let NA_SEEN = lsGet(NA_KEY, {});
+const naMine = () => { const L = ((typeof NW !== "undefined" && NW.items) || []).map(it => fbMk(it.name)).filter(Boolean); return L.length ? L : [fbMk("Gold"), fbMk("Nasdaq 100")]; };
+function naCheck() {                               // once per headline: newer than 20 minutes, tagged for your NBB Watch markets (or MACRO: data, tariffs, wars), with market-moving words
+  const N = FUND.news; if (!N || !N.items) return; const now = Date.now(), mine = naMine(); let ch = false;
+  for (const k in NA_SEEN) if (now - NA_SEEN[k] > 2 * 864e5) { delete NA_SEEN[k]; ch = true; }
+  N.items.forEach(x => { const k = x.title.toLowerCase().slice(0, 80); if (NA_SEEN[k]) return; NA_SEEN[k] = now; ch = true;
+    if (!x.t || now - x.t > 20 * 60e3 || x.t > now + 5 * 60e3 || !newsBig(x.title)) return;
+    const m = x.tag === "MACRO" ? mine[0] : mine.find(y => y.tag.includes(x.tag)); if (!m) return;
+    ncAdd({ kind: "News", icon: "📰", tone: "warn", action: "brief", mk: m.k, title: `${x.tag}: ${x.title}`, detail: `${x.src} · ${phtHM(x.t)} PHT · the ${m.k} brief has the read`, url: x.link }); });
+  if (ch) lsSet(NA_KEY, NA_SEEN);
+}
+setTimeout(() => fundNews(false).catch(() => {}), 20e3); setInterval(() => fundNews(false).catch(() => {}), 120e3);
 if (page === "fund") fundShown();
 
 setTimeout(() => { try { ctOAuthReturn(); } catch (e) {} }, 0);

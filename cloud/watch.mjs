@@ -15,7 +15,7 @@ const src = html.slice(a + '<script id="core">'.length, html.indexOf("</script>"
 const ctx = { console, fetch: (...x) => globalThis.fetch(...x), URL, Intl, Date, Math, JSON, Promise, setTimeout, clearTimeout,
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, document: { querySelectorAll: () => [] }, navigator: {}, location: { hostname: "cloud" } };
 ctx.window = ctx; vm.createContext(ctx);
-vm.runInContext(src + "\n;this.__F = { nbbWatchRead, mxKlinesF, mxRowsToK, ffNorm, fmtNum, sessD };", ctx);
+vm.runInContext(src + "\n;this.__F = { nbbWatchRead, mxKlinesF, mxRowsToK, ffNorm, fmtNum, sessD, rssItems, newsTag, newsBig, NEWS_FEEDS };", ctx);
 const fmtP = v => v >= 1000 ? v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : F.fmtNum(v);
 const F = ctx.__F;
 
@@ -62,6 +62,17 @@ if (CFG.news) {
     for (const x of ev) if (x.at > NOW && x.at - NOW <= lead && (CFG.news.currencies || ["USD"]).includes(x.ccy) && (CFG.news.impact || ["High"]).includes(x.impact))
       await send(`news|${x.id}`, `☁️ 📅 <b>${esc(x.ccy)} ${esc(x.title)}</b> in ${Math.round((x.at - NOW) / 60e3)} min (${phtHM(x.at)} PHT)${x.forecast ? `\nForecast ${esc(x.forecast)} · previous ${esc(x.previous)}` : ""}`);
   } catch (e) { console.log("calendar:", e.message); }
+}
+// 3) market-moving headlines on your markets (the app's own tags and filter), straight from the feeds
+if (CFG.headlines) {
+  const tags = CFG.headlines.tags || ["GOLD", "NDX", "FED", "USD", "MACRO"], maxAge = (CFG.headlines.maxAgeMin || 20) * 60e3;
+  await Promise.all(Object.entries(F.NEWS_FEEDS).map(async ([name, url]) => {
+    try { const r = await globalThis.fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (TheFinder cloud watcher)", Accept: "application/rss+xml,application/xml,text/xml,*/*" } });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      for (const x of F.rssItems(await r.text())) { const tag = F.newsTag(x.title);
+        if (!tags.includes(tag) || !F.newsBig(x.title) || !x.t || NOW - x.t > maxAge || x.t > NOW + 5 * 60e3) continue;
+        await send(`hl|${x.title.toLowerCase().slice(0, 80)}`, `☁️ 📰 <b>${esc(tag)}</b> ${esc(x.title)}\n<i>${esc(name)} · ${phtHM(x.t)} PHT</i>${x.link ? "\n" + esc(x.link) : ""}`); } }
+    catch (e) { console.log(`headlines ${name}:`, e.message); } }));
 }
 fs.writeFileSync(STATE_FILE, JSON.stringify(state));
 console.log(`done: ${out.length} alert(s)`);

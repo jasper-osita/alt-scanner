@@ -7,6 +7,8 @@ Single-page screener PWA for Jas (Philippines, PHT = UTC+8). Crypto boards (Bina
 Pepperstone cTrader account, a TradingView-style Charts engine, NBB Watch, economic calendar, alerts.
 Trading scope: NBB setup; Gold M5 in London, NAS100 M1 at the US open; AOTS = price beyond 20/50/100 with them stacked.
 Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:30–21:30, NY AM 21:30–24, NY PM 0–4.
+These are New York based and written as in US summer time: from November to March (New York winter time) they all land 1 hour later in PHT.
+Never compare session times with plain PHT: use the session clock in core (`sessD`/`sessH`, New York + 12h; `sessLbl` shows today's PHT; `nyDst`/`ukDst`, `CLK_SHIFT`). Test: `t_dst`.
 
 ## Files
 - `index.html` (~850 KB, everything). Scripts in order: `<script id="core">` (DOM-free, also run by cloud/watch.mjs in Node),
@@ -33,7 +35,11 @@ Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:
   `trChartLines`), `qtDrop` (dragged entry → limit/stop, 2-tick snap to market), `qtPlace` (→ `cttPlace`/`mxtPlace`).
   MEXC auto leverage `mxtLev` (lowest under the margin cap `levCap`%, liquidation ≥ `levBuf`× the stop, isolated; UI `mxtLevUi`). The chart order panel docks right of the charts (`.chbody.trdock`).
 - Bot Simulator: filters `BOTF`/`botMatch`, trade review `botReviewHTML`; clicking a closed trade or an open position (`botOpenStudy`) → `chStudy` marks it cTrader style (`chTradeMarks`, state `CHM`; the menu switch `BOTF.chart` → `chBotTrades`) with a docked study panel (notes in `altscan-bot-notes`); a trade watch row → `twShow` (mark only, `CHM.tw`). The Bot Simulator is also an account in the chart account menu (`twBots`, `TWS().bots`): the trade watch then lists `twBotRows`. Never place real orders in tests; mocks only.
-- Fundamentals page (`fund`, terminal style): "Today's read" on top (`fundSignals` → `fundCardsData`: Gold, Nasdaq, dollar, Bitcoin tailwind/headwind with reasons), live ticks `fundLive`; `fundLoad` → `fundUST` (Treasury curves via /proxy/ust), `fundCOT` (CFTC via /proxy/cot), `fundFRED` (via /proxy/fred; the relay adds its own key: Vercel env FRED_API_KEY in `api/fred.js`, Mac `~/.finder-fred-key`; a key pasted in the panel, `finder-fred`, wins), `fundNews` (RSS via /proxy/rss/<name>); relays in server.py `relay_fund` and vercel.json rewrites.
+- Fundamentals page (`fund`, terminal style): "Today's read" on top (`fundSignals` → `fundCardsData`: Gold, Nasdaq, dollar, Bitcoin tailwind/headwind with reasons), live ticks `fundLive`; `fundLoad` → `fundUST` (Treasury curves via /proxy/ust), `fundCOT` (CFTC via /proxy/cot), `fundFRED` (via /proxy/fred; the relay adds its own key: Vercel env FRED_API_KEY in `api/fred.js`, Mac `~/.finder-fred-key`; a key pasted in the panel, `finder-fred`, wins), `fundNews` (RSS via /proxy/rss/<name>, FinancialJuice as the fast wire; relay cache 60 s); relays in server.py `relay_fund` and vercel.json rewrites.
+  Clicking a market opens the market brief (`<dialog id="fbDlg">`, `fbOpen`/`fbRender`), not the chart: registry `FB_MK`, lean rules `fbDrivers` (score ±2 = tailwind/headwind, `fbSay`/`fbTip`),
+  levels from 1H candles `fbLevels`/`fbLvCalc` (US indices: 15m `fbUsLv`, overnight range, 4 PM close, open gap, first 15 min), `fbFedExp`, `fbStrength`, `fbEvents` (+ `fbEarn`), `fbNews`;
+  sudden moves `fbSample` (every 2 s, live prices, alert via `ncAdd` for your NBB Watch markets); release read `rxTick` (market reaction 2 and 10 min after a high-impact release, history `finder-react`);
+  headline alerts on any page `naCheck` (core `NEWS_TAGS`/`newsBig`, MACRO tag; alerts carry `action: "brief"`). Cloud watcher sends headlines too (`.github/workflows/cloud-watch.yml`). Test: `t_brief`.
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow

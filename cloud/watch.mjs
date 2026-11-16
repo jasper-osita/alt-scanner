@@ -15,7 +15,7 @@ const src = html.slice(a + '<script id="core">'.length, html.indexOf("</script>"
 const ctx = { console, fetch: (...x) => globalThis.fetch(...x), URL, Intl, Date, Math, JSON, Promise, setTimeout, clearTimeout,
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, document: { querySelectorAll: () => [] }, navigator: {}, location: { hostname: "cloud" } };
 ctx.window = ctx; vm.createContext(ctx);
-vm.runInContext(src + "\n;this.__F = { nbbWatchRead, mxKlinesF, mxRowsToK, ffNorm, fmtNum };", ctx);
+vm.runInContext(src + "\n;this.__F = { nbbWatchRead, mxKlinesF, mxRowsToK, ffNorm, fmtNum, sessD, rssItems, newsTag, newsBig, NEWS_FEEDS };", ctx);
 const fmtP = v => v >= 1000 ? v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : F.fmtNum(v);
 const F = ctx.__F;
 
@@ -30,7 +30,7 @@ async function send(id, text) {
   const j = await r.json().catch(() => ({})); if (!j.ok) { delete state.sent[id]; console.log("Telegram refused:", j.description || r.status); }
 }
 const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-const PHT = 8 * 3600e3, phtMin = ms => { const d = new Date(ms + PHT); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
+const PHT = 8 * 3600e3, sessMin = ms => { const d = F.sessD(ms); return d.getUTCHours() * 60 + d.getUTCMinutes(); };   // the app's session clock: PHT in US summer, 1 hour behind PHT in US winter
 const hm = s => { const [h, m] = String(s).split(":").map(Number); return h * 60 + (m || 0); };
 const phtHM = ms => { const d = new Date(ms + PHT); let h = d.getUTCHours(); const m = String(d.getUTCMinutes()).padStart(2, "0"); return `${h % 12 || 12}:${m} ${h >= 12 ? "PM" : "AM"}`; };
 const IV = { "1m": 60e3, "3m": 180e3, "5m": 300e3, "15m": 900e3, "30m": 1800e3, "1h": 3600e3 };
@@ -38,7 +38,7 @@ function weekendClosed(ms) {                         // forex, metals and index 
   const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value);
   const m = (+p.hour % 24) * 60 + +p.minute; return p.weekday === "Sat" || (p.weekday === "Sun" && m < 1020) || (p.weekday === "Fri" && m >= 1020);
 }
-const inSession = (it, ms) => { const m = phtMin(ms), x = hm(it.from), y = hm(it.to); return (y <= x ? (m >= x || m < y) : (m >= x && m < y)) && !weekendClosed(ms); };
+const inSession = (it, ms) => { const m = sessMin(ms), x = hm(it.from), y = hm(it.to); return (y <= x ? (m >= x || m < y) : (m >= x && m < y)) && !weekendClosed(ms); };
 
 // 1) NBB on MEXC's perpetuals during your sessions
 for (const it of CFG.nbb || []) {
@@ -62,6 +62,17 @@ if (CFG.news) {
     for (const x of ev) if (x.at > NOW && x.at - NOW <= lead && (CFG.news.currencies || ["USD"]).includes(x.ccy) && (CFG.news.impact || ["High"]).includes(x.impact))
       await send(`news|${x.id}`, `☁️ 📅 <b>${esc(x.ccy)} ${esc(x.title)}</b> in ${Math.round((x.at - NOW) / 60e3)} min (${phtHM(x.at)} PHT)${x.forecast ? `\nForecast ${esc(x.forecast)} · previous ${esc(x.previous)}` : ""}`);
   } catch (e) { console.log("calendar:", e.message); }
+}
+// 3) market-moving headlines on your markets (the app's own tags and filter), straight from the feeds
+if (CFG.headlines) {
+  const tags = CFG.headlines.tags || ["GOLD", "NDX", "FED", "USD", "MACRO"], maxAge = (CFG.headlines.maxAgeMin || 20) * 60e3;
+  await Promise.all(Object.entries(F.NEWS_FEEDS).map(async ([name, url]) => {
+    try { const r = await globalThis.fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (TheFinder cloud watcher)", Accept: "application/rss+xml,application/xml,text/xml,*/*" } });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      for (const x of F.rssItems(await r.text())) { const tag = F.newsTag(x.title);
+        if (!tags.includes(tag) || !F.newsBig(x.title) || !x.t || NOW - x.t > maxAge || x.t > NOW + 5 * 60e3) continue;
+        await send(`hl|${x.title.toLowerCase().slice(0, 80)}`, `☁️ 📰 <b>${esc(tag)}</b> ${esc(x.title)}\n<i>${esc(name)} · ${phtHM(x.t)} PHT</i>${x.link ? "\n" + esc(x.link) : ""}`); } }
+    catch (e) { console.log(`headlines ${name}:`, e.message); } }));
 }
 fs.writeFileSync(STATE_FILE, JSON.stringify(state));
 console.log(`done: ${out.length} alert(s)`);

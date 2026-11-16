@@ -89,7 +89,8 @@ to run macOS's `caffeinate` while a session is on (the Mac still sleeps if you c
 
 ## Cloud watcher (alerts while the Mac is off)
 A GitHub Actions job (`.github/workflows/cloud-watch.yml`) runs `cloud/watch.mjs` every 5 minutes with the app's own NBB rules
-on MEXC's Gold and Nasdaq perpetuals during your sessions, and sends Telegram reminders before high-impact news. It can't use
+on MEXC's Gold and Nasdaq perpetuals during your sessions, sends Telegram reminders before high-impact news, and market-moving
+headlines on your markets (Gold, Nasdaq, the Fed, the dollar, and big macro: data, tariffs, wars). It can't use
 cTrader (your login never leaves your browser), so prices can differ a little from your broker's, and GitHub's schedule often
 runs a few minutes late, which matters most on M1. To turn it on, in the GitHub repo: Settings → Secrets and variables →
 Actions → add the secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and under Variables add `CLOUD_WATCH` = `on`. Markets,

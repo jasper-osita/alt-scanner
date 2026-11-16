@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.10.26.1524">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.12.1949">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -920,6 +920,31 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fcard .ft{display:flex;align-items:baseline;gap:8px}.fcard .ft b{font:700 14px var(--display);color:var(--strong)}.fcard .ft .fpx{margin-left:auto;font-variant-numeric:tabular-nums;font-size:13px}
 .fverd{align-self:flex-start;font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--pill);color:var(--mute)}.fverd.up{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}.fverd.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
 .fwhy{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.35}.fwhy li{display:flex;gap:6px}.fwhy li i{font-style:normal;flex:none;width:12px}.fwatch{font-size:12px;color:var(--amber)}
+.fcard:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* market brief (floating, page dimmed behind) */
+dialog#fbDlg{width:min(940px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;font-variant-numeric:tabular-nums}dialog#fbDlg:not([open]){display:none}
+dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62);backdrop-filter:blur(2px)}
+.fbh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px}.fbh h3{margin:0 2px 0 6px;font:700 20px var(--display);color:var(--strong)}
+.fbpx{font:600 20px var(--display);color:var(--strong);margin:0 2px 0 8px}.fbib{width:30px;height:30px;border-radius:8px;border:1px solid var(--pill-b);background:var(--pill);color:var(--text);cursor:pointer;font-size:15px;line-height:1;padding:0}.fbib:hover{background:var(--hover)}
+.fbb{flex:1;min-height:0;overflow-y:auto}.fbf{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 16px;border-top:1px solid var(--line);font-size:11.5px}.fbkeys{margin-left:auto}
+.fbkeys kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid var(--pill-b);border-bottom-width:2px;border-radius:4px;font:11px var(--font);text-align:center;color:var(--text)}
+.fbal{margin:10px 16px 0;padding:8px 10px;border-radius:8px;font-size:12.5px;line-height:1.45;background:var(--pill)}.fbal.shock{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--strong)}
+.fbal.soon,.fbal.out{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--strong)}.fbal a{color:var(--strong);text-decoration:none}.fbal a:hover{text-decoration:underline}
+.fbnew{display:inline-block;padding:0 5px;border-radius:4px;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.03em}
+.fblean{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:12px 16px;border-bottom:1px solid var(--line)}.fbvr{display:flex;align-items:center;gap:10px;font-size:12px}
+.fbmeter{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:10px 0 4px}.fbmeter i{height:9px;border-radius:3px;background:var(--pill)}
+.fbmeter i.r2{background:color-mix(in srgb,var(--red) 55%,transparent)}.fbmeter i.r1{background:color-mix(in srgb,var(--red) 28%,transparent)}.fbmeter i.g1{background:color-mix(in srgb,var(--green) 28%,transparent)}.fbmeter i.g2{background:color-mix(in srgb,var(--green) 55%,transparent)}
+.fbmeter i.on{background:var(--text);outline:2px solid var(--accent);outline-offset:1px}.fbml{display:flex;justify-content:space-between;font-size:11px;color:var(--mute)}
+.fbsay{margin:0 0 8px;font-size:13.5px;line-height:1.45}.fbtip{background:var(--pill);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45}
+.fblv{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}.fblv>div{background:var(--panel);padding:8px 12px;font-size:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fblv b{color:var(--strong);font-size:13px}.fblv1{padding:8px 16px;font-size:12px;border-bottom:1px solid var(--line)}
+.fbcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fbcols>div{min-width:0}.fbcols>div+div{border-left:1px solid var(--line)}
+.fbs{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4}.fbcols>div>.fbs:last-child{border-bottom:0}
+.fbsh{display:flex;align-items:center;gap:8px;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}.fbsh span{margin-left:auto;color:var(--mute);font-weight:500;letter-spacing:0;text-transform:none}
+.fbs .ftbl td{padding:5px 0;white-space:normal}.fbs .ftbl td+td{padding-left:8px}.fbst{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.fbccs{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.fbccs>.mu{width:42px;font-size:11.5px}.fbcc{padding:1px 6px;border-radius:5px;background:var(--pill);font-size:11.5px}.fbcc i{font-style:normal}.fbcc.on{outline:1px solid var(--accent)}
+.fbpos{display:flex;align-items:center;gap:12px}.fbnews{display:flex;flex-direction:column}.fbnews a{display:block;padding:5px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none}.fbnews a:hover .fnt{text-decoration:underline}
+@media (max-width:760px){dialog#fbDlg{max-height:94vh;width:98vw}.fblean,.fbcols{grid-template-columns:minmax(0,1fr)}.fbcols>div+div{border-left:0;border-top:1px solid var(--line)}.fblv{grid-template-columns:repeat(2,minmax(0,1fr))}.fbkeys{display:none}}
 @media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
 @media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
@@ -1345,8 +1370,27 @@ const TREND_MOVE = 8, TREND_RVOL = 1.8, FUNDING_EXTREME = 0.0005, SPOT_MIN_VOL =
 const MX_MIN_VOL = 1e6;
 const DAY_MIN_VOL = { futures: 50e6, spot: 20e6 }, SWING_MIN_VOL = 20e6, AOTS_MIN_VOL = 10e6;
 const RATE = { futures: 1500, spot: 4000 };          // request weight per minute we allow ourselves (Binance caps 2400 / 6000)
-const SESS = {"Asia":[8,9,10,11], "London":[12,13,14,15,16,17], "NY AM":[21,22,23]};
+const SESS = {"Asia":[8,9,10,11], "London":[12,13,14,15,16,17], "NY AM":[21,22,23]};   // session-clock hours (sessD below)
 const PHT_MS = 8 * 3600 * 1000;
+// Daylight saving. The session map is New York based: its times are written as PHT while New York is on summer time (the NY open at 21:30).
+// From the first Sunday of November to the second Sunday of March New York is 13 hours behind, so every session lands 1 hour later in PHT.
+// The session clock reads New York time + 12 hours: compare session times against it, and show them with sessLbl (today's real PHT).
+const DST_Y = {};
+function dstRange(y) {                               // [US start, US end, UK start, UK end] in UTC ms
+  if (DST_Y[y]) return DST_Y[y];
+  const sun = (m, n) => { const w = new Date(Date.UTC(y, m, 1)).getUTCDay(); return Date.UTC(y, m, 1 + (7 - w) % 7 + 7 * (n - 1)); };
+  const lastSun = m => { const d = new Date(Date.UTC(y, m + 1, 0)); return Date.UTC(y, m, d.getUTCDate() - d.getUTCDay()); };
+  return DST_Y[y] = [sun(2, 2) + 7 * 3600e3, sun(10, 1) + 6 * 3600e3, lastSun(2) + 3600e3, lastSun(9) + 3600e3];
+}
+const nyDst = ms => { const r = dstRange(new Date(ms).getUTCFullYear()); return ms >= r[0] && ms < r[1]; };
+const ukDst = ms => { const r = dstRange(new Date(ms).getUTCFullYear()); return ms >= r[2] && ms < r[3]; };
+const CLK_SHIFT = { ny: ms => nyDst(ms) ? 0 : 1, uk: ms => ukDst(ms) ? 0 : 1, fixed: () => 0 };   // hours a city's times land later in PHT than in its summer
+const sessShift = (ms = Date.now()) => CLK_SHIFT.ny(ms);
+const sessD = (ms = Date.now()) => new Date(ms + PHT_MS - sessShift(ms) * 3600e3);          // the session clock: read it with getUTCHours / getUTCDay
+const sessH = (ms = Date.now()) => { const d = sessD(ms); return d.getUTCHours() + d.getUTCMinutes() / 60; };
+const hLbl = h => { h = ((h % 24) + 24) % 24; const H = Math.floor(h + 1e-9), M = Math.round((h - H) * 60);
+  return H === 12 && !M ? "12:00 NN" : H === 0 && !M ? "12:00 MN" : `${H % 12 || 12}:${String(M).padStart(2, "0")} ${H >= 12 ? "PM" : "AM"}`; };   // 21.5 → "9:30 PM"
+const sessLbl = (h, ms = Date.now()) => hLbl(h + sessShift(ms));                            // a session-clock hour as that day's real PHT time
 let MODE = "futures", SPOT_BASE = SPOT_HOSTS[0];
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -1550,7 +1594,7 @@ function bestSession(k) {
   Object.keys(SESS).forEach(s => b[s] = []);
   k.t.forEach((t, i) => {
     if (t < cutoff) return;
-    const hr = new Date(t + PHT_MS).getUTCHours();
+    const hr = sessD(t).getUTCHours();
     for (const [s, hrs] of Object.entries(SESS)) if (hrs.includes(hr)) b[s].push((k.h[i] - k.l[i]) / k.c[i] * 100);
   });
   const avg = {}; for (const [s, v] of Object.entries(b)) if (v.length) avg[s] = r2(v.reduce((x, y) => x + y, 0) / v.length);
@@ -1852,18 +1896,18 @@ function nbbLong(k, a) {
 }
 /* NBB A-grade: the three checks that held on the study coins, 111 other coins and the 6 months before (all fresh breakouts, 3R target, 48h).
    A-grade: about 40% close in profit, +0.14 to +0.28R per trade after fees. The rest: −0.02 to −0.11R. */
-const NBB_WIN = [8, 19.5];                                 // PHT hours: Asia, London and the London lunch hour
+const NBB_WIN = [8, 19.5];                                 // session-clock hours: Asia, London and the London lunch hour (8:00 AM – 7:30 PM PHT in US summer)
 const NBB_MAX_AGE = 74;                                    // 1H candles the trend has been stacked (about 3 days)
 function nbbGrade(m, btcDir1, btcDir4, T) {
   if (!m || m.model !== "NBB" || m.missed) return null;
-  const d = new Date((T ?? Date.now()) + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  const T0 = T ?? Date.now(), d = new Date(T0 + PHT_MS), h = sessH(T0);
   const hh = d.getUTCHours() % 12 || 12, ap = d.getUTCHours() >= 12 ? "PM" : "AM", at = `${hh}:${String(d.getUTCMinutes()).padStart(2, "0")} ${ap}`;
   const inWin = h >= NBB_WIN[0] && h < NBB_WIN[1], w = x => x === "Long" ? "up" : "down";
   const btcOk = btcDir1 === m.dir && btcDir4 === m.dir, age = m.trendAge;
   const items = [
     ["BTC", btcOk, `BTC 1H ${btcDir1 ? "stacked " + w(btcDir1) : "tangled"}, 4H ${btcDir4 ? "stacked " + w(btcDir4) : "tangled"}${btcOk ? ": both with you" : ": needs both with you"}`],
     ["Young trend", age != null && age <= NBB_MAX_AGE, age == null ? "trend age unknown" : `1H stacked for ${age} candle${age === 1 ? "" : "s"} (${NBB_MAX_AGE} or fewer, about 3 days)`],
-    ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the 8:00 AM – 7:30 PM window`]];
+    ["Time", inWin, `${m.trig ? "broke out at" : "now"} ${at} PHT, ${inWin ? "inside" : "outside"} the ${sessLbl(NBB_WIN[0], T0)} – ${sessLbl(NBB_WIN[1], T0)} window`]];
   return { pass: items.every(x => x[1]), n: items.filter(x => x[1]).length, of: items.length, items };
 }
 /* V-Trade A-grade: a with-trend V while BTC agrees. Tested on the same three data sets (2R, 48h):
@@ -2052,7 +2096,7 @@ function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
    1 bias (4H, else Daily) → 2 POI: session high/low, PDH/PDL or an unfilled 1H/4H FVG → 3 price interacts with the POI →
    4 on the 15m it sweeps the local lows → 5 a strong change in state of delivery engulfs the sweep candle →
    6 the order block it leaves → 7 limit order at the OB. Missing any one = no trade. Written for longs; shorts run mirrored. */
-const OB_SESS = [["Asia", 0, 240], ["London", 240, 600], ["New York", 810, 1200]];     // UTC minutes (PHT 8 AM–12 NN, 12 NN–6 PM, 9:30 PM–4 AM)
+const OB_SESS = [["Asia", 0, 240], ["London", 240, 600], ["New York", 810, 1200]];     // UTC minutes in US summer (PHT 8 AM–12 NN, 12 NN–6 PM, 9:30 PM–4 AM); 1 hour later in US winter
 const obLastClosed = (k, iv, T) => { let i = k.t.length - 1; while (i >= 0 && k.t[i] + iv > T) i--; return i; };
 const stDir = st => /^(Bull stack|Pullback in bull)$/.test(st) ? "Long" : /^(Bear stack|Pullback in bear)$/.test(st) ? "Short" : null;
 function obFVGs(k, label, look) {                         // unfilled bullish gaps (bearish ones on a mirrored chart)
@@ -2070,7 +2114,7 @@ function obPOIs(k15, k1, k4, kd, T) {
   const jd = obLastClosed(kd, D, T); if (jd >= 0) pois.push({ kind: "swing", label: "Previous Day Low", lv: kd.l[jd] });
   for (let day = Math.floor(T / D) * D - D; day <= T; day += D) {        // completed sessions in the last ~30 hours
     for (const [name, a, b] of OB_SESS) {
-      const st = day + a * 60e3, en = day + b * 60e3; if (en > T || en < T - 30 * 3600e3) continue;
+      const sh = sessShift(day + a * 60e3) * 3600e3, st = day + a * 60e3 + sh, en = day + b * 60e3 + sh; if (en > T || en < T - 30 * 3600e3) continue;
       let lo = Infinity; for (let i = 0; i < k15.t.length; i++) if (k15.t[i] >= st && k15.t[i] + Q <= en) lo = Math.min(lo, k15.l[i]);
       if (isFinite(lo)) pois.push({ kind: "swing", label: `${name} Low`, lv: lo });
     }
@@ -2903,6 +2947,7 @@ function nyAt(y, m, d, hh = 9, mm = 30) {           // a New York wall-clock tim
   return guess - off;
 }
 const ymd = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+const fomcAt = s => { const [y, m, d] = s.split("-").map(Number); return nyAt(y, m, d, 14, 0); };      // the decision, 2:00 PM New York
 function nthWd(y, m, wd, n) { const first = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); return 1 + ((wd - first + 7) % 7) + 7 * (n - 1); }
 function lastWd(y, m, wd) { const days = new Date(Date.UTC(y, m, 0)).getUTCDate(), last = new Date(Date.UTC(y, m - 1, days)).getUTCDay(); return days - ((last - wd + 7) % 7); }
 function easter(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
@@ -2949,6 +2994,19 @@ const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO",
 const NDX_T2 = ["AMD", "PLTR", "ASML", "TMUS", "CSCO", "PEP", "LIN", "INTU", "ISRG", "AMGN", "ADBE", "QCOM", "TXN", "BKNG", "AMAT", "MU", "LRCX", "KLAC", "ADI", "PANW", "SHOP", "ARM", "APP",
   "CMCSA", "HON", "ADP", "VRTX", "GILD", "SBUX", "MELI", "CRWD", "INTC", "MSTR", "CDNS", "SNPS", "MRVL", "ABNB", "PYPL", "FTNT", "ORLY", "CTAS", "MAR", "REGN", "WDAY", "DASH", "TTD", "DDOG"];
 function earnImpact(sym, capUsd) { return NDX_T1.includes(sym) ? "High" : NDX_T2.includes(sym) || capUsd >= 300e9 ? "Medium" : "Low"; }
+// headlines: tags, what counts as market-moving, an RSS reader that needs no browser and the feeds (the app reads them through its relays)
+const NEWS_TAGS = [["FED", /\b(Fed|FOMC|Powell|Waller|Williams|rate cut|rate hike)\b/i], ["GOLD", /\b(gold|bullion|XAU)\b/i], ["NDX", /\b(Nasdaq|Nvidia|Apple|Microsoft|Tesla|Meta|Alphabet|tech stocks|S&P 500|Wall Street)\b/i],
+  ["OIL", /\b(oil|OPEC|crude|Brent|WTI)\b/i], ["JPY", /\b(yen|BoJ|Ueda|USD\/JPY)\b/i], ["EUR", /\b(euro|ECB|Lagarde|EUR\/USD)\b/i], ["GBP", /\b(pound|sterling|BoE|Bailey|GBP\/USD)\b/i], ["USD", /\b(dollar|DXY|Treasur(y|ies)|yields?)\b/i], ["CRYPTO", /\b(bitcoin|crypto|ether|BTC|ETF flows?)\b/i], ["MACRO", /\b(CPI|inflation|payrolls|NFP|jobs report|jobless|unemployment|GDP|PCE|retail sales|tariffs?|trade war|sanctions?|war|missiles?|attacks?|invasion|ceasefire|shutdown|default|downgrade[sd]?|Trump|White House)\b/i]];
+const NEWS_BIG = /\b(breaking|flash|urgent|just in|unexpected(ly)?|surprise[sd]?|emergency|intervention|intervene[sd]?|rate (cut|hike)s?|(cuts|hikes|raises|holds|keeps) (interest )?rates|FOMC|Powell|Fed chair|CPI|inflation|payrolls|NFP|jobs report|unemployment rate|GDP|PCE|tariffs?|sanctions?|war|missiles?|attacks?|invasion|ceasefire|default|downgrade[sd]?|shutdown|halt(ed|s)?|plunges?|plummets?|soars?|surges?|crash(es|ed)?|tumbles?|spikes?|record high|all-time high)\b/i;
+const newsTag = t => (NEWS_TAGS.find(([, re]) => re.test(t)) || [""])[0];
+const newsBig = t => NEWS_BIG.test(t);
+function rssItems(xml) {
+  const un = s => String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&").trim();
+  return (String(xml || "").match(/<item[\s>][\s\S]*?<\/item>/g) || []).map(it => { const g = tag => { const m = it.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`)); return m ? un(m[1]) : ""; };
+    return { title: g("title"), link: g("link"), t: Date.parse(g("pubDate")) || Date.parse(g("dc:date")) || 0 }; }).filter(x => x.title);
+}
+const NEWS_FEEDS = { fxstreet: "https://www.fxstreet.com/rss/news", marketwatch: "https://feeds.content.dowjones.io/public/rss/mw_topstories", investing: "https://www.investing.com/rss/news_25.rss",
+  coindesk: "https://www.coindesk.com/arc/outboundfeeds/rss/", financialjuice: "https://www.financialjuice.com/feed.ashx?xy=rss" };
 </script>
 <script>/* ===================== UI ===================== */
 const $ = id => document.getElementById(id);
@@ -2965,17 +3023,24 @@ function fmtPHT(d) {
   let h = d.getUTCHours(), m = String(d.getUTCMinutes()).padStart(2, "0"), ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12;
   return `${days[d.getUTCDay()]}, ${h}:${m} ${ap} PHT`;
 }
-function buildRibbon() { $("bar").innerHTML = SEGMENTS.map(s => `<div class="seg" data-s="${s.s}" data-e="${s.e}" style="flex:${s.e - s.s}" title="${s.name}">${s.e - s.s >= 1.5 ? s.name : ""}</div>`).join(""); }
+let ribbonShift = null;
+function buildRibbon() {                                 // the PHT day, 0–24; sessions slide 1 hour later while New York is on winter time
+  const sh = ribbonShift = sessShift(), segs = [];
+  SEGMENTS.forEach(x => { const s = x.s + sh, e = x.e + sh; if (e > 24) { segs.push({ ...x, s, e: 24 }, { ...x, s: 0, e: e - 24 }); } else segs.push({ ...x, s, e }); });
+  segs.sort((a, b) => a.s - b.s);
+  $("bar").innerHTML = segs.map(s => `<div class="seg" data-s="${s.s}" data-e="${s.e}" style="flex:${s.e - s.s}" title="${s.name}">${s.e - s.s >= 1.5 ? s.name : ""}</div>`).join("");
+}
 let sessTick = 0;
 function tickClock() {
   if (data && data.env && ++sessTick % 2 === 0 && typeof renderSessions === "function") renderSessions();
-  const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
+  if (ribbonShift !== sessShift()) buildRibbon();
+  const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6, sh = ribbonShift, hs = sessH();
   $("clock").innerHTML = `<b>${fmtPHT(d)}</b>${weekend ? " · weekend, thin liquidity" : ""}${data ? ` · last scan ${fmtPHT(new Date(Date.parse(data.at) + PHT_MS)).split(", ")[1]}` : ""}`;
   let cur = "";
-  document.querySelectorAll(".seg").forEach(el => { const on = h >= +el.dataset.s && h < +el.dataset.e; el.classList.toggle("on", on); if (on) cur = el.title; el.classList.toggle("window", +el.dataset.s >= NBB[0] && +el.dataset.e <= NBB[1]); });
+  document.querySelectorAll(".seg").forEach(el => { const on = h >= +el.dataset.s && h < +el.dataset.e; el.classList.toggle("on", on); if (on) cur = el.title; el.classList.toggle("window", +el.dataset.s >= NBB[0] + sh && +el.dataset.e <= NBB[1] + sh); });
   $("now").style.left = ($("bar").getBoundingClientRect().width * h / 24) + "px";
-  const toWin = h < NBB[0] ? NBB[0] - h : (h >= NBB[1] ? 24 - h + NBB[0] : 0);
-  $("sessNote").innerHTML = toWin === 0 ? `<b>NBB window is open</b> until 7:30 PM (London, 12–6 PM, is the best of it).` : `Now in ${cur}. NBB window opens in <b>${Math.floor(toWin)}h ${Math.round((toWin % 1) * 60)}m</b> (8:00 AM).`;
+  const toWin = hs < NBB[0] ? NBB[0] - hs : (hs >= NBB[1] ? 24 - hs + NBB[0] : 0);
+  $("sessNote").innerHTML = toWin === 0 ? `<b>NBB window is open</b> until ${sessLbl(NBB[1])} (London, ${sessLbl(12)} – ${sessLbl(18)}, is the best of it).` : `Now in ${cur}. NBB window opens in <b>${Math.floor(toWin)}h ${Math.round((toWin % 1) * 60)}m</b> (${sessLbl(NBB[0])}).`;
 }
 
 /* ---- formatting ---- */
@@ -3616,7 +3681,7 @@ const MODELS = {
       "<b>Basing</b> = price still inside the base; mark its high and low", "<b>Breakout</b> = the candle that just closed broke out beyond the base edge in the trend direction, body ≥ 1.5× the base's average body",
       "<b>Missed breakout</b> = it broke out 1–2 candles ago: no trigger, don't chase. Wait for the next base or a retest of the base edge",
       "Leaked out on small candles = drift, rejected", "Also reports: FVG left, base swept first, base # (2nd is prime), room to the next swing level ≥ 2R",
-      "<b>A-grade</b> needs all three: BTC stacked with you on both the 1H and the 4H · the 1H trend stacked for 74 candles or fewer (about 3 days) · the breakout closes between 8:00 AM and 7:30 PM PHT"],
+      "<b>A-grade</b> needs all three: BTC stacked with you on both the 1H and the 4H · the 1H trend stacked for 74 candles or fewer (about 3 days) · the breakout closes between 8:00 AM and 7:30 PM PHT (9:00 AM – 8:30 PM while New York is on winter time, November to March)"],
     trade: "Enter at the breakout close. Stop just beyond the far side of the base (don't tighten it). One target at 3R; if neither the stop nor 3R is hit within 48 hours, close at market.", grade: "A-grade when all three checks pass. Tested on 71 coins, 111 other coins and the 6 months before: A-grade NBB closed in profit about 40% of the time for +0.14 to +0.28R per trade after fees (3R target, 48 hours); NBB failing any check averaged −0.02 to −0.11R. Expect losing streaks of 8–10 trades." },
   "Bounce": { icon: "⤴️", name: "Bounce (OEZ)", tf: "1H", alias: "OEZ",
     what: "With-trend continuation. After an impulse leg, price pulls back into the OEZ (62–79% fib of that leg), taps a fresh POI and continues. Buying the discount inside a trend, not calling a reversal.",
@@ -3648,7 +3713,7 @@ const MODELS = {
     trade: "Enter on a with-pullback trigger mid-leg. TP at the 4H OEZ near edge only. Stop beyond the last LTF swing.", grade: "Caps at B-Silver, 2R. New model: hypothesis until the scoreboard proves it." },
   "ORB": { icon: "⭕", name: "ORB (Opening Range Breakout)", tf: "15m",
     what: "The NY opening range (first 15 minutes after 9:30 NY) is the base; trade a displacing close outside it. A Next-Base Breakout anchored to the session's first base.",
-    rules: ["Range = the 9:30–9:45 NY 15m candle (9:30 PM PHT now; 10:30 PM PHT after US daylight saving ends Nov 1)", "<b>Range set</b> = marked, no break yet",
+    rules: ["Range = the 9:30–9:45 NY 15m candle (9:30 PM PHT while New York is on summer time, 10:30 PM PHT from November to March)", "<b>Range set</b> = marked, no break yet",
       "<b>Broke the range</b> = 15m close outside it with body ≥ 1.5× average", "<b>Sweep, then break</b> = the opposite side was swept first (A-grade)", "Only shown 9:30–10:30 NY, and only for the day-trade candidates (they're the coins with 15m data)"],
     trade: "Enter the breakout close or the retest of the broken edge. Stop beyond the far side of the range. 2–3R, hard close by 11:00 NY.", grade: "Sweep-then-break with trend = A; clean break = B." },
   "Leader": { icon: "🦅", name: "Leader Pullback (Claude's day setup)", tf: "1H",
@@ -4367,12 +4432,12 @@ function renderScorecard() {
 
 /* ===================== Session Picks: what to day trade in Asia, London and New York ===================== */
 const SESSION_DEFS = [
-  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, window: "8:00 AM – 12:00 NN", models: ["NBB", "Leader", "Bounce", "Breaker", "V-Trade"] },
-  { key: "London", label: "🇬🇧 London", start: 12, end: 18, window: "12:00 NN – 6:00 PM", models: ["NBB", "Leader", "Bounce", "Breaker", "Fade"] },
-  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, window: "9:30 PM – 12:00 MN", models: ["ORB", "AMD", "Leader", "Bounce"] },
+  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, models: ["NBB", "Leader", "Bounce", "Breaker", "V-Trade"] },
+  { key: "London", label: "🇬🇧 London", start: 12, end: 18, models: ["NBB", "Leader", "Bounce", "Breaker", "Fade"] },
+  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, models: ["ORB", "AMD", "Leader", "Bounce"] },
 ];
 function sessionStatus(def) {
-  const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  const h = sessH();
   const fmt = x => `${Math.floor(x)}h ${Math.round((x % 1) * 60)}m`;
   if (h >= def.start && h < def.end) return { cls: "live", text: `Live now · ends in ${fmt(def.end - h)}`, order: 0 };
   if (h < def.start) return { cls: "soon", text: `Starts in ${fmt(def.start - h)}`, order: 1 + (def.start - h) / 24 };
@@ -4423,7 +4488,7 @@ function renderSessions() {
   const nextKey = defs.slice().sort((a, b) => a.st.order - b.st.order)[0].d.key;
   el.innerHTML = defs.map(({ d, st }) => `
     <div class="sess ${st.cls} ${d.key === nextKey ? "next" : ""}">
-      <div class="sesshead"><h3>${d.label}</h3><span class="sesstime">${d.window} PHT</span></div>
+      <div class="sesshead"><h3>${d.label}</h3><span class="sesstime">${sessLbl(d.start)} – ${sessLbl(d.end)} PHT</span></div>
       <div class="sessstat ${st.cls}">${st.text}${d.key === nextKey && st.cls !== "live" ? " · up next" : ""}</div>
       ${picks[d.key].length ? picks[d.key].map((x, i) => { const p = coinPlay(x.r), lv = p.lv;
         return `<div class="row" data-s="${x.r.symbol}" tabindex="0" role="button">
@@ -4439,7 +4504,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.10.26.1524";
+const APP_VERSION = "2026.11.12.1949";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4868,8 +4933,8 @@ const btUse = () => { try { return localStorage.getItem(BT_USE_KEY) !== "off"; }
 const IV_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
 const MODEL_HOLD_H = { Reset20: 240, OB: 12 };                     // swing setups can be held up to 10 days
 const SESS_LABELS = ["🇯🇵 Asia", "🇬🇧 London", "🇬🇧 Lunch", "🇺🇸 Pre-NY", "🇺🇸 NY AM", "🇺🇸 NY PM", "💤 Out"];
-function sessOf(ms) {                                   // your session map, PHT
-  const d = new Date(ms + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+function sessOf(ms) {                                   // your session map, on the session clock (1 hour later in PHT while New York is on winter time)
+  const h = sessH(ms);
   return h >= 8 && h < 12 ? "🇯🇵 Asia" : h >= 12 && h < 18 ? "🇬🇧 London" : h >= 18 && h < 19.5 ? "🇬🇧 Lunch" : h >= 19.5 && h < 21.5 ? "🇺🇸 Pre-NY"
        : h >= 21.5 ? "🇺🇸 NY AM" : h < 4 ? "🇺🇸 NY PM" : "💤 Out";
 }
@@ -6269,6 +6334,7 @@ function ncGo(id) {                                  // open the market behind a
   if (ncOpen()) ncShow(false);
   ncDropToast(id);
   if (n.action === "ctrader") { goPage("macro"); openCTSettings(); return; }
+  if (n.action === "brief") { goPage("fund"); if (typeof fbOpen === "function") setTimeout(() => fbOpen(n.mk), 60); return; }      // a headline or a release read: that market's brief
   if (!n.sym) return;
   if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
   if (n.sym.startsWith("CT:") || isMX(n.sym) || TRADFI_SYMS.has(n.sym)) { goPage("macro"); toast(`<b>${coin(n.sym)}</b> loads with the Forex, Gold &amp; Indices page; open it there.`); return; }
@@ -6278,7 +6344,7 @@ function ncToast(n) {
   const box = $("ncToasts"), el = document.createElement("div");
   el.className = "nctoast"; el.dataset.t = n.id; el.style.setProperty("--nc", NC_TONE[n.tone] || NC_TONE.gold); el.setAttribute("role", "status");
   el.innerHTML = `<span class="ncic" aria-hidden="true">${ncEsc(n.icon)}</span><div class="ncbody"><div class="nct">${n.sym ? `<b>${ncEsc(coin(n.sym))}</b>` : ""}${ncEsc(n.title)}</div>${n.detail ? `<div class="ncd">${ncEsc(n.detail)}</div>` : ""}
-    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
+    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : n.action === "brief" ? "Open brief" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
   const go = el.querySelector(".go"); if (go) go.onclick = () => ncGo(n.id);
   el.querySelector(".no").onclick = () => ncDropToast(n.id);
   let timer = null; const arm = () => { clearTimeout(timer); timer = setTimeout(() => ncDropToast(n.id), matchMedia("(max-width:760px)").matches ? 5000 : 8000); };
@@ -7239,7 +7305,7 @@ function chIndSettings(I, back) {
         const v = p[x.k], id = "ci_" + x.k;
         const ctl = x.t === "bool" ? `<input type="checkbox" id="${id}" data-in="${x.k}" ${v ? "checked" : ""}>`
           : x.t === "sel" || x.t === "src" ? `<select id="${id}" data-in="${x.k}">${(x.t === "src" ? IND_SRC : x.o).map(o => `<option ${o === v ? "selected" : ""}>${o}</option>`).join("")}</select>`
-          : x.t === "time" ? `<input type="time" id="${id}" data-in="${x.k}" value="${chEsc(v)}">`
+          : x.t === "time" ? `<input type="time" id="${id}" data-in="${x.k}" value="${chEsc(x.z ? indShiftT(v, CLK_SHIFT[indZone(x, p)](Date.now())) : v)}">`
           : x.t === "text" ? `<input type="text" id="${id}" data-in="${x.k}" value="${chEsc(v)}" maxlength="24">`
           : `<input type="number" id="${id}" data-in="${x.k}" value="${v}" ${x.min != null ? `min="${x.min}"` : ""} ${x.max != null ? `max="${x.max}"` : ""} step="${x.step || (x.t === "int" ? 1 : "any")}">`;
         return h + `<div class="chsr ${x.t === "bool" ? "chk" : ""}"><label for="${id}">${chEsc(x.l)}</label>${ctl}</div>`; }).join("");
@@ -7247,7 +7313,8 @@ function chIndSettings(I, back) {
         const x = D.inputs.find(y => y.k === el.dataset.in); let v = el.type === "checkbox" ? el.checked : el.value;
         if (x.t === "int" || x.t === "num") { v = x.t === "int" ? parseInt(v, 10) : parseFloat(v); if (!isFinite(v)) return; if (x.min != null) v = Math.max(x.min, v); if (x.max != null) v = Math.min(x.max, v); }
         if (x.t === "time" && indParseT(v) == null) return;
-        I.p = { ...I.p, [x.k]: v }; apply(); }));
+        if (x.t === "time" && x.z) v = indShiftT(v, -CLK_SHIFT[indZone(x, { ...indDefaults(I.type), ...I.p })](Date.now()));
+        I.p = { ...I.p, [x.k]: v }; apply(); if (x.zsel) render(); }));
     } else if (tab === "style") {
       const S = I.s = I.s || {}, row = (lbl, inner, on, key) => `<div class="chsr sty">${on != null ? `<input type="checkbox" ${on ? "checked" : ""} data-on="${key}" aria-label="Show ${chEsc(lbl)}">` : "<i></i>"}<label>${chEsc(lbl)}</label><span class="ctl">${inner}</span></div>`;
       const wsel = (k, w) => `<select data-w="${k}" aria-label="Line width">${[1, 2, 3, 4].map(n => `<option value="${n}" ${n === w ? "selected" : ""}>${n}px</option>`).join("")}</select>`;
@@ -7327,6 +7394,10 @@ const IND_CATS = [["fav", "Favorites"], ["on", "On chart"], ["Moving averages", 
 const IND_UTC_DAY = 864e5, IND_HR = 3600e3;
 const indFmtT = (h, m) => `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 const indParseT = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "").trim()); return m ? (+m[1] % 24) + (+m[2]) / 60 : null; };
+// time inputs that follow a city's clocks: kept as PHT during that city's summer time, shown and painted 1 hour later in its winter
+const IND_ZONES = ["New York", "London", "Doesn't move"], IND_Z = { "New York": "ny", "London": "uk", "Doesn't move": "fixed" };
+const indZone = (x, p) => IND_Z[typeof x.z === "function" ? x.z(p) : x.z] || "fixed";
+const indShiftT = (s, hrs) => { const h = indParseT(s); if (h == null || !hrs) return s; const mins = Math.round((((h + hrs) % 24) + 24) % 24 * 60) % 1440; return indFmtT(Math.floor(mins / 60), mins % 60); };
 /* higher-timeframe and daily candles used by some indicators (levels, pivots, MTF fair value gaps) */
 const IND_HTF = {};
 function indHTF(sym, tf, n = 300) {
@@ -7461,10 +7532,10 @@ const IND = {
     inputs: [{ k: "len", l: "Length", t: "int", d: 9, min: 1 }, { k: "src", l: "Source", t: "src", d: "close" }], plots: [{ k: "roc", l: "ROC", c: "#2962ff" }], levels: [{ v: 0, l: "Zero line" }],
     title: p => `ROC ${p.len} ${p.src}`, calc(P, p) { const s = TA.src(P, p.src); return { roc: s.map((v, i) => i >= p.len && s[i - p.len] ? (v - s[i - p.len]) / s[i - p.len] * 100 : null) }; } },
   /* ---- painted on the chart (sessions, levels, gaps, vertical lines) ---- */
-  sess: { name: "Sessions", short: "Sessions", cat: "Sessions & levels", desc: "Asia, London, Pre-NY and NY AM boxes (times in PHT)", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
+  sess: { name: "Sessions", short: "Sessions", cat: "Sessions & levels", desc: "Asia, London, Pre-NY and NY AM boxes (times in PHT; they move 1 hour later while New York is on winter time)", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
     inputs: [1, 2, 3, 4, 5].flatMap(j => { const s = CH_SESS[j - 1] || ["Extra", 0, 4, "120,123,134"]; return [
       { k: "on" + j, l: `Session ${j}`, t: "bool", d: j <= 4, grp: `Session ${j}` }, { k: "n" + j, l: "Name", t: "text", d: s[0], grp: `Session ${j}` },
-      { k: "a" + j, l: "Start (PHT)", t: "time", d: indFmtT(Math.floor(s[1]), Math.round(s[1] % 1 * 60)), grp: `Session ${j}` }, { k: "b" + j, l: "End (PHT)", t: "time", d: indFmtT(Math.floor(s[2]) % 24, Math.round(s[2] % 1 * 60)), grp: `Session ${j}` }]; })
+      { k: "a" + j, l: "Start (PHT)", t: "time", z: "New York", d: indFmtT(Math.floor(s[1]), Math.round(s[1] % 1 * 60)), grp: `Session ${j}` }, { k: "b" + j, l: "End (PHT)", t: "time", z: "New York", d: indFmtT(Math.floor(s[2]) % 24, Math.round(s[2] % 1 * 60)), grp: `Session ${j}` }]; })
       .concat([{ k: "lbl", l: "Show names", t: "bool", d: true }, { k: "box", l: "Outline", t: "bool", d: true }]),
     colors: [1, 2, 3, 4, 5].map(j => ({ k: "c" + j, l: `Session ${j}`, c: "#" + (CH_SESS[j - 1] ? CH_SESS[j - 1][3] : "120,123,134").split(",").map(x => (+x).toString(16).padStart(2, "0")).join("") })),
     fills: [{ k: "bg", l: "Box fill", c: "#808080", al: 0.10, noColor: true }],
@@ -7475,7 +7546,7 @@ const IND = {
       for (let j = 1; j <= 5; j++) { if (!p["on" + j]) continue; const a = indParseT(p["a" + j]), b0 = indParseT(p["b" + j]); if (a == null || b0 == null) continue;
         const b = b0 <= a ? b0 + 24 : b0, col = st.col["c" + j];
         for (let day = Math.floor((t0 + PHT_MS) / D) * D - PHT_MS - D; day <= t1; day += D) {
-          const s = day + a * IND_HR, e = day + b * IND_HR, i0 = Math.max(0, chIdx(P, s - 1) + 1); let hi = -Infinity, lo = Infinity, i = i0;
+          const sh = sessShift(day + a * IND_HR) * IND_HR, s = day + a * IND_HR + sh, e = day + b * IND_HR + sh, i0 = Math.max(0, chIdx(P, s - 1) + 1); let hi = -Infinity, lo = Infinity, i = i0;
           for (; i < P.t.length && P.t[i] < e; i++) { hi = Math.max(hi, P.h[i]); lo = Math.min(lo, P.l[i]); }
           if (i === i0 || !isFinite(hi) || P.t[i0] >= e) continue;
           const x0 = chX(P, P.t[i0]) - bs / 2, x1 = chX(P, P.t[i - 1] + iv) - bs / 2, y0 = chY(P, hi), y1 = chY(P, lo);
@@ -7485,14 +7556,15 @@ const IND = {
           if (p.lbl && x1 - x0 > 34) { g.font = "11px " + chFont(); g.fillStyle = chHexA(col, 0.95); g.textAlign = "center"; g.textBaseline = "top"; g.fillText(p["n" + j], (x0 + x1) / 2, y0 + 3); g.textAlign = "left"; }
         } } } },
   vlines: { name: "Vertical Lines (time of day)", short: "Time lines", cat: "Sessions & levels", desc: "Lines at chosen times every day, e.g. midnight New York or the NY open", canvasOnly: true, defVis: ["1m", "3m", "5m", "15m", "30m", "1h"],
-    inputs: [1, 2, 3, 4].flatMap(j => { const d = [["NY midnight", "12:00"], ["NY open", "21:30"], ["London open", "15:00"], ["Asia open", "08:00"]][j - 1]; return [
-      { k: "on" + j, l: `Line ${j}`, t: "bool", d: j <= 2, grp: `Line ${j}` }, { k: "n" + j, l: "Label", t: "text", d: d[0], grp: `Line ${j}` }, { k: "t" + j, l: "Time (PHT)", t: "time", d: d[1], grp: `Line ${j}` }]; }),
+    inputs: [1, 2, 3, 4].flatMap(j => { const d = [["NY midnight", "12:00", "New York"], ["NY open", "21:30", "New York"], ["London open", "15:00", "London"], ["Asia open", "08:00", "Doesn't move"]][j - 1]; return [
+      { k: "on" + j, l: `Line ${j}`, t: "bool", d: j <= 2, grp: `Line ${j}` }, { k: "n" + j, l: "Label", t: "text", d: d[0], grp: `Line ${j}` },
+      { k: "z" + j, l: "Moves with daylight saving in", t: "sel", o: IND_ZONES, d: d[2], zsel: true, grp: `Line ${j}` }, { k: "t" + j, l: "Time (PHT)", t: "time", z: p => p["z" + j], d: d[1], grp: `Line ${j}` }]; }),
     colors: [{ k: "c1", l: "Line 1", c: "#9a9ca1" }, { k: "c2", l: "Line 2", c: "#2962ff" }, { k: "c3", l: "Line 3", c: "#9c27b0" }, { k: "c4", l: "Line 4", c: "#e8b04a" }], title: () => "Time lines",
     paint(g, P, I, V, k) {
       const r = P.chart.timeScale().getVisibleLogicalRange(); if (!r || !P.t.length) return; const H = k.H, D = IND_UTC_DAY;
       const t0 = chTimeAt(P, Math.floor(r.from)), t1 = chTimeAt(P, Math.ceil(r.to));
-      for (let j = 1; j <= 4; j++) { if (!I.p["on" + j]) continue; const hh = indParseT(I.p["t" + j]); if (hh == null) continue; const col = k.st.col["c" + j];
-        for (let day = Math.floor((t0 + PHT_MS) / D) * D - PHT_MS; day <= t1 + D; day += D) { const t = day + hh * IND_HR; if (t < t0 || t > t1) continue; const x = chX(P, t); if (x == null) continue;
+      for (let j = 1; j <= 4; j++) { if (!I.p["on" + j]) continue; const hh = indParseT(I.p["t" + j]); if (hh == null) continue; const col = k.st.col["c" + j], zf = CLK_SHIFT[IND_Z[I.p["z" + j]] || "fixed"];
+        for (let day = Math.floor((t0 + PHT_MS) / D) * D - PHT_MS - D; day <= t1 + D; day += D) { const t0d = day + hh * IND_HR, t = t0d + zf(t0d) * IND_HR; if (t < t0 || t > t1) continue; const x = chX(P, t); if (x == null) continue;
           g.strokeStyle = col; g.lineWidth = 1; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); g.setLineDash([]);
           g.font = "10.5px " + chFont(); g.fillStyle = col; g.textBaseline = "top"; g.fillText(I.p["n" + j], x + 3, 3); } } } },
   levels: { name: "Previous Day / Week / Month High & Low", short: "Levels", cat: "Sessions & levels", desc: "Yesterday's, last week's and last month's highs and lows, plus today's open", canvasOnly: true,
@@ -8397,8 +8469,8 @@ function ovcSyms(mode) {                           // your last pick, else Bitco
   const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
   return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
 }
-function ovcSessTf(sym) {                         // the timeframe a session asks for (PHT, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
-  if (!sym) return null; const d = new Date(Date.now() + PHT_MS), wd = d.getUTCDay(), h = d.getUTCHours() + d.getUTCMinutes() / 60;
+function ovcSessTf(sym) {                         // the timeframe a session asks for (session clock, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
+  if (!sym) return null; const d = sessD(), wd = d.getUTCDay(), h = sessH();
   if (wd < 1 || wd > 5) return null; const n = chName(sym);
   if (/Nasdaq 100/.test(n) && h >= 21.5) return "1m";
   if (/^Gold/.test(n) && h >= 12 && h < 18) return "5m";
@@ -8406,6 +8478,7 @@ function ovcSessTf(sym) {                         // the timeframe a session ask
 }
 function ovcSessApply(load) {                     // switch on entering or leaving a session window only, so your own pick inside the window stands
   if (OVC.on !== "x") return; const o = OVC.st.x || {}, ps = [CHP[0], CHP[1]];
+  if ($("ovcAuto")) $("ovcAuto").title = `Nasdaq 100 switches to 1m for the US open (${sessLbl(21.5)} to ${sessLbl(24)}) and Gold to 5m for London (${sessLbl(12)} to ${sessLbl(18)}) on weekdays, then back to your own pick`;
   let want = ps.map(P => o.auto !== false ? ovcSessTf(P.psym) : null);
   if (o.link) { const w = want.find(Boolean) || null; want = want.map(() => w); }
   ps.forEach((P, i) => { const key = (want[i] || "") + "|" + P.psym; if (P.sessKey === key) return; P.sessKey = key;
@@ -9578,11 +9651,11 @@ function nwCcys(name) {
   return /DAX|Euro Stoxx|CAC/.test(name) ? ["EUR", "USD"] : /FTSE/.test(name) ? ["GBP", "USD"] : /Nikkei/.test(name) ? ["JPY", "USD"] : /Hang Seng/.test(name) ? ["CNY", "USD"] : /ASX/.test(name) ? ["AUD", "USD"] : ["USD"];
 }
 const hm = s => { const [h, m] = String(s || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
-function nwSession(it, now = Date.now()) {
-  const d = new Date(now + PHT_MS), m = d.getUTCHours() * 60 + d.getUTCMinutes(), a = hm(it.from), b = hm(it.to), wrap = b <= a;
+function nwSession(it, now = Date.now()) {               // from/to are kept on the session clock (PHT in US summer) and land 1 hour later in PHT in US winter
+  const d = sessD(now), m = d.getUTCHours() * 60 + d.getUTCMinutes(), a = hm(it.from), b = hm(it.to), wrap = b <= a;
   const on = wrap ? (m >= a || m < b) : (m >= a && m < b), closed = typeof fxSession === "function" && fxSession(now).cls === "closed";
   const toStart = ((a - m) + 1440) % 1440, toEnd = ((b - m) + 1440) % 1440;
-  const fm = x => phtHM(Date.UTC(2000, 0, 1, Math.floor(x / 60), x % 60) - PHT_MS);
+  const fm = x => hLbl(x / 60 + sessShift(now));
   return { on: on && !closed, closed, soon: !on && toStart <= 15, label: closed ? "Market closed (weekend)" : on ? `In session until ${fm(b)} · ${inTxt(toEnd * 60e3)} left` : `Session ${fm(a)}–${fm(b)} · opens in ${inTxt(toStart * 60e3)}` };
 }
 async function nwFetch(it) {
@@ -9680,13 +9753,13 @@ function nwEditor() {
   const names = nwNames(), tfs = ["1m", "3m", "5m", "15m", "30m", "1h"];
   const row = (it, i) => `<div class="nwer" data-i="${i}"><select data-k="name">${names.map(n => `<option ${n === it.name ? "selected" : ""}>${xEsc(n)}</option>`).join("")}</select>
     <select data-k="tf">${tfs.map(t => `<option value="${t}" ${t === it.tf ? "selected" : ""}>${CH_TFL[t]}</option>`).join("")}</select>
-    <label>from <input type="time" data-k="from" value="${it.from}"></label><label>to <input type="time" data-k="to" value="${it.to}"></label>
+    <label>from <input type="time" data-k="from" value="${indShiftT(it.from, sessShift())}"></label><label>to <input type="time" data-k="to" value="${indShiftT(it.to, sessShift())}"></label>
     <label class="tog"><input type="checkbox" data-k="alerts" ${it.alerts ? "checked" : ""}> Alerts</label><button class="btn sm" data-rm="${i}" aria-label="Remove">✕</button></div>`;
   const items = NW.items.map(x => ({ ...x }));
   const box = $("nwEdit"); box.hidden = false;
-  const draw = () => { box.innerHTML = `<div class="meta">Session times are your time (PHT). Alerts fire inside the session; turn on "Outside sessions too" to hear them all the time.</div>${items.map(row).join("")}
+  const draw = () => { box.innerHTML = `<div class="meta">Session times are your time (PHT) today; they move 1 hour by themselves when New York changes its clocks (March and November). Alerts fire inside the session; turn on "Outside sessions too" to hear them all the time.</div>${items.map(row).join("")}
     <div class="nweacts"><button class="btn sm" id="nwAdd">+ Add a market</button><span style="flex:1"></span><button class="btn sm" id="nwDef">Defaults</button><button class="btn sm" id="nwCancel">Cancel</button><button class="btn primary sm" id="nwSaveB">Save</button></div>`;
-    box.querySelectorAll(".nwer").forEach(r => r.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { const it = items[+r.dataset.i], k = el.dataset.k; it[k] = el.type === "checkbox" ? el.checked : el.value; }));
+    box.querySelectorAll(".nwer").forEach(r => r.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { const it = items[+r.dataset.i], k = el.dataset.k; it[k] = el.type === "checkbox" ? el.checked : el.type === "time" ? indShiftT(el.value, -sessShift()) : el.value; }));
     box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { items.splice(+b.dataset.rm, 1); draw(); });
     $("nwAdd").onclick = () => { items.push({ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }); draw(); };
     $("nwDef").onclick = () => { items.splice(0, items.length, ...NW_DEF.map(x => ({ ...x }))); draw(); };
@@ -9724,7 +9797,7 @@ async function tgPump() {
   tgBusy = false;
 }
 function tgSend(text) { return new Promise(res => { if (TGQ.length > 20) TGQ.shift(); TGQ.push({ text, res: (ok, why) => res({ ok, why }) }); tgPump(); }); }
-const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
+const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.url ? "\n" + xEsc(n.url) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
 const _ncAdd = ncAdd;
 ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
 function openTGSettings() {
@@ -9813,11 +9886,10 @@ async function fundFRED(force) {
   catch (e) { FUND.err.fred = !k && /api_key/i.test(e.message) ? "nokey" : /key/i.test(e.message) ? "FRED didn't accept that key" : e.message; }
 }
 // headlines: free RSS feeds through the relay
-const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"]];
-const FUND_TAGS = [["FED", /\b(Fed|FOMC|Powell|Waller|Williams|rate cut|rate hike)\b/i], ["GOLD", /\b(gold|bullion|XAU)\b/i], ["NDX", /\b(Nasdaq|Nvidia|Apple|Microsoft|Tesla|Meta|Alphabet|tech stocks|S&P 500|Wall Street)\b/i],
-  ["OIL", /\b(oil|OPEC|crude|Brent|WTI)\b/i], ["JPY", /\b(yen|BoJ|Ueda|USD\/JPY)\b/i], ["EUR", /\b(euro|ECB|Lagarde|EUR\/USD)\b/i], ["GBP", /\b(pound|sterling|BoE|Bailey|GBP\/USD)\b/i], ["USD", /\b(dollar|DXY|Treasur(y|ies)|yields?)\b/i], ["CRYPTO", /\b(bitcoin|crypto|ether|BTC|ETF flows?)\b/i]];
+const FUND_RSS = [["fxstreet", "FXStreet"], ["marketwatch", "MarketWatch"], ["investing", "Investing.com"], ["coindesk", "CoinDesk"], ["financialjuice", "FinancialJuice"]];   // FinancialJuice: a fast news wire
+const FUND_TAGS = NEWS_TAGS;                       // (in core: the cloud watcher tags headlines the same way)
 async function fundNews(force) {
-  if (!force && FUND.news && Date.now() - FUND.news.at < 10 * 60e3) return;
+  if (!force && FUND.news && Date.now() - FUND.news.at < 2 * 60e3) return;                // every 2 minutes on this page; every minute while a market brief is open
   const items = [], errs = [];
   await Promise.all(FUND_RSS.map(async ([k, name]) => { try { const doc = new DOMParser().parseFromString(await fundText("/proxy/rss/" + k), "text/xml");
     [...doc.querySelectorAll("item")].slice(0, 25).forEach(it => { const g = s => (it.querySelector(s) || {}).textContent || "", title = g("title").trim(), link = g("link").trim(), t = Date.parse(g("pubDate")) || Date.parse(g("date")) || 0;
@@ -9825,6 +9897,7 @@ async function fundNews(force) {
       if (title && /^https?:\/\//.test(link)) items.push({ title, link, t, src: name, tag: (FUND_TAGS.find(([, re]) => re.test(title)) || [""])[0] }); }); } catch (e) { errs.push(name); } }));
   if (items.length) { const seen = new Set(); FUND.news = { at: Date.now(), items: items.sort((a, b) => b.t - a.t).filter(x => { const k = x.title.toLowerCase().slice(0, 60); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 60) }; }
   FUND.err.news = errs.length === FUND_RSS.length ? "headlines need the Mac app's relay (or the web version's)" : null;
+  try { if (typeof naCheck === "function") naCheck(); } catch (e) {}
 }
 async function fundLoad(force) {
   if (FUND.busy) { FUND.again = FUND.again || force || "soft"; return; } FUND.busy = true; fundRender();
@@ -9850,8 +9923,8 @@ function fundWorld() {
   let h = `<table class="ftbl"><tr class="mu"><td></td><td class="r">Price</td><td class="r">24h</td><td class="r">1W</td></tr>`;
   FUND_WM.forEach(([grp, L]) => { h += `<tr><td class="fgrp" colspan="4">${grp}</td></tr>`;
     L.forEach(([lbl, names]) => { const r = fRow(names);
-      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
-      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}" class="fclk"` : ""}><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
+      if (!r && lbl === "Dollar index") { const d = fDollar(); if (d) { h += `<tr title="Estimated from EUR, JPY, GBP, CAD and CHF" data-fmk="US dollar" class="fclk"><td>Dollar index <span class="mu">est.</span></td><td class="r mu">—</td><td class="r ${fCls(d.chg)}">${fPct(d.chg)}</td><td class="r ${fCls(d.w)}">${d.w != null ? fPct(d.w, 1) : "—"}</td></tr>`; return; } }
+      h += `<tr ${r ? `data-fsym="${xEsc(r.symbol)}"` : ""} data-fmk="${lbl === "Dollar index" ? "US dollar" : lbl}" class="fclk"><td>${lbl}</td><td class="r">${r ? fmtPrice(r.price) : "—"}</td><td class="r ${fCls(r && r.chg24h)}">${r ? fPct(r.chg24h) : "—"}</td><td class="r ${fCls(r && r.ret7)}">${r && r.ret7 != null ? fPct(r.ret7 * 100, 1) : "—"}</td></tr>`; }); });
   const G = EXT.global, F = EXT.fng, mf = typeof medianFunding === "function" && data ? medianFunding() : null, vix = fundLast("VIXCLS"), hy = fundLast("BAMLH0A0HYM2");
   h += `<tr><td class="fgrp" colspan="4">Risk &amp; crypto</td></tr>
     <tr><td>VIX (fear gauge)</td><td class="r">${vix ? vix[0][1].toFixed(1) : "—"}</td><td class="r ${vix && vix[1] ? fCls(-(vix[0][1] - vix[1][1])) : "mu"}">${vix && vix[1] ? (vix[0][1] - vix[1][1] >= 0 ? "+" : "") + (vix[0][1] - vix[1][1]).toFixed(1) : ""}</td><td class="r mu">${vix ? (vix[0][1] < 15 ? "calm" : vix[0][1] < 22 ? "normal" : "stressed") : ""}</td></tr>
@@ -9869,7 +9942,7 @@ function fundBank(id) {                           // a bank's rate, its last rea
   out.stance = out.mv == null ? "on hold" : Date.now() - out.mvAt < 200 * 864e5 ? (out.mv < 0 ? "cutting" : "hiking") : "on hold"; return out;
 }
 function fundCB() {
-  const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
+  const now = Date.now(), k = fredKey(), nextFOMC = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(fomcAt).find(t => t > now) : null;
   const meet = ccy => { if (ccy === "USD" && nextFOMC) return nextFOMC; const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && /rate|policy|cash rate|statement/i.test(e.title) && e.type === "Central Bank"); return x ? x.at : null; };
   const rows = FUND_CB.map(([bank, ccy, id, what]) => { const s = fundLast(id), m = meet(ccy);
     let rate, asOf, mv, mvAt, stance;
@@ -9902,7 +9975,7 @@ function fundCurve() {
 function fundCOTHTML() {
   const C = FUND.cot; if (!C || !C.rows.length) return `<div class="empty">${FUND.err.cot ? "Couldn't load positioning (" + xEsc(FUND.err.cot) + "). It needs the Mac app's relay or the web version." : "Loading positioning…"}</div>`;
   const mx = Math.max(30, ...C.rows.map(r => Math.abs(r.net)));
-  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:38%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td></tr>${C.rows.map(r => `<tr><td>${xEsc(r.name)}</td>
+  return `<table class="ftbl"><tr class="mu"><td>Market</td><td style="width:38%">Net long / short</td><td class="r">Net</td><td class="r">Week</td><td class="r">1-year rank</td></tr>${C.rows.map(r => `<tr ${FB_COT[r.name] ? `data-fmk="${FB_COT[r.name]}" class="fclk"` : ""}><td>${xEsc(r.name)}</td>
     <td><div class="fbar"><i style="${r.net >= 0 ? `left:50%;width:${(r.net / mx * 50).toFixed(1)}%;background:var(--green)` : `right:50%;width:${(-r.net / mx * 50).toFixed(1)}%;background:var(--red)`}"></i></div></td>
     <td class="r ${fCls(r.net)}">${(r.net >= 0 ? "+" : "") + r.net.toFixed(0)}%</td><td class="r ${fCls(r.chg)}">${r.chg == null ? "" : (r.chg >= 0 ? "+" : "") + r.chg.toFixed(1)}</td>
     <td class="r ${r.pct >= 90 || r.pct <= 10 ? "fam" : "mu"}" title="${r.pct >= 90 ? "Near the most long of the year" : r.pct <= 10 ? "Near the most short of the year" : ""}">${r.pct}${r.pct % 100 >= 11 && r.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][r.pct % 10] || "th"}${r.pct >= 90 || r.pct <= 10 ? " · extreme" : ""}</td></tr>`).join("")}</table>
@@ -9932,7 +10005,7 @@ function fundSignals() {
   const vixV = vix ? vix[0][1] : null, hyWk = hy && hy[5] ? hy[0][1] - hy[5][1] : null;
   const risk = vixV == null ? null : vixV > 25 || (hyWk != null && hyWk > 0.25) ? "off" : vixV < 18 && (!hy || hy[0][1] < 4) ? "on" : "mixed";
   const ev = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now && x.at < now + 36 * 3600e3 && x.impact === "High" && x.ccy === "USD")[0];
-  const fomc = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(d => Date.parse(d + "T18:00:00Z")).find(t => t > now) : null;
+  const fomc = typeof FOMC_DATES !== "undefined" ? FOMC_DATES.map(fomcAt).find(t => t > now) : null;
   return { real: back(R, "10yr"), y2: back(N, "2yr"), dollar: fDollar(), fed: fed.rate != null ? fed.stance : null, risk, vix: vixV, fng: F ? F.v : null, ev, fomc: fomc && fomc - now < 4 * 864e5 ? fomc : null, cot };
 }
 function fundCardsData() {
@@ -9962,7 +10035,7 @@ function fundReadHTML() {
   if (S.dollar && S.dollar.w != null && Math.abs(S.dollar.w) >= 0.5) bits.push(S.dollar.w < 0 ? "dollar weaker" : "dollar stronger");
   if (S.fed && S.fed !== "on hold") bits.push(`Fed ${S.fed}`);
   const nx = S.ev || null; if (nx) bits.push(`next: <b>${xEsc(nx.ccy + " " + nx.title)}</b> in ${inTxt(nx.at - Date.now())}`); else if (S.fomc) bits.push(`next: <b>Fed decision</b> in ${inTxt(S.fomc - Date.now())}`);
-  const card = c => `<div class="fcard" ${c.sym ? `data-fsym="${xEsc(c.sym)}"` : ""} title="${c.sym ? "Open the chart" : ""}"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
+  const card = c => `<div class="fcard" data-fmk="${xEsc(c.k)}" role="button" tabindex="0" title="Open the ${xEsc(c.k)} brief"><div class="ft"><b>${c.k}</b>${c.est ? `<span class="mu" title="Estimated from EUR, JPY, GBP, CAD and CHF">est.</span>` : ""}<span class="fpx">${c.px != null ? `<span class="flp" data-fp="${xEsc(c.sym || "")}">${fmtPrice(c.px)}</span> ` : ""}<span class="${fCls(c.chg)} flc">${c.chg != null ? fPct(c.chg) : ""}</span></span></div>
     <span class="fverd ${c.v[0]}">${c.v[1]}</span><ul class="fwhy">${[...c.L.filter(x => x[0]).slice(0, 3), ...c.L.filter(x => !x[0]).slice(0, 2)].map(([w, t]) => `<li class="${w > 0 ? "" : w < 0 ? "" : "fwatch"}"><i class="${w > 0 ? "up" : w < 0 ? "dn" : ""}">${w > 0 ? "▲" : w < 0 ? "▼" : "⚠"}</i><span>${xEsc(t)}</span></li>`).join("") || `<li class="mu">Waiting for data…</li>`}</ul></div>`;
   return `<div class="fread"><div class="fhead"><span class="mu">Today's read</span>${bits.join(" · ") || `<span class="mu">Fills in as the data loads.</span>`}</div><div class="fcards">${C.map(card).join("")}</div>
     <p class="meta fnote" style="margin:6px 2px 0">▲ pushes the price up, ▼ pushes it down, ⚠ a warning. A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</p></div>`;
@@ -9982,12 +10055,12 @@ function fundRender() {
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
   const keep = document.activeElement && document.activeElement.id === "fredKey" ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
   $("fundRead").innerHTML = fundReadHTML();
-  $("fundRead").querySelectorAll("[data-fsym]").forEach(c => c.onclick = () => typeof openInCharts === "function" && openInCharts(c.dataset.fsym));
+  $("fundRead").querySelectorAll("[data-fmk]").forEach(c => { c.onclick = () => fbOpen(c.dataset.fmk); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(c.dataset.fmk); } }; });
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
-  el.querySelectorAll("[data-fsym]").forEach(tr => tr.onclick = () => typeof openInCharts === "function" && openInCharts(tr.dataset.fsym));
+  el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk));            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
@@ -9995,6 +10068,321 @@ function fundRender() {
 function fundShown() { fundRender(); fundLoad(false); if (typeof macroScan === "function") macroScan(false).catch(() => {}); }
 $("fundRefresh").onclick = () => fundLoad(true);
 setInterval(() => { if (page === "fund" && document.visibilityState === "visible") { fundRender(); fundLoad(false); } }, 60e3);
+/* ===================== Market brief: click a market on Fundamentals → a floating box with what you need for your bias ===================== */
+// k: the market; n: names to find its row; kind: which rules apply; ccy (or b/q for a pair): whose banks and news matter; tag: headline tags;
+// cot: CFTC market (cw: how to say it); sess: its usual window on the session clock (your NBB Watch window wins); earn: big tech earnings matter
+const FB_MK = [
+  { k: "Nasdaq 100", n: ["Nasdaq 100", "NAS100"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], cot: "Nasdaq 100", cw: "Nasdaq futures", sess: ["NY AM", 21.5, 24], earn: true },
+  { k: "S&P 500", n: ["S&P 500", "US500"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], cot: "S&P 500", cw: "S&P futures", sess: ["NY AM", 21.5, 24], earn: true },
+  { k: "Dow 30", n: ["Dow Jones", "US30"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], sess: ["NY AM", 21.5, 24] },
+  { k: "DAX 40", n: ["DAX 40", "GER40"], kind: "idx", ccy: ["EUR"], tag: ["EUR"], sess: ["London", 12, 18] },
+  { k: "Nikkei 225", n: ["Nikkei 225", "JP225"], kind: "idx", ccy: ["JPY"], tag: ["JPY"], sess: ["Asia", 8, 12] },
+  { k: "US dollar", dollar: true, kind: "usd", ccy: ["USD"], tag: ["USD", "FED"], cot: "US dollar index", cw: "the dollar", sess: ["NY AM", 21.5, 24] },
+  { k: "EUR/USD", n: ["EUR/USD", "EURUSD"], kind: "fx", b: "EUR", q: "USD", tag: ["EUR", "USD", "FED"], cot: "Euro", cw: "the euro", sess: ["London", 12, 18] },
+  { k: "GBP/USD", n: ["GBP/USD", "GBPUSD"], kind: "fx", b: "GBP", q: "USD", tag: ["GBP", "USD", "FED"], cot: "Pound", cw: "the pound", sess: ["London", 12, 18] },
+  { k: "USD/JPY", n: ["USD/JPY", "USDJPY"], kind: "fx", b: "USD", q: "JPY", tag: ["JPY", "USD", "FED"], cot: "Yen", cw: "the yen", sess: ["Asia", 8, 12] },
+  { k: "AUD/USD", n: ["AUD/USD", "AUDUSD"], kind: "fx", b: "AUD", q: "USD", tag: ["USD", "FED"], cot: "Aussie", cw: "the Aussie", sess: ["Asia", 8, 12] },
+  { k: "USD/CAD", n: ["USD/CAD", "USDCAD"], kind: "fx", b: "USD", q: "CAD", tag: ["OIL", "USD", "FED"], cot: "Canadian dollar", cw: "the Canadian dollar", sess: ["NY AM", 21.5, 24] },
+  { k: "USD/CHF", n: ["USD/CHF", "USDCHF"], kind: "fx", b: "USD", q: "CHF", tag: ["USD", "FED"], cot: "Swiss franc", cw: "the franc", sess: ["London", 12, 18] },
+  { k: "Gold", n: ["Gold", "XAUUSD"], kind: "gold", ccy: ["USD"], tag: ["GOLD", "FED", "USD"], cot: "Gold", cw: "gold", sess: ["London", 12, 18] },
+  { k: "Silver", n: ["Silver", "XAGUSD"], kind: "gold", ccy: ["USD"], tag: ["GOLD", "FED"], cot: "Silver", cw: "silver", sess: ["London", 12, 18] },
+  { k: "WTI crude", n: ["WTI Crude Oil", "USOIL"], kind: "oil", ccy: ["USD"], tag: ["OIL"], cot: "Crude oil", cw: "oil", sess: ["NY AM", 21.5, 24] },
+  { k: "Copper", n: ["Copper"], kind: "copper", ccy: ["USD"], tag: ["USD"], cot: "Copper", cw: "copper", sess: ["London", 12, 18] },
+  { k: "Bitcoin", btc: true, kind: "btc", ccy: ["USD"], tag: ["CRYPTO", "FED"], cot: "Bitcoin (CME)", cw: "Bitcoin futures", sess: ["NY AM", 21.5, 24] }];
+const FB_COT = Object.fromEntries(FB_MK.filter(m => m.cot).map(m => [m.cot, m.k]));
+const FB_BANK = Object.fromEntries(FUND_CB.map(([bank, ccy, id]) => [ccy, { bank, id }]));
+const FB_THR = { fx: 0.15, usd: 0.15, idx: 0.3, gold: 0.25, oil: 0.5, copper: 0.4, btc: 0.8 };   // % in 3 minutes that counts as a sudden move (15% of an average day once known)
+const FB_RISK = { USD: -1, JPY: -1, CHF: -1, AUD: 1, NZD: 1, CAD: 1 };                     // how a currency does when markets are calm: +1 gains, −1 loses (safe havens)
+const FB_CC = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"];
+const FB = { k: null, lv: {}, earn: null, earnAt: 0, shock: {}, t: null }, FBM = {};          // FBM: live price samples per market, last 6 minutes
+const fbMk = k => FB_MK.find(m => m.k === k);
+const fbCcys = m => m.kind === "fx" ? [m.b, m.q] : m.ccy;
+function fbRow(m) {
+  if (m.btc) return typeof bySym !== "undefined" ? bySym.BTCUSDT || bySym.BTC_USDT || null : null;
+  if (m.dollar) { const d = fDollar(); return d && d.sym ? MACRO.by[d.sym] || null : null; }
+  return fRow(m.n) || null;
+}
+function fbQuote(m) {
+  const r = fbRow(m); if (r) return { price: r.price, chg: r.chg24h, w: r.ret7 != null ? r.ret7 * 100 : null, sym: r.symbol, r };
+  const d = m.dollar && fDollar(); return d ? { price: null, chg: d.chg, w: d.w, est: true } : null;
+}
+function fbDrivers(m, S) {                         // the forces on this market now; v: +1 pushes it up, −1 down, 0 neither
+  const D = [], q = fbQuote(m), usdW = S.dollar && S.dollar.w, rr = FUND.real && FUND.real.rows[0], u = FUND.ust && FUND.ust.rows[0];
+  const bp = x => (x >= 0 ? "+" : "−") + Math.abs(Math.round(x * 100)) + "bp";
+  const add = (name, now, chg, raw, g, say, cond) => { if (raw == null) return; D.push({ name, now, chg, v: raw * g, say: raw > 0 ? say[0] : raw < 0 ? say[1] : null, up: g > 0 ? cond[0] : cond[1], dn: g > 0 ? cond[1] : cond[0] }); };
+  const real = g => add("Real yield (10Y)", rr && rr.v["10yr"] != null ? rr.v["10yr"].toFixed(2) + "%" : "—", S.real == null ? "" : bp(S.real) + " in a month", S.real == null ? null : S.real <= -0.08 ? 1 : S.real >= 0.08 ? -1 : 0, g,
+    ["falling real yields", "rising real yields"], ["real yields fall 8bp or more in a month", "real yields rise 8bp or more in a month"]);
+  const dollar = g => add(`US dollar${S.dollar && S.dollar.est ? " (est.)" : ""}`, S.dollar && S.dollar.price ? fmtPrice(S.dollar.price) : "—", usdW == null ? "" : fPct(usdW, 1) + " this week", usdW == null ? null : usdW <= -0.5 ? 1 : usdW >= 0.5 ? -1 : 0, g,
+    ["a weaker dollar", "a stronger dollar"], ["the dollar drops 0.5% or more this week", "the dollar rises 0.5% or more this week"]);
+  const bank = (c, g) => { const b = FB_BANK[c]; if (!b) return; const f = fundBank(b.id);      // g: the effect when this bank cuts
+    add(`${b.bank} rate`, f.rate != null ? f.rate.toFixed(2) + "%" : "—", f.stance || "", f.rate == null ? null : f.stance === "cutting" ? 1 : f.stance === "hiking" ? -1 : 0, g,
+      [`the ${b.bank} cutting`, `the ${b.bank} hiking`], [`the ${b.bank} starts cutting`, `the ${b.bank} starts raising rates`]); };
+  const risk = g => add("Risk mood (VIX)", S.vix != null ? S.vix.toFixed(1) : "—", S.risk === "on" ? "calm" : S.risk === "off" ? "nervous" : S.risk ? "mixed" : "", S.risk ? (S.risk === "on" ? 1 : S.risk === "off" ? -1 : 0) : null, g,
+    ["calm markets", "nervous markets"], ["markets calm down (VIX under 18)", "markets get nervous (VIX over 25)"]);
+  const y2 = g => add("US 2-year yield", u && u.v["2yr"] != null ? u.v["2yr"].toFixed(2) + "%" : "—", S.y2 == null ? "" : bp(S.y2) + " in a month", S.y2 == null ? null : S.y2 >= 0.1 ? 1 : S.y2 <= -0.1 ? -1 : 0, g,
+    ["a rising US 2-year (fewer Fed cuts)", "a falling US 2-year (more Fed cuts)"], ["the US 2-year rises 10bp or more in a month", "the US 2-year falls 10bp or more in a month"]);
+  const trend = (w, lbl) => add(`${lbl} this week`, q && q.price ? fmtPrice(q.price) : "—", w == null ? "" : fPct(w, 1), w == null ? null : w >= 1 ? 1 : w <= -1 ? -1 : 0, 1,
+    [`${lbl} rising this week`, `${lbl} falling this week`], [`${lbl} gains 1% or more on the week`, `${lbl} loses 1% or more on the week`]);
+  if (m.kind === "gold") { real(1); dollar(1); bank("USD", 1); }
+  else if (m.kind === "idx") { risk(1); if (m.ccy[0] === "USD") { real(1); bank("USD", 1); } else bank(m.ccy[0], 1);
+    if (m.ccy[0] === "JPY") { const yj = fRow(["USD/JPY", "USDJPY"]), w = yj && yj.ret7 != null ? yj.ret7 * 100 : null;
+      add("Yen this week", yj ? fmtPrice(yj.price) : "—", w == null ? "" : "USD/JPY " + fPct(w, 1), w == null ? null : w >= 1 ? 1 : w <= -1 ? -1 : 0, 1, ["a weaker yen (helps exporters)", "a stronger yen"], ["the yen weakens 1% or more this week", "the yen strengthens 1% or more this week"]); } }
+  else if (m.kind === "usd") { y2(1); bank("USD", -1); risk(-1); }
+  else if (m.kind === "fx") { [[m.b, 1], [m.q, -1]].forEach(([c, s]) => { bank(c, -s); if (c === "USD") y2(s); }); const g = Math.sign((FB_RISK[m.b] || 0) - (FB_RISK[m.q] || 0)); if (g) risk(g); }
+  else { risk(1); dollar(1); }                       // oil, copper, Bitcoin
+  trend(m.dollar ? usdW : q && q.w, m.dollar ? "The dollar" : m.k);
+  return D;
+}
+function fbWhen(x, now = Date.now()) { return x.at - now > 6 * 864e5 ? phtDay(x.at).slice(4) : `${phtDayKey(x.at) === phtDayKey(now) ? "Today" : phtDay(x.at).slice(0, 3)} ${x.earn ? x.timeLbl : x.timeLbl || phtHM(x.at)}`; }
+function fbEvents(m) {                             // high-impact events for this market's currencies, the next Fed decision, big tech earnings
+  const cc = fbCcys(m), now = Date.now();
+  const out = (typeof calAll === "function" ? calAll() : []).filter(x => x.at > now - 30 * 60e3 && x.at < now + 7 * 864e5 && cc.includes(x.ccy) && x.type !== "Earnings" && (x.impact === "High" || (m.kind === "oil" && /crude|oil|EIA|OPEC/i.test(x.title))));
+  if (cc.includes("USD") && !out.some(x => /FOMC|Federal Funds/i.test(x.title))) { const t = FOMC_DATES.map(fomcAt).find(t => t > now - 30 * 60e3); if (t && t < now + 60 * 864e5) out.push({ at: t, ccy: "USD", title: "Fed decision", impact: "High" }); }
+  if (m.earn && FB.earn) FB.earn.forEach(x => { if (x.at > now - 30 * 60e3) out.push(x); });
+  return out.sort((a, b) => a.at - b.at);
+}
+async function fbEarn() {                          // the biggest Nasdaq names reporting in the next 7 days
+  FB.earnAt = Date.now();
+  try { const now = Date.now(), rows = await earnRange(now, now + 7 * 864e5);
+    FB.earn = rows.filter(r => NDX_T1.includes(r.sym)).map(r => { const pre = r.time === "time-pre-market", post = r.time === "time-after-hours";
+      return { at: nyAt(r.y, r.m, r.d, pre ? 7 : post ? 16 : 9, pre ? 0 : post ? 5 : 30), ccy: "USD", title: `${r.sym} earnings`, impact: "High", earn: true, timeLbl: pre ? "before the open" : post ? "after the close" : "time TBA" }; }); }
+  catch (e) { FB.earn = FB.earn || []; }
+  if (FB.k) fbRender();
+}
+const fbNews = m => ((FUND.news && FUND.news.items) || []).filter(x => (m.tag.includes(x.tag) || x.tag === "MACRO") && x.t > Date.now() - 36 * 3600e3);   // MACRO: data, tariffs, wars: they move everything
+function fbWarn(m, S) {
+  const W = [], c = m.cot && S.cot(m.cot), now = Date.now(), ev = fbEvents(m).find(x => x.at > now && x.at - now < 36 * 3600e3);
+  if (c && (c.pct >= 90 || c.pct <= 10)) W.push(`Crowded: speculators hold their biggest ${c.pct >= 90 ? "long" : "short"} on ${m.cw} in a year. Moves against the crowd can be sharp.`);
+  if (S.vix != null && S.vix >= 25) W.push(`Fear gauge high (VIX ${S.vix.toFixed(0)}): bigger swings than usual.`);
+  if (ev) W.push(`${ev.ccy} ${ev.title} ${fbWhen(ev)} (in ${inTxt(ev.at - now)}): expect spikes.`);
+  if (m.btc) { const mf = typeof medianFunding === "function" && data ? medianFunding() : null; if (mf != null && mf > 0.0003) W.push("Funding is high: longs are crowded.");
+    if (S.fng != null && S.fng >= 75) W.push(`Extreme greed (${S.fng}): late to chase.`); else if (S.fng != null && S.fng <= 25) W.push(`Extreme fear (${S.fng}): often near lows.`); }
+  return W;
+}
+function fbSay(D, sc) {                            // the read in one line
+  const up = D.filter(x => x.v > 0).map(x => x.say), dn = D.filter(x => x.v < 0).map(x => x.say), L = a => a.length <= 1 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a.at(-1);
+  const parts = [up.length ? `${sc <= -2 ? "For it" : sc >= 2 ? "Pushing it up" : "Helping"}: ${L(up)}.` : "", dn.length ? `${sc >= 2 || (!up.length && sc > -2) ? "Against it" : sc <= -2 ? "Pushing it down" : "Against it"}: ${L(dn)}.` : ""].filter(Boolean);
+  const end = sc >= 2 ? "Favour longs; the chart still picks the entry." : sc <= -2 ? "Favour shorts; the chart still picks the entry." : up.length && dn.length ? "Neither side wins: let the chart pick the direction."
+    : up.length || dn.length ? "Not enough for a lean: let the chart lead." : D.length ? "Nothing big is pushing it either way right now: let the chart lead." : "Fills in as the data loads.";
+  return [...parts, end].join(" ");
+}
+function fbTip(D, sc) {                            // the one change that would tip it, or what would undo the lean
+  if (sc >= 2 || sc <= -2) { const s = Math.sign(sc), f = D.filter(x => x.v === s && Math.abs(sc - x.v) < 2).map(x => s > 0 ? x.dn : x.up);
+    return f.length ? `<span class="mu">It fades if</span> ${xEsc(f[0])}.` : `<span class="mu">A strong lean: it would take two changes to undo it.</span>`; }
+  const tw = D.filter(x => x.v < 1 && sc - x.v + 1 >= 2).map(x => x.up), hw = D.filter(x => x.v > -1 && sc - x.v - 1 <= -2).map(x => x.dn);
+  const p = [tw.length ? `<b class="up">Tailwind</b> if ${xEsc(tw[0])}` : "", hw.length ? `<b class="dn">Headwind</b> if ${xEsc(hw[0])}` : ""].filter(Boolean);
+  return p.length ? `<span class="mu">What would tip it:</span> ${p.join(". ")}.` : `<span class="mu">What would tip it:</span> two more things would need to line up.`;
+}
+async function fbLevels(m) {                       // 1H candles for the session levels and the average day (refreshed every 5 minutes while open)
+  const q = fbQuote(m), c = FB.lv[m.k]; if (!q || !q.sym || (c && (c.busy || Date.now() - c.at < 5 * 60e3))) return;
+  FB.lv[m.k] = { ...(c || {}), busy: true };
+  try { const usIdx = m.kind === "idx" && m.ccy[0] === "USD", [k, k15] = await Promise.all([klines(q.sym, "1h", 400), usIdx ? klines(q.sym, "15m", 400).catch(() => null) : null]);
+    FB.lv[m.k] = { at: Date.now(), k, k15 }; } catch (e) { FB.lv[m.k] = { ...(c || {}), at: Date.now(), err: e.message || "no candles" }; }
+  if (FB.k === m.k) fbRender();
+}
+function fbLvCalc(m, price) {                      // Asia range, yesterday, week open, today's range against the average day
+  const c = FB.lv[m.k], k = c && c.k; if (!k || !k.t.length || !(price > 0)) return null;
+  const H = 3600e3, D = 864e5, now = Date.now();
+  const dayOf = t => m.btc ? Math.floor(t / D) : Math.floor((t + PHT_MS - sessShift(t) * H - 5 * H) / D);   // a trading day starts 5 PM New York (UTC midnight for Bitcoin)
+  const days = new Map(); k.t.forEach((t, i) => { const d = dayOf(t); let x = days.get(d); if (!x) days.set(d, x = { o: k.o[i], h: k.h[i], l: k.l[i], n: 0 }); x.h = Math.max(x.h, k.h[i]); x.l = Math.min(x.l, k.l[i]); x.n++; });
+  const today = dayOf(now), t0 = days.get(today), td = { o: t0 ? t0.o : price, h: Math.max(t0 ? t0.h : price, price), l: Math.min(t0 ? t0.l : price, price) };
+  const full = [...days.entries()].filter(([d, x]) => d < today && x.n >= (m.btc ? 20 : 12)).sort((a, b) => a[0] - b[0]), last = full.slice(-14).map(([, x]) => x.h - x.l);
+  const yd = full.length ? full.at(-1)[1] : null, adr = last.length >= 5 ? last.reduce((a, b) => a + b, 0) / last.length : null; c.adr = adr;
+  const wd = new Date(today * D).getUTCDay(), mon = today - ((wd + 6) % 7); let wo = null;
+  for (let i = 0; i < k.t.length; i++) if (dayOf(k.t[i]) >= mon) { wo = k.o[i]; break; }
+  const sd = t => { const d = sessD(t); return [Math.floor(d.getTime() / D), d.getUTCHours()]; }, [nd, nh] = sd(now); let ah = -Infinity, al = Infinity;
+  k.t.forEach((t, i) => { const [d, h] = sd(t); if (d === nd && h >= 8 && h < 12) { ah = Math.max(ah, k.h[i]); al = Math.min(al, k.l[i]); } });
+  if (nh >= 8 && nh < 12) { ah = Math.max(ah, price); al = Math.min(al, price); }
+  return { td, yd, adr, wo, asia: isFinite(ah) ? { h: ah, l: al, forming: nh < 12 } : null, asiaLater: nh < 8, us: c.k15 ? fbUsLv(c.k15, price, now) : null };
+}
+function fbUsLv(k, price, now) {                   // the US open, New York time: yesterday's 4 PM close, the overnight range up to 9:30, the open and its gap, the first 15 minutes
+  const H = 3600e3, D = 864e5, nyT = t => sessD(t).getTime() - 12 * H, nyD = t => Math.floor(nyT(t) / D), nyM = t => Math.round((nyT(t) % D) / 60e3);
+  let S = nyD(now) + (nyM(now) >= 960 ? 1 : 0); while ([0, 6].includes(new Date(S * D).getUTCDay())) S++;          // the session coming up (or on now)
+  const sd = new Date(S * D), openAt = nyAt(sd.getUTCFullYear(), sd.getUTCMonth() + 1, sd.getUTCDate(), 9, 30);
+  let pc = null, pcI = -1; for (let i = k.t.length - 1; i >= 0; i--) if (nyD(k.t[i]) < S && nyM(k.t[i]) === 945) { pc = k.c[i]; pcI = i; break; }
+  let oh = -Infinity, ol = Infinity, op = null, orh = null, orl = null;
+  k.t.forEach((t, i) => { if (pcI >= 0 && i > pcI && t < openAt) { oh = Math.max(oh, k.h[i]); ol = Math.min(ol, k.l[i]); } if (t === openAt) { op = k.o[i]; orh = k.h[i]; orl = k.l[i]; } });
+  if (now < openAt && pcI >= 0) { oh = Math.max(oh, price); ol = Math.min(ol, price); }
+  return { pc, on: isFinite(oh) ? { h: oh, l: ol } : null, op, or: orh != null ? { h: orh, l: orl } : null, openAt, open: now >= openAt };
+}
+function fbFedExp() {                              // what the 2-year says the market expects from the Fed
+  const u = FUND.ust && FUND.ust.rows[0], f = fundBank("DFEDTARU"); if (!u || u.v["2yr"] == null || f.rate == null) return null;
+  const gap = u.v["2yr"] - (f.rate - 0.125), s = gap > 0.25 ? "hike" : gap < -0.25 ? "cut" : "hold";
+  return { two: u.v["2yr"], fed: f.rate, gap, s, txt: s === "hike" ? "The market expects more hikes: a hot inflation number is partly priced in, a cool one would surprise."
+    : s === "cut" ? "The market expects cuts: a cool number is partly priced in, a hot one would surprise." : "The market expects the Fed to hold: a surprise either way would move it." };
+}
+function fbStrength() {                            // each currency's average move against the others you scan, today and this week
+  const acc = {}; let n = 0;
+  (MACRO.rows || []).forEach(r => { const s = String(r.symbol).replace(/^(CT:|MX:)/, ""); if (!/^[A-Z]{6}$/.test(s) || r.chg24h == null) return; const b = s.slice(0, 3), q = s.slice(3); if (!FB_CC.includes(b) || !FB_CC.includes(q)) return; n++;
+    [[b, 1], [q, -1]].forEach(([c, sg]) => { const a = acc[c] || (acc[c] = { d: 0, n: 0, w: 0, nw: 0 }); a.d += sg * r.chg24h; a.n++; if (r.ret7 != null) { a.w += sg * r.ret7 * 100; a.nw++; } }); });
+  return n < 4 ? null : Object.entries(acc).filter(([, a]) => a.n >= 2).map(([c, a]) => ({ c, d: a.d / a.n, w: a.nw ? a.w / a.nw : null }));
+}
+function fbMeet(ccy) {
+  const now = Date.now(); if (ccy === "USD") return FOMC_DATES.map(fomcAt).find(t => t > now) || null;
+  const x = (typeof calAll === "function" ? calAll() : []).find(e => e.ccy === ccy && e.at > now && e.type === "Central Bank" && /rate|policy|cash rate|statement/i.test(e.title)); return x ? x.at : null;
+}
+/* the release read: Forex Factory's free feed has no actual results, so read the market's own reaction 2 and 10 minutes after a high-impact release
+   (USD: dollar up with gold and the Nasdaq down = hot / strong / hawkish). Needs live prices (cTrader connected); kept in finder-react for "last time". */
+const RX_KEY = "finder-react", RX_CCY = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD"], RX_PRE = {}, RX_LIVE = {}; let RX = lsGet(RX_KEY, []);
+const RX_MK = { USD: "Gold", EUR: "EUR/USD", GBP: "GBP/USD", JPY: "USD/JPY", AUD: "AUD/USD", CAD: "USD/CAD" };
+const RX_BASK = { gold: "Gold", nas: "Nasdaq 100", eu: "EUR/USD", uj: "USD/JPY", gu: "GBP/USD", au: "AUD/USD", uc: "USD/CAD" };
+function rxPx(at) {                                // basket prices now, or the last live sample before `at`
+  const o = {}; for (const [k, mk] of Object.entries(RX_BASK)) { if (at) { const a = (FBM[mk] || []).filter(x => x[0] <= at && x[0] > at - 5 * 60e3); o[k] = a.length ? a.at(-1)[1] : null; }
+    else { const q = fbQuote(fbMk(mk)); o[k] = q && q.price > 0 ? q.price : null; } } return o;
+}
+function rxMoves(a, b) {
+  const p = k => a[k] && b[k] ? (b[k] / a[k] - 1) * 100 : null, avg = L => { const v = L.filter(x => x != null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+  const eu = p("eu"), uj = p("uj"), gu = p("gu"), au = p("au"), uc = p("uc"), neg = x => x == null ? null : -x;
+  return { usd: avg([neg(eu), uj, neg(gu), neg(au), uc]), gold: p("gold"), nas: p("nas"), EUR: eu, GBP: gu, AUD: au, JPY: neg(uj), CAD: neg(uc) };
+}
+function rxRead(x, mv) {
+  const w = x.type === "Inflation" ? ["hot", "cool"] : /Central Bank|Speeches/.test(x.type || "") ? ["hawkish", "dovish"] : ["strong", "weak"];
+  if (x.ccy === "USD") { const h = (mv.usd >= 0.08) + (mv.gold != null && mv.gold <= -0.12) + (mv.nas != null && mv.nas <= -0.12), d = (mv.usd != null && mv.usd <= -0.08) + (mv.gold >= 0.12) + (mv.nas >= 0.12);
+    return h >= 2 && !d ? w[0] : d >= 2 && !h ? w[1] : null; }
+  const c = mv[x.ccy]; return c == null ? null : c >= 0.1 ? w[0] : c <= -0.1 ? w[1] : null;
+}
+const rxTxt = (mv, ccy) => ccy === "USD" ? [["dollar", mv.usd], ["Gold", mv.gold], ["Nasdaq", mv.nas]].filter(x => x[1] != null).map(([l, v]) => `${l} ${fPct(v)}`).join(", ") : mv[ccy] != null ? `${ccy} ${fPct(mv[ccy])} against the dollar` : "";
+function rxTick(now = Date.now()) {
+  const ev = (typeof calAll === "function" ? calAll() : []).filter(x => x.impact === "High" && RX_CCY.includes(x.ccy) && x.at > now - 12 * 60e3 && x.at < now + 2 * 60e3);
+  ev.forEach(x => {
+    if (now < x.at && now >= x.at - 90e3 && !RX_PRE[x.id]) RX_PRE[x.id] = rxPx();
+    if (now >= x.at + 2 * 60e3 && !RX_LIVE[x.id]) { const pre = RX_PRE[x.id] || (RX_PRE[x.id] = rxPx(x.at)); if (!Object.values(pre).some(Boolean)) { RX_LIVE[x.id] = { none: true }; return; }
+      const mv = rxMoves(pre, rxPx()), read = rxRead(x, mv); RX_LIVE[x.id] = { mv, read, at: now };
+      const mine = naMine().some(m => fbCcys(m).includes(x.ccy));
+      if (read && mine) ncAdd({ kind: "News", icon: "📢", tone: "warn", action: "brief", mk: x.ccy === "USD" ? naMine()[0].k : RX_MK[x.ccy], title: `${x.ccy} ${x.title} read as ${read}`, detail: `${rxTxt(mv, x.ccy)} in the first 2 minutes.` }); }
+    const L = RX_LIVE[x.id]; if (now >= x.at + 10 * 60e3 && L && !L.none && !L.done) { const mv = rxMoves(RX_PRE[x.id], rxPx()); L.done = true; L.mv10 = mv; L.read10 = rxRead(x, mv);
+      RX = [{ ccy: x.ccy, title: x.title, at: x.at, mv2: L.mv, mv10: mv, read: L.read, read10: L.read10 }, ...RX.filter(y => !(y.title === x.title && y.at === x.at))].slice(0, 200); lsSet(RX_KEY, RX); }
+  });
+}
+const rxLast = x => RX.find(y => y.ccy === x.ccy && y.title === x.title && y.at < x.at - 60e3);       // the same event's last release
+/* sudden moves: live prices sampled every 2 seconds; a jump of 15% of an average day (or FB_THR) inside 3 minutes is flagged, usually before any headline */
+function fbShockOf(m, a, now) {
+  const w = a.filter(x => x[0] >= now - 3 * 60e3); if (w.length < 6 || a[0][0] > now - 2 * 60e3) return null;          // live ticks only, watched for 2 minutes
+  const p = w.at(-1)[1]; let ref = w[0]; w.forEach(x => { if (Math.abs(p - x[1]) > Math.abs(p - ref[1])) ref = x; });
+  const d = p - ref[1], adr = FB.lv[m.k] && FB.lv[m.k].adr, thr = adr ? 0.15 * adr : p * FB_THR[m.kind] / 100;
+  return Math.abs(d) >= thr ? { d, pct: d / ref[1] * 100, mins: Math.max(1, Math.round((now - ref[0]) / 60e3)) } : null;
+}
+function fbSample() {
+  const now = Date.now();
+  FB_MK.forEach(m => { const q = fbQuote(m); if (!q || !(q.price > 0)) return; const a = FBM[m.k] || (FBM[m.k] = []);
+    if (!a.length || a.at(-1)[1] !== q.price) a.push([now, q.price]); while (a.length && a[0][0] < now - 6 * 60e3) a.shift();
+    const sh = fbShockOf(m, a, now), prev = FB.shock[m.k]; if (!sh || (prev && now - prev.at < 15 * 60e3 && Math.sign(prev.d) === Math.sign(sh.d))) return;
+    FB.shock[m.k] = { ...sh, at: now };
+    if (((typeof NW !== "undefined" && NW.items) || []).some(x => x.name === m.k) || ["Gold", "Nasdaq 100"].includes(m.k))
+      ncAdd({ kind: "News", icon: "⚡", tone: "warn", sym: q.sym || null, title: `${m.k} ${sh.d > 0 ? "jumped" : "dropped"} ${fPct(sh.pct)} in ${sh.mins} min`, detail: "A move this fast is usually news. Click it on Fundamentals for the headlines and what's due." }); });
+  try { rxTick(now); } catch (e) {}
+  if (FB.k && $("fbDlg") && $("fbDlg").open) fbRender();
+}
+setInterval(fbSample, 2000);
+function fbAlerts(m) {                             // the top strip: a sudden move, an event due or just out, a fresh headline
+  const A = [], now = Date.now(), sh = FB.shock[m.k];
+  if (sh && now - sh.at < 20 * 60e3) A.push(["shock", `⚡ Sudden move: ${sh.d > 0 ? "up" : "down"} ${fmtPrice(Math.abs(sh.d))} (${fPct(sh.pct)}) in ${sh.mins} min, ${now - sh.at < 60e3 ? "just now" : inTxt(now - sh.at) + " ago"}. A jump this fast is usually news: check the headlines below.`]);
+  fbEvents(m).forEach(x => { const dt = x.at - now;
+    if (dt > 0 && dt <= 15 * 60e3) A.push(["soon", `⏱ ${x.ccy} ${xEsc(x.title)} in ${dt < 60e3 ? "under a minute" : inTxt(dt)}: expect spikes, don't enter right before it.`]);
+    else if (dt <= 0 && dt > -20 * 60e3) { const L = x.id && RX_LIVE[x.id], R = L && !L.none ? (L.done ? { mv: L.mv10, read: L.read10, w: "10" } : { mv: L.mv, read: L.read, w: "2" }) : null;
+      A.push(["out", `📢 ${x.ccy} ${xEsc(x.title)} came out ${dt > -60e3 ? "just now" : inTxt(-dt) + " ago"}: ${R ? `${R.read ? `<b>read as ${R.read}</b>` : "no clear read"} (${xEsc(rxTxt(R.mv, x.ccy))} in ${R.w} min).` : dt > -2 * 60e3 && RX_PRE[x.id] ? "reading the reaction…" : "the move after it is the news."}`]); } });
+  const n = fbNews(m)[0]; if (n && now - n.t < 30 * 60e3) A.push(["news", `<span class="fbnew">NEW</span> <span class="mu">${now - n.t < 60e3 ? "just now" : inTxt(now - n.t) + " ago"}</span> <a href="${xEsc(n.link)}" target="_blank" rel="noopener noreferrer">${xEsc(n.title)}</a> <span class="mu">· ${xEsc(n.src)}</span>`]);
+  return A.slice(0, 4);                             // the newest few: a busy hour shouldn't push the brief off the screen
+}
+function fbRender() {
+  const m = fbMk(FB.k), dlg = $("fbDlg"); if (!m || !dlg || !dlg.open) return;
+  const S = fundSignals(), q = fbQuote(m), D = fbDrivers(m, S), W = fbWarn(m, S), sc = D.reduce((a, x) => a + x.v, 0), now = Date.now();
+  const v = sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", D.some(x => x.v) ? "Mixed: no strong lean" : D.length ? "No lean right now" : "Not enough data yet"];
+  const nf = D.filter(x => x.v > 0).length, na = D.filter(x => x.v < 0).length, sym = q && q.sym ? q.sym.replace(/^(CT:|MX:)/, "").replace("_", "") : "";
+  const set = (el, h) => { if (el._h === h) return; const lost = el.contains(document.activeElement); el.innerHTML = h; el._h = h; if (lost) dlg.focus(); };   // redraw only what changed; keep the keyboard in the box
+  set($("fbHead"), `<button class="fbib" data-fbs="-1" aria-label="Previous market">‹</button><button class="fbib" data-fbs="1" aria-label="Next market">›</button>
+    <h3 id="fbTitle">${xEsc(m.k)}</h3>${sym ? `<span class="fk">${xEsc(sym)}</span>` : q && q.est ? `<span class="fk">est.</span>` : ""}
+    <b class="fbpx">${q && q.price ? fmtPrice(q.price) : "—"}</b><span class="${fCls(q && q.chg)}">${q && q.chg != null ? fPct(q.chg) + " today" : ""}</span><span class="${fCls(q && q.w)}">${q && q.w != null ? "· " + fPct(q.w, 1) + " this week" : ""}</span>
+    <span style="flex:1"></span><button class="btn sm" id="fbCopy">Copy brief</button>${q && q.sym ? `<button class="btn sm primary" id="fbChart">Open chart</button>` : ""}<button class="fbib" id="fbX" aria-label="Close">✕</button>`);
+  const lv = q && q.price ? fbLvCalc(m, q.price) : null, lc = FB.lv[m.k], px = q && q.price, rel = (lbl, x) => x == null || !px ? "" : `${px >= x ? "above" : "under"} ${lbl} by ${fmtPrice(Math.abs(px - x))}`;
+  const room = lv && lv.adr ? (lv.td.h - lv.td.l) / lv.adr : null;
+  const us = lv && lv.us, pos = (lo, hi, a, b) => px > hi ? `above ${a} by ${fmtPrice(px - hi)}` : px < lo ? `under ${b} by ${fmtPrice(lo - px)}` : "inside it";
+  const usH = !us ? "" : `<div><span class="mu">Overnight range</span>${us.on ? `<b>${fmtPrice(us.on.l)} – ${fmtPrice(us.on.h)}</b><span>${pos(us.on.l, us.on.h, "the overnight high", "the overnight low")}${us.open ? "" : " · still forming"}</span>` : "<b>—</b>"}</div>
+      <div><span class="mu">Yesterday's close (4 PM NY)</span>${us.pc != null ? `<b>${fmtPrice(us.pc)}</b><span>${us.op != null ? `opened with a gap ${us.op >= us.pc ? "up" : "down"} of ${fmtPrice(Math.abs(us.op - us.pc))} (${fPct((us.op / us.pc - 1) * 100)})` : rel("it", us.pc)}</span>` : "<b>—</b>"}</div>
+      <div><span class="mu">US open, first 15 min</span>${us.or ? `<b>${fmtPrice(us.or.l)} – ${fmtPrice(us.or.h)}</b><span>open ${fmtPrice(us.op)} · ${px > us.or.h ? "broke above the first 15 min" : px < us.or.l ? "broke below the first 15 min" : "inside the first 15 min"}</span>`
+        : us.open ? `<b>forming</b><span>opened ${phtHM(us.openAt)}, the first 15 minutes close at ${phtHM(us.openAt + 15 * 60e3)}</span>` : `<b>${phtHM(us.openAt)}</b><span>opens in ${inTxt(us.openAt - now)}</span>`}</div>`;
+  const lvH = !q || !q.sym ? "" : !lv ? `<div class="fblv1 mu">${lc && lc.err ? "Couldn't load candles for the levels (" + xEsc(lc.err) + ")." : "Loading today's levels…"}</div>` : `<div class="fblv">
+      ${usH}${us ? "" : `<div><span class="mu">Asia range</span>${lv.asia ? `<b>${fmtPrice(lv.asia.l)} – ${fmtPrice(lv.asia.h)}</b><span>${px > lv.asia.h ? `above the Asia high by ${fmtPrice(px - lv.asia.h)}` : px < lv.asia.l ? `under the Asia low by ${fmtPrice(lv.asia.l - px)}` : "inside the Asia range"}${lv.asia.forming ? " · still forming" : ""}</span>` : `<b>—</b><span>${lv.asiaLater ? `starts ${sessLbl(8)}` : "no candles"}</span>`}</div>`}
+      <div><span class="mu">Yesterday</span>${lv.yd ? `<b>${fmtPrice(lv.yd.l)} – ${fmtPrice(lv.yd.h)}</b><span>${px > lv.yd.h ? `above yesterday's high by ${fmtPrice(px - lv.yd.h)}` : px < lv.yd.l ? `under yesterday's low by ${fmtPrice(lv.yd.l - px)}` : "inside yesterday's range"}</span>` : "<b>—</b>"}</div>
+      ${us ? "" : `<div><span class="mu">Week open</span>${lv.wo != null ? `<b>${fmtPrice(lv.wo)}</b><span>${rel("it", lv.wo)}</span>` : "<b>—</b>"}</div>`}
+      <div><span class="mu">Room left today</span>${room != null ? `<b class="${room >= 1 ? "dn" : room >= 0.7 ? "fam" : "up"}">${Math.round(room * 100)}% of an average day used</b><span>${room >= 1 ? "bigger than a normal day: late to chase" : room >= 0.7 ? "most of a normal day is done" : "room left to run"} · avg ${fmtPrice(lv.adr)}</span>` : "<b>—</b><span>needs a few days of candles</span>"}</div></div>`;
+  const tagE = x => x.v > 0 ? `<span class="fk up">▲ helps</span>` : x.v < 0 ? `<span class="fk dn">▼ hurts</span>` : `<span class="fk">– neutral</span>`;
+  const drv = D.length ? `<table class="ftbl">${D.map(x => `<tr><td>${xEsc(x.name)}</td><td class="r">${xEsc(x.now)}</td><td class="r">${xEsc(x.chg)}</td><td class="r">${tagE(x)}</td></tr>`).join("")}</table>` : `<div class="mu">Fills in as rates, yields and prices load.</div>`;
+  const usd = fbCcys(m).includes("USD"), fe = usd ? fbFedExp() : null, cs = m.kind === "fx" || m.kind === "usd" ? fbStrength() : null, c = m.cot && S.cot(m.cot);
+  const csRow = (L, key) => L.filter(x => x[key] != null).sort((a, b) => b[key] - a[key]).map(x => `<span class="fbcc ${[m.b, m.q, m.dollar ? "USD" : ""].includes(x.c) ? "on" : ""}"><b>${x.c}</b> <i class="${fCls(x[key])}">${(x[key] >= 0 ? "+" : "") + x[key].toFixed(2)}%</i></span>`).join("");
+  const spark = h => { if (!h || h.length < 4) return ""; const lo = Math.min(...h), hi = Math.max(...h), Y = x => (26 - (x - lo) / (hi - lo || 1) * 24).toFixed(1);
+    return `<svg width="140" height="28" viewBox="0 0 140 28" role="img" aria-label="Net position over the past year"><polyline points="${h.map((x, i) => `${(i / (h.length - 1) * 140).toFixed(1)},${Y(x)}`).join(" ")}" fill="none" stroke="var(--mute)" stroke-width="1.5"/><circle cx="140" cy="${Y(h.at(-1))}" r="2.5" fill="var(--accent)"/></svg>`; };
+  const gap = m.kind === "fx" ? (() => { const fb = FB_BANK[m.b] && fundBank(FB_BANK[m.b].id), fq = FB_BANK[m.q] && fundBank(FB_BANK[m.q].id); if (!fb || !fq || fb.rate == null || fq.rate == null) return "";
+    const row = (c, f) => { const t = fbMeet(c); return `<tr><td><b>${FB_BANK[c].bank}</b> <span class="mu">${c}</span></td><td class="r">${f.rate.toFixed(2)}%</td><td><span class="fk ${f.stance === "cutting" ? "dn" : f.stance === "hiking" ? "up" : ""}">${f.stance}</span></td><td class="r mu">${t ? "next " + phtDay(t).slice(4) : ""}</td></tr>`; };
+    const g = fb.rate - fq.rate; return `<div class="fbs"><div class="fbsh">Rate gap</div><table class="ftbl">${row(m.b, fb)}${row(m.q, fq)}</table><div>Gap <b>${Math.abs(g).toFixed(2)} points</b> <span class="mu">in favour of ${g >= 0 ? m.b : m.q}</span></div></div>`; })() : "";
+  const ev = fbEvents(m).filter(x => x.at > now - 30 * 60e3).slice(0, 7), news = fbNews(m).slice(0, 6), r = q && q.r;
+  const dDir = r && r.s1d ? stDir(r.s1d.state) : null, lean = sc >= 2 ? "Long" : sc <= -2 ? "Short" : null, stTag = s => { const x = (s && s.state) || "—"; return `<span class="fk ${/^Bull stack/.test(x) ? "up" : /^Bear stack/.test(x) ? "dn" : ""}">${xEsc(x.replace("Pullback in ", "pullback in ").replace("Bull stack", "bull stack").replace("Bear stack", "bear stack"))}</span>`; };
+  const ao = r ? [r.aots4h, r.aots1h].filter(Boolean) : [];
+  const chartH = !r || !r.s1h ? `<div class="mu">Shows once this market is in the last scan.</div>` : `<div class="fbst"><span>1H ${stTag(r.s1h)}</span><span>4H ${stTag(r.s4h)}</span><span>D ${stTag(r.s1d)}</span>${r.rsi ? `<span class="mu">RSI 1H ${r.rsi.h1 != null ? Math.round(r.rsi.h1) : "—"} · 4H ${r.rsi.h4 != null ? Math.round(r.rsi.h4) : "—"}</span>` : ""}</div>
+      <div class="mu">${ao.length ? ao.map(a => `${a.tf} ${a.stage.toLowerCase()} ${a.dir === "Long" ? "long" : "short"}`).join(" · ") + " (beyond the 20/50/100, stacked)" : "Not beyond the 20/50/100 (no AOTS)."}</div>
+      <div>${lean && dDir ? (lean === dDir ? `<b class="up">Fundamentals and the daily trend agree</b>: favour ${lean.toLowerCase()}s.` : `<b class="dn">Fundamentals and the daily trend disagree</b>: size down or wait.`) : dDir ? `Fundamentals are mixed: follow the daily trend (${dDir.toLowerCase()}).` : "The daily trend is tangled: let the NBB setup decide."}</div>`;
+  const win = (() => { const it = ((typeof NW !== "undefined" && NW.items) || []).find(x => x.name === m.k); if (it) return `NBB Watch ${CH_TFL[it.tf] || it.tf} · ${xEsc(nwSession(it).label)}`;
+    const [nm, a, b] = m.sess, h = sessH(), on = h >= a && h < b; return `${nm} ${sessLbl(a)} – ${sessLbl(b)} PHT · ${on ? `<b class="fam">live now</b>, ${inTxt((b - h) * 3600e3)} left` : `opens in <b class="fam">${inTxt((((a - h) + 24) % 24) * 3600e3)}</b>`}`; })();
+  const body = $("fbBody"), keep = body.scrollTop, idx = Math.max(-3, Math.min(3, sc)) + 3;
+  set(body, `${fbAlerts(m).map(([t, h]) => `<div class="fbal ${t}">${h}</div>`).join("")}
+    <div class="fblean"><div><div class="fbvr"><span class="fverd ${v[0]}">${v[1]}</span><span class="mu">${nf} for · ${na} against${W.length ? ` · ${W.length} warning${W.length > 1 ? "s" : ""}` : ""}</span></div>
+      <div class="fbmeter" role="img" aria-label="Lean ${sc} on a scale from minus 3 to plus 3">${["r2", "r1", "", "", "", "g1", "g2"].map((cl, i) => `<i class="${cl}${i === idx ? " on" : ""}"></i>`).join("")}</div>
+      <div class="fbml"><span>Headwind: favour shorts</span><span>Mixed</span><span>Tailwind: favour longs</span></div></div>
+      <div><p class="fbsay">${xEsc(fbSay(D, sc))}</p><div class="fbtip">${fbTip(D, sc)}</div></div></div>
+    ${lvH}
+    <div class="fbcols"><div>
+      <div class="fbs"><div class="fbsh">What moves ${xEsc(m.k)} <span>now · change · effect</span></div>${drv}${W.length ? `<ul class="fwhy">${W.map(t => `<li class="fwatch"><i>⚠</i><span>${xEsc(t)}</span></li>`).join("")}</ul>` : ""}</div>
+      ${fe ? `<div class="fbs"><div class="fbsh">What the market expects from the Fed</div><div>US 2-year <b>${fe.two.toFixed(2)}%</b> vs Fed <b>${fe.fed.toFixed(2)}%</b>: <b class="${fe.s === "hike" ? "dn" : fe.s === "cut" ? "up" : ""}">${fe.s === "hike" ? "more hikes" : fe.s === "cut" ? "cuts" : "a hold"} priced in</b></div><div class="mu">${fe.txt}</div></div>` : ""}
+      ${gap}
+      ${cs ? `<div class="fbs"><div class="fbsh">Currency strength <span>strongest → weakest</span></div><div class="fbccs"><span class="mu">Today</span>${csRow(cs, "d")}</div><div class="fbccs"><span class="mu">Week</span>${csRow(cs, "w")}</div></div>` : ""}
+      ${c ? `<div class="fbs"><div class="fbsh">Positioning <span>CFTC large speculators</span></div><div class="fbpos"><b class="${fCls(c.net)}">${(c.net >= 0 ? "+" : "") + c.net.toFixed(0)}% net ${c.net >= 0 ? "long" : "short"}</b>${spark(c.hist)}</div>
+        <div><span class="${fCls(c.chg)}">${c.chg == null ? "" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(1)}</span> <span class="mu">this week ·</span> ${c.pct}${c.pct % 100 >= 11 && c.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][c.pct % 10] || "th"} <span class="mu">of the year${c.pct >= 90 || c.pct <= 10 ? "" : ": not crowded"}</span>${m.cot === "Yen" || m.cot === "Canadian dollar" || m.cot === "Swiss franc" ? ` <span class="mu">(this is ${m.cw}: long here pushes ${m.k} down)</span>` : ""}</div></div>` : ""}
+    </div><div>
+      <div class="fbs"><div class="fbsh">Coming up <span>what moves ${xEsc(m.k)}</span></div>${ev.length ? `<table class="ftbl">${ev.map(x => { const ls = rxLast(x); return `<tr><td class="fam" style="white-space:nowrap">${xEsc(fbWhen(x))}</td><td><b>${xEsc(x.ccy)}</b> ${xEsc(x.title)}${ls ? `<div class="mu">last time: ${ls.read10 || ls.read ? "read as " + (ls.read10 || ls.read) + " · " : ""}${xEsc(rxTxt(ls.mv10 || ls.mv2, x.ccy))} in 10 min</div>` : ""}</td><td class="r mu">${x.at <= now && x.id && RX_LIVE[x.id] && RX_LIVE[x.id].read ? `<b class="fam">${RX_LIVE[x.id].read}</b>` : x.forecast && !x.earn ? "F " + xEsc(x.forecast) + (x.previous ? " · P " + xEsc(x.previous) : "") : x.at > now + 60e3 ? "in " + inTxt(x.at - now) : x.at > now ? "in under a minute" : "just out"}</td></tr>`; }).join("")}</table>` : `<div class="mu">No high-impact events in the next 7 days.</div>`}</div>
+      <div class="fbs"><div class="fbsh">Headlines <span>${FUND.news ? "checked " + phtHM(FUND.news.at) : ""}</span></div>${news.length ? `<div class="fbnews">${news.map(x => `<a href="${xEsc(x.link)}" target="_blank" rel="noopener noreferrer"><span class="fam">${x.t ? phtHM(x.t) : ""}</span>${now - x.t < 30 * 60e3 ? ` <span class="fbnew">NEW</span>` : ""} <span class="fk">${xEsc(x.tag)}</span> <span class="fnt">${xEsc(x.title)}</span> <span class="mu">· ${xEsc(x.src)}</span></a>`).join("")}</div>` : `<div class="mu">${FUND.news ? "No headlines on this in the last day." : FUND.err.news ? xEsc(FUND.err.news) : "Loading headlines…"}</div>`}</div>
+      <div class="fbs"><div class="fbsh">Chart check <span>from the last scan</span></div>${chartH}</div>
+      <div class="fbs"><div class="fbsh">Your window</div><div>${win}</div></div>
+    </div></div>`);
+  body.scrollTop = keep;
+  dlg.querySelectorAll("[data-fbs]").forEach(b => b.onclick = () => fbStep(+b.dataset.fbs));
+  $("fbX").onclick = () => dlg.close();
+  if ($("fbChart")) $("fbChart").onclick = () => { dlg.close(); openInCharts(q.sym); };
+  $("fbCopy").onclick = async () => { const T = s => String(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    const t = [`${m.k}${sym ? " (" + sym + ")" : ""} ${q && q.price ? fmtPrice(q.price) : ""}, ${q && q.chg != null ? fPct(q.chg) + " today" : ""}${q && q.w != null ? ", " + fPct(q.w, 1) + " this week" : ""} · ${fmtPHT(new Date(now + PHT_MS))}`,
+      `Lean: ${v[1]} (score ${sc}: ${nf} for, ${na} against)`, `Read: ${fbSay(D, sc)}`, T(fbTip(D, sc)),
+      "Drivers: " + D.map(x => `${x.v > 0 ? "▲" : x.v < 0 ? "▼" : "–"} ${x.name} ${x.now} ${x.chg}`.trim()).join("; "), ...W.map(x => "⚠ " + x),
+      ...fbAlerts(m).map(([, h]) => T(h)), lv ? T($("fbBody").querySelector(".fblv") ? $("fbBody").querySelector(".fblv").innerText.replace(/\n/g, " ") : "") : "",
+      fe ? `Fed: 2Y ${fe.two.toFixed(2)}% vs Fed ${fe.fed.toFixed(2)}%: ${fe.txt}` : "", c ? `Positioning: ${c.net.toFixed(0)}% net, ${c.pct}th of the year` : "",
+      ev.length ? "Coming up: " + ev.map(x => `${fbWhen(x)} ${x.ccy} ${x.title}`).join("; ") : "", news.length ? "Headlines: " + news.slice(0, 4).map(x => `${phtHM(x.t)} ${x.title} (${x.src})`).join("; ") : "",
+      r && r.s1h ? `Chart: 1H ${r.s1h.state}, 4H ${r.s4h.state}, D ${r.s1d.state}` : ""].filter(Boolean).join("\n");
+    const b = $("fbCopy"); try { await navigator.clipboard.writeText(t); b.textContent = "Copied ✓"; } catch (e) { b.textContent = "Copy blocked"; } setTimeout(() => { if ($("fbCopy")) $("fbCopy").textContent = "Copy brief"; }, 1500); };
+}
+function fbOpen(k) {
+  const m = fbMk(k); if (!m) return; FB.k = k; let d = $("fbDlg");
+  if (!d) { d = document.createElement("dialog"); d.id = "fbDlg"; d.tabIndex = -1; d.setAttribute("aria-labelledby", "fbTitle"); document.body.appendChild(d);
+    d.innerHTML = `<div class="fbh" id="fbHead"></div><div class="fbb" id="fbBody"></div><div class="fbf meta"><span>A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</span><span class="fbkeys"><kbd>←</kbd> <kbd>→</kbd> switch market · <kbd>Esc</kbd> or click outside to close</span></div>`;
+    d.addEventListener("click", e => { if (e.target === d) d.close(); });
+    document.addEventListener("keydown", e => { if (!d.open || !(e.key === "ArrowLeft" || e.key === "ArrowRight") || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); fbStep(e.key === "ArrowRight" ? 1 : -1); });
+    d.addEventListener("close", () => { if (d.open) return; FB.k = null; clearInterval(FB.t); FB.t = null; }); }      // (a late close after reopening is ignored)
+  if (!d.open) d.showModal(); $("fbBody").scrollTop = 0; $("fbHead")._h = $("fbBody")._h = null;
+  fbRender(); fbLevels(m); if (m.earn && Date.now() - FB.earnAt > 3600e3) fbEarn();
+  const news = () => (FUND.news && Date.now() - FUND.news.at < 20e3 ? Promise.resolve() : fundNews(true)).then(() => { if (FB.k) fbRender(); }).catch(() => {});
+  news(); clearInterval(FB.t); FB.t = setInterval(() => { if (!FB.k) return; news(); const x = fbMk(FB.k); if (x) fbLevels(x); }, 60e3);     // headlines every minute while open
+}
+const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k); };
+/* ===================== Headline alerts: market-moving headlines on your markets, on any page, checked every 2 minutes ===================== */
+const NA_KEY = "finder-news-seen"; let NA_SEEN = lsGet(NA_KEY, {});
+const naMine = () => { const L = ((typeof NW !== "undefined" && NW.items) || []).map(it => fbMk(it.name)).filter(Boolean); return L.length ? L : [fbMk("Gold"), fbMk("Nasdaq 100")]; };
+function naCheck() {                               // once per headline: newer than 20 minutes, tagged for your NBB Watch markets (or MACRO: data, tariffs, wars), with market-moving words
+  const N = FUND.news; if (!N || !N.items) return; const now = Date.now(), mine = naMine(); let ch = false;
+  for (const k in NA_SEEN) if (now - NA_SEEN[k] > 2 * 864e5) { delete NA_SEEN[k]; ch = true; }
+  N.items.forEach(x => { const k = x.title.toLowerCase().slice(0, 80); if (NA_SEEN[k]) return; NA_SEEN[k] = now; ch = true;
+    if (!x.t || now - x.t > 20 * 60e3 || x.t > now + 5 * 60e3 || !newsBig(x.title)) return;
+    const m = x.tag === "MACRO" ? mine[0] : mine.find(y => y.tag.includes(x.tag)); if (!m) return;
+    ncAdd({ kind: "News", icon: "📰", tone: "warn", action: "brief", mk: m.k, title: `${x.tag}: ${x.title}`, detail: `${x.src} · ${phtHM(x.t)} PHT · the ${m.k} brief has the read`, url: x.link }); });
+  if (ch) lsSet(NA_KEY, NA_SEEN);
+}
+setTimeout(() => fundNews(false).catch(() => {}), 20e3); setInterval(() => fundNews(false).catch(() => {}), 120e3);
 if (page === "fund") fundShown();
 
 setTimeout(() => { try { ctOAuthReturn(); } catch (e) {} }, 0);

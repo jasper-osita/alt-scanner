@@ -58,7 +58,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   `COT_MK` [name, CFTC code, group] (a new code refetches the cache); hedge-fund column `fundCOTFunds` (leveraged funds from /proxy/cot-tff for currencies, indices,
   Bitcoin; managed money from /proxy/cot-dis for commodities; fields found by name, falls back to all columns for recent weeks if a $select column is refused); World markets ratios `fRatio` (Gold ÷ Silver, Copper ÷ Gold) and `fGoldIn` (gold in euros and yen;
   the Gold card warns "mostly the dollar" when gold moves in dollars but not in euros).
-  Clicking a market opens the market brief (`<dialog id="fbDlg">`, `fbOpen`/`fbRender`), not the chart: registry `FB_MK`, lean rules `fbDrivers` (score ±2 = tailwind/headwind, `fbSay`/`fbTip`),
+  Clicking a market opens the market brief (`<dialog id="fbDlg">`, `fbOpen(k, src, dir)`/`fbRender`/`fbClose`; grows out of the clicked row, sections fade up, `FB.hold` defers redraws during it; reduced motion = a fade), not the chart: registry `FB_MK`, lean rules `fbDrivers` (score ±2 = tailwind/headwind, `fbSay`/`fbTip`),
   levels from 1H candles `fbLevels`/`fbLvCalc` (US indices: 15m `fbUsLv`, overnight range, 4 PM close, open gap, first 15 min), `fbFedExp`, `fbStrength`, `fbEvents` (+ `fbEarn`), `fbNews`;
   sudden moves `fbSample` (every 2 s, live prices, alert via `ncAdd` for Gold and the Nasdaq 100); release read `rxTick` (market reaction 2 and 10 min after a high-impact release, history `finder-react`);
   headline alerts on any page `naCheck` (core `NEWS_TAGS`/`newsBig`, MACRO tag; alerts carry `action: "brief"`). Cloud watcher sends headlines too (`.github/workflows/cloud-watch.yml`). Test: `t_brief`.

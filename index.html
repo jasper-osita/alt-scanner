@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.12.1949">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.16.1012">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -923,7 +923,10 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fcard:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* market brief (floating, page dimmed behind) */
 dialog#fbDlg{width:min(940px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;font-variant-numeric:tabular-nums}dialog#fbDlg:not([open]){display:none}
-dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62);backdrop-filter:blur(2px)}
+dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62);backdrop-filter:blur(2px);animation:fbDim .32s ease-out}dialog#fbDlg.closing::backdrop{animation:fbUndim .22s ease-in forwards}
+@keyframes fbDim{from{background:rgba(6,7,8,0);backdrop-filter:blur(0)}}@keyframes fbUndim{to{background:rgba(6,7,8,0);backdrop-filter:blur(0)}}
+.fbpress{animation:fbPress .6s ease-out}@keyframes fbPress{0%{background:color-mix(in srgb,var(--accent) 26%,transparent)}100%{background:transparent}}.fcard.fbpress{animation-name:fbPressC}@keyframes fbPressC{0%{border-color:var(--accent);transform:scale(.98)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){dialog#fbDlg::backdrop,dialog#fbDlg.closing::backdrop,.fbpress{animation:none}}
 .fbh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px}.fbh h3{margin:0 2px 0 6px;font:700 20px var(--display);color:var(--strong)}
 .fbpx{font:600 20px var(--display);color:var(--strong);margin:0 2px 0 8px}.fbib{width:30px;height:30px;border-radius:8px;border:1px solid var(--pill-b);background:var(--pill);color:var(--text);cursor:pointer;font-size:15px;line-height:1;padding:0}.fbib:hover{background:var(--hover)}
 .fbb{flex:1;min-height:0;overflow-y:auto}.fbf{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 16px;border-top:1px solid var(--line);font-size:11.5px}.fbkeys{margin-left:auto}
@@ -4504,7 +4507,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.12.1949";
+const APP_VERSION = "2026.11.16.1012";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -10055,12 +10058,12 @@ function fundRender() {
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
   const keep = document.activeElement && document.activeElement.id === "fredKey" ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
   $("fundRead").innerHTML = fundReadHTML();
-  $("fundRead").querySelectorAll("[data-fmk]").forEach(c => { c.onclick = () => fbOpen(c.dataset.fmk); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(c.dataset.fmk); } }; });
+  $("fundRead").querySelectorAll("[data-fmk]").forEach(c => { c.onclick = () => fbOpen(c.dataset.fmk, c); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(c.dataset.fmk, c); } }; });
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
-  el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk));            // a market's brief, not the chart (the brief has "Open chart")
+  el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk, tr));            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
@@ -10286,6 +10289,7 @@ function fbAlerts(m) {                             // the top strip: a sudden mo
 }
 function fbRender() {
   const m = fbMk(FB.k), dlg = $("fbDlg"); if (!m || !dlg || !dlg.open) return;
+  const wait = (FB.hold || 0) - Date.now(); if (wait > 0) { clearTimeout(FB.holdT); FB.holdT = setTimeout(fbRender, wait + 20); return; }     // let the opening animation finish first
   const S = fundSignals(), q = fbQuote(m), D = fbDrivers(m, S), W = fbWarn(m, S), sc = D.reduce((a, x) => a + x.v, 0), now = Date.now();
   const v = sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", D.some(x => x.v) ? "Mixed: no strong lean" : D.length ? "No lean right now" : "Not enough data yet"];
   const nf = D.filter(x => x.v > 0).length, na = D.filter(x => x.v < 0).length, sym = q && q.sym ? q.sym.replace(/^(CT:|MX:)/, "").replace("_", "") : "";
@@ -10345,7 +10349,7 @@ function fbRender() {
     </div></div>`);
   body.scrollTop = keep;
   dlg.querySelectorAll("[data-fbs]").forEach(b => b.onclick = () => fbStep(+b.dataset.fbs));
-  $("fbX").onclick = () => dlg.close();
+  $("fbX").onclick = () => fbClose();
   if ($("fbChart")) $("fbChart").onclick = () => { dlg.close(); openInCharts(q.sym); };
   $("fbCopy").onclick = async () => { const T = s => String(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
     const t = [`${m.k}${sym ? " (" + sym + ")" : ""} ${q && q.price ? fmtPrice(q.price) : ""}, ${q && q.chg != null ? fPct(q.chg) + " today" : ""}${q && q.w != null ? ", " + fPct(q.w, 1) + " this week" : ""} · ${fmtPHT(new Date(now + PHT_MS))}`,
@@ -10357,19 +10361,47 @@ function fbRender() {
       r && r.s1h ? `Chart: 1H ${r.s1h.state}, 4H ${r.s4h.state}, D ${r.s1d.state}` : ""].filter(Boolean).join("\n");
     const b = $("fbCopy"); try { await navigator.clipboard.writeText(t); b.textContent = "Copied ✓"; } catch (e) { b.textContent = "Copy blocked"; } setTimeout(() => { if ($("fbCopy")) $("fbCopy").textContent = "Copy brief"; }, 1500); };
 }
-function fbOpen(k) {
+const fbCalm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FB_EASE = "cubic-bezier(.16,1,.3,1)";
+function fbFrom(d, src) {                          // where the box grows from: the row or card you clicked (or a little below the middle)
+  const r = d.getBoundingClientRect(), s = src && src.isConnected && src.getBoundingClientRect(), on = s && s.width && s.bottom > 0 && s.top < innerHeight;
+  return on ? { x: s.left + s.width / 2 - (r.left + r.width / 2), y: s.top + s.height / 2 - (r.top + r.height / 2), k: Math.max(0.12, Math.min(0.5, s.width / r.width)) } : { x: 0, y: 24, k: 0.94 };
+}
+function fbOpen(k, src, dir) {                     // src: the clicked element (the box grows out of it); dir: ±1 when switching market with ← →
   const m = fbMk(k); if (!m) return; FB.k = k; let d = $("fbDlg");
   if (!d) { d = document.createElement("dialog"); d.id = "fbDlg"; d.tabIndex = -1; d.setAttribute("aria-labelledby", "fbTitle"); document.body.appendChild(d);
     d.innerHTML = `<div class="fbh" id="fbHead"></div><div class="fbb" id="fbBody"></div><div class="fbf meta"><span>A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</span><span class="fbkeys"><kbd>←</kbd> <kbd>→</kbd> switch market · <kbd>Esc</kbd> or click outside to close</span></div>`;
-    d.addEventListener("click", e => { if (e.target === d) d.close(); });
+    d.addEventListener("click", e => { if (e.target === d) fbClose(); });
+    d.addEventListener("cancel", e => { e.preventDefault(); fbClose(); });          // Esc: close with the animation
     document.addEventListener("keydown", e => { if (!d.open || !(e.key === "ArrowLeft" || e.key === "ArrowRight") || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); fbStep(e.key === "ArrowRight" ? 1 : -1); });
-    d.addEventListener("close", () => { if (d.open) return; FB.k = null; clearInterval(FB.t); FB.t = null; }); }      // (a late close after reopening is ignored)
+    d.addEventListener("close", () => { if (d.open) return; FB.k = null; FB.closing = false; d.classList.remove("closing"); clearInterval(FB.t); FB.t = null; }); }      // (a late close after reopening is ignored)
+  const opening = !d.open || FB.closing; FB.closing = false; d.classList.remove("closing"); d.getAnimations().forEach(a => a.cancel());
+  if (src && src.classList) { src.classList.remove("fbpress"); void src.offsetWidth; src.classList.add("fbpress"); setTimeout(() => src.classList.remove("fbpress"), 600); }
   if (!d.open) d.showModal(); $("fbBody").scrollTop = 0; $("fbHead")._h = $("fbBody")._h = null;
-  fbRender(); fbLevels(m); if (m.earn && Date.now() - FB.earnAt > 3600e3) fbEarn();
+  FB.hold = 0; fbRender(); if (opening && !fbCalm()) FB.hold = Date.now() + 650; fbLevels(m); if (m.earn && Date.now() - FB.earnAt > 3600e3) fbEarn();
+  FB.src = opening ? src || null : FB.src;
+  if (fbCalm()) { if (opening) d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); }
+  else if (opening) {                              // grow out of the clicked row, then the sections fade up one after another
+    const f = fbFrom(d, src);
+    d.animate([{ opacity: 0, transform: `translate(${f.x}px, ${f.y}px) scale(${f.k})` }, { opacity: 1, offset: 0.35 }, { opacity: 1, transform: "none" }], { duration: 380, easing: FB_EASE });
+    const B = $("fbBody"), Q = sel => [...B.querySelectorAll(sel)];         // in steps: header, the top strip, the lean, the levels, then the two columns
+    [[$("fbHead")], Q(":scope > .fbal"), Q(":scope > .fblean"), Q(":scope > .fblv, :scope > .fblv1"), Q(".fbcols > div")].filter(g => g.length).forEach((g, i) => g.forEach((el, j) =>
+      el.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 320, delay: 60 + i * 45 + j * 25, easing: FB_EASE, fill: "backwards" })));
+    const on = $("fbBody").querySelector(".fbmeter i.on"); if (on) on.animate([{ transform: "scale(.2)", opacity: 0 }, { transform: "scale(1.25)", opacity: 1, offset: 0.7 }, { transform: "scale(1)" }], { duration: 420, delay: 280, easing: "ease-out", fill: "backwards" });
+  } else if (dir) {                                // switching market: the content slides the way you went
+    [$("fbHead"), $("fbBody")].forEach(el => el.animate([{ opacity: 0, transform: `translateX(${dir * 28}px)` }, { opacity: 1, transform: "none" }], { duration: 260, easing: FB_EASE }));
+  }
   const news = () => (FUND.news && Date.now() - FUND.news.at < 20e3 ? Promise.resolve() : fundNews(true)).then(() => { if (FB.k) fbRender(); }).catch(() => {});
   news(); clearInterval(FB.t); FB.t = setInterval(() => { if (!FB.k) return; news(); const x = fbMk(FB.k); if (x) fbLevels(x); }, 60e3);     // headlines every minute while open
 }
-const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k); };
+function fbClose(now) {                            // shrink back toward the row it came from while the page brightens
+  const d = $("fbDlg"); if (!d || !d.open || FB.closing) return;
+  if (now || fbCalm()) { d.close(); return; }
+  FB.closing = true; d.classList.add("closing"); const f = fbFrom(d, FB.src);
+  const a = d.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translate(${f.x}px, ${f.y}px) scale(${f.k})` }], { duration: 220, easing: "cubic-bezier(.4,0,.8,.4)", fill: "forwards" });
+  a.onfinish = () => { if (FB.closing) d.close(); a.cancel(); };
+}
+const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k, null, s); };
 /* ===================== Headline alerts: market-moving headlines on your markets, on any page, checked every 2 minutes ===================== */
 const NA_KEY = "finder-news-seen"; let NA_SEEN = lsGet(NA_KEY, {});
 const naMine = () => { const L = ((typeof NW !== "undefined" && NW.items) || []).map(it => fbMk(it.name)).filter(Boolean); return L.length ? L : [fbMk("Gold"), fbMk("Nasdaq 100")]; };

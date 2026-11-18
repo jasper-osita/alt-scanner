@@ -166,6 +166,7 @@ CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
 def CT_BASE(n): return CT_ASSET.get(n[:3], 9) if len(n) == 6 and n.isupper() else 9
 def CT_QUOTE(n): return CT_ASSET.get(n[3:6], 9) if len(n) == 6 and n.isupper() else (2 if n in ("GER40",) else 3 if n == "JPN225" else 5 if n == "UK100" else 1)
 CT_TRADE = {"pos": [], "ord": [], "log": [], "deals": []}
+CT_AUTH = {"access": set(), "refresh": set(), "n": 0}      # opts["rotate"]: like the real service, one live sign-in; each renewal ends the old pair
 def ct_handler(opts):
     """opts: {'secret': 'sec', 'token': 'tok', 'live': True} — what the fake server accepts."""
     def handler(ws):
@@ -179,8 +180,13 @@ def ct_handler(opts):
             if t == 51: return
             if t == 2100:
                 return reply(2101, {}) if p.get("clientSecret") == opts["secret"] else reply(2142, {"errorCode": "CH_CLIENT_AUTH_FAILURE", "description": "Client authentication failure"})
+            if t == 2173 and opts.get("rotate"):
+                if p.get("refreshToken") not in CT_AUTH["refresh"]: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid refresh token"})
+                CT_AUTH["n"] += 1; n = CT_AUTH["n"]; CT_AUTH["access"] = {f"tok-r{n}"}; CT_AUTH["refresh"] = {f"ref-r{n}"}
+                return reply(2174, {"accessToken": f"tok-r{n}", "refreshToken": f"ref-r{n}", "expiresIn": 2628000, "tokenType": "bearer"})
             if t == 2149:
-                if p.get("accessToken") not in (opts["token"], "tok-renewed"): return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
+                ok = p.get("accessToken") in (CT_AUTH["access"] if opts.get("rotate") else (opts["token"], "tok-renewed"))
+                if not ok: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
                 accts = [{"ctidTraderAccountId": 4242, "isLive": opts["live"], "traderLogin": 5150123, "brokerTitleShort": "Pepperstone"}]
                 if opts.get("demo2"): accts.append({"ctidTraderAccountId": 777, "isLive": False, "traderLogin": 900777, "brokerTitleShort": "Demo Broker"})
                 return reply(2150, {"accessToken": p["accessToken"], "permissionScope": opts.get("scope", "SCOPE_VIEW"), "ctidTraderAccount": accts})

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.17.2308">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.18.1507">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2449,7 +2449,7 @@ const ctConfigured = () => { const c = ctCfg(); return !!(c && c.clientId && c.c
 function ctErrText(p) {
   const code = (p && p.errorCode) || "", d = (p && p.description) || "";
   if (/CLIENT_AUTH|APP_AUTH|INVALID_CLIENT/i.test(code)) return "cTrader rejected the Client ID or Secret (or the app isn't approved yet)";
-  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Use Sign in with cTrader in Settings (or paste a new access and refresh token)";
+  if (/TOKEN/i.test(code) || /token/i.test(d)) return "the access token is invalid or expired. Use Sign in with cTrader in Settings";
   if (/RATE|LIMIT|FREQUENCY/i.test(code)) return "cTrader is rate-limiting requests; try again in a minute";
   return `${code || "cTrader error"}${d ? ": " + d : ""}`;
 }
@@ -2474,7 +2474,7 @@ function ctBind(ws) {
     if (m.payloadType === 2148 || (m.payloadType === 2147 && (ctCfg() || {}).refreshToken)) {      // cTrader dropped the session: reconnect (renewing the token if needed)
       ctClose(); CT.state = "closed"; ctScheduleReconnect(true); if (typeof renderMacro === "function") renderMacro(); return; }
     if (m.payloadType === 2147) {
-      CT.state = "error"; CT.err = "your cTrader access token was revoked or expired. Paste a fresh access token (and its refresh token) in Settings";
+      CT.state = "error"; CT.err = "cTrader ended this sign-in (it keeps only your latest one). Use Sign in with cTrader in Settings: it then renews by itself";
       ctClose(); if (typeof renderMacro === "function") renderMacro(); return; }
     const p = m.clientMsgId && CT.pending.get(m.clientMsgId); if (!p) return;
     CT.pending.delete(m.clientMsgId); clearTimeout(p.t);
@@ -2531,13 +2531,29 @@ async function ctConnect(cfg = ctCfg()) {
 }
 /* ---- staying connected: renew the token before it expires, reconnect after drops, resubscribe prices ---- */
 const CT_RENEW_MS = 5 * 864e5, CT_TOKEN_DAYS = 30;
-async function ctRenew(cfg) {                                // needs the app-authorised socket; cTrader issues a new access and refresh token
-  const r = await ctReq(2173, { refreshToken: cfg.refreshToken });
-  if (!r.accessToken) throw new Error("cTrader didn't renew the access token. Paste a fresh access and refresh token in Settings");
-  const next = { ...cfg, accessToken: r.accessToken, refreshToken: r.refreshToken || cfg.refreshToken, expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000 };
-  ctSaveCfg(next); return next;
+async function ctRenew(cfg) {                                // needs the app-authorised socket; cTrader issues a new access and refresh token and ends the old pair
+  const newer = () => { const c = ctCfg() || {}; return c.refreshToken && c.refreshToken !== cfg.refreshToken ? { ...cfg, accessToken: c.accessToken, refreshToken: c.refreshToken, expAt: c.expAt } : null; };
+  const run = async () => {                                  // one window at a time: a refresh token works once, and another window may have renewed already
+    const done = newer(); if (done) return done;
+    let r;
+    try { r = await ctReq(2173, { refreshToken: cfg.refreshToken }); }
+    catch (e) { const n = newer(); if (n) return n; if (/token/i.test(e.message)) throw ctSignedOut(cfg); throw e; }
+    if (!r.accessToken) throw new Error("cTrader didn't renew the access token. Use Sign in with cTrader in Settings");
+    const next = { ...cfg, accessToken: r.accessToken, refreshToken: r.refreshToken || cfg.refreshToken, expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000 };
+    ctSaveCfg(next); return next;
+  };
+  return typeof navigator !== "undefined" && navigator.locks ? navigator.locks.request("finder-ct-renew", run) : run();
 }
-const CT_STOP = /rejected the Client|invalid or expired|revoked|enter your|renew/i;   // errors a retry can't fix
+function ctSignedOut(cfg) {                                  // cTrader ended this sign-in (it keeps only the latest one per app): say so once, with a one-tap way back
+  const c = ctCfg() || cfg;
+  if (c.outRef !== cfg.refreshToken) {
+    ctSaveCfg({ ...c, outRef: cfg.refreshToken });
+    if (typeof ncAdd === "function") ncAdd({ kind: "System", icon: "⚠️", tone: "warn", sym: null, action: "ctsignin", title: "cTrader signed this device out",
+      detail: "cTrader keeps only your latest sign-in, so signing in on another device, the website, the Mac app or the Sandbox page ends this one. Sign in again: your Client ID and Secret are kept, nothing to reset." });
+  }
+  return new Error("signed out: cTrader keeps only your latest sign-in, and you signed in somewhere else (another device, the website, the Mac app or the Sandbox page). Sign in again from Settings");
+}
+const CT_STOP = /rejected the Client|invalid or expired|revoked|enter your|renew|signed out/i;   // errors a retry can't fix
 function ctScheduleReconnect(now) {
   if (!ctConfigured() || CT.retryT || CT.connecting) return;
   if (now) CT.retry = 0;
@@ -4504,7 +4520,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.17.2308";
+const APP_VERSION = "2026.11.18.1507";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6334,6 +6350,7 @@ function ncGo(id) {                                  // open the market behind a
   if (ncOpen()) ncShow(false);
   ncDropToast(id);
   if (n.action === "ctrader") { goPage("macro"); openCTSettings(); return; }
+  if (n.action === "ctsignin") { ctSignIn(); return; }                  // cTrader signed this device out: straight back to its sign-in page
   if (n.action === "brief") { goPage("fund"); if (typeof fbOpen === "function") setTimeout(() => fbOpen(n.mk), 60); return; }      // a headline or a release read: that market's brief
   if (!n.sym) return;
   if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
@@ -6344,7 +6361,7 @@ function ncToast(n) {
   const box = $("ncToasts"), el = document.createElement("div");
   el.className = "nctoast"; el.dataset.t = n.id; el.style.setProperty("--nc", NC_TONE[n.tone] || NC_TONE.gold); el.setAttribute("role", "status");
   el.innerHTML = `<span class="ncic" aria-hidden="true">${ncEsc(n.icon)}</span><div class="ncbody"><div class="nct">${n.sym ? `<b>${ncEsc(coin(n.sym))}</b>` : ""}${ncEsc(n.title)}</div>${n.detail ? `<div class="ncd">${ncEsc(n.detail)}</div>` : ""}
-    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : n.action === "brief" ? "Open brief" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
+    <div class="ncacts">${n.sym || n.action ? `<button class="go">${n.action === "ctrader" ? "Open settings" : n.action === "ctsignin" ? "Sign in again" : n.action === "brief" ? "Open brief" : "Open market"}</button>` : ""}<button class="no">Dismiss</button></div></div><span class="ncmeta">now</span>`;
   const go = el.querySelector(".go"); if (go) go.onclick = () => ncGo(n.id);
   el.querySelector(".no").onclick = () => ncDropToast(n.id);
   let timer = null; const arm = () => { clearTimeout(timer); timer = setTimeout(() => ncDropToast(n.id), matchMedia("(max-width:760px)").matches ? 5000 : 8000); };
@@ -6910,6 +6927,7 @@ function openCTSettings() {
         <p class="meta">Easiest: fill in the Client ID and Secret, then sign in. The app gets the tokens and renews them itself, so you can leave the two token boxes empty.
         Once only, add this return address to your app on openapi.ctrader.com (Applications → Edit → Redirect URIs → Save): <code id="ctRedir">${esc(ctRedirectUri())}</code> <button class="btn sm" id="ctCopyRedir" type="button">Copy</button></p></div>
       <details class="ctmanual" ${c.accessToken && !c.refreshToken ? "open" : ""}><summary class="meta">Or paste tokens from the Sandbox page</summary>
+      <p class="meta">Getting a token there ends the app's sign-in on your other devices (cTrader keeps only the latest one). Sign in with cTrader is the better way.</p>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
       <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label></details>
       ${c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}

@@ -258,6 +258,10 @@ After this, you never install updates yourself: open the app and it's already on
 2. **Install from the repo:** run `bash install-mac-app.sh` from inside that Git clone (or pass the repo URL as an argument).
    This turns on auto-update: your Mac pulls new versions at login and every 30 minutes.
 3. **Optional, for your phone:** vercel.com → Add New → Project → import the repo. Every push redeploys within a minute.
+   **cTrader on both the Mac and the phone:** cTrader keeps only one live sign-in per app, so signing in on one signs the
+   other out. Register a second app on openapi.ctrader.com for the phone (add the Vercel address as its Redirect URI) and put
+   that app's Client ID and Secret in the phone's Connect cTrader. Each place then signs in once and renews by itself.
+   Don't get tokens on the Sandbox page either: that counts as a new sign-in too.
 
 **How an update reaches you:** the change is committed with `bash bump-version.sh` and pushed → your Mac pulls it within
 about 2 minutes (Vercel within a minute) → the next time you open the app it's the new version. If the app is already open,

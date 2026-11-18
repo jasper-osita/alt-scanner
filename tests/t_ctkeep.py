@@ -6,6 +6,9 @@ async def main():
     serve()
     async with async_playwright() as pw:
         b = await pw.chromium.launch(); ctx = await b.new_context(viewport={"width": 1400, "height": 900}); await setup(ctx); await setup_mexc(ctx)
+        auth = []
+        async def grant(route): auth.append(route.request.url); await route.fulfill(status=200, content_type="text/html", body="<p>cTrader sign-in</p>")
+        await ctx.route(re.compile(r"https://id\.ctrader\.com/.*"), grant)
         pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.route_web_socket("wss://contract.mexc.com/edge", mx_ws_handler)
@@ -32,8 +35,14 @@ async def main():
         print("4) near expiry renews on reconnect:", await wait("() => CT.state === 'ready'", 15), 2173 in CT_LOG)
         # a bad refresh token stops retrying and asks for new tokens
         await q("() => { ctSaveCfg({ clientId: 'cid', clientSecret: 'sec', accessToken: 'expired', refreshToken: 'bad' }); ctClose(); CT.state = 'closed'; ctConnect().catch(e => window.__e2 = e.message); }")
-        await wait("() => CT.state === 'error'", 10); await asyncio.sleep(4)
+        await wait("() => CT.state === 'error'", 10); await asyncio.sleep(1)
         print("5) bad refresh:", await q("() => [CT.state, window.__e2, !CT.retryT]"))
+        for _ in range(30):                                  # then it opens cTrader's sign-in by itself
+            if auth: break
+            await asyncio.sleep(0.25)
+        print("5b) opened cTrader's sign-in by itself:", len(auth))
+        if len(auth) != 1: errs.append(f"expected one automatic trip to cTrader's sign-in, got {len(auth)}")
+        await pg.goto("http://localhost:8765/"); await ready(pg)
         print("6) dialog field:", await q("() => { openCTSettings(); return !!document.getElementById('ctRefresh'); }") if await q("() => typeof openCTSettings === 'function'") else "skip")
         print("errors:", errs or "none")
         await b.close()

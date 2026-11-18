@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.18.1507">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.18.1523">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2549,8 +2549,9 @@ function ctSignedOut(cfg) {                                  // cTrader ended th
   if (c.outRef !== cfg.refreshToken) {
     ctSaveCfg({ ...c, outRef: cfg.refreshToken });
     if (typeof ncAdd === "function") ncAdd({ kind: "System", icon: "⚠️", tone: "warn", sym: null, action: "ctsignin", title: "cTrader signed this device out",
-      detail: "cTrader keeps only your latest sign-in, so signing in on another device, the website, the Mac app or the Sandbox page ends this one. Sign in again: your Client ID and Secret are kept, nothing to reset." });
+      detail: "cTrader keeps only your latest sign-in, so signing in on another device, the website, the Mac app or the Sandbox page ends this one. Taking you to cTrader's sign-in now: just approve there. Your Client ID and Secret are kept." });
   }
+  if (typeof ctAutoSignIn === "function") ctAutoSignIn();
   return new Error("signed out: cTrader keeps only your latest sign-in, and you signed in somewhere else (another device, the website, the Mac app or the Sandbox page). Sign in again from Settings");
 }
 const CT_STOP = /rejected the Client|invalid or expired|revoked|enter your|renew|signed out/i;   // errors a retry can't fix
@@ -4520,7 +4521,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.18.1507";
+const APP_VERSION = "2026.11.18.1523";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6876,10 +6877,22 @@ CT.onSpot = p => {                                    // live bid from cTrader f
 /* ---- Sign in with cTrader (OAuth): the app swaps cTrader's one-minute sign-in code for tokens, then renews them itself ---- */
 const CT_OAUTH = "finder-ct-oauth";
 const ctRedirectUri = () => location.origin + location.pathname;
-function ctSignIn(scope) {                       // scope "trading" lets the Trade page place orders; "accounts" is read-only
+function ctSignIn(scope, auto) {                 // scope "trading" lets the Trade page place orders; "accounts" is read-only
   const c = ctCfg() || {}, ru = ctRedirectUri(), sc = scope || c.scope || "accounts";
-  try { sessionStorage.setItem(CT_OAUTH, JSON.stringify({ at: Date.now(), ru, sc, back: page })); } catch (e) {}
+  try { sessionStorage.setItem(CT_OAUTH, JSON.stringify({ at: Date.now(), ru, sc, back: page, auto: !!auto })); } catch (e) {}
   location.href = "https://id.ctrader.com/my/settings/openapi/grantingaccess/?" + new URLSearchParams({ client_id: c.clientId, redirect_uri: ru, scope: sc, product: "web" });
+}
+const CT_AUTO = "finder-ct-auto";
+function ctAutoSignIn() {                         // cTrader signed this device out: go to its sign-in page by itself (you only approve there), then come back to this page
+  const go = () => {
+    const c = ctCfg() || {}; let last = 0; try { last = +localStorage.getItem(CT_AUTO) || 0; } catch (e) {}
+    if (c.refreshToken && c.outRef && c.refreshToken !== c.outRef) { if (CT.state !== "ready") ctScheduleReconnect(true); return; }   // another window already signed in again
+    if (!c.clientId || CT.state === "ready" || Date.now() - last < 30 * 60e3) return;   // tried in the last half hour (cancelled or refused): the Sign in again button is there
+    try { localStorage.setItem(CT_AUTO, String(Date.now())); } catch (e) {}
+    ctSignIn(null, true);
+  };
+  if (document.visibilityState === "visible") { setTimeout(go, 2500); return; }      // a moment to read the notice first
+  document.addEventListener("visibilitychange", function f() { if (document.visibilityState !== "visible") return; document.removeEventListener("visibilitychange", f); setTimeout(go, 2500); });
 }
 async function ctTokenCall(params) {            // cTrader's token service, through this app's relay (/api/ct-token: server.py on the Mac, api/ct-token.js on Vercel).
   // The sign-in code works once. cTrader sends no CORS header, so a call straight from the page still spends the code while the browser hides the answer;
@@ -6906,7 +6919,7 @@ async function ctOAuthReturn() {                // runs on load: finish a sign-i
     ctSaveCfg({ ...c, accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000, scope: pend.sc || "accounts" });
     await ctConnect();
     say(`Signed in to cTrader${pend.sc === "trading" ? " with trading access" : ""}: ${CT.broker} ${CT.live ? "live" : "demo"} account. Access renews by itself`);
-    if ((pend.back === "trade" || pend.back === "charts") && typeof goPage === "function") { goPage(pend.back); return; }
+    if ((pend.auto || pend.back === "trade" || pend.back === "charts") && typeof goPage === "function") { goPage(pend.back); return; }
     if (typeof goPage === "function") goPage("macro"); if (typeof macroScan === "function") macroScan(true);
   } catch (e) { CT.state = "error"; CT.err = "sign-in didn't finish: " + e.message; say("cTrader sign-in didn't finish: " + e.message, true); if (typeof renderMacro === "function") renderMacro(); }
 }

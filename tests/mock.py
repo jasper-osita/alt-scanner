@@ -348,7 +348,7 @@ def mx_ws_handler(ws):
             ws.send(json.dumps({"channel": "push.kline", "symbol": "BTC_USDT", "data": {"symbol": "BTC_USDT", "interval": iv, "t": t0 + step, "o": 77777.7, "h": 77800, "l": 77700, "c": 77750}}))
     ws.on_message(on)
 
-# ---------------- calendar feeds, Telegram, keep-awake ----------------
+# ---------------- calendar feeds, Telegram ----------------
 def ff_sample():
     import datetime as dt
     now = time.time(); base = int(now // 3600) * 3600
@@ -361,7 +361,7 @@ def ff_sample():
     return [{"title": t, "country": c, "date": iso((int(now // 60) * 60 + 600 if t == "Core CPI m/m" else base + off)), "impact": imp, "forecast": f, "previous": pv} for t, c, imp, off, f, pv in ev]
 EARN_ROWS = {"NFLX": ("Netflix, Inc.", "time-after-hours", 520e9, "$6.88"), "TSLA": ("Tesla, Inc.", "time-after-hours", 1.3e12, "$0.55"), "JPM": ("JPMorgan Chase & Co.", "time-pre-market", 820e9, "$5.10"),
              "ASML": ("ASML Holding N.V.", "time-pre-market", 682e9, "$12.47"), "PEP": ("PepsiCo, Inc.", "time-pre-market", 205e9, "$2.30"), "XYZ": ("Small Co", "time-not-supplied", 12e9, "$0.10")}
-TG_LOG = []; AWAKE_LOG = []; FF_HITS = {"n": 0}; EARN_HITS = []
+TG_LOG = []; FF_HITS = {"n": 0}; EARN_HITS = []
 async def route_extra(route):
     u = route.request.url; p = urlparse(u)
     if p.path == "/proxy/ff":
@@ -372,8 +372,6 @@ async def route_extra(route):
         wd = dt.date.fromisoformat(d).weekday(); keys = list(EARN_ROWS)
         rows = [{"symbol": k, "name": EARN_ROWS[k][0], "time": EARN_ROWS[k][1], "marketCap": "${:,.0f}".format(EARN_ROWS[k][2]), "epsForecast": EARN_ROWS[k][3], "noOfEsts": "5"} for k in keys if hash(k + d) % 3 == 0 or (k == "TSLA" and wd == 2)]
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"data": {"asOf": d, "rows": rows}}))
-    if p.path == "/api/awake":
-        AWAKE_LOG.append(p.query); return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"awakeUntil": int(time.time() * 1000) + 1200000, "running": True}))
     if "api.telegram.org" in u:
         if u.endswith("/getUpdates"): return await route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"ok": True, "result": [{"update_id": 1, "message": {"message_id": 1, "chat": {"id": 987654321, "first_name": "Jas", "type": "private"}, "text": "hi"}}]}))
         if u.endswith("/sendMessage"):
@@ -381,7 +379,7 @@ async def route_extra(route):
             TG_LOG.append(json.loads(route.request.post_data or "{}")); return await route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"ok": True, "result": {"message_id": len(TG_LOG)}}))
     return await route.fulfill(status=404, body="")
 async def setup_extra(ctx):
-    for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api/awake*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
+    for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
 
 # ---------------- fundamentals page: Treasury yield curves, CFTC positioning, FRED, news RSS ----------------
 FUND_HITS = []; FUND_SRV = {"key": False}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)

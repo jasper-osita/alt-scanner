@@ -95,18 +95,6 @@ def relay_fund(path, q):
     if m and m.group(1) in RSS_FEEDS:
         return cached_get("rss" + m.group(1), RSS_FEEDS[m.group(1)], 60, {**BROWSER, "Accept": "application/rss+xml,application/xml,text/xml,*/*"})
     return 404, b'{"error":"unknown source"}'
-# Keep this Mac awake while a trading session is on (asked for by the app; caffeinate stops by itself after the time given).
-AWAKE = {"proc": None, "until": 0}
-def keep_awake(minutes):
-    minutes = max(1, min(240, int(minutes)))
-    until = time.time() + minutes * 60
-    if AWAKE["proc"] and AWAKE["proc"].poll() is None and AWAKE["until"] >= until - 60: return AWAKE["until"]
-    try:
-        if AWAKE["proc"] and AWAKE["proc"].poll() is None: AWAKE["proc"].terminate()
-        AWAKE["proc"] = subprocess.Popen(["caffeinate", "-i", "-s", "-t", str(minutes * 60)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        AWAKE["until"] = until
-    except Exception: return 0
-    return until
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".webmanifest": "application/manifest+json", ".js": "text/javascript"}
     def __init__(self, *a, **k): super().__init__(*a, directory=ROOT, **k)
@@ -136,15 +124,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", ctype); self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
             return
-        if path in ("/proxy/ff", "/proxy/earnings", "/api/awake"):
-            if path == "/proxy/ff": code, body = relay_ff()
-            elif path == "/proxy/earnings": code, body = relay_earnings(query)
-            else:
-                mins = 0
-                for kv in query.split("&"):
-                    if kv.startswith("min="): mins = int("".join(ch for ch in kv[4:] if ch.isdigit()) or 0)
-                until = keep_awake(mins) if mins else AWAKE["until"]
-                code, body = 200, json.dumps({"awakeUntil": int(until * 1000), "running": bool(AWAKE["proc"] and AWAKE["proc"].poll() is None)}).encode()
+        if path in ("/proxy/ff", "/proxy/earnings"):
+            code, body = relay_ff() if path == "/proxy/ff" else relay_earnings(query)
             self.send_response(code)
             self.send_header("Content-Type", "application/json"); self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.18.1523">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.18.1601">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -280,6 +280,13 @@ body.fopen .fpanel{display:block}
 .gnow b{color:var(--strong)}
 .gcol .mv{grid-template-columns:minmax(0,1fr) auto auto auto}
 .gnote{margin-top:10px}
+.gchip.gmine{border-style:dashed}.gchip.gadd{border-style:dashed;color:var(--accent);background:transparent}
+.gform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;max-width:860px}.gform .gwide{grid-column:1/-1}
+.gform label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mute)}
+.gform input,.gform textarea{border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--text);padding:7px 9px;font:inherit;font-size:13.5px}
+.gform textarea{resize:vertical;line-height:1.45}
+.gacts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+@media (max-width:760px){.gform{grid-template-columns:1fr}}
 .tag.trig{font-weight:700;box-shadow:inset 0 0 0 1px currentColor}
 .setup{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0}
 .setup .meta{margin:4px 0}
@@ -586,17 +593,6 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .subline #title{color:var(--text);font-weight:500}
 .pg-off{display:none!important}
-.bfbar{display:flex;flex-direction:column;gap:7px;margin:12px 0}.bfrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
-.bfl{font-size:11px;color:var(--mute);min-width:58px;display:inline-flex;align-items:center;gap:6px}.bfl2{min-width:0;margin-left:12px}
-.bfc{height:26px;padding:0 9px;border:1px solid var(--pill-b);border-radius:7px;background:var(--pill);color:var(--text);font:500 12px var(--font);cursor:pointer;white-space:nowrap}.bfc.on{border-color:var(--accent);color:var(--accent)}
-.bfin{height:26px;width:110px;border:1px solid var(--pill-b);border-radius:7px;background:var(--pill);color:var(--text);padding:0 8px}
-.brwrap{display:flex;flex-direction:column;gap:12px;margin-bottom:6px}.brtiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
-.brt{border:1px solid var(--line);border-radius:10px;padding:8px 11px;display:flex;flex-direction:column;gap:2px}.brt span{font-size:11px;color:var(--mute)}.brt b{font:700 18px var(--display);color:var(--strong)}.brt b.up{color:var(--green)}.brt b.dn{color:var(--red)}
-.brgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.brh{margin-bottom:4px}
-.brv{display:grid;grid-template-columns:96px 1fr 62px 30px;gap:8px;align-items:center;font-size:12px;padding:3px 0}.brtr{height:9px;background:var(--pill);border-radius:3px}
-.brbar{height:9px;border-radius:3px;background:var(--green)}.brbar.dn{background:var(--red)}.brbar.gr{background:var(--mute)}
-.brnotes{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--line);padding-top:10px;font-size:12.5px}
-@media (max-width:900px){.brtiles{grid-template-columns:repeat(3,minmax(0,1fr))}.brgrid{grid-template-columns:1fr}}
 .edget td,.edget th{vertical-align:middle}.edgem td{border-top:1px solid var(--pill-b)}
 .edgesub{padding:4px 10px 8px 26px!important;border-top:0!important}
 .edgerule{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.edgeab{margin-left:auto;font-size:12.5px}
@@ -880,27 +876,6 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
   .chlaypop{position:fixed!important;left:8px!important;right:8px!important;top:110px!important;z-index:90}
 }
 @media (hover:none){.chia{display:inline-flex}.chtools .chtarr{opacity:1}}
-/* NBB Watch + calendar */
-.nwopts{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.nbbw .why{font-size:12.5px;color:var(--mute);margin:4px 0 10px}
-.nwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
-@media (max-width:760px){.nwgrid{grid-template-columns:1fr}.nbbw .why{display:none}.nwopts{margin-left:0}}
-.nwcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);min-width:0}
-.nwcard.on{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
-.nwh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.nwh>b{font-size:16px;color:var(--strong)}
-.nwsess{font-size:12px;color:var(--mute)}.nwsess.on{color:var(--green)}.nwsess.soon{color:var(--amber)}.nwbtns{margin-left:auto}
-.nwpx{margin:6px 0;font-size:13px}.nwpx b{font-size:20px;color:var(--strong)}
-.nwnews{background:color-mix(in srgb,var(--amber) 14%,transparent);border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);border-radius:8px;padding:6px 10px;font-size:12.5px;margin:6px 0}
-.nwst{border-radius:10px;padding:10px 12px;margin:6px 0;background:var(--pill);font-size:13.5px;line-height:1.5}
-.nwst.trig.long{background:color-mix(in srgb,var(--green) 14%,var(--pill));border:1px solid color-mix(in srgb,var(--green) 45%,transparent)}
-.nwst.trig.short{background:color-mix(in srgb,var(--red) 14%,var(--pill));border:1px solid color-mix(in srgb,var(--red) 45%,transparent)}
-.nwst.base{border:1px dashed var(--line)}.nwst.none{color:var(--mute)}
-.nwlv{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.nwck{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:12.5px}.nwck .ok{color:var(--green)}.nwck .no{color:var(--mute)}
-.nwsz{margin-top:6px;font-size:13px}.nwctx{font-size:12.5px;color:var(--mute)}.nwctx b{color:var(--text);font-weight:600}.nwctx b.up{color:var(--green)}.nwctx b.dn{color:var(--red)}
-.nwlog{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}.nwlh{font-size:12px;color:var(--mute);margin-bottom:4px}
-.nwlr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;padding:2px 0}
-.nwedit{border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 12px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
-.nwer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nwer label{display:flex;gap:4px;align-items:center;font-size:13px}.nweacts{display:flex;gap:8px;align-items:center}
 .fundcard .momohead{gap:10px}.fstrip{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;margin:4px 0 10px;background:var(--pill);border:1px solid var(--line);border-radius:10px;font-variant-numeric:tabular-nums;font-size:13px}
 .fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w p n";gap:10px;font-variant-numeric:tabular-nums}
 .fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}
@@ -996,7 +971,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .trwt{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.trwt th{position:sticky;top:0;background:var(--panel);color:var(--mute);font-weight:500;text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}.trwt th.srt{color:var(--text)}
 .trwt td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.trwt td.trwact{text-align:right}.trwt tr:hover td{background:var(--pill)}.trwact{text-align:right;width:1%}.trwsure{background:#f23645!important;color:#fff!important;border-color:#f23645!important}
 .chrrseg button{padding:5px 8px}.chrrv{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:12.5px;color:var(--mute)}.chrrv input{width:52px}.chrrv.on input{border-color:var(--accent)}.tprr{display:flex;flex-direction:column;gap:4px}.tprr #tpRR{display:flex;align-items:center;flex-wrap:wrap}.chacctbtn{max-width:260px}.chacctbtn #chAcctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chacctdot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}.chacctdot.demo{background:#22ab94}.chacctdot.live{background:#f23645}
-.chacctpop{left:auto;right:0;min-width:300px;max-width:360px;max-height:80vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px}.acbots{display:flex;flex-wrap:wrap;gap:4px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
+.chacctpop{left:auto;right:0;min-width:300px;max-width:360px;max-height:80vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px}.chacctpop .chsgh{margin-top:4px}.chacctpop .meta{margin:0}
 .chacctn{display:flex;align-items:baseline;gap:6px;min-width:0;overflow:hidden;white-space:nowrap}.chacctn b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .chacctk{font-size:11px;font-weight:600;border-radius:5px;padding:1px 6px;margin-left:auto}.chacctk.demo{color:var(--green);background:rgba(34,171,148,.12)}.chacctk.live{color:var(--red);background:rgba(242,54,69,.12)}.chacctrow .chacctk+small{margin-left:8px}
 .chacctseg{display:flex;gap:4px;margin:8px 0 4px}.chacctseg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:6px 8px;font:12.5px var(--display);cursor:pointer}
@@ -1048,9 +1023,6 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .qtset{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:7px}.qtsr{display:flex;align-items:center;justify-content:space-between;gap:8px}.qtsr>span:last-child{display:flex;align-items:center;gap:4px}
 #chQtBtn.on{border-color:var(--accent);color:var(--accent)}
 .trlevauto.on{border-color:var(--accent);color:var(--accent)}
-.csnav{display:flex;align-items:center;justify-content:space-between;gap:6px}.cstitle{font:700 16px var(--display);color:var(--strong)}
-.csnote{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mute)}.csnote textarea{resize:vertical;border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--text);padding:7px;font:inherit}
-.csrow{display:flex;gap:5px;flex-wrap:wrap}.csall{font-size:12px}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
 @media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
 /* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
@@ -1104,7 +1076,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
   <div class="subline"><span id="title">Binance Perpetuals</span><span>·</span><span class="clock" id="clock">Loading time…</span></div>
   <div class="layout"><main>
 
-  <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch bots backtest nbbwatch macroov macromomo macro">   <!-- scan settings: only where they change what you see -->
+  <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch backtest macroov macromomo macro">   <!-- scan settings: only where they change what you see -->
     <button class="pillsum" id="pillSum" aria-expanded="false" aria-controls="exF"><span id="pillSumT">Scan settings</span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
     <label class="pill"><span>Exchange</span><select id="exF"><option value="binance" selected>Binance</option><option value="bybit">Bybit</option><option value="mexc">MEXC</option></select></label>
     <label class="pill"><span>Market</span><select id="market"><option value="futures" selected>Futures</option><option value="spot">Spot</option></select></label>
@@ -1194,15 +1166,6 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
     </div>
   </section>
 
-  <section class="card nbbw" data-page="nbbwatch">
-    <div class="momohead"><h2>NBB Watch</h2><span class="meta" id="nwMeta"></span>
-      <span class="nwopts"><label class="tog"><input type="checkbox" id="nwBase"> Alert when a base forms</label><label class="tog"><input type="checkbox" id="nwOutside"> Outside sessions too</label>
-      <button class="btn sm" id="nwPhone">📱 Phone alerts</button><button class="btn sm" id="nwEditB">Edit watch list</button></span></div>
-    <div class="why">The next-base breakout on your trading timeframes: Gold on M5 through London, the Nasdaq on M1 at the US open. Read on closed candles from your broker (cTrader) when connected, otherwise MEXC or Binance. A trigger is a displacing close out of a base of 6+ candles; entry at that close, stop beyond the far side of the base, target 3R. Checks show whether it's with the trend, whether the base was swept first, whether there's room, and whether high-impact news is close.</div>
-    <div id="nwEdit" class="nwedit" hidden></div>
-    <div id="nwGrid" class="nwgrid"><div class="empty">Loading…</div></div>
-  </section>
-
   <section class="card calcard" data-page="calendar">
     <div class="momohead"><h2>Economic Calendar</h2><div class="xmtabs caltabs" id="calTabs" role="tablist"><button role="tab" data-ct="ff">Forex Factory</button><button role="tab" data-ct="idx">What moves the Nasdaq</button></div>
       <span class="meta" id="calMeta"></span><span class="calbtns"><span class="calviews" id="calViews" role="group" aria-label="Calendar view"><button data-cv="list">List</button><button data-cv="week">Week</button><button data-cv="month">Month</button></span><button class="btn sm" id="calFilterBtn">⚲ Filter</button><button class="btn sm" id="calRefresh">Refresh</button></span></div>
@@ -1275,7 +1238,6 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 
   <section class="card btcard" id="edgeCard" data-page="backtest"></section>
 
-  <section class="card btcard" id="botSim" data-page="bots"></section>
 
   <section class="trpage" id="tradePage" data-page="trade">
     <div class="card trticket">
@@ -2901,34 +2863,6 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
            total: coins.length, analysed: results.length, dayPool: dayPoolSyms, day: [], swing: [], all: results };
 }
 
-/* ===================== NBB Watch: the next-base breakout on a lower timeframe (Gold M5, Nasdaq M1), on closed candles ===================== */
-function nbbWatchRead(k, ivMs) {                     // k = closed candles, oldest first. Returns the base / breakout state both ways plus trend context.
-  const n = k.c.length; if (n < 60) return null;
-  const a = atr(k.h, k.l, k.c).at(-1); if (!a) return null;
-  const e20 = ema(k.c, 20), e50 = ema(k.c, 50), e100 = ema(k.c, 100), i = n - 1, rs = rsiSeries(k.c);
-  const stack = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null;
-  let L = null, S = null;
-  try { L = nbbLong(k, a); } catch (e) {}
-  try { const m = nbbLong(mirror(k), a); S = m ? unmirror(m) : null; } catch (e) {}
-  const fix = (m, dir) => m && { ...m, dir, tClose: m.trig ? k.t[n - 1] + ivMs : null };
-  L = fix(L, "Long"); S = fix(S, "Short");
-  const trig = [L, S].find(m => m && m.trig) || null, missed = [L, S].find(m => m && m.missed) || null;
-  const base = L && L.state === "Basing" ? L : S && S.state === "Basing" ? S : null;
-  return { atr: a, stack, rsi: rs[i], e20: e20[i], e50: e50[i], e100: e100[i], close: k.c[i], t: k.t[i], trig, missed,
-    base: base && { len: base.baseLen, hi: Math.max(base.zoneHi, base.zoneLo), lo: Math.min(base.zoneHi, base.zoneLo), tall: (Math.abs(base.zoneHi - base.zoneLo) / a) },
-    state: trig ? "trigger" : base ? "basing" : missed ? "missed" : "none" };
-}
-function nbbOutcome(sig, k) {                       // how a triggered signal has done since: 3R hit, stopped, or open (+R so far)
-  if (!sig || sig.entry == null || sig.stop == null) return null;
-  const long = sig.dir === "Long", R = Math.abs(sig.entry - sig.stop), t3 = long ? sig.entry + 3 * R : sig.entry - 3 * R;
-  let best = 0;
-  for (let i = 0; i < k.t.length; i++) { if (k.t[i] < sig.tClose) continue;
-    if (long ? k.l[i] <= sig.stop : k.h[i] >= sig.stop) return { st: "stopped", r: -1 };
-    if (long ? k.h[i] >= t3 : k.l[i] <= t3) return { st: "3R", r: 3 };
-    best = Math.max(best, (long ? k.h[i] - sig.entry : sig.entry - k.l[i]) / R); }
-  const last = k.c.at(-1); return { st: "open", r: (long ? last - sig.entry : sig.entry - last) / R, best };
-}
-
 /* ===================== Economic calendar helpers (Forex Factory's weekly feed) and US index market structure ===================== */
 const FF_TYPES = [["Growth", /\b(GDP|Retail Sales|Industrial Production|Manufacturing Production|Trade Balance|Current Account|Factory Orders|Durable Goods|Capacity Utilization|Business Inventories|Wholesale|Construction Spending|Leading Index|Core Retail)\b/i],
   ["Inflation", /\b(CPI|PPI|PCE|Inflation|Price Index|Prices|HICP|Import Prices|Employment Cost|Wage|Earnings)\b/i],
@@ -3734,23 +3668,23 @@ const MODELS = {
       "<b>Broke the range</b> = 15m close outside it with body ≥ 1.5× average", "<b>Sweep, then break</b> = the opposite side was swept first (A-grade)", "Only shown 9:30–10:30 NY, and only for the day-trade candidates (they're the coins with 15m data)"],
     trade: "Enter the breakout close or the retest of the broken edge. Stop beyond the far side of the range. 2–3R, hard close by 11:00 NY.", grade: "Sweep-then-break with trend = A; clean break = B." },
   "Leader": { icon: "🦅", name: "Leader Pullback (Claude's day setup)", tf: "1H",
-    what: "My day-trade setup, built to buy only the coins that are leading. A coin prints a fresh 48-hour high on a big, high-volume impulse candle, then pulls back quietly into its 1H 20 or the 38% of that leg while holding the 50, then reclaims. Leaders that pull back on light volume tend to resume; the 48-hour high and the volume prove it's a leader, not a random pop. A hypothesis until the backtest and the bot prove it.",
+    what: "My day-trade setup, built to buy only the coins that are leading. A coin prints a fresh 48-hour high on a big, high-volume impulse candle, then pulls back quietly into its 1H 20 or the 38% of that leg while holding the 50, then reclaims. Leaders that pull back on light volume tend to resume; the 48-hour high and the volume prove it's a leader, not a random pop. A hypothesis until the backtest proves it.",
     rules: ["1H 20 > 50 > 100 with the 50 rising", "Impulse in the last 12 candles: a new 48-hour high on a candle with a body ≥ 1.8× average and volume ≥ 1.8× average",
       "Pullback reaches the 1H 20 (within 0.3 ATR) or the 38% retracement of the impulse leg", "Holds the 50 (no close below it) and gives back no more than 62% of the leg; lighter pullback volume is noted",
       "<b>Pulling back to the 20</b> = in the zone, no trigger yet", "<b>Reclaim after the pullback</b> = a green candle closes above the prior candle's high and the 20", "Shorts mirror this on the weakest coins"],
-    trade: "Enter the reclaim close. Stop below the pullback low (−0.2 ATR). Target 2R.", grade: "With-trend, can reach A when the Daily agrees. Mine, not yet proven: check the backtest and the bot." },
+    trade: "Enter the reclaim close. Stop below the pullback low (−0.2 ATR). Target 2R.", grade: "With-trend, can reach A when the Daily agrees. Mine, not yet proven: check the backtest." },
   "Reset20": { icon: "🌊", name: "Daily 20 Reset (Claude's swing setup)", tf: "4H + Daily",
-    what: "My swing setup. In a Daily uptrend, the Daily 20 is where institutions defend the trend. Wait for price to dip into the Daily 20 zone and reset below the 4H 20 (shaking out late longs), then buy the 4H reclaim. It aims for a bigger move (3R) and holds up to 10 days. A hypothesis until the backtest and the bot prove it.",
+    what: "My swing setup. In a Daily uptrend, the Daily 20 is where institutions defend the trend. Wait for price to dip into the Daily 20 zone and reset below the 4H 20 (shaking out late longs), then buy the 4H reclaim. It aims for a bigger move (3R) and holds up to 10 days. A hypothesis until the backtest proves it.",
     rules: ["Daily 20 > 50 > 100, with the Daily 20 rising over the last 5 days and no daily close below the 50 in the last 10", "In the last 12 4H candles price reached the Daily 20 zone (±0.5 daily ATR) without crashing more than 0.5 daily ATR below it",
       "At least 2 of those 4H candles closed below the 4H 20 (the reset)", "<b>Resetting at the Daily 20</b> = in the zone, waiting", "<b>Reclaimed the 4H 20</b> = a green 4H candle closes above the 4H 20 and the prior candle's high",
       "Shorts mirror this in a Daily downtrend"],
-    trade: "Enter the 4H reclaim close. Stop below the reset low (−0.25 × 4H ATR). Target 3R, time limit 10 days. Spot is fine for longs.", grade: "Swing, Daily with-trend by design. Mine, not yet proven: check the backtest and the bot." },
+    trade: "Enter the 4H reclaim close. Stop below the reset low (−0.25 × 4H ATR). Target 3R, time limit 10 days. Spot is fine for longs.", grade: "Swing, Daily with-trend by design. Mine, not yet proven: check the backtest." },
   "Ignite": { icon: "🚀", name: "Ignition (MA breakout + RSI)", tf: "1H",
-    what: "A new trend starting: the 20, 50 and 100 bunch up while price chops around them, then price closes clearly beyond all three with volume and RSI pushing to 60–70+. It's the moment a coin like LONGXIA turns from flat to trending. A hypothesis until the backtest and the bot prove it.",
+    what: "A new trend starting: the 20, 50 and 100 bunch up while price chops around them, then price closes clearly beyond all three with volume and RSI pushing to 60–70+. It's the moment a coin like LONGXIA turns from flat to trending. A hypothesis until the backtest proves it.",
     rules: ["The 1H 20/50/100 are bunched (within 1.5 ATR of each other) just before the break", "Price spent at least 15 of the 48 hours before the break on the other side of the cluster, so it's a new trend, not a continuation",
       "<b>Pressing the MAs</b> = within 0.5 ATR of the cluster with RSI 55+ and rising: not a trade yet", "<b>Broke out</b> = a close at least 0.25 ATR clear of all three MAs in the last 6 candles, with RSI reaching 60+",
       "<b>Triggered</b> = broke out in the last 2 candles, RSI 60+, breakout volume 1.5×+ average, stop within 3 ATR, and not stretched (under 3 ATR from the 20)", "4H RSI 50+ with price above the 4H 20 is shown as \"4H agrees\" and ranks higher; it isn't required", "Shorts mirror this: a breakdown below all three with RSI 40 or below"],
-    trade: "Enter the trigger close or the first retest of the cluster. Stop beyond the breakout low and the cluster (−0.2 ATR). Target 2R. If it's stretched, wait for the first base.", grade: "New-trend entry: strongest when 4H agrees and the Daily isn't against it. Not proven yet: check the backtest and the bot." },
+    trade: "Enter the trigger close or the first retest of the cluster. Stop beyond the breakout low and the cluster (−0.2 ATR). Target 2R. If it's stretched, wait for the first base.", grade: "New-trend entry: strongest when 4H agrees and the Daily isn't against it. Not proven yet: check the backtest." },
   "AMD": { icon: "💯", name: "AMD (Power of 3)", tf: "15m",
     what: "Accumulation, manipulation, distribution. The pre-open range builds, the open sweeps one side to trap breakout traders, then price expands hard the other way. Trade the distribution leg.",
     rules: ["Accumulation = the 2 hours before the NY open (Pre-NY window)", "<b>Accumulating</b> = before the open, range building", "<b>Swept the high/low</b> = after the open, a wick beyond one side closed back inside",
@@ -3765,15 +3699,87 @@ function modelTag(m, short) {
   return `<span class="tag ${cls} ${m.trig ? "trig" : ""}" title="${m.state}${m.note ? " · " + m.note.replace(/"/g, "'") : ""}">${M.icon} ${m.model}${short ? "" : " · " + m.state}</span>`;
 }
 const modelCount = (key, trigOnly) => data ? data.all.filter(r => (r.models || []).some(m => m.model === key && (!trigOnly || m.trig))).length : null;
-function renderGuide() {
+/* ---- your own models: added in the Model Guide, kept in this browser. The scanner doesn't look for them; their rules are your checklist ---- */
+const MYM_KEY = "finder-my-models";
+let MYM = (() => { try { const v = JSON.parse(localStorage.getItem(MYM_KEY)); return Array.isArray(v) ? v : []; } catch (e) { return []; } })();
+const mymSave = () => { try { localStorage.setItem(MYM_KEY, JSON.stringify(MYM)); } catch (e) {} };
+const mymGet = key => String(key || "").startsWith("my:") ? MYM.find(m => "my:" + m.id === key) || null : null;
+const gEsc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let guideEdit = null;                              // the model you're adding or editing ({ id, name, … }), or null
+function guideChips() {
+  return `<div class="gchips">${MODEL_KEYS.map(k => { const n = modelCount(k), t = modelCount(k, true);
+      const fit = data && data.env ? data.env.fit[k] : null;
+      return `<button class="gchip ${k === guideSel && !guideEdit ? "on" : ""}" data-m="${k}">${MODELS[k].icon} ${k}${MODELS[k].alias ? ` <em>${MODELS[k].alias}</em>` : ""}${n != null ? `<span>${t}/${n}</span>` : ""}${fit && fit !== "neutral" ? `<i class="tag fit-${fit}">${fit === "avoid" ? "Avoid today" : "Fits today"}</i>` : ""}</button>`; }).join("")}
+    ${MYM.map(m => `<button class="gchip gmine ${"my:" + m.id === guideSel && !guideEdit ? "on" : ""}" data-m="my:${gEsc(m.id)}">${gEsc(m.icon || "📌")} ${gEsc(m.name)} <em>yours</em></button>`).join("")}
+    <button class="gchip gadd ${guideEdit && !mymGet("my:" + guideEdit.id) ? "on" : ""}" id="gAdd">+ Add a model</button></div>`;
+}
+function guideBindChips() {
+  $("guide").querySelectorAll(".gchip[data-m]").forEach(b => b.onclick = () => { guideEdit = null; guideSel = b.dataset.m; renderGuide(true); });
+  $("gAdd").onclick = () => { guideEdit = { id: Date.now().toString(36), name: "", icon: "", tf: "", what: "", rules: [], trade: "", notes: "" }; renderGuide(true); };
+}
+function mymText(m) {                              // your model as text, to paste to Claude
+  return `My own model for The Finder's Model Guide. Please add it as a scanned model (rules the scanner can check on candles):
+Name: ${m.name}${m.tf ? `\nTimeframe: ${m.tf}` : ""}${m.what ? `\nWhat it is: ${m.what}` : ""}${m.rules.length ? `\nRules:\n${m.rules.map(r => "- " + r).join("\n")}` : ""}${m.trade ? `\nHow I trade it: ${m.trade}` : ""}${m.notes ? `\nNotes: ${m.notes}` : ""}`;
+}
+function renderMyGuide() {
+  const el = $("guide"), e = guideEdit, m = e || mymGet(guideSel);
+  if (e) {
+    el.innerHTML = guideChips() + `
+    <h3 class="pbh3">${mymGet("my:" + e.id) ? "Edit your model" : "Add your own model"} <span class="meta">kept in this browser · the scanner doesn't look for it</span></h3>
+    <div class="gform">
+      <label>Name<input id="gfName" maxlength="40" value="${gEsc(e.name)}" placeholder="e.g. London sweep"></label>
+      <label>Timeframe<input id="gfTf" maxlength="24" value="${gEsc(e.tf)}" placeholder="e.g. 5m, or 1H + 4H"></label>
+      <label><span>Icon <span class="mute">(an emoji, optional)</span></span><input id="gfIcon" maxlength="4" value="${gEsc(e.icon)}" placeholder="📌"></label>
+      <label class="gwide">What it is<textarea id="gfWhat" rows="3" placeholder="The idea in a sentence or two">${gEsc(e.what)}</textarea></label>
+      <label class="gwide"><span>Rules <span class="mute">(one per line: what has to be true before you take it)</span></span><textarea id="gfRules" rows="5">${gEsc(e.rules.join("\n"))}</textarea></label>
+      <label class="gwide"><span>How you trade it <span class="mute">(entry, stop, target)</span></span><textarea id="gfTrade" rows="3">${gEsc(e.trade)}</textarea></label>
+      <label class="gwide">Notes<textarea id="gfNotes" rows="2">${gEsc(e.notes)}</textarea></label>
+    </div>
+    <div class="gacts"><button class="btn primary" id="gfSave">Save model</button><button class="btn" id="gfCancel">Cancel</button><span class="meta" id="gfMsg" aria-live="polite"></span></div>`;
+    guideBindChips();
+    $("gfCancel").onclick = () => { guideEdit = null; renderGuide(true); };
+    $("gfSave").onclick = () => {
+      const v = id => $(id).value.trim(), name = v("gfName").replace(/\s+/g, " ");
+      const clash = name && (MODEL_KEYS.some(k => k.toLowerCase() === name.toLowerCase() || MODELS[k].name.toLowerCase() === name.toLowerCase())
+        || MYM.some(x => x.id !== e.id && x.name.toLowerCase() === name.toLowerCase()));
+      if (!name || clash) { $("gfMsg").innerHTML = `<span class="dn">${name ? "There's already a model with that name." : "Give it a name first."}</span>`; $("gfName").focus(); return; }
+      const next = { id: e.id, name, icon: v("gfIcon"), tf: v("gfTf"), what: v("gfWhat"), rules: v("gfRules").split("\n").map(x => x.trim()).filter(Boolean), trade: v("gfTrade"), notes: v("gfNotes") };
+      const i = MYM.findIndex(x => x.id === e.id); if (i >= 0) MYM[i] = next; else MYM.push(next);
+      mymSave(); guideEdit = null; guideSel = "my:" + next.id; renderGuide(true);
+    };
+    if (!e.name) $("gfName").focus();
+    return;
+  }
+  el.innerHTML = guideChips() + `
+    <div class="gbody">
+      <div class="gcol">
+        <h3>${gEsc(m.icon || "📌")} ${gEsc(m.name)} <span class="meta">· ${m.tf ? "on " + gEsc(m.tf) + " · " : ""}your model</span></h3>
+        ${m.what ? `<p>${gEsc(m.what)}</p>` : ""}
+        ${m.rules.length ? `<h4>Your Rules</h4><ul>${m.rules.map(x => `<li>${gEsc(x)}</li>`).join("")}</ul>` : ""}
+        ${m.trade ? `<h4>How You Trade It</h4><p>${gEsc(m.trade)}</p>` : ""}
+        ${m.notes ? `<p class="meta">${gEsc(m.notes)}</p>` : ""}
+        <div class="gacts"><button class="btn sm" id="gEdit">Edit</button><button class="btn sm" id="gDel">Delete</button></div>
+      </div>
+      <div class="gcol">
+        <div class="gnow">The scanner doesn't look for your own models. Use the rules as your checklist before you take one.</div>
+        <button class="btn sm" id="gCopy">Copy for Claude</button>
+        <p class="meta gnote">Want the scanner to find it for you? Copy it and ask Claude to add it as a scanned model.</p>
+      </div>
+    </div>`;
+  guideBindChips();
+  $("gEdit").onclick = () => { guideEdit = { ...m, rules: [...m.rules] }; renderGuide(true); };
+  $("gDel").onclick = () => { if (!confirm(`Delete your model "${m.name}"?`)) return; MYM = MYM.filter(x => x.id !== m.id); mymSave(); guideSel = "NBB"; renderGuide(true); };
+  $("gCopy").onclick = async () => { const t = mymText(m); try { await navigator.clipboard.writeText(t); toast("Model copied. Paste it to Claude."); } catch (x) { prompt("Copy this:", t); } };
+}
+function renderGuide(force) {
+  if (guideEdit && $("gfName") && !force) return;       // you're typing a model: a new scan doesn't wipe it
+  if (String(guideSel).startsWith("my:") && !mymGet(guideSel)) guideSel = "NBB";
+  if (guideEdit || mymGet(guideSel)) { renderMyGuide(); return; }
   const M = MODELS[guideSel];
   const list = data ? data.all.filter(r => (r.models || []).some(m => m.model === guideSel))
     .map(r => ({ r, m: r.models.filter(m => m.model === guideSel).sort((a, b) => b.trig - a.trig)[0] }))
     .sort((a, b) => (b.m.trig - a.m.trig) || (b.r.vol24h - a.r.vol24h)).slice(0, 6) : [];
-  $("guide").innerHTML = `
-    <div class="gchips">${MODEL_KEYS.map(k => { const n = modelCount(k), t = modelCount(k, true);
-      const fit = data && data.env ? data.env.fit[k] : null;
-      return `<button class="gchip ${k === guideSel ? "on" : ""}" data-m="${k}">${MODELS[k].icon} ${k}${MODELS[k].alias ? ` <em>${MODELS[k].alias}</em>` : ""}${n != null ? `<span>${t}/${n}</span>` : ""}${fit && fit !== "neutral" ? `<i class="tag fit-${fit}">${fit === "avoid" ? "Avoid today" : "Fits today"}</i>` : ""}</button>`; }).join("")}</div>
+  $("guide").innerHTML = guideChips() + `
     <div class="gbody">
       <div class="gcol">
         <h3>${M.icon} ${M.name} <span class="meta">· scanned on ${M.tf}</span></h3>
@@ -3790,7 +3796,7 @@ function renderGuide() {
         <p class="meta gnote">Setups are found on candles, not confirmed trades. Confirm the trigger on your entry timeframe and run it through your Gate.</p>
       </div>
     </div>`;
-  $("guide").querySelectorAll(".gchip").forEach(b => b.onclick = () => { guideSel = b.dataset.m; renderGuide(); });
+  guideBindChips();
   bindRows($("guide"));
   if ($("gShow")) $("gShow").onclick = () => {
     FS.filters = [{ kind: "model", model: guideSel, stage: "any", dir: "any" }]; FS.template = `${guideSel} setups`; FS.boards = false;
@@ -3947,7 +3953,7 @@ function renderPlaybook() {
   bindRows($("playbook"));
   if ($("pbAGrade")) $("pbAGrade").onchange = () => { EDGE.aOnly = $("pbAGrade").checked; edgeChanged(); };
   $("playbook").querySelectorAll("[data-pm]").forEach(b => b.onclick = () => {
-    const k = b.dataset.pm; guideSel = k; renderGuide();
+    const k = b.dataset.pm; guideEdit = null; guideSel = k; renderGuide(true);
     FS.filters = [{ kind: "model", model: k, stage: "any", dir: env.dirBias === "Both" || k === "Fade" ? "any" : env.dirBias }]; FS.template = `${k} setups`; FS.boards = false;
     tab = "models"; sortKey = null; sortDir = -1; fsSave(); renderPanel(); renderQuick(); renderTabs(); renderBoards(); renderTable();
     if (window.goPage) goPage("screener", true);
@@ -4521,7 +4527,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.18.1523";
+const APP_VERSION = "2026.11.18.1601";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4856,7 +4862,7 @@ function scheduleRerender() {
   clearTimeout(LIVE.rerender);
   LIVE.rerender = setTimeout(() => {
     if (!data || data.cached) return;
-    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); renderMomentum(); checkSetupAlerts(); liveSync(); botOnScan();
+    renderBoards(); renderPlaybook(); renderGuide(); renderQuick(); renderTable(); renderMomentum(); checkSetupAlerts(); liveSync();
   }, 800);
 }
 /* live chart: the forming candle and the MAs move with each update */
@@ -4884,7 +4890,6 @@ setInterval(() => {
       if ((a.dir === "above" && p >= a.price) || (a.dir === "below" && p <= a.price)) { a.fired = Date.now(); any = true;
         notify(`${coin(a.sym)} reached ${fmtPrice(a.price)}`, `Price is ${fmtPrice(p)}, ${a.dir} your alert level.`, { sym: a.sym, kind: "Price", icon: "🔔", tone: "blue", title: `${a.dir === "above" ? "Crossed above" : "Crossed below"} your ${fmtPrice(a.price)} alert` }); } });
     if (any) { wlSave(); if ($("dlg").open) renderWatchBox(bySym[$("dlgBody").dataset.sym]); } }
-  if (BOT && BOT.running && BOT_STRATS().some(k => BOT.bots[k].positions.some(p => changed.has(p.sym)))) botCheckExits();
   if (document.visibilityState !== "visible") return;
   document.querySelectorAll(".lp[data-sym]").forEach(el => { const s = el.dataset.sym; if (!changed.has(s)) return;
     const r = bySym[s], prev = +el.dataset.v || r.price, txt = fmtPrice(r.price);
@@ -5457,7 +5462,7 @@ function renderEdge() {
       <label class="pill"><span>Min trades per rule</span><select id="edgeMin"><option value="30">30</option><option value="50">50</option><option value="80">80</option></select></label>
       ${res && nOk ? `<button class="btn" id="edgeAll">Use all confirmed</button>` : ""}
       ${EDGE.rules.length ? `<button class="btn" id="edgeNone">Clear rules in use</button>` : ""}
-      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays, alerts and bots use only NBB and V-Trade setups that pass all their checks, plus setups matching a rule in use</label>
+      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays and alerts use only NBB and V-Trade setups that pass all their checks, plus setups matching a rule in use</label>
       ${res ? `<button class="btn sm" id="edgeCopy">Copy for Claude</button>` : ""}
     </div>
     ${body}
@@ -5475,252 +5480,6 @@ function renderEdge() {
   if ($("edgeAOnly")) $("edgeAOnly").onchange = () => { EDGE.aOnly = $("edgeAOnly").checked; edgeChanged(); };
   if ($("edgeCopy")) $("edgeCopy").onclick = async () => { const t = edgeText(); try { await navigator.clipboard.writeText(t); toast("Edge Finder results copied. Paste them to Claude."); } catch (e) { prompt("Copy this:", t); } };
 }
-
-/* ===================== Bot Simulator: forward-test every strategy on live prices (paper money) ===================== */
-const BOT_KEY = "altscan-bot";
-const BOT_STRATS = () => MODEL_KEYS.filter(k => !["ORB", "AMD"].includes(k));
-const BOT_HOLD_MS = m => (MODEL_HOLD_H[m] || 48) * 3600e3;
-let BOT = null;
-function botDefault() {
-  return { running: false, startBal: 1000, risk: 1, maxOpen: 3, fee: 0.1, slip: 0.05, notify: true, started: null, lastRecon: 0,
-           bots: Object.fromEntries(BOT_STRATS().map(k => [k, { on: true, bal: 1000, peak: 1000, dd: 0, positions: [], closed: [], eq: [] }])) };
-}
-function botLoad() {
-  try { BOT = JSON.parse(localStorage.getItem(BOT_KEY) || "null"); } catch (e) { BOT = null; }
-  if (!BOT) BOT = botDefault();
-  BOT_STRATS().forEach(k => { if (!BOT.bots[k]) BOT.bots[k] = { on: true, bal: BOT.startBal, peak: BOT.startBal, dd: 0, positions: [], closed: [], eq: [] }; });
-}
-const botSave = () => { try { localStorage.setItem(BOT_KEY, JSON.stringify(BOT)); } catch (e) {} };
-function botPrice(sym) { const r = bySym[sym]; return r ? r.price : null; }
-function botOpen(strat, r, m) {
-  const b = BOT.bots[strat], px = r.price, long = m.dir === "Long";
-  if (!px || !validLevels(m)) return false;
-  if (long ? (px <= m.stop || px >= m.t2) : (px >= m.stop || px <= m.t2)) return false;            // already stopped out or at target
-  const R0 = Math.abs(m.entry - m.stop);
-  if ((long ? px - m.entry : m.entry - px) > 0.5 * R0) return false;                                 // moved too far past the entry: don't chase
-  const fill = px * (1 + (long ? 1 : -1) * BOT.slip / 100), risk = b.bal * BOT.risk / 100, R = Math.abs(fill - m.stop);
-  if (R <= 0 || R / fill < 0.001) return false;
-  const qty = risk / R, notional = qty * fill, feeIn = notional * BOT.fee / 200;
-  b.positions.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), sym: r.symbol, dir: m.dir, model: strat, state: m.state,
-    entry: fill, stop: m.stop, target: m.t2, qty, risk, feeIn, opened: Date.now(), until: Date.now() + BOT_HOLD_MS(strat), checked: Date.now(),
-    env: data.env ? data.env.label : "", session: sessOf(Date.now()) });
-  if (BOT.notify) ncAdd({ sym: r.symbol, kind: "Bots", icon: "🤖", tone: "blue", title: `${strat} bot opened a ${long ? "long" : "short"}`,
-    detail: `Paper trade · entry ${fmtPrice(fill)} · stop ${fmtPrice(m.stop)} · target ${fmtPrice(m.t2)}` });
-  return true;
-}
-function botClose(strat, p, exitPx, reason, when = Date.now()) {
-  const b = BOT.bots[strat], long = p.dir === "Long";
-  const fill = reason === "Target" ? exitPx : exitPx * (1 - (long ? 1 : -1) * BOT.slip / 100);   // limit target fills; stops and market exits slip
-  const feeOut = p.qty * fill * BOT.fee / 200, pnl = (long ? fill - p.entry : p.entry - fill) * p.qty - p.feeIn - feeOut;
-  b.bal += pnl; b.peak = Math.max(b.peak, b.bal); b.dd = Math.max(b.dd, (b.peak - b.bal) / b.peak * 100);
-  b.positions = b.positions.filter(x => x.id !== p.id);
-  b.closed.push({ sym: p.sym, dir: p.dir, model: strat, entry: p.entry, exit: fill, stop: p.stop, target: p.target, pnl, r: pnl / p.risk, reason,
-    opened: p.opened, closed: when, env: p.env, session: p.session });
-  if (b.closed.length > 400) b.closed = b.closed.slice(-400);
-  b.eq.push([when, +b.bal.toFixed(2)]); if (b.eq.length > 1000) b.eq = b.eq.slice(-1000);
-  if (BOT.notify) ncAdd({ sym: p.sym, kind: "Bots", icon: "🤖", tone: pnl >= 0 ? "up" : "down", title: `${strat} bot closed at ${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R`,
-    detail: `Paper trade · ${reason} · ${pnl >= 0 ? "+" : "−"}$${Math.abs(pnl).toFixed(2)}` });
-}
-function botCheckExits() {                                   // on live prices (the stream ticks, or the last scan)
-  if (!BOT.running || !data || data.cached) return;
-  BOT_STRATS().forEach(k => {
-    const b = BOT.bots[k];
-    b.positions.slice().forEach(p => {
-      const px = botPrice(p.sym); if (px == null) return;
-      const long = p.dir === "Long";
-      if (long ? px <= p.stop : px >= p.stop) botClose(k, p, p.stop, "Stop");
-      else if (long ? px >= p.target : px <= p.target) botClose(k, p, p.target, "Target");
-      else if (Date.now() >= p.until) botClose(k, p, px, "Time limit");
-    });
-  });
-  botSave();
-}
-async function botReconcile() {                              // catch wicks between checks, and anything that happened while the app was closed
-  if (!BOT.running || !data || data.cached) return;
-  const open = BOT_STRATS().flatMap(k => BOT.bots[k].positions.map(p => ({ k, p })));
-  for (const { k, p } of open) {
-    try {
-      const since = Math.max(p.opened, p.checked - 15 * 60e3);
-      const bars = await klinesSince(p.sym, since, "15m", Math.min(1000, Math.ceil((Date.now() - since) / 900e3) + 2), exName(), data.mode);
-      const long = p.dir === "Long";
-      for (const c of bars) {
-        if (c.t + 900e3 <= p.opened) continue;
-        if (long ? c.l <= p.stop : c.h >= p.stop) { botClose(k, p, p.stop, "Stop", c.t); break; }       // stop first if both: conservative
-        if (long ? c.h >= p.target : c.l <= p.target) { botClose(k, p, p.target, "Target", c.t); break; }
-        if (c.t >= p.until) { botClose(k, p, c.c, "Time limit", c.t); break; }
-      }
-      p.checked = Date.now();
-    } catch (e) {}
-  }
-  BOT.lastRecon = Date.now(); botSave();
-}
-function botOnScan() {                                        // new setups from a scan or a candle-close refresh
-  if (!BOT || !BOT.running || !data || data.cached) return;
-  botCheckExits();
-  const cooldown = 6 * 3600e3;
-  BOT_STRATS().forEach(k => {
-    const b = BOT.bots[k]; if (!b.on) return;
-    const cands = [];
-    data.all.forEach(r => liveModels(r).forEach(m => {
-      if (m.model !== k || !m.trig || m.dir === "any") return;
-      if (b.positions.some(p => p.sym === r.symbol)) return;
-      if (b.closed.some(c => c.sym === r.symbol && Date.now() - c.closed < cooldown)) return;
-      if (r.vol24h < 10e6) return;                                                                 // skip illiquid coins
-      cands.push({ r, m, s: setupScore(r, m, data.env) + alignScore(r, m) });
-    }));
-    cands.sort((a, b2) => b2.s - a.s);
-    for (const c of cands) { if (b.positions.length >= BOT.maxOpen) break; botOpen(k, c.r, c.m); }
-  });
-  botSave(); renderBot();
-}
-function botStats(k) {
-  const b = BOT.bots[k], c = b.closed, n = c.length;
-  const wins = c.filter(x => x.pnl > 0).length, gw = c.filter(x => x.pnl > 0).reduce((s, x) => s + x.pnl, 0), gl = -c.filter(x => x.pnl < 0).reduce((s, x) => s + x.pnl, 0);
-  const unreal = b.positions.reduce((s, p) => { const px = botPrice(p.sym); return px == null ? s : s + (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; }, 0);
-  return { n, wins, win: n ? wins / n * 100 : 0, avgR: n ? c.reduce((s, x) => s + x.r, 0) / n : 0, pf: gl ? gw / gl : (gw ? 99 : 0), ret: (b.bal - BOT.startBal) / BOT.startBal * 100, unreal };
-}
-/* ---- filters (setups, side, session, result, exit, period, coin) and the trade review ---- */
-const BOTF_KEY = "altscan-bot-filter", BOTF_DEF = { set: [], side: "all", sess: "all", res: "all", exit: "all", days: 30, coin: "", chart: false };   // chart: show the bots' trades on the chart (account menu)
-let BOTF = (() => { try { return { ...BOTF_DEF, ...(JSON.parse(localStorage.getItem(BOTF_KEY)) || {}) }; } catch (e) { return { ...BOTF_DEF }; } })();
-const botfSave = () => { try { localStorage.setItem(BOTF_KEY, JSON.stringify(BOTF)); } catch (e) {} };
-const sessName = s => String(s || "").replace(/^\S+\s/, "");
-const BOT_SESS = ["Asia", "London", "Lunch", "Pre-NY", "NY AM", "NY PM"];
-const botKey = c => `${c.model}|${c.sym}|${c.opened}`;
-function botMatch(c, closed) {
-  const f = BOTF; if (f.set.length && !f.set.includes(c.model)) return false;
-  if (f.side !== "all" && c.dir !== f.side) return false;
-  if (f.sess !== "all" && sessName(c.session) !== f.sess) return false;
-  if (f.coin && !coin(c.sym).toUpperCase().includes(f.coin.toUpperCase())) return false;
-  if (closed) { if (f.res === "win" && !(c.pnl > 0)) return false; if (f.res === "loss" && !(c.pnl < 0)) return false;
-    if (f.exit !== "all" && c.reason !== f.exit) return false; if (f.days && c.closed < Date.now() - f.days * 864e5) return false; }
-  return true;
-}
-const botClosedF = () => BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => botMatch(c, true)).sort((a, b) => b.closed - a.closed);
-const botOpenStudy = () => BOT_STRATS().flatMap(k => BOT.bots[k].positions).filter(p => botMatch(p, false)).sort((a, b) => b.opened - a.opened)
-  .map(botOpenT);
-function botOpenT(p) { const px = botPrice(p.sym) ?? p.entry, pnl = (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty; return { ...p, open: true, exit: px, closed: Date.now(), pnl, r: pnl / (p.risk || 1), reason: "Open" }; }
-const botAllClosed = sym => BOT ? BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => c.sym === sym) : [];
-const botHeld = ms => { const m = Math.round(ms / 60e3); return m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`; };
-function botFilterHTML() {
-  const f = BOTF, c = (k, v, l, on) => `<button class="bfc ${on ? "on" : ""}" data-bf="${k}" data-v="${v}" aria-pressed="${!!on}">${l}</button>`, one = (k, opts) => opts.map(([v, l]) => c(k, v, l, String(f[k]) === String(v))).join("");
-  return `<div class="bfbar" role="group" aria-label="Filter the bots and their trades">
-    <div class="bfrow"><span class="bfl">Setups</span>${c("set", "", "All", !f.set.length)}${BOT_STRATS().map(k => c("set", k, `${MODELS[k].icon} ${k}`, f.set.includes(k))).join("")}</div>
-    <div class="bfrow"><span class="bfl">Side</span>${one("side", [["all", "All"], ["Long", "Long"], ["Short", "Short"]])}<span class="bfl bfl2">Session</span>${one("sess", [["all", "All"], ...BOT_SESS.map(x => [x, x])])}</div>
-    <div class="bfrow"><span class="bfl">Result</span>${one("res", [["all", "All"], ["win", "Winners"], ["loss", "Losers"]])}<span class="bfl bfl2">Ended by</span>${one("exit", [["all", "All"], ["Target", "Target"], ["Stop", "Stop"], ["Time limit", "Time limit"]])}
-      <span class="bfl bfl2">Period</span>${one("days", [[7, "7 days"], [30, "30 days"], [0, "All"]])}<label class="bfl bfl2">Coin <input id="bfCoin" class="bfin" placeholder="Any coin" value="${(f.coin || "").replace(/"/g, "&quot;")}" autocomplete="off"></label>
-      <button class="bfc" id="bfClear">Clear filters</button></div>
-    <div class="meta">Filters apply to the bot table, open positions and the trade review. Saved for next time.</div></div>`;
-}
-function botGroups(list, keyFn) { const m = new Map(); list.forEach(c => { const k = keyFn(c); const g = m.get(k) || { k, n: 0, r: 0, w: 0 }; g.n++; g.r += c.r; if (c.pnl > 0) g.w++; m.set(k, g); }); return [...m.values()].map(g => ({ ...g, avgR: g.r / g.n, win: g.w / g.n * 100 })); }
-function botReviewHTML(list) {
-  if (!list.length) return `<div class="empty">No closed trades match these filters yet.</div>`;
-  const n = list.length, wins = list.filter(c => c.pnl > 0).length, gw = list.filter(c => c.pnl > 0).reduce((a, c) => a + c.pnl, 0), gl = -list.filter(c => c.pnl < 0).reduce((a, c) => a + c.pnl, 0);
-  const avgR = list.reduce((a, c) => a + c.r, 0) / n, per = list.reduce((a, c) => a + c.pnl, 0) / n, hold = list.reduce((a, c) => a + (c.closed - c.opened), 0) / n;
-  const tile = (l, v, cls = "") => `<div class="brt"><span>${l}</span><b class="${cls}">${v}</b></div>`;
-  const bars = (title, rows, fmt) => { const mx = Math.max(...rows.map(r => Math.abs(r.v)), 1e-9);
-    return `<div><div class="meta brh">${title}</div>${rows.map(r => `<div class="brv"><span>${r.l}</span><div class="brtr"><div class="brbar ${r.v < 0 ? "dn" : ""} ${r.grey ? "gr" : ""}" style="width:${Math.round(Math.abs(r.v) / mx * 100)}%"></div></div><span class="${r.grey ? "mute" : r.v < 0 ? "dn" : "up"}">${fmt(r.v)}</span><span class="mute">${r.n}</span></div>`).join("")}</div>`; };
-  const bySess = botGroups(list, c => sessName(c.session)).sort((a, b) => BOT_SESS.indexOf(a.k) - BOT_SESS.indexOf(b.k)).map(g => ({ l: g.k, v: g.avgR, n: g.n }));
-  const bySet = botGroups(list, c => `${c.model} ${c.dir.toLowerCase()}`).sort((a, b) => b.n - a.n).slice(0, 8).map(g => ({ l: g.k, v: g.avgR, n: g.n }));
-  const byEnd = ["Target", "Stop", "Time limit"].map(k => { const x = list.filter(c => c.reason === k); return { l: k, v: x.length / n * 100, n: x.length, grey: k === "Time limit" }; }).filter(r => r.n);
-  const spots = botGroups(list, c => `${c.model} ${c.dir.toLowerCase()}s in ${sessName(c.session)}`).filter(g => g.n >= 10), best = spots.filter(g => g.avgR > 0).sort((a, b) => b.avgR - a.avgR)[0], worst = spots.filter(g => g.avgR < 0).sort((a, b) => a.avgR - b.avgR)[0];
-  const tl = list.filter(c => c.reason === "Time limit"), tlR = tl.length ? tl.reduce((a, c) => a + c.r, 0) / tl.length : 0;
-  const notes = [best ? `<div><b class="up">Best spot:</b> ${best.k}, ${best.n} trades, ${best.win.toFixed(0)}% won, ${fmtR(best.avgR)} on average.</div>` : "",
-    worst ? `<div><b class="dn">Weak spot:</b> ${worst.k}, ${worst.n} trades, ${worst.win.toFixed(0)}% won, ${fmtR(worst.avgR)} on average. Consider pausing them then.</div>` : "",
-    tl.length >= 10 ? `<div><b style="color:var(--accent)">Time limit:</b> ${tl.length} trades ran out of time and averaged ${fmtR(tlR)}${tlR < 0 ? "; when a setup doesn't move in its hold window it rarely comes back" : ""}.</div>` : ""].filter(Boolean);
-  return `<div class="brtiles">${tile("Trades", n)}${tile("Win rate", (wins / n * 100).toFixed(0) + "%")}${tile("Average result", fmtR(avgR), rCls(avgR))}${tile("Per trade", (per >= 0 ? "+" : "−") + "$" + Math.abs(per).toFixed(2), per >= 0 ? "up" : "dn")}${tile("Profit factor", gl ? (gw / gl).toFixed(2) : gw ? "∞" : "—")}${tile("Average hold", botHeld(hold))}</div>
-    <div class="brgrid">${bars("By session · average R", bySess, fmtR)}${bars("By setup and side · average R", bySet, fmtR)}${bars("By how it ended", byEnd, v => v.toFixed(0) + "%")}</div>
-    <div class="brnotes"><b>What stands out</b>${notes.length ? notes.join("") : `<div class="mute">Nothing stands out yet: groups need at least 10 trades before they're worth reading.</div>`}<div class="meta">Groups with fewer than 10 trades are left out of these notes; small samples mislead.</div></div>`;
-}
-let botChart = null;
-async function drawBotEquity() {
-  const el = $("botEq"); if (!el) return;
-  const series = BOT_STRATS().map((k, i) => ({ k, pts: BOT.bots[k].eq })).filter(x => x.pts.length);
-  if (!series.length) { el.innerHTML = `<div class="meta cload">The equity curves appear after the first closed trades.</div>`; $("botEqLegend").innerHTML = ""; return; }
-  try {
-    await ensureLWC();
-    if (botChart) { try { botChart.remove(); } catch (e) {} botChart = null; }
-    el.innerHTML = "";
-    const line = cssVar("--line");
-    botChart = LightweightCharts.createChart(el, { width: el.clientWidth, height: 200, layout: { background: { type: "solid", color: "transparent" }, textColor: cssVar("--mute"), fontFamily: cssVar("--font") },
-      grid: { vertLines: { color: line }, horzLines: { color: line } }, rightPriceScale: { borderColor: line }, timeScale: { borderColor: line, timeVisible: true },
-      localization: { locale: "en-US", priceFormatter: v => "$" + v.toFixed(0), timeFormatter: phtTime } });
-    const colors = ["#2962ff", "#22ab94", "#f7a600", "#f23645", "#9c27b0", "#00bcd4", "#e91e63", "#8bc34a"];
-    series.forEach((x, i) => {
-      const s = botChart.addLineSeries({ color: colors[i % colors.length], lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
-      let last = 0; const pts = [{ time: Math.floor((BOT.started || x.pts[0][0]) / 1000) - 1, value: BOT.startBal }];
-      x.pts.forEach(([t, v]) => { let ts = Math.floor(t / 1000); if (ts <= pts.at(-1).time) ts = pts.at(-1).time + 1; pts.push({ time: ts, value: v }); });
-      s.setData(pts);
-    });
-    botChart.timeScale().fitContent();
-    $("botEqLegend").innerHTML = series.map((x, i) => `<i style="background:${colors[i % colors.length]}"></i>${x.k}`).join("");
-  } catch (e) { el.innerHTML = `<div class="meta">Couldn't draw the equity curves (${e.message}).</div>`; }
-}
-function renderBot() {
-  const el = $("botSim"); if (!el || !BOT) return;
-  const strats = BOT_STRATS(), allOpen = strats.flatMap(k => BOT.bots[k].positions.map(p => ({ k, p })));
-  const shown = BOTF.set.length ? strats.filter(k => BOTF.set.includes(k)) : strats, openF = allOpen.filter(({ p }) => botMatch(p, false)), closedF = botClosedF();
-  const foc = document.activeElement && document.activeElement.id === "bfCoin" ? document.activeElement.selectionStart : null;
-  el.innerHTML = `
-    <div class="schead"><h2>Bot Simulator <span class="meta">forward test · paper money</span></h2>
-      <span class="meta">${BOT.running ? `<span class="up">● Running</span> since ${fmtPHT(new Date(BOT.started + PHT_MS))}` : "Paused"} · each strategy trades its own $${BOT.startBal.toLocaleString()} account</span>
-      <div class="scbtns"><button class="btn ${BOT.running ? "" : "primary"}" id="botRun" ${data ? "" : "disabled"}>${BOT.running ? "Pause" : "Start Bots"}</button><button class="btn sm" id="botReset">Reset</button></div></div>
-    <div class="btctl">
-      <label class="pill"><span>Account per bot ($)</span><input id="botBal" type="number" step="100" value="${BOT.startBal}" ${BOT.started ? "disabled title='Reset to change'" : ""}></label>
-      <label class="pill"><span>Risk per trade %</span><input id="botRisk" type="number" step="0.25" value="${BOT.risk}"></label>
-      <label class="pill"><span>Max open per bot</span><input id="botMax" type="number" step="1" min="1" value="${BOT.maxOpen}"></label>
-      <label class="pill"><span>Fees %</span><input id="botFee" type="number" step="0.01" value="${BOT.fee}"></label>
-      <label class="pill"><span>Slippage %</span><input id="botSlip" type="number" step="0.01" value="${BOT.slip}"></label>
-      <label class="tog"><input type="checkbox" id="botNotify" ${BOT.notify ? "checked" : ""}> Notify me of bot trades</label>
-    </div>${botFilterHTML()}
-    <div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">On</th><th>Balance</th><th>Return</th><th>Trades</th><th>Win rate</th><th>Avg R</th><th>Profit factor</th><th>Max drawdown</th><th>Open</th><th>Open P&L</th></tr></thead><tbody>${
-      shown.map(k => { const b = BOT.bots[k], s = botStats(k);
-        return `<tr><td class="l">${MODELS[k].icon} ${k}${["Leader", "Reset20"].includes(k) ? ' <span class="tag">Claude</span>' : ""}</td><td class="l"><input type="checkbox" data-bon="${k}" ${b.on ? "checked" : ""} aria-label="Run the ${k} bot"></td>
-          <td><b>$${b.bal.toFixed(2)}</b></td><td class="${rCls(s.ret / 10)}">${s.ret >= 0 ? "+" : ""}${s.ret.toFixed(1)}%</td><td>${s.n}</td><td>${s.n ? s.win.toFixed(0) + "%" : "—"}</td>
-          <td class="${s.n ? rCls(s.avgR) : "mute"}">${s.n ? fmtR(s.avgR) : "—"}</td><td>${s.n ? (s.pf >= 99 ? "∞" : s.pf.toFixed(2)) : "—"}</td><td class="dn">${b.dd ? "−" + b.dd.toFixed(1) + "%" : "—"}</td>
-          <td>${b.positions.length}</td><td class="${s.unreal >= 0 ? "up" : "dn"}">${b.positions.length ? (s.unreal >= 0 ? "+" : "−") + "$" + Math.abs(s.unreal).toFixed(2) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
-    <h3 class="pbh3">Open Positions <span class="meta">${openF.length}${openF.length !== allOpen.length ? ` of ${allOpen.length}` : ""}${openF.length ? " · click one to see it on the chart" : ""}</span></h3>
-    ${openF.length ? `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th>Entry</th><th>Stop</th><th>Target</th><th>Price</th><th>P&L</th><th class="l">Opened</th></tr></thead><tbody>${
-      openF.map(({ k, p }) => { const px = botPrice(p.sym), pnl = px == null ? 0 : (p.dir === "Long" ? px - p.entry : p.entry - px) * p.qty;
-        return `<tr data-bopen="${botKey(p).replace(/"/g, "&quot;")}" title="Show this trade on the chart"><td class="l">${MODELS[k].icon} ${k}</td><td class="l"><b>${coin(p.sym)}</b></td><td class="l">${biasTag(p.dir)}</td><td>${fmtPrice(p.entry)}</td><td class="dn">${fmtPrice(p.stop)}</td><td class="up">${fmtPrice(p.target)}</td>
-          <td><span class="lp" data-sym="${p.sym}">${px == null ? "—" : fmtPrice(px)}</span></td><td class="${pnl >= 0 ? "up" : "dn"}">${(pnl >= 0 ? "+" : "−") + "$" + Math.abs(pnl).toFixed(2)} <span class="mute">${(pnl / p.risk >= 0 ? "+" : "") + (pnl / p.risk).toFixed(2)}R</span></td>
-          <td class="l mute">${fmtPHT(new Date(p.opened + PHT_MS)).replace(/^\w+, /, "")}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="empty">${allOpen.length ? "No open positions match the filters." : `No open positions. ${BOT.running ? "The bots enter as soon as a setup triggers." : "Press Start Bots."}`}</div>`}
-    <h3 class="pbh3">Trade review <span class="meta">${closedF.length} closed trade${closedF.length === 1 ? "" : "s"} · your filters</span></h3><div class="brwrap">${botReviewHTML(closedF)}</div>
-    ${closedF.length ? `<h3 class="pbh3">Closed trades <span class="meta">newest first · click a trade to mark it on the chart and study it</span></h3><div class="tablewrap"><table class="sct"><thead><tr><th class="l">Closed (PHT)</th><th class="l">Bot</th><th class="l">Coin</th><th class="l">Side</th><th class="l">Session</th><th>Entry</th><th>Exit</th><th>P&L</th><th>R</th><th class="l">Ended by</th><th>Held</th><th></th></tr></thead><tbody>${
-      closedF.slice(0, 60).map(c => `<tr data-bstudy="${botKey(c).replace(/"/g, "&quot;")}" title="Show this trade on the chart"><td class="l mute">${fmtPHT(new Date(c.closed + PHT_MS))}</td><td class="l">${MODELS[c.model].icon} ${c.model}</td><td class="l"><b>${coin(c.sym)}</b></td><td class="l">${biasTag(c.dir)}</td><td class="l">${sessName(c.session) || "—"}</td>
-        <td>${fmtPrice(c.entry)}</td><td>${fmtPrice(c.exit)}</td><td class="${c.pnl >= 0 ? "up" : "dn"}">${(c.pnl >= 0 ? "+" : "−") + "$" + Math.abs(c.pnl).toFixed(2)}</td><td class="${rCls(c.r)}">${fmtR(c.r)}</td><td class="l">${c.reason}</td><td>${botHeld(c.closed - c.opened)}</td>
-        <td><button class="btn sm" tabindex="-1">Chart</button></td></tr>`).join("")}</tbody></table></div>${closedF.length > 60 ? `<p class="meta">Showing the newest 60 of ${closedF.length}; narrow the filters to see others.</p>` : ""}` : ""}
-    <h3 class="pbh3">Bot Equity</h3><div id="botEq" class="bteq"></div><div class="clegend bteql" id="botEqLegend"></div>
-    <p class="meta">Paper trading only. Each bot takes its strategy's triggered setups (ORB and AMD excluded) on coins with $10M+ volume: up to ${BOT.maxOpen} at a time, one per coin, no re-entry on a coin for 6 hours, and no chasing (it skips a setup once price has run more than half the risk past the entry). Fills are at the live price plus slippage; targets fill at the target. Exits: stop, target, or time limit (48 hours, 10 days for the Daily 20 Reset). The bots run while the app is open; every 2 minutes they check the 15m candles so a wick to the stop or target between checks still counts, and when you reopen the app they settle anything that happened while it was closed (new entries can't be made while it's closed). While running, the scanner refreshes every 15 minutes so new setups are found.</p>`;
-  if ($("botRun")) $("botRun").onclick = () => {
-    BOT.running = !BOT.running;
-    if (BOT.running) { if (!BOT.started) BOT.started = Date.now(); if (!$("auto").checked) { $("auto").checked = true; $("auto").onchange(); } botOnScan(); botReconcile(); }
-    botSave(); renderBot();
-  };
-  $("botReset").onclick = () => { if (confirm("Reset all bots? This clears their balances, positions and history.")) { const keep = { startBal: +$("botBal").value || 1000, risk: BOT.risk, maxOpen: BOT.maxOpen, fee: BOT.fee, slip: BOT.slip, notify: BOT.notify };
-    BOT = botDefault(); Object.assign(BOT, keep); BOT_STRATS().forEach(k => { BOT.bots[k].bal = BOT.bots[k].peak = BOT.startBal; }); botSave(); renderBot(); } };
-  [["botRisk", "risk"], ["botMax", "maxOpen"], ["botFee", "fee"], ["botSlip", "slip"], ["botBal", "startBal"]].forEach(([id, key]) => { if ($(id)) $(id).onchange = () => {
-    const v = +$(id).value; if (!(v >= 0)) return; BOT[key] = key === "maxOpen" ? Math.max(1, Math.round(v)) : v;
-    if (key === "startBal" && !BOT.started) BOT_STRATS().forEach(k => { BOT.bots[k].bal = BOT.bots[k].peak = v; });
-    botSave(); }; });
-  $("botNotify").onchange = () => { BOT.notify = $("botNotify").checked; botSave(); };
-  el.querySelectorAll("[data-bon]").forEach(c => c.onchange = () => { BOT.bots[c.dataset.bon].on = c.checked; botSave(); });
-  el.querySelectorAll("tr[data-s]").forEach(tr => tr.onclick = () => openDetail(tr.dataset.s));
-  el.querySelectorAll("[data-bf]").forEach(bt => bt.onclick = () => { const k = bt.dataset.bf, v = bt.dataset.v;
-    if (k === "set") BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; else BOTF[k] = k === "days" ? +v : v;
-    botfSave(); renderBotLight(); });
-  if ($("bfCoin")) { $("bfCoin").oninput = () => { BOTF.coin = $("bfCoin").value.trim(); botfSave(); clearTimeout(BOTF.t); BOTF.t = setTimeout(renderBotLight, 250); };
-    if (foc != null) { const i = $("bfCoin"); i.focus(); i.setSelectionRange(foc, foc); } }
-  if ($("bfClear")) $("bfClear").onclick = () => { BOTF = { ...BOTF_DEF, chart: BOTF.chart }; botfSave(); renderBotLight(); };
-  el.querySelectorAll("[data-bstudy]").forEach(bt => bt.onclick = () => { const list = botClosedF(), i = list.findIndex(c => botKey(c) === bt.dataset.bstudy); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
-  el.querySelectorAll("[data-bopen]").forEach(tr => tr.onclick = () => { const list = botOpenStudy(), i = list.findIndex(c => botKey(c) === tr.dataset.bopen); if (i >= 0 && typeof chStudy === "function") chStudy(list, i); });
-  drawBotEquity();
-}
-setInterval(() => { if (BOT && BOT.running && data && !data.cached) { botCheckExits(); if (Date.now() - BOT.lastRecon > 120e3) botReconcile(); if (document.visibilityState === "visible" && $("botSim")) renderBotLight(); } }, 30000);
-function renderBotLight() {                                  // refresh numbers without redrawing the charts
-  if (!$("botSim")) return;
-  const y = window.scrollY; renderBot(); window.scrollTo(0, y);
-}
-
 
 /* ---- RSI + momentum display helpers ---- */
 const rsiCls = v => v == null ? "mute" : v >= 70 ? "rz-mo" : v >= 60 ? "rz-pm" : v > 40 ? "rz-ne" : v > 30 ? "rz-pw" : "rz-wk";
@@ -6156,7 +5915,6 @@ function claudeText() {
   const sc = scoreRows("model").filter(x => x.done);
   if (sc.length) t += `\n\nSCORECARD (resolved picks on this device, by model)\n` + sc.map(x => `${x.k}: ${x.done} resolved, ${x.wins} hit target, ${x.losses} stopped, win ${x.win == null ? "n/a" : x.win.toFixed(0) + "%"}, avg ${x.avgR >= 0 ? "+" : ""}${x.avgR.toFixed(2)}R`).join("\n");
   if (BT && BT.trades && BT.trades.length) { t += `\n\nBACKTEST (${BT.exchange}, ${BT.days} days, ${BT.coins} coins, fees ${BT.fee}%)\n` + MODEL_KEYS.map(k => { const s = btStats(BT.trades.filter(x => x.model === k)); return s ? `${k}: ${s.n} trades, win ${s.win.toFixed(0)}%, avg ${fmtR(s.avg)}, total ${fmtR(s.tot)}, PF ${s.pf >= 99 ? "inf" : s.pf.toFixed(2)}` : null; }).filter(Boolean).join("\n"); }
-  if (BOT && BOT.started) { t += `\n\nBOT SIMULATOR (forward test since ${fmtPHT(new Date(BOT.started + PHT_MS))}, $${BOT.startBal} per bot, ${BOT.risk}% risk)\n` + BOT_STRATS().map(k => { const s = botStats(k), b = BOT.bots[k]; return `${k}: $${b.bal.toFixed(2)} (${s.ret >= 0 ? "+" : ""}${s.ret.toFixed(1)}%), ${s.n} trades, win ${s.n ? s.win.toFixed(0) : 0}%, avg ${fmtR(s.avgR)}, max DD ${b.dd.toFixed(1)}%, ${b.positions.length} open`; }).join("\n"); }
   if (Object.keys(WL.coins).length) t += `\n\nWATCHLIST: ${Object.keys(WL.coins).map(coin).join(", ")}`;
   return t + "\n\nRun the crypto scanner on these.";
 }
@@ -6187,7 +5945,7 @@ async function scTx(store, mode, fn) {
 }
 const scKey = o => [o.exchange, o.market, o.quote, o.alts, o.ma, o.minVol].join("|");
 function scAgo(at) { const m = Math.round((Date.now() - Date.parse(at)) / 60000); return m < 1 ? "just now" : m < 90 ? `${m} min ago` : m < 2160 ? `${Math.round(m / 60)} hours ago` : `${Math.round(m / 1440)} days ago`; }
-async function scShow(key) {                         // the last scan for these settings, drawn while a new one runs. Alerts, the bot and the history wait for the new one.
+async function scShow(key) {                         // the last scan for these settings, drawn while a new one runs. Alerts and the history wait for the new one.
   let s = null; try { s = await scTx("scan", "readonly", st => st.get(key)); } catch (e) {}
   if (!s || !s.all || (data && data.key === key) || !(Date.now() - Date.parse(s.at) < 3 * 864e5)) return;
   const prev = [data, bySym, EXCHANGE, MODE];
@@ -6241,7 +5999,7 @@ async function run() {
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
     renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan(); renderRotation(); renderMomentum();
     { const t = liveTarget(); if (!t || !LIVE.ws || LIVE.url !== t.url) liveConnect(); else liveSync(); }   // no target (MEXC spot): close any old stream, fall back to polling
-    if (BOT && BOT.running) { botReconcile().then(() => botOnScan()); } else renderBot(); renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
+    renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
     $("status").textContent = `${data.analysed} coins analysed.`;
     setTimeout(() => $("prog").style.width = "0", 600);
@@ -6277,7 +6035,7 @@ $("search").oninput = renderTable;
 $("auto").onchange = () => { savePrefs(); clearInterval(autoTimer); if ($("auto").checked) autoTimer = setInterval(run, 15 * 60 * 1000); };
 
 $("verLbl").textContent = "Version " + APP_VERSION + ".";
-botLoad(); wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard(); renderBacktest(); renderBot();
+wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard(); renderBacktest();
 $("dlg").addEventListener("close", killChart);
 $("liveBadge").onclick = () => {
   if (LIVE.state === "down") { LIVE.retry = 0; liveConnect(); return; }
@@ -6299,7 +6057,7 @@ run();
 /* ===================== Notification center: bell + drawer + toast cards ===================== */
 const NC_KEY = "finder-notifs", NC_DAYS = 7, NC_STATE = { filter: "All", ctErr: null, toasts: [] };
 const NC_TONE = { up: "var(--green)", down: "var(--red)", gold: "var(--accent)", blue: "var(--blue)", warn: "var(--amber)" };
-const NC_KINDS = ["All", "NBB Watch", "News", "Breakouts", "Setups", "Price", "Bots", "System"];
+const NC_KINDS = ["All", "News", "Breakouts", "Setups", "Price", "System"];
 let NC = [];
 try { NC = JSON.parse(localStorage.getItem(NC_KEY) || "[]"); } catch (e) { NC = []; }
 const ncSave = () => { try { localStorage.setItem(NC_KEY, JSON.stringify(NC)); } catch (e) {} };
@@ -6336,7 +6094,7 @@ function ncRenderList() {
     return `<button role="tab" aria-selected="${NC_STATE.filter === k}" class="${NC_STATE.filter === k ? "on" : ""}" data-k="${k}">${k}${c && k !== "All" ? ` · ${c}` : ""}</button>`; }).join("");
   $("ncChips").querySelectorAll("[data-k]").forEach(b => b.onclick = () => { NC_STATE.filter = b.dataset.k; ncRenderList(); });
   const list = NC.filter(n => NC_STATE.filter === "All" || n.kind === NC_STATE.filter), fresh = list.filter(n => !n.read), old = list.filter(n => n.read);
-  $("ncList").innerHTML = !list.length ? `<div class="ncempty">${NC.length ? "Nothing in this filter." : "No notifications yet.<br>Breakouts, setup triggers, price alerts and bot trades show up here."}</div>`
+  $("ncList").innerHTML = !list.length ? `<div class="ncempty">${NC.length ? "Nothing in this filter." : "No notifications yet.<br>Breakouts, setup triggers and price alerts show up here."}</div>`
     : (fresh.length ? `<div class="ncgrp">NEW</div>${fresh.map(n => ncItemHTML(n)).join("")}` : "") + (old.length ? `<div class="ncgrp">EARLIER</div>${old.map(n => ncItemHTML(n)).join("")}` : "");
   $("ncList").querySelectorAll("[data-nc]").forEach(b => b.onclick = () => ncGo(b.dataset.nc));
 }
@@ -6414,9 +6172,9 @@ ncPrune(); ncSave(); ncRenderBell();
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"], ["fund", "Fundamentals"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
-  { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
+  { g: "FOREX · METALS · INDICES", items: [["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
-  { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"], ["bots", "Bot Simulator"], ["scorecard", "Scorecard"]] },
+  { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"], ["scorecard", "Scorecard"]] },
   { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
 ];
 const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
@@ -6448,7 +6206,6 @@ function goPage(id, keepTab) {
   }
   renderNav();
   if (MACRO_PAGES.includes(id)) { if (id !== "macro") renderMacroBoards(); macroScan(false).catch(() => {}); }
-  if (id === "nbbwatch" && typeof nwShown === "function") nwShown();
   if (id === "calendar" && typeof calShown === "function") calShown();
   if (id === "fund" && typeof fundShown === "function") fundShown();
   if (id === "trade" && typeof trShown === "function") trShown();
@@ -7025,7 +6782,7 @@ let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSD
 const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: chLoadJSON("finder-ovch", {}) };   // the overview pages borrowing this chart (see ovcHost)
 const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
 const CHP = [];                                              // the four panes
-let CHM = null;                                              // bot trades marked on the chart: { list (your filters), i (the one you're studying), all (every trade on the coin) }
+let CHM = null;                                              // a trade marked on the chart (clicked in the trade watch): { list: [trade], i: 0 }
 const chPS = P => P.psym || CH.sym;                          // the symbol a pane shows: its own on the forex overview, else the chart's
 let chBuilt = false, chOn = false, chTool = "cursor", chSel = null, chDraft = null, chDrag = null, chMeasure = null, chHidden = false, chLocked = false;
 let chUndo = [], chSyncing = false, chDirty = true, chClearArm = 0, chWLAdd = false, chWLQ = "";
@@ -7181,7 +6938,7 @@ function chChartSettings(tab) {
     else if (cur === "tr") h = `<div class="chsgh">Your trades on the chart</div>${chk("trLines", "Positions and pending orders as lines")}${chk("trX", "× on the line to close or cancel")}${chk("trDrag", "Drag a line to move the price, stop loss or take profit")}
       ${row("Buy position", sw("trBuyC"))}${row("Sell position", sw("trSellC"))}${row("Pending order", sw("trPendC"))}${row("Stop loss", sw("trSLC"))}${row("Take profit", sw("trTPC"))}
       <p class="meta">Drag a position's own line to add a stop loss or take profit. Changes go to your broker when you let go.</p>
-      <div class="chsgh">Trade marks (bot trades and trades you study)</div>${row("Winning trade", sw("trWinC"))}${row("Losing trade", sw("trLossC"))}
+      <div class="chsgh">Trade marks (a trade you click in the trade watch)</div>${row("Winning trade", sw("trWinC"))}${row("Losing trade", sw("trLossC"))}
       <p class="meta">The arrows, the line from entry to exit and the result tag. Open trades follow their P&amp;L so far.</p>
       <div class="chsgh">Trade watch</div>${chk("trWatch", "Positions, orders and history under the charts")}<p class="meta">Pick its columns with “Columns” on the panel. Click a row to see that trade on the chart.</p>`;
     else h = `<div class="chsgh">Events</div>${chk("sessBreaks", "Session breaks (start of each day)", sw("sbC"))}<p class="meta">Day boundaries follow the timezone on the Symbol tab. The Asia, London and NY session boxes are an indicator: add or edit them from Indicators.</p>`;
@@ -8578,12 +8335,11 @@ function ovcPick(sym) {                            // a small overview chart cli
 }
 window.ovcHost = ovcHost; window.ovcPick = ovcPick;
 
-/* ---- bot trades marked on the chart, cTrader style: ▲/▼ at the entry and the exit, a thin line between, tags; a docked panel to study them ---- */
-const BOTN_KEY = "altscan-bot-notes", botNotes = () => chLoadJSON(BOTN_KEY, {});
+/* ---- a trade marked on the chart, cTrader style: ▲/▼ at the entry and the exit, a thin line between, tags ---- */
 function chTri(g, x, y, up, col, sz) { g.beginPath(); if (up) { g.moveTo(x, y); g.lineTo(x - sz, y + sz * 1.6); g.lineTo(x + sz, y + sz * 1.6); } else { g.moveTo(x, y); g.lineTo(x - sz, y - sz * 1.6); g.lineTo(x + sz, y - sz * 1.6); } g.closePath(); g.fillStyle = col; g.fill(); }
 function chTradeMarks(P, g, W, H) {
   const cur = CHM && CHM.list[CHM.i], sym = chPS(P); if (!P.t.length) return;
-  const trades = cur ? (CHM.all ? [...botAllClosed(sym), ...(cur.open ? [cur] : [])] : [cur]).filter(c => c.sym === sym) : chBotTrades(sym); if (!trades.length) return;
+  const trades = cur ? [cur].filter(c => c.sym === sym) : []; if (!trades.length) return;
   const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, iv = CH_IV[P.tf] || 36e5, snap = t => Math.floor(t / iv) * iv, S = chCS(), F = v => chFmt(v, P.c.at(-1));
   g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   trades.forEach(c => {
@@ -8603,60 +8359,19 @@ function chTradeMarks(P, g, W, H) {
     trPill(g, tagIn, xi, Math.min(Hm - 12, Math.max(12, y1 + (long ? 16 : -16))), true); trPill(g, tagOut, xo, Math.min(Hm - 12, Math.max(12, y2 + (long ? -16 : 16))), true);
   });
 }
-function chBotTrades(sym) {                      // the bots' trades on this coin (account menu → "Show bot trades on the chart"), with your Bot Simulator filters
-  if (!(BOTF.chart || (typeof twBots === "function" && twBots())) || typeof BOT === "undefined" || !BOT || String(sym).startsWith("CT:")) return [];
-  return [...botOpenStudy(), ...botClosedF()].filter(c => c.sym === sym);
-}
-async function chStudy(list, i) { CHM = { list, i, all: CHM ? CHM.all : false }; await chStudyGo(); }
 async function chStudyGo() {
   const c = CHM && CHM.list[CHM.i]; if (!c) return;
   if (page !== "charts") goPage("charts");
   for (let k = 0; k < 40 && !(chBuilt && chOn && chVis().length); k++) await new Promise(r => setTimeout(r, 150));
   if (CH.sym !== c.sym) chSetSym(c.sym);
   const P = chVis()[0], age = Date.now() - c.opened, dur = c.closed - c.opened, iv0 = CH_IV[P.tf] || 36e5;
-  const tf = CHM.tw && age / iv0 < 4000 && dur / iv0 < 400 ? P.tf : age < 4 * 864e5 && dur < 864e5 ? "15m" : age < 18 * 864e5 ? "1h" : "4h";   // a timeframe that reaches back to the trade (a trade watch row keeps yours when it does)
+  const tf = age / iv0 < 4000 && dur / iv0 < 400 ? P.tf : age < 4 * 864e5 && dur < 864e5 ? "15m" : age < 18 * 864e5 ? "1h" : "4h";   // a timeframe that reaches back to the trade (keeps yours when it does)
   if (P.tf !== tf) { P.tf = CH.tfs[P.i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; chSave(); chLoad(P); }
   for (let k = 0; k < 100 && !(P.sym === c.sym && P.t.length && P.tf === tf); k++) await new Promise(r => setTimeout(r, 150));
   for (let k = 0; k < 8 && P.t.length && P.t[0] > c.opened && !P.noOlder; k++) await chLoadOlder(P);
-  if (CHM.tw) { const el = $("chStudy"); if (el) { el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b && !$("trPosPanel")) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } } }
-  else chStudyPanel();
   if (P.t.length && P.chart) { const a = chLogical(P, c.opened), b = chLogical(P, c.closed), pad = Math.max(25, (b - a) * 1.5); P.userAt = Date.now(); P.chart.timeScale().setVisibleLogicalRange({ from: a - pad, to: b + pad }); }
   chDirty = true;
 }
-function chStudyPanel() {
-  const body = document.querySelector("#chPage .chbody"), c = CHM && CHM.list[CHM.i]; if (!body || !c) return;
-  if ($("trPosPanel") && typeof trPosClose === "function") trPosClose();
-  let el = $("chStudy");
-  if (!el) { el = document.createElement("div"); el.id = "chStudy"; el.className = "trpospanel chstudy"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Study a bot trade");
-    ["pointerdown", "wheel", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation())); body.appendChild(el); body.classList.add("trdock"); window.dispatchEvent(new Event("resize")); }
-  const long = c.dir === "Long", R0 = Math.abs(c.entry - c.stop) || 1e-9, P = chVis().find(Q => Q.sym === c.sym && Q.t.length), key = botKey(c), note = botNotes()[key] || {}, F = v => fmtPrice(v);
-  if (c.open) { c.exit = P ? P.c.at(-1) : (typeof botPrice === "function" && botPrice(c.sym)) || c.exit; c.closed = Date.now(); c.pnl = (long ? c.exit - c.entry : c.entry - c.exit) * c.qty; c.r = c.pnl / (c.risk || 1); }
-  let best = null, worst = null;                   // how far it went for and against you while it was open, in R
-  if (P) { const iv = CH_IV[P.tf] || 36e5; let hi = -Infinity, lo = Infinity; P.t.forEach((t, j) => { if (t + iv > c.opened && t <= c.closed) { hi = Math.max(hi, P.h[j]); lo = Math.min(lo, P.l[j]); } });
-    if (isFinite(hi)) { best = long ? (hi - c.entry) / R0 : (c.entry - lo) / R0; worst = long ? (lo - c.entry) / R0 : (c.entry - hi) / R0; } }
-  const tags = [["good", "Good trade"], ["entry", "Bad entry"], ["skip", "Skip next time"]];
-  el.innerHTML = `<div class="trpph"><b>Study bot trades</b><button class="chx" id="csClose" aria-label="Close">${chIco("x", 15)}</button></div>
-    <div class="csnav"><button class="btn sm" id="csPrev" aria-label="Previous trade" ${CHM.i <= 0 ? "disabled" : ""}>‹ Newer</button><span class="meta">${c.open ? "Open trade" : "Trade"} ${CHM.i + 1} of ${CHM.list.length} · your filters</span><button class="btn sm" id="csNext" aria-label="Next trade" ${CHM.i >= CHM.list.length - 1 ? "disabled" : ""}>Older ›</button></div>
-    <div class="cstitle">${chEsc(c.model)} ${long ? "long" : "short"} on ${chEsc(coin(c.sym))} <b class="${c.r >= 0 ? "up" : "dn"}">${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R</b></div>
-    <div class="trkv"><span>Result</span><b class="${c.pnl >= 0 ? "up" : "dn"}">${c.pnl >= 0 ? "+" : "−"}$${Math.abs(c.pnl).toFixed(2)} · ${c.open ? "still open" : chEsc(c.reason.toLowerCase())}</b><span>Session</span><b>${chEsc(sessName(c.session) || "—")}</b>${c.env ? `<span>Market</span><b>${chEsc(c.env)}</b>` : ""}
-      <span>Entry</span><b>${F(c.entry)} · ${fmtPHT(new Date(c.opened + PHT_MS)).replace(/^\w+, /, "")}</b><span>Stop</span><b class="dn">${F(c.stop)} (${(R0 / c.entry * 100).toFixed(2)}%)</b><span>Target</span><b class="up">${F(c.target)}</b>
-      <span>${c.open ? "Price now" : "Exit"}</span><b>${F(c.exit)}${c.open ? "" : " · " + fmtPHT(new Date(c.closed + PHT_MS)).replace(/^\w+, /, "")}</b><span>${c.open ? "Open for" : "Held"}</span><b>${botHeld(c.closed - c.opened)}</b>
-      <span>Best it got</span><b class="up">${best == null ? "—" : (best >= 0 ? "+" : "") + best.toFixed(2) + "R"}</b><span>Worst it got</span><b class="dn">${worst == null ? "—" : (worst >= 0 ? "+" : "") + worst.toFixed(2) + "R"}</b></div>
-    <label class="csnote">Your notes<textarea id="csNote" rows="3" placeholder="What did you see? Would you take it?">${chEsc(note.text || "")}</textarea></label>
-    <div class="csrow">${tags.map(([k, l]) => `<button class="bfc ${note.tag === k ? "on" : ""}" data-cst="${k}" aria-pressed="${note.tag === k}">${l}</button>`).join("")}</div>
-    <label class="chk csall"><input type="checkbox" id="csAll" ${CHM.all ? "checked" : ""}> Show every bot trade on ${chEsc(coin(c.sym))}</label>
-    <p class="meta">“Best” and “worst” show how far it went for and against you ${c.open ? "so far" : "before it ended"} (on this chart's candles).</p>`;
-  const save = o => { const n = botNotes(); n[key] = { ...(n[key] || {}), ...o }; chSaveJSON(BOTN_KEY, n); };
-  $("csClose").onclick = chStudyClose;
-  $("csPrev").onclick = () => { CHM.i = Math.max(0, CHM.i - 1); chStudyGo(); };
-  $("csNext").onclick = () => { CHM.i = Math.min(CHM.list.length - 1, CHM.i + 1); chStudyGo(); };
-  $("csNote").oninput = () => save({ text: $("csNote").value });
-  el.querySelectorAll("[data-cst]").forEach(b => b.onclick = () => { save({ tag: note.tag === b.dataset.cst ? null : b.dataset.cst }); chStudyPanel(); });
-  $("csAll").onchange = () => { CHM.all = $("csAll").checked; chDirty = true; };
-}
-setInterval(() => { const c = CHM && !CHM.tw && CHM.list[CHM.i], el = $("chStudy"); if (c && c.open && el && page === "charts" && !el.contains(document.activeElement)) chStudyPanel(); }, 5000);   // an open trade's numbers stay live
-function chStudyClose() { CHM = null; const el = $("chStudy"); if (el) el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b && !$("trPosPanel")) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } chDirty = true; }
-window.chStudy = chStudy;
 if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
 if ($("ovcLink")) $("ovcLink").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.link = !o.link; chSaveJSON("finder-ovch", OVC.st); ovcTgSync();
   if (OVC.on === "x") { CHP.forEach(P => P.sessKey = null); ovcSessApply(true); if (o.link) ovcTfPicked(CHP[OVC.act]); } };
@@ -9244,7 +8959,7 @@ function chPaintBody(P, g) {
         chLabel(g, `${dp >= 0 ? "+" : ""}${F(dp)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%) · ${bars} bars · ${dur}`, (xa + xb) / 2, Math.min(ya, yb) - 12, `rgba(${col},.95)`, "#fff", "center"); }
     }
   }
-  if (CHM || BOTF.chart || (typeof twBots === "function" && twBots())) { g.save(); try { chTradeMarks(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
+  if (CHM) { g.save(); try { chTradeMarks(P, g, W, H); } catch (e) { chPaintErr(e, "trade marks"); } g.restore(); g.setLineDash([]); }
   if (typeof trChartLines === "function") { g.save(); try { trChartLines(P, g, W, H, axis); } catch (e) { chPaintErr(e, "orders"); } g.restore(); g.setLineDash([]); }
   g.restore(); g.restore();
   axis.forEach(([y, txt, col], j) => { if (y >= 0 && y <= (j < nAx ? H : Hm)) chLabel(g, txt, W + 1, y, col, "#141517"); });
@@ -9477,7 +9192,7 @@ setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWL
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
 </script>
 
-<script id="extras">/* ===================== NBB Watch · Economic calendar · Phone alerts (Telegram) · keep-awake ===================== */
+<script id="extras">/* ===================== Economic calendar · Phone alerts (Telegram) · Fundamentals ===================== */
 const phtHM = ms => { const d = new Date(ms + PHT_MS); let h = d.getUTCHours(); const m = String(d.getUTCMinutes()).padStart(2, "0"), ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return `${h}:${m} ${ap}`; };
 const phtDay = ms => { const d = new Date(ms + PHT_MS); return `${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getUTCDay()]} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()]} ${d.getUTCDate()}`; };
 const phtDayKey = ms => Math.floor((ms + PHT_MS) / 864e5);
@@ -9531,7 +9246,7 @@ async function calFetch(force) {
     Object.keys(CAL.weeks).sort().slice(0, -3).forEach(k => delete CAL.weeks[k]);           // keep the last three weeks on this device
     lsSet(CAL_KEY, { items: CAL.items, at: CAL.at, weeks: CAL.weeks });
   } catch (e) { CAL.err = e.message || String(e); }
-  if (page === "calendar") calRender(); nwRenderAll();
+  if (page === "calendar") calRender();
 }
 function calAll() { const m = new Map(); Object.values(CAL.weeks || {}).flat().concat(CAL.items).forEach(x => m.set(x.id, x)); return [...m.values()].sort((a, b) => a.at - b.at); }
 function calRange(view) {
@@ -9655,168 +9370,10 @@ function calNextFor(ccys, aheadMin = 60, behindMin = 15) {      // the next high
   const now = Date.now(); return calAll().find(x => x.impact === "High" && ccys.includes(x.ccy) && x.at > now - behindMin * 60e3 && x.at < now + aheadMin * 60e3) || null;
 }
 
-/* ===================== NBB Watch: Gold M5 (London), Nasdaq M1 (US open) — your broker's data first ===================== */
-const NW_KEY = "finder-nbbwatch", NW_LOG_KEY = "finder-nbbwatch-log";
-const NW_DEF = [{ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }, { name: "Nasdaq 100", tf: "1m", from: "21:30", to: "23:00", alerts: true }];
-let NW = { items: NW_DEF.map(x => ({ ...x })), base: false, outside: false, ...lsGet(NW_KEY, {}) };
-const nwSave = () => lsSet(NW_KEY, NW);
-let NW_LOG = lsGet(NW_LOG_KEY, []);                              // today's (and recent) triggers
-const NW_ST = {}, NW_HTF = { "1m": "15m", "3m": "15m", "5m": "1h", "15m": "4h", "30m": "4h", "1h": "4h" };
-const nwKey = it => `${it.name}|${it.tf}`;
-const NW_TV = { "Gold": "OANDA:XAUUSD", "Nasdaq 100": "OANDA:NAS100USD" };
-function nwNames() {
-  const s = new Set(["Gold", "Nasdaq 100"]);
-  try { if (CT.state === "ready") ctList().forEach(o => s.add(o.name)); } catch (e) {}
-  Object.values(MX_INFO).forEach(v => s.add(v[0])); Object.values(MACRO_INFO).forEach(v => s.add(v[0]));
-  return [...s].filter(n => n !== "Volatility (VIX)").sort((a, b) => a === "Gold" ? -1 : b === "Gold" ? 1 : a === "Nasdaq 100" ? -1 : b === "Nasdaq 100" ? 1 : a.localeCompare(b));
-}
-function nwSym(name) {
-  try { if (ctPrefer() && CT.state === "ready") { const o = ctList().find(o => o.name === name); if (o) { CT_SYMS.add("CT:" + o.x.symbolName); return { sym: "CT:" + o.x.symbolName, src: CT.broker || "Broker", ct: true }; } } } catch (e) {}
-  const mk = Object.keys(MX_INFO).find(k => MX_INFO[k][0] === name), bn = Object.entries(MACRO_INFO).find(([, v]) => v[0] === name);
-  if (mk && (macroSrc() === "mexc" || !bn || EXCHANGE === "bybit")) return { sym: "MX:" + mk, src: "MEXC" };
-  if (bn) { TRADFI_SYMS.add(bn[0] + "USDT"); return { sym: bn[0] + "USDT", src: bn[0] === "QQQ" ? "Binance TradFi (QQQ, tracks the Nasdaq 100)" : "Binance TradFi" }; }
-  if (mk) return { sym: "MX:" + mk, src: "MEXC" };
-  return null;
-}
-function nwCcys(name) {
-  if (/\//.test(name)) return name.replace(/ .*/, "").split("/");
-  return /DAX|Euro Stoxx|CAC/.test(name) ? ["EUR", "USD"] : /FTSE/.test(name) ? ["GBP", "USD"] : /Nikkei/.test(name) ? ["JPY", "USD"] : /Hang Seng/.test(name) ? ["CNY", "USD"] : /ASX/.test(name) ? ["AUD", "USD"] : ["USD"];
-}
-const hm = s => { const [h, m] = String(s || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
-function nwSession(it, now = Date.now()) {               // from/to are kept on the session clock (PHT in US summer) and land 1 hour later in PHT in US winter
-  const d = sessD(now), m = d.getUTCHours() * 60 + d.getUTCMinutes(), a = hm(it.from), b = hm(it.to), wrap = b <= a;
-  const on = wrap ? (m >= a || m < b) : (m >= a && m < b), closed = typeof fxSession === "function" && fxSession(now).cls === "closed";
-  const toStart = ((a - m) + 1440) % 1440, toEnd = ((b - m) + 1440) % 1440;
-  const fm = x => hLbl(x / 60 + sessShift(now));
-  return { on: on && !closed, closed, soon: !on && toStart <= 15, label: closed ? "Market closed (weekend)" : on ? `In session until ${fm(b)} · ${inTxt(toEnd * 60e3)} left` : `Session ${fm(a)}–${fm(b)} · opens in ${inTxt(toStart * 60e3)}` };
-}
-async function nwFetch(it) {
-  const key = nwKey(it), st = NW_ST[key] = NW_ST[key] || { sigs: [] }; if (st.busy) return;
-  const iv = CH_IV[it.tf] || 60e3, now = Date.now();
-  const needBars = !st.k || !st.k.t.length || now >= st.k.t.at(-1) + 2 * iv + 1500 || now - st.at > 5 * 60e3, needPx = !st.pxAt || now - st.pxAt > 8000;
-  if (!needBars && !needPx) return;
-  st.busy = true;
-  try {
-    if (ctPrefer() && CT.state !== "ready" && !CT.connecting) { try { await ctConnect(); } catch (e) {} }
-    const S = nwSym(it.name); if (!S) throw new Error("this market isn't available on your broker or exchange");
-    if (st.sym !== S.sym) { st.k = null; st.read = null; }
-    st.sym = S.sym; st.src = S.src; st.ct = !!S.ct;
-    if (needBars) {
-      const k = await klines(S.sym, it.tf, 400), cut = k.t.findIndex(t => t + iv > Date.now()), kk = cut < 0 ? k : { t: k.t.slice(0, cut), o: k.o.slice(0, cut), h: k.h.slice(0, cut), l: k.l.slice(0, cut), c: k.c.slice(0, cut), qv: k.qv.slice(0, cut) };
-      st.k = kk; st.read = nbbWatchRead(kk, iv); st.at = Date.now(); st.err = null;
-      if (!st.htfAt || Date.now() - st.htfAt > 5 * 60e3) { try { const h = await klines(S.sym, NW_HTF[it.tf] || "1h", 150), c = h.c, e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), i = c.length - 1;
-        st.htf = e20[i] > e50[i] && e50[i] > e100[i] ? "Long" : e20[i] < e50[i] && e50[i] < e100[i] ? "Short" : null; st.htfAt = Date.now(); } catch (e) {} }
-      nwSignals(it, st);
-    }
-    try { const fb = await formingBar(S.sym, it.tf); if (fb) { st.px = fb.c; st.fb = fb; st.pxAt = Date.now(); } } catch (e) {}
-  } catch (e) { st.err = e.message || String(e); st.at = Date.now(); }
-  st.busy = false; nwRender(it);
-}
-function nwSignals(it, st) {
-  const r = st.read; if (!r) return;
-  const sess = nwSession(it), now = Date.now(), dayAgo = now - 24 * 3600e3;
-  if (r.trig) {
-    const m = r.trig, id = `${nwKey(it)}|${m.dir}|${m.tClose}`;
-    if (!NW_LOG.some(x => x.id === id) && now - m.tClose < 3 * (CH_IV[it.tf] || 60e3)) {
-      const news = calNextFor(nwCcys(it.name), 30, 15), sig = { id, name: it.name, tf: it.tf, sym: st.sym, src: st.src, dir: m.dir, entry: m.entry, stop: m.stop, tClose: m.tClose, at: now, inSess: sess.on,
-        withTf: r.stack === m.dir, withHtf: st.htf === m.dir, sweep: !!m.sweep, room: !!m.room, baseNo: m.baseNo, baseLen: m.baseLen, news: news ? `${news.ccy} ${news.title} at ${phtHM(news.at)}` : null };
-      NW_LOG.unshift(sig); NW_LOG = NW_LOG.filter(x => x.at > now - 3 * 864e5).slice(0, 200); lsSet(NW_LOG_KEY, NW_LOG);
-      if (it.alerts && (sess.on || NW.outside)) {
-        const R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, f = v => fmtPrice(v);
-        notify(`🥪 NBB ${m.dir.toLowerCase()} on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `Entry ${f(m.entry)} · Stop ${f(m.stop)} · 3R ${f(t3)}. ${sig.withTf ? "With" : "Against"} the ${CH_TFL[it.tf]} trend${st.htf ? `, ${sig.withHtf ? "with" : "against"} the ${CH_TFL[NW_HTF[it.tf]]}` : ""}${sig.sweep ? ", base swept first" : ""}${sig.room ? "" : ", little room to 2R"}.${news ? ` ⚠ ${sig.news}.` : ""} ${st.src}.`,
-          { sym: st.sym, kind: "NBB Watch", icon: "🥪", tone: m.dir === "Long" ? "up" : "down", title: `NBB ${m.dir.toLowerCase()}: ${it.name} ${CH_TFL[it.tf] || it.tf}` });
-      }
-    }
-  }
-  if (NW.base && it.alerts && sess.on && r.base && r.base.len === 6) {
-    const id = `${nwKey(it)}|base|${r.t}`; if (!st.baseSeen || st.baseSeen !== id) { st.baseSeen = id;
-      notify(`🧱 Base forming on ${it.name} ${CH_TFL[it.tf] || it.tf}`, `6 candles, ${r.base.tall.toFixed(1)} ATR tall. Long above ${fmtPrice(r.base.hi)}, short below ${fmtPrice(r.base.lo)}.`, { sym: st.sym, kind: "NBB Watch", icon: "🧱", tone: "blue", title: `Base forming: ${it.name}` }); }
-  }
-}
-function nwSizeTxt(st, entry, stop) {
-  if (!st.ct || !CT.info || !st.spec) return "";
-  const z = ctLots(st.spec, CT.info, entry, stop, RISK.risk || 1, st.px || entry);
-  return z ? `<div class="nwsz">Size at ${RISK.risk || 1}%: <b>${z.below ? "below the minimum" : z.lots.toFixed(2) + " lots"}</b> <span class="mute">(risk ${z.risk.toFixed(2)} ${z.ccy} of ${CT.info.balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${CT.info.ccy})</span></div>` : "";
-}
-function nwCardHTML(it) {
-  const key = nwKey(it), st = NW_ST[key] || {}, r = st.read, sess = nwSession(it), tfl = CH_TFL[it.tf] || it.tf, f = v => fmtPrice(v), now = Date.now();
-  const news = calNextFor(nwCcys(it.name), 60, 15);
-  let state = `<div class="nwst none">Loading ${xEsc(it.name)} ${tfl}…</div>`;
-  if (st.err && !r) state = `<div class="nwst none dn">Couldn't load: ${xEsc(st.err)}</div>`;
-  else if (r) {
-    const ctx = `${tfl} ${r.stack ? `<b class="${r.stack === "Long" ? "up" : "dn"}">${r.stack === "Long" ? "bull" : "bear"} stack</b>` : "<b>no stack</b>"} · ${CH_TFL[NW_HTF[it.tf]] || ""} ${st.htf ? `<b class="${st.htf === "Long" ? "up" : "dn"}">${st.htf === "Long" ? "bull" : "bear"}</b>` : "<b>mixed</b>"} · RSI ${r.rsi != null ? r.rsi.toFixed(0) : "—"} · ATR ${f(r.atr)}`;
-    if (r.state === "trigger") { const m = r.trig, R = Math.abs(m.entry - m.stop), t3 = m.dir === "Long" ? m.entry + 3 * R : m.entry - 3 * R, ago = Math.max(0, Math.round((now - m.tClose) / 60e3));
-      const ck = (ok, txt) => `<span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"} ${txt}</span>`;
-      state = `<div class="nwst trig ${m.dir === "Long" ? "long" : "short"}">🚀 <b>NBB ${m.dir.toUpperCase()} triggered</b> <span class="mute">${ago ? ago + " min ago" : "just now"} (${phtHM(m.tClose)} close)</span>
-        <div class="nwlv"><span>Entry <b>${f(m.entry)}</b></span><span>Stop <b>${f(m.stop)}</b></span><span>3R <b>${f(t3)}</b></span><span class="mute">base ${m.baseLen} candles${m.baseNo === 2 ? " · base #2 (prime)" : ""}</span></div>
-        <div class="nwck">${ck(r.stack === m.dir, `with the ${tfl} trend`)}${ck(st.htf === m.dir, `with the ${CH_TFL[NW_HTF[it.tf]]}`)}${ck(!!m.sweep, "base swept first")}${ck(!!m.room, "room to 2R")}${ck(!news, "no high-impact news near")}</div>${nwSizeTxt(st, m.entry, m.stop)}</div>`; }
-    else if (r.state === "basing") state = `<div class="nwst base">🧱 <b>Basing</b> · ${r.base.len} candles, ${r.base.tall.toFixed(1)} ATR tall
-        <div class="nwlv"><span class="up">Long above <b>${f(r.base.hi)}</b></span><span class="dn">Short below <b>${f(r.base.lo)}</b></span><span class="mute">${r.stack ? `trend favors ${r.stack.toLowerCase()}s` : "no clear trend: either side"}</span></div>
-        <div class="meta">Trigger: a displacing close out of the base (body 1.5× the base's average) with the trend.</div></div>`;
-    else if (r.state === "missed") state = `<div class="nwst missed">⏭ <b>Missed breakout</b> · ${xEsc(r.missed.note || "")}</div>`;
-    else state = `<div class="nwst none">No base right now. ${r.stack ? `${tfl} is trending ${r.stack === "Long" ? "up" : "down"}: wait for price to pause and base.` : "Choppy: wait for a clean base."}</div>`;
-    state += `<div class="nwctx">${ctx}</div>`;
-  }
-  const log = NW_LOG.filter(x => x.name === it.name && x.tf === it.tf && phtDayKey(x.at) === phtDayKey(now)).slice(0, 6);
-  const logH = log.map(x => { const o = st.k ? nbbOutcome(x, st.k) : null, R = o ? (o.st === "3R" ? `<span class="up">3R hit</span>` : o.st === "stopped" ? `<span class="dn">stopped −1R</span>` : `<span class="${o.r >= 0 ? "up" : "dn"}">${o.r >= 0 ? "+" : ""}${o.r.toFixed(1)}R open</span>`) : "";
-    return `<div class="nwlr"><span>${phtHM(x.tClose)}</span><span class="tag ${x.dir === "Long" ? "long" : "short"}">${x.dir}</span><span>E ${f(x.entry)} · S ${f(x.stop)}</span><span>${R}</span>${x.inSess ? "" : `<span class="mute">outside session</span>`}</div>`; }).join("");
-  const cd = st.k && st.k.t.length ? fmtCountdown(st.k.t.at(-1) + 2 * (CH_IV[it.tf] || 60e3) - now) : "";
-  return `<div class="nwcard ${sess.on ? "on" : ""}" data-nw="${xEsc(key)}">
-    <div class="nwh"><b>${xEsc(it.name)}</b><span class="tag">${tfl}</span>${st.src ? `<span class="chsrcb" title="Data feed">${xEsc(st.src)}</span>` : ""}<span class="nwsess ${sess.on ? "on" : sess.soon ? "soon" : ""}">● ${sess.label}</span>
-      <span class="nwbtns"><button class="btn sm" data-nwchart="${xEsc(key)}">Chart</button></span></div>
-    <div class="nwpx"><b>${st.px != null ? f(st.px) : ""}</b>${cd ? ` <span class="mute">⏱ ${cd} to the ${tfl} close</span>` : ""}${!it.alerts ? ' <span class="tag">alerts off</span>' : ""}</div>
-    ${news ? `<div class="nwnews">⚠ <b>${xEsc(news.ccy)} ${xEsc(news.title)}</b> ${news.at > now ? `in ${inTxt(news.at - now)}` : `${inTxt(now - news.at)} ago`} (${phtHM(news.at)}): breakouts around the release are unreliable.</div>` : ""}
-    ${state}${log.length ? `<div class="nwlog"><div class="nwlh">Today</div>${logH}</div>` : ""}</div>`;
-}
-function nwRender(it) { if (page !== "nbbwatch") return; const el = document.querySelector(`[data-nw="${CSS.escape(nwKey(it))}"]`); if (el) { el.outerHTML = nwCardHTML(it); nwBind(); } else nwRenderAll(); }
-function nwRenderAll() {
-  if (page !== "nbbwatch" || !$("nwGrid")) return;
-  $("nwGrid").innerHTML = NW.items.length ? NW.items.map(nwCardHTML).join("") : `<div class="empty">Add a market to watch with Edit watch list.</div>`;
-  $("nwMeta").textContent = `${NW.items.length} market${NW.items.length === 1 ? "" : "s"} · ${ctPrefer() ? (CT.state === "ready" ? `${CT.broker} prices` : "connecting to cTrader…") : "exchange prices (connect cTrader for your broker's)"}`;
-  $("nwBase").checked = !!NW.base; $("nwOutside").checked = !!NW.outside;
-  nwBind();
-}
-function nwBind() {
-  document.querySelectorAll("[data-nwchart]").forEach(b => b.onclick = () => { const st = NW_ST[b.dataset.nwchart], it = NW.items.find(x => nwKey(x) === b.dataset.nwchart); if (!st || !st.sym) return;
-    if (typeof CH !== "undefined" && it) { CH.tfs[0] = it.tf; CH.max = 0; try { chSave(); } catch (e) {} if (typeof CHP !== "undefined" && CHP[0]) { CHP[0].tf = it.tf; const s = CHP[0].pane && CHP[0].pane.querySelector(".chtf"); if (s) s.value = it.tf; } }
-    openInCharts(st.sym); });
-}
-function nwEditor() {
-  const names = nwNames(), tfs = ["1m", "3m", "5m", "15m", "30m", "1h"];
-  const row = (it, i) => `<div class="nwer" data-i="${i}"><select data-k="name">${names.map(n => `<option ${n === it.name ? "selected" : ""}>${xEsc(n)}</option>`).join("")}</select>
-    <select data-k="tf">${tfs.map(t => `<option value="${t}" ${t === it.tf ? "selected" : ""}>${CH_TFL[t]}</option>`).join("")}</select>
-    <label>from <input type="time" data-k="from" value="${indShiftT(it.from, sessShift())}"></label><label>to <input type="time" data-k="to" value="${indShiftT(it.to, sessShift())}"></label>
-    <label class="tog"><input type="checkbox" data-k="alerts" ${it.alerts ? "checked" : ""}> Alerts</label><button class="btn sm" data-rm="${i}" aria-label="Remove">✕</button></div>`;
-  const items = NW.items.map(x => ({ ...x }));
-  const box = $("nwEdit"); box.hidden = false;
-  const draw = () => { box.innerHTML = `<div class="meta">Session times are your time (PHT) today; they move 1 hour by themselves when New York changes its clocks (March and November). Alerts fire inside the session; turn on "Outside sessions too" to hear them all the time.</div>${items.map(row).join("")}
-    <div class="nweacts"><button class="btn sm" id="nwAdd">+ Add a market</button><span style="flex:1"></span><button class="btn sm" id="nwDef">Defaults</button><button class="btn sm" id="nwCancel">Cancel</button><button class="btn primary sm" id="nwSaveB">Save</button></div>`;
-    box.querySelectorAll(".nwer").forEach(r => r.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { const it = items[+r.dataset.i], k = el.dataset.k; it[k] = el.type === "checkbox" ? el.checked : el.type === "time" ? indShiftT(el.value, -sessShift()) : el.value; }));
-    box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { items.splice(+b.dataset.rm, 1); draw(); });
-    $("nwAdd").onclick = () => { items.push({ name: "Gold", tf: "5m", from: "12:00", to: "18:00", alerts: true }); draw(); };
-    $("nwDef").onclick = () => { items.splice(0, items.length, ...NW_DEF.map(x => ({ ...x }))); draw(); };
-    $("nwCancel").onclick = () => { box.hidden = true; };
-    $("nwSaveB").onclick = () => { NW.items = items.filter((x, i) => items.findIndex(y => nwKey(y) === nwKey(x)) === i); nwSave(); box.hidden = true; nwRenderAll(); nwTick(true); }; };
-  draw();
-}
-$("nwEditB").onclick = () => { const b = $("nwEdit"); if (!b.hidden) { b.hidden = true; return; } nwEditor(); };
-$("nwBase").onchange = () => { NW.base = $("nwBase").checked; nwSave(); };
-$("nwOutside").onchange = () => { NW.outside = $("nwOutside").checked; nwSave(); };
-$("nwPhone").onclick = () => openTGSettings();
-let nwLastAll = 0;
-async function nwTick(force) {
-  const showing = page === "nbbwatch";
-  for (const it of NW.items) { const s = nwSession(it); if (force || showing || s.on || s.soon) nwFetch(it); }       // off-page, only markets in (or about to start) their session are read
-  if (showing && Date.now() - nwLastAll > 1000) { nwLastAll = Date.now(); NW.items.forEach(it => { const st = NW_ST[nwKey(it)]; if (st && !st.busy) { const el = document.querySelector(`[data-nw="${CSS.escape(nwKey(it))}"] .nwpx .mute`); if (el && st.k && st.k.t.length) el.textContent = `⏱ ${fmtCountdown(st.k.t.at(-1) + 2 * (CH_IV[it.tf] || 60e3) - Date.now())} to the ${CH_TFL[it.tf]} close`; } }); }
-  if (CT.state === "ready" && NW.items.some(it => (NW_ST[nwKey(it)] || {}).ct)) { try { await ctAccountInfo(); for (const it of NW.items) { const st = NW_ST[nwKey(it)]; if (st && st.ct && !st.spec) st.spec = await ctSpec(st.sym); } } catch (e) {} }
-}
-setInterval(() => nwTick(false), 5000);
-function nwShown() { nwRenderAll(); nwTick(true); }
-
 /* ===================== Phone alerts: Telegram (your own bot; token kept in this browser only) ===================== */
 const TG_KEY = "finder-telegram";
-const TG_KINDS = [["NBB Watch", "NBB Watch triggers and bases"], ["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["Bots", "Bot simulator"], ["System", "System messages"]];
-const tgCfg = () => lsGet(TG_KEY, null), TG_OFF = ["Breakouts", "Bots", "System"];      // noisy kinds start switched off
+const TG_KINDS = [["News", "News reminders"], ["Setups", "Setup triggers (coins, forex, gold)"], ["Breakouts", "Momentum breakouts"], ["Price", "Price alerts"], ["System", "System messages"]];
+const tgCfg = () => lsGet(TG_KEY, null), TG_OFF = ["Breakouts", "System"];      // noisy kinds start switched off
 const tgKind = (c, k) => { const v = ((c || {}).kinds || {})[k]; return v == null ? !TG_OFF.includes(k) : !!v; };
 const tgOn = () => { const c = tgCfg(); return !!(c && c.token && c.chat); };
 const TGQ = []; let tgBusy = false;
@@ -9834,7 +9391,7 @@ const _ncAdd = ncAdd;
 ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
 function openTGSettings() {
   killChart();
-  const c = tgCfg() || {}, kinds = c.kinds || {}, local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const c = tgCfg() || {}, kinds = c.kinds || {};
   $("dlgBody").dataset.sym = "";
   $("dlgBody").innerHTML = `<div class="dhead"><h3>Phone alerts (Telegram)</h3><div class="dacts"><button class="btn" id="dlgClose">Close</button></div></div>
     <div class="ctform tgform">
@@ -9843,11 +9400,10 @@ function openTGSettings() {
       <label>Bot token<input id="tgToken" type="password" autocomplete="off" value="${xEsc(c.token || "")}" placeholder="123456789:AA…"></label>
       <label>Chat ID<span class="tgrow"><input id="tgChat" autocomplete="off" value="${xEsc(c.chat || "")}" placeholder="e.g. 123456789"><button class="btn sm" id="tgFind">Find my chat ID</button></span></label>
       <div class="tgkinds"><div class="meta">Send these to your phone:</div>${TG_KINDS.map(([k, l]) => `<label class="chk"><input type="checkbox" data-tgk="${k}" ${tgKind(c, k) ? "checked" : ""}> ${l}</label>`).join("")}</div>
-      ${local ? `<label class="chk"><input type="checkbox" id="tgAwake" ${c.awake === false ? "" : "checked"}> Keep this Mac awake during my NBB Watch sessions (so alerts keep coming; the Mac still sleeps if you close the lid on battery)</label>` : ""}
       <p class="meta">Saved in this browser only and sent only to Telegram. Each device with a token sends its own alerts, so set this up on the Mac app only to avoid doubles. For alerts while the Mac is off, see "Cloud watcher" in the README.</p>
       <div class="meta" id="tgMsg" aria-live="polite"></div>
       <div class="ctacts"><button class="btn primary" id="tgSave">Save</button><button class="btn" id="tgTest">Send test</button>${c.token ? '<button class="btn" id="tgForget">Turn off and forget</button>' : ""}</div></div>`;
-  const read = () => ({ ...(tgCfg() || {}), token: $("tgToken").value.trim(), chat: $("tgChat").value.trim(), kinds: Object.fromEntries([...document.querySelectorAll("[data-tgk]")].map(x => [x.dataset.tgk, x.checked])), awake: $("tgAwake") ? $("tgAwake").checked : true });
+  const read = () => ({ ...(tgCfg() || {}), token: $("tgToken").value.trim(), chat: $("tgChat").value.trim(), kinds: Object.fromEntries([...document.querySelectorAll("[data-tgk]")].map(x => [x.dataset.tgk, x.checked])) });
   $("dlgClose").onclick = () => $("dlg").close();
   $("tgFind").onclick = async () => { const t = $("tgToken").value.trim(); if (!t) { $("tgMsg").textContent = "Paste the bot token first."; return; }
     try { const j = await (await fetch(`https://api.telegram.org/bot${t}/getUpdates`)).json(); if (!j.ok) throw new Error(j.description || "Telegram refused the token");
@@ -9860,14 +9416,8 @@ function openTGSettings() {
   if ($("tgForget")) $("tgForget").onclick = () => { try { localStorage.removeItem(TG_KEY); } catch (e) {} $("dlg").close(); };
   if (!$("dlg").open) $("dlg").showModal();
 }
-// keep the Mac awake while an NBB Watch session is on (the Mac app's server runs caffeinate; nothing happens on the web version)
-setInterval(() => {
-  const c = tgCfg() || {}; if (c.awake === false || !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
-  if (NW.items.some(it => { const s = nwSession(it); return s.on || s.soon; })) fetch("/api/awake?min=20").catch(() => {});
-}, 4 * 60e3);
-setTimeout(() => { const c = tgCfg() || {}; if (c.awake !== false && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && NW.items.some(it => nwSession(it).on)) fetch("/api/awake?min=20").catch(() => {}); }, 5000);
 if ($("ncPhone")) $("ncPhone").onclick = () => { ncShow(false); openTGSettings(); };
-if (page === "nbbwatch") nwShown(); if (page === "calendar") calShown();
+if (page === "calendar") calShown();
 /* ===================== Fundamentals: a terminal-style page (markets, rates and central banks, yield curve, positioning, headlines, calendar) ===================== */
 const FUND_KEY = "finder-fund", FRED_LS = "finder-fred";
 let FUND = { ust: null, real: null, cot: null, fred: {}, news: null, ...lsGet(FUND_KEY, {}) }; FUND.err = {}; FUND.busy = false;
@@ -10102,7 +9652,7 @@ $("fundRefresh").onclick = () => fundLoad(true);
 setInterval(() => { if (page === "fund" && document.visibilityState === "visible") { fundRender(); fundLoad(false); } }, 60e3);
 /* ===================== Market brief: click a market on Fundamentals → a floating box with what you need for your bias ===================== */
 // k: the market; n: names to find its row; kind: which rules apply; ccy (or b/q for a pair): whose banks and news matter; tag: headline tags;
-// cot: CFTC market (cw: how to say it); sess: its usual window on the session clock (your NBB Watch window wins); earn: big tech earnings matter
+// cot: CFTC market (cw: how to say it); sess: its usual window on the session clock; earn: big tech earnings matter
 const FB_MK = [
   { k: "Nasdaq 100", n: ["Nasdaq 100", "NAS100"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], cot: "Nasdaq 100", cw: "Nasdaq futures", sess: ["NY AM", 21.5, 24], earn: true },
   { k: "S&P 500", n: ["S&P 500", "US500"], kind: "idx", ccy: ["USD"], tag: ["NDX", "FED"], cot: "S&P 500", cw: "S&P futures", sess: ["NY AM", 21.5, 24], earn: true },
@@ -10300,7 +9850,7 @@ function fbSample() {
     if (!a.length || a.at(-1)[1] !== q.price) a.push([now, q.price]); while (a.length && a[0][0] < now - 6 * 60e3) a.shift();
     const sh = fbShockOf(m, a, now), prev = FB.shock[m.k]; if (!sh || (prev && now - prev.at < 15 * 60e3 && Math.sign(prev.d) === Math.sign(sh.d))) return;
     FB.shock[m.k] = { ...sh, at: now };
-    if (((typeof NW !== "undefined" && NW.items) || []).some(x => x.name === m.k) || ["Gold", "Nasdaq 100"].includes(m.k))
+    if (["Gold", "Nasdaq 100"].includes(m.k))
       ncAdd({ kind: "News", icon: "⚡", tone: "warn", sym: q.sym || null, title: `${m.k} ${sh.d > 0 ? "jumped" : "dropped"} ${fPct(sh.pct)} in ${sh.mins} min`, detail: "A move this fast is usually news. Click it on Fundamentals for the headlines and what's due." }); });
   try { rxTick(now); } catch (e) {}
   if (FB.k && $("fbDlg") && $("fbDlg").open) fbRender();
@@ -10353,7 +9903,7 @@ function fbRender() {
   const chartH = !r || !r.s1h ? `<div class="mu">Shows once this market is in the last scan.</div>` : `<div class="fbst"><span>1H ${stTag(r.s1h)}</span><span>4H ${stTag(r.s4h)}</span><span>D ${stTag(r.s1d)}</span>${r.rsi ? `<span class="mu">RSI 1H ${r.rsi.h1 != null ? Math.round(r.rsi.h1) : "—"} · 4H ${r.rsi.h4 != null ? Math.round(r.rsi.h4) : "—"}</span>` : ""}</div>
       <div class="mu">${ao.length ? ao.map(a => `${a.tf} ${a.stage.toLowerCase()} ${a.dir === "Long" ? "long" : "short"}`).join(" · ") + " (beyond the 20/50/100, stacked)" : "Not beyond the 20/50/100 (no AOTS)."}</div>
       <div>${lean && dDir ? (lean === dDir ? `<b class="up">Fundamentals and the daily trend agree</b>: favour ${lean.toLowerCase()}s.` : `<b class="dn">Fundamentals and the daily trend disagree</b>: size down or wait.`) : dDir ? `Fundamentals are mixed: follow the daily trend (${dDir.toLowerCase()}).` : "The daily trend is tangled: let the NBB setup decide."}</div>`;
-  const win = (() => { const it = ((typeof NW !== "undefined" && NW.items) || []).find(x => x.name === m.k); if (it) return `NBB Watch ${CH_TFL[it.tf] || it.tf} · ${xEsc(nwSession(it).label)}`;
+  const win = (() => {
     const [nm, a, b] = m.sess, h = sessH(), on = h >= a && h < b; return `${nm} ${sessLbl(a)} – ${sessLbl(b)} PHT · ${on ? `<b class="fam">live now</b>, ${inTxt((b - h) * 3600e3)} left` : `opens in <b class="fam">${inTxt((((a - h) + 24) % 24) * 3600e3)}</b>`}`; })();
   const body = $("fbBody"), keep = body.scrollTop, idx = Math.max(-3, Math.min(3, sc)) + 3;
   set(body, `${fbAlerts(m).map(([t, h]) => `<div class="fbal ${t}">${h}</div>`).join("")}
@@ -10404,8 +9954,8 @@ function fbOpen(k) {
 const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k); };
 /* ===================== Headline alerts: market-moving headlines on your markets, on any page, checked every 2 minutes ===================== */
 const NA_KEY = "finder-news-seen"; let NA_SEEN = lsGet(NA_KEY, {});
-const naMine = () => { const L = ((typeof NW !== "undefined" && NW.items) || []).map(it => fbMk(it.name)).filter(Boolean); return L.length ? L : [fbMk("Gold"), fbMk("Nasdaq 100")]; };
-function naCheck() {                               // once per headline: newer than 20 minutes, tagged for your NBB Watch markets (or MACRO: data, tariffs, wars), with market-moving words
+const naMine = () => [fbMk("Gold"), fbMk("Nasdaq 100")].filter(Boolean);
+function naCheck() {                               // once per headline: newer than 20 minutes, tagged for your markets, Gold and the Nasdaq 100 (or MACRO: data, tariffs, wars), with market-moving words
   const N = FUND.news; if (!N || !N.items) return; const now = Date.now(), mine = naMine(); let ch = false;
   for (const k in NA_SEEN) if (now - NA_SEEN[k] > 2 * 864e5) { delete NA_SEEN[k]; ch = true; }
   N.items.forEach(x => { const k = x.title.toLowerCase().slice(0, 80); if (NA_SEEN[k]) return; NA_SEEN[k] = now; ch = true;
@@ -10825,7 +10375,6 @@ function trPosSize(d, risk, man) {              // the chart's position tool ask
 }
 /* ---- account picker on the chart toolbar: which account sizes and places orders for the chart's market ---- */
 function trAcctNow(sym) {                       // → { txt, cls } for the chip
-  if (twBots()) return { txt: `Bot Simulator · paper · $${fmtNum(BOT_STRATS().reduce((a, k) => a + BOT.bots[k].bal, 0))}`, cls: "demo" };
   if (trVenue(sym) === "mx" && !String(sym || "").startsWith("CT:")) {
     if (!mxtOn()) return { txt: "Link MEXC", cls: "" };
     const a = MXT.asset; return { txt: `MEXC futures${a ? " · " + fmtNum(+(a.equity || a.availableBalance || 0)) + " USDT" : ""}`, cls: "demo" };
@@ -10885,18 +10434,6 @@ function trAcctGroups(accts, cur, tc) {          // the account in use on top; t
     + `<div class="chacctseg" role="group" aria-label="Other accounts">${seg("on", "Active", on)}${seg("off", "Inactive", off)}</div>`
     + (list ? `<div class="chacctlist">${list.map(x => trAcctRow(x, cur, tc)).join("")}${TRA.open === "off" ? `<p class="meta">Live accounts stay off until you allow them in Trade settings.</p>` : ""}</div>` : "");
 }
-function trAcctBots() {                         // the Bot Simulator's paper trades: which setups, and whether they show on the chart
-  if (typeof BOT === "undefined" || !BOT || typeof BOTF === "undefined") return "";
-  const c = (v, l, on) => `<button class="bfc ${on ? "on" : ""}" data-abs="${v}" aria-pressed="${!!on}">${l}</button>`, nO = botOpenStudy().length, nC = botClosedF().length;
-  const on = twBots(), bal = BOT_STRATS().reduce((a, k) => a + BOT.bots[k].bal, 0);
-  return `<div class="chsgh">Bot Simulator (paper money)</div>
-    <button class="chacctrow ${on ? "on" : ""}" data-abv="1" aria-pressed="${on}"><i class="chacctdot demo"></i><span class="chacctn"><b>Bot Simulator</b><span class="mute">${BOT_STRATS().filter(k => BOT.bots[k].on).length} bots</span></span><span class="chacctk demo">Paper</span><small>$${fmtNum(bal)}</small></button>
-    ${on ? `<p class="meta">The trade watch shows the bots' trades. Pick a cTrader account above (or click this again) to go back. Orders from the chart still go to your cTrader or MEXC account.</p>` : ""}
-    <p class="meta">${BOT.running ? "Running" : "Paused"} · ${nO} open, ${nC} closed${BOTF.days ? ` in ${BOTF.days} days` : ""} match your filters${String(CH.sym || "").startsWith("CT:") ? "" : ` · <b>${[...botOpenStudy(), ...botClosedF()].filter(c => c.sym === CH.sym).length}</b> on ${trEsc(coin(CH.sym))}`}</p>
-    <label class="chk"><input type="checkbox" id="aaBotShow" ${BOTF.chart ? "checked" : ""}> Show bot trades on the chart</label>
-    <div class="acbots" role="group" aria-label="Bot setups to show">${c("", "All", !BOTF.set.length)}${BOT_STRATS().map(k => c(k, `${MODELS[k].icon} ${k}`, BOTF.set.includes(k))).join("")}</div>
-    <p class="meta">Setups filter the Bot Simulator page too. Click a trade there to study it on the chart.</p><button class="btn sm" data-aa="bots">Open Bot Simulator</button>`;
-}
 function trAcctPop() {
   const p = $("chAcctPop"); if (!p) return;
   const tc = trCfg(), accts = CTT.accounts.length ? CTT.accounts : (CT.accounts || []), cur = CTT.state === "ready" ? String(CTT.acct.ctidTraderAccountId) : String(tc.acct || "");
@@ -10910,17 +10447,13 @@ function trAcctPop() {
     <div class="chsgh">MEXC futures (crypto)</div>
     <p class="meta">${mxtOn() ? `Linked${a ? ` · ${fmtNum(+(a.equity || a.availableBalance || 0))} USDT` : ""}` : "Add an API key in Trade settings to size crypto from your balance."}</p>
     <p class="meta">The chart's market picks the venue: cTrader symbols use the account above, crypto uses MEXC.</p>
-    <button class="btn sm" data-aa="settings">Trade settings…</button>${trAcctBots()}<p class="meta">App version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"}</p>`;
+    <button class="btn sm" data-aa="settings">Trade settings…</button><p class="meta">App version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"}</p>`;
   const done = () => { TPS.clear(); chDirty = true; trAcctChip(); if (!p.hidden) trAcctPop(); };
   p.querySelectorAll("[data-ag]").forEach(b => b.onclick = e => { e.stopPropagation(); TRA.open = TRA.open === b.dataset.ag ? null : b.dataset.ag; trAcctPop(); });
-  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (twBots()) { twSave({ bots: false }); chDirty = true; twRender(); } if (b.dataset.acct === cur && CTT.state === "ready") { done(); return; } trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; TW.hist = []; TW.histAt = 0; done(); cttConnect().then(done, done); });
+  p.querySelectorAll("[data-acct]").forEach(b => b.onclick = () => { if (b.dataset.acct === cur && CTT.state === "ready") { done(); return; } trSave({ ...trCfg(), acct: b.dataset.acct }); cttClose(); CTT.state = "off"; CTT.info = null; TW.hist = []; TW.histAt = 0; done(); cttConnect().then(done, done); });
   p.querySelectorAll("[data-aa]").forEach(b => b.onclick = () => { const k = b.dataset.aa; p.hidden = true;
     if (k === "refresh") { p.hidden = false; cttRefresh().then(() => trAcctPop()); return; }
-    if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else if (k === "bots") goPage("bots"); else openCTSettings(); });
-  p.querySelectorAll("[data-abv]").forEach(b => b.onclick = e => { e.stopPropagation(); twSave({ bots: !twBots(), ...(twBots() ? {} : { open: true }) }); chDirty = true; twRender(); trAcctChip(); trAcctPop(); });
-  p.querySelectorAll("[data-abs]").forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.abs;
-    BOTF.set = !v ? [] : BOTF.set.includes(v) ? BOTF.set.filter(x => x !== v) : [...BOTF.set, v]; botfSave(); chDirty = true; twRender(); trAcctPop(); });
-  if ($("aaBotShow")) $("aaBotShow").onchange = () => { BOTF.chart = $("aaBotShow").checked; botfSave(); chDirty = true; trAcctPop(); };
+    if (k === "scope") ctSignIn("trading"); else if (k === "settings") trSettings(); else openCTSettings(); });
   if (!readOnly && ctConfigured() && CTT.state === "off") cttConnect().then(done, done);
   if (!readOnly && accts.length && !TRA.balBusy && Date.now() - TRA.balAt > 120e3) trAcctBalances(accts).then(() => { if (!p.hidden) trAcctPop(); });
   if (mxtOn() && !a) mxtRefresh().then(() => { if (!p.hidden) trAcctPop(); }, () => {});
@@ -11254,24 +10787,11 @@ const TW_COLS = {                                // [key, label, value (for sort
     ["net", "Net", r => r.net, r => twMoney(r.net), 1], ["pips", "Pips", r => r.pips, r => r.pips == null ? "" : twMoney(r.pips), 1], ["bal", "Balance", r => r.bal, r => r.bal == null ? "" : fmtNum(r.bal), 0], ["id", "Deal ID", r => r.id, null, 0]],
 };
 const twCols = tab => { const c = TWS().cols[tab]; return TW_COLS[tab].filter(([k, , , , on]) => c ? c.includes(k) : on); };
-const twVenue = () => twBots() ? "Bots" : trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:") ? "MEXC" : "cTrader";   // the chart's account (as on the account button): only its trades show
-function twBots() { try { return !!TWS().bots && typeof BOT !== "undefined" && !!BOT; } catch (e) { return false; } }   // the Bot Simulator picked as the account (account menu)
+const twVenue = () => trVenue(CH.sym) === "mx" && !String(CH.sym || "").startsWith("CT:") ? "MEXC" : "cTrader";   // the chart's account (as on the account button): only its trades show
 function twSymCell(r) { return trEsc(r.sym) + (r.model ? ` <span class="mute">${typeof MODELS !== "undefined" && MODELS[r.model] ? MODELS[r.model].icon + " " : ""}${trEsc(r.model)}</span>` : ""); }
-const twBotOk = c => !BOTF.set.length || BOTF.set.includes(c.model);
-function twBotRows(tab) {                        // the Bot Simulator as an account: its paper positions and closed trades (your setup chips; history follows the range picker)
-  const F = v => v == null ? "" : fmtPrice(v);
-  if (tab === "pos") return BOT_STRATS().flatMap(k => BOT.bots[k].positions).filter(twBotOk).map(p => { const px = botPrice(p.sym), long = p.dir === "Long";
-    return { kind: "bot", ref: p, venue: "Bots", model: p.model, sym: p.sym, dir: p.dir, qtyN: p.qty, qty: `${+(+p.qty).toPrecision(4)} ${coin(p.sym)}`, entry: p.entry, entryS: F(p.entry), cur: px, curS: F(px),
-      sl: p.stop, slS: F(p.stop), tp: p.target, tpS: F(p.target), opened: p.opened, pips: null, swap: null, comm: null, pnl: px == null ? null : (long ? px - p.entry : p.entry - px) * p.qty, id: p.id }; });
-  if (tab !== "hist") return [];
-  const since = Date.now() - TWS().range * 864e5;
-  return BOT_STRATS().flatMap(k => BOT.bots[k].closed).filter(c => twBotOk(c) && c.closed >= since).map(c => ({ kind: "botc", ref: c, venue: "Bots", model: c.model, sym: c.sym, dir: c.dir, opened: c.opened, closed: c.closed,
-    qtyN: null, qty: "", entry: c.entry, entryS: F(c.entry), close: c.exit, closeS: F(c.exit), gross: null, swap: null, comm: null, net: c.pnl, pips: null, bal: null, id: botKey(c) }));
-}
 function twRows(tab) {
   const rows = [], live = CTT.state === "ready";
-  if (twBots()) rows.push(...twBotRows(tab));
-  else if (tab === "pos") {
+  if (tab === "pos") {
     if (live) CTT.positions.forEach(p => { const td = p.tradeData || {}, x = CTT.byId[td.symbolId] || {}, sp = twSpec(td.symbolId), dg = sp && sp.digits != null ? +sp.digits : 5, buy = +td.tradeSide === 1, q = CTT.spots[td.symbolId] || {}, cur = buy ? q.bid : q.ask, md = p.moneyDigits != null ? +p.moneyDigits : (CTT.info || {}).md || 2;
       rows.push({ kind: "pos", ref: p, venue: "cTrader", sym: x.symbolName || "#" + td.symbolId, dir: buy ? "Buy" : "Sell", qtyN: sp ? +td.volume / sp.lotSize : +td.volume / 100, qty: sp ? (+td.volume / sp.lotSize).toFixed(2) + " lots" : +td.volume / 100 + " units",
         entry: +p.price, entryS: p.price ? (+p.price).toFixed(dg) : "", cur, curS: cur ? (+cur).toFixed(dg) : "", sl: +p.stopLoss || null, slS: p.stopLoss ? (+p.stopLoss).toFixed(dg) : "", tp: +p.takeProfit || null, tpS: p.takeProfit ? (+p.takeProfit).toFixed(dg) : "",
@@ -11340,13 +10860,12 @@ function twColPop() {
 }
 function twRender() {
   const el = $("trWatch"); if (!el) return; const st = TWS(), tab = st.tab, ccy = CTT.info ? CTT.info.ccy || "" : "";
-  const bots = twBots(), ctV = twVenue() === "cTrader", nPos = bots ? twBotRows("pos").length :  ctV ? (CTT.state === "ready" ? CTT.positions.length : 0) : (mxtOn() ? MXT.positions.length : 0), nOrd = bots ? 0 : ctV ? (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) : (mxtOn() ? MXT.orders.length : 0);
+  const ctV = twVenue() === "cTrader", nPos = ctV ? (CTT.state === "ready" ? CTT.positions.length : 0) : (mxtOn() ? MXT.positions.length : 0), nOrd = ctV ? (CTT.state === "ready" ? CTT.orders.filter(o => +o.orderType !== 4 && !o.closingOrder).length : 0) : (mxtOn() ? MXT.orders.length : 0);
   el.classList.toggle("shut", !st.open); $("twToggle").innerHTML = chIco(st.open ? "M5 8l5 5 5-5" : "M5 12l5-5 5 5", 15); $("twToggle").title = st.open ? "Hide" : "Show";
   el.querySelector(".trwtabs").innerHTML = [["pos", "Positions", nPos], ["ord", "Orders", nOrd], ["hist", "History"]].map(([k, l, n]) => `<button role="tab" data-twt="${k}" class="${k === tab ? "on" : ""}" aria-selected="${k === tab}">${l}${n ? ` <i>${n}</i>` : ""}</button>`).join("");
   el.querySelectorAll("[data-twt]").forEach(b => b.onclick = () => { twSave({ tab: b.dataset.twt, open: true }); $("twColPop").hidden = true; if (b.dataset.twt === "hist") twLoadHist(); twRender(); window.dispatchEvent(new Event("resize")); });
   const pnl = CTT.positions.reduce((a, p) => a + (CTT.pnl[p.positionId] || 0), 0), bal = CTT.info ? CTT.info.balance : null, mx = MXT.asset;
-  const bk = bots ? BOT_STRATS().filter(k => twBotOk({ model: k })) : [], bBal = bk.reduce((a, k) => a + BOT.bots[k].bal, 0), bPnl = bots ? twBotRows("pos").reduce((a, r) => a + (r.pnl || 0), 0) : 0;
-  $("twSum").innerHTML = bots ? `Bot Simulator · paper money${BOTF.set.length ? " · " + chEsc(BOTF.set.join(", ")) : ""} · Balance <b>$${fmtNum(bBal)}</b> · Open P&amp;L ${twMoney(bPnl)} · ${BOT.running ? "running" : "paused"}` : [ctV && CTT.state === "ready" && bal != null ? `${chEsc(trTitle(CTT.acct.brokerTitleShort || "cTrader"))} ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} ${chEsc(String(CTT.acct.traderLogin || ""))} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", !ctV && mxtOn() && mx ? `MEXC futures · equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>${MXT.positions.length ? ` · P&amp;L ${twMoney(MXT.positions.reduce((a, p) => a + (mxtUpnl(p) || 0), 0))}` : ""}` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctV ? (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader to see this account's trades here") : "Add a MEXC key in Trade settings to see your MEXC trades here");
+  $("twSum").innerHTML = [ctV && CTT.state === "ready" && bal != null ? `${chEsc(trTitle(CTT.acct.brokerTitleShort || "cTrader"))} ${CTT.live ? "<b class='dn'>LIVE</b>" : "demo"} ${chEsc(String(CTT.acct.traderLogin || ""))} · Balance <b>${fmtNum(bal)} ${ccy}</b> · Equity <b>${fmtNum(bal + pnl)}</b> · P&amp;L ${twMoney(pnl)}` : "", !ctV && mxtOn() && mx ? `MEXC futures · equity <b>${fmtNum(+(mx.equity || 0))} USDT</b>${MXT.positions.length ? ` · P&amp;L ${twMoney(MXT.positions.reduce((a, p) => a + (mxtUpnl(p) || 0), 0))}` : ""}` : ""].filter(Boolean).join(" &nbsp;|&nbsp; ") || (ctV ? (ctConfigured() ? "Link a trading account from the account menu (top right of the chart)" : "Connect cTrader to see this account's trades here") : "Add a MEXC key in Trade settings to see your MEXC trades here");
   $("twRange").hidden = $("twReload").hidden = tab !== "hist"; $("twRange").value = st.range;
   const B = $("twBody"); B.style.height = st.h + "px"; if (!st.open) return;
   if (TW.arm && TW.arm.until < Date.now()) TW.arm = null;
@@ -11354,7 +10873,7 @@ function twRender() {
   const head = `<tr>${cols.map(([k, l]) => `<th data-tws="${k}" class="${so && so[0] === k ? "srt" : ""}">${trEsc(l)}${so && so[0] === k ? (so[1] > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}${tab !== "hist" ? "<th></th>" : ""}</tr>`;
   const act = r => { const k = r.kind + ":" + r.id, armed = TW.arm && TW.arm.key === k; return `<td class="trwact"><button class="btn sm ${armed ? "trwsure" : ""}" data-twx="${trEsc(k)}">${armed ? "Sure?" : r.kind === "pos" || r.kind === "mxp" ? "Close" : "Cancel"}</button></td>`; };
   const body = rows.map((r, i) => `<tr data-twi="${i}" title="${tab === "ord" ? "Show this market on the chart" : "Show this trade on the chart"}">${cols.map(c => `<td>${c[3] ? c[3](r) : trEsc(c[2](r) ?? "")}</td>`).join("")}${tab !== "hist" ? (r.kind === "bot" ? "<td></td>" : act(r)) : ""}</tr>`).join("");
-  const empty = bots ? (tab === "hist" ? "No bot trades in this range." : tab === "pos" ? "No open bot trades." : "Bots don't use pending orders.") : tab === "hist" ? (TW.histBusy ? "Loading history…" : TW.histErr ? "Couldn't load history: " + trEsc(TW.histErr) : "No closed trades in this range.") : tab === "pos" ? "No open positions." : "No pending orders.";
+  const empty = tab === "hist" ? (TW.histBusy ? "Loading history…" : TW.histErr ? "Couldn't load history: " + trEsc(TW.histErr) : "No closed trades in this range.") : tab === "pos" ? "No open positions." : "No pending orders.";
   B.innerHTML = `<table class="trwt"><thead>${head}</thead><tbody>${body || `<tr><td colspan="${cols.length + 1}" class="mute">${empty}</td></tr>`}</tbody></table>`;
   B.querySelectorAll("[data-tws]").forEach(th => th.onclick = () => { const k = th.dataset.tws, s0 = TWS().sort[tab]; twSave({ sort: { ...TWS().sort, [tab]: s0 && s0[0] === k ? (s0[1] > 0 ? [k, -1] : null) : [k, 1] } }); twRender(); });
   B.querySelectorAll("[data-twx]").forEach(b => b.onclick = async e => { e.stopPropagation(); const k = b.dataset.twx, [kind, id] = [k.slice(0, k.indexOf(":")), k.slice(k.indexOf(":") + 1)], r = rows.find(z => z.kind === kind && z.id === id); if (!r) return;
@@ -11363,7 +10882,6 @@ function twRender() {
   B.querySelectorAll("tr[data-twi]").forEach(tr => tr.onclick = () => { const r = rows[+tr.dataset.twi]; if (r) twShow(r, tab); });
 }
 function twShow(r, tab) {                        // a row clicked: the chart jumps to the trade's entry and marks it (a pending order just opens its market)
-  if (r.kind === "bot" || r.kind === "botc") { const L = twRows(tab).filter(x => x.kind === r.kind), list = L.map(x => r.kind === "bot" ? botOpenT(x.ref) : x.ref); chStudy(list, Math.max(0, L.findIndex(x => x.id === r.id))); return; }
   const raw = r.venue === "MEXC" ? r.sym : "CT:" + r.sym, sym = (typeof ctEquiv === "function" && ctEquiv(raw)) || raw;
   if (tab === "ord" || !r.opened || !r.entry || typeof chStudyGo !== "function") { if (sym !== CH.sym && typeof chSetSym === "function") chSetSym(sym); return; }
   const hist = tab === "hist";
@@ -11378,7 +10896,7 @@ function trPosAcct(d) {                         // for the settings box: where t
 }
 function trPosClose() { const el = $("trPosPanel"); if (el) el.remove(); const b = document.querySelector("#chPage .chbody.trdock"); if (b) { b.classList.remove("trdock"); window.dispatchEvent(new Event("resize")); } clearInterval(TR.posTimer); TR.posId = null; chDirty = true; }
 async function trFromPos(d) {                   // a Long/Short position on the chart → order lines you can drag + a small order panel; size follows the risk %
-  trPosClose(); if ($("chStudy") && typeof chStudyClose === "function") chStudyClose();
+  trPosClose();
   const sym = CH.sym, v = trVenue(sym); let side = d.type === "long" ? "buy" : "sell"; const unit = v === "mx" ? "contracts" : "lots";
   const dg = x => x >= 100 ? 2 : x >= 1 ? 5 : 6, f = x => +(+x).toFixed(dg(d.pts[0].p));
   const host = document.querySelector("#chPage .chbody") || $("chPage") || document.body, el = document.createElement("div");   // docked in its own column right of the charts

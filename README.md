@@ -31,7 +31,7 @@ cooled to 55–70, still holding the 20. 🚀 **Breaking Out**: the first candle
 = testing the cluster with RSI rising. Shorts mirror everything (RSI 30, breakdowns) and follow the Direction switch. Coins 3+
 ATR from the 20 are flagged "Stretched: don't chase", weak-volume breaks are flagged, and wicky coins follow the Wicks setting.
 New breakouts trigger an alert while the app is open. The **Ignition** model (breakout in the last 2 candles, RSI 60+, 1.5×
-volume, not stretched; stop beyond the breakout low and the cluster, target 2R) is in the Model Guide, backtest and bots.
+volume, not stretched; stop beyond the breakout low and the cluster, target 2R) is in the Model Guide and the backtest.
 
 ## Money Flow (rotation, measured)
 Reads where money is actually going over the last 30 days instead of assuming the BTC → ETH → large caps → altseason
@@ -55,17 +55,6 @@ plus your cTrader pairs when connected; where both list the same market, the cTr
 - **Momentum Board**: the coin board's three stages (in momentum, awaiting momentum, breaking out) on 1H with 4H as
   context, with the same breakout alerts.
 
-## NBB Watch (Gold M5, Nasdaq M1)
-Sidebar → Forex · Metals · Indices → NBB Watch. Watches the next-base breakout on your trading timeframes, by default Gold on
-M5 through London (12–6 PM) and the Nasdaq 100 on M1 at the US open (9:30–11 PM, your cutoff). Candles come from your cTrader
-broker when connected (MEXC or Binance otherwise), closed candles only. Each card shows the session, the live price and the
-time to the candle close, and the state: basing (with the long and short trigger levels), triggered (entry at the breakout
-close, stop beyond the far side of the base, 3R, with checks: with the timeframe's trend, with the higher timeframe, base
-swept first, room to 2R, no high-impact news near), or missed. With cTrader connected it shows the lot size for your risk %.
-Today's triggers are logged with how they've done since (3R hit, stopped, or open R). Alerts fire inside the session (or
-always, with "Outside sessions too"); "Alert when a base forms" is optional. Edit watch list adds any forex pair, metal, index
-or oil, on 1m to 1H, with your own session times. It is a watcher, not a trade gate: check the chart before acting.
-
 ## Economic calendar
 Sidebar → Market → Calendar.
 - **Forex Factory**: this week's calendar from Forex Factory's feed (read through the Mac app's relay or Vercel), with the same
@@ -78,27 +67,23 @@ Sidebar → Market → Calendar.
   options expiry, quad witching and the Nasdaq-100 rebalance, VIX expiry, and US market holidays and early closes. Fed dates
   are the Fed's published schedule (2027 tentative); expiries and holidays follow the exchange rules (one-off closures aren't
   included).
-The NBB Watch cards warn when high-impact news for the market's currencies is within an hour.
 
 ## Phone alerts (Telegram)
-The bell drawer's 📱 Phone button (or NBB Watch → Phone alerts): create a bot with @BotFather, send it a message, paste the
-token, press Find my chat ID, then Send test. Pick which alerts go to your phone (NBB Watch, news reminders, setups and price
-alerts are on; breakouts, bots and system messages start off). The token stays in that browser only, so set it up on the Mac
-app to avoid getting every alert twice. On the Mac app, "Keep this Mac awake during my NBB Watch sessions" asks the local server
-to run macOS's `caffeinate` while a session is on (the Mac still sleeps if you close the lid on battery).
+The bell drawer's 📱 Phone button: create a bot with @BotFather, send it a message, paste the
+token, press Find my chat ID, then Send test. Pick which alerts go to your phone (news reminders, setups and price
+alerts are on; breakouts and system messages start off). The token stays in that browser only, so set it up on the Mac
+app to avoid getting every alert twice.
 
 ## Cloud watcher (alerts while the Mac is off)
-A GitHub Actions job (`.github/workflows/cloud-watch.yml`) runs `cloud/watch.mjs` every 5 minutes with the app's own NBB rules
-on MEXC's Gold and Nasdaq perpetuals during your sessions, sends Telegram reminders before high-impact news, and market-moving
-headlines on your markets (Gold, Nasdaq, the Fed, the dollar, and big macro: data, tariffs, wars). It can't use
-cTrader (your login never leaves your browser), so prices can differ a little from your broker's, and GitHub's schedule often
-runs a few minutes late, which matters most on M1. To turn it on, in the GitHub repo: Settings → Secrets and variables →
-Actions → add the secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and under Variables add `CLOUD_WATCH` = `on`. Markets,
-sessions and news settings are in `cloud/watch.json`. Its messages start with ☁️; if the Mac app is also sending, you'll
+A GitHub Actions job (`.github/workflows/cloud-watch.yml`) runs `cloud/watch.mjs` every 5 minutes and sends Telegram
+reminders before high-impact news, and market-moving headlines on your markets (Gold, Nasdaq, the Fed, the dollar, and big
+macro: data, tariffs, wars). GitHub's schedule often runs a few minutes late. To turn it on, in the GitHub repo: Settings → Secrets and variables →
+Actions → add the secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and under Variables add `CLOUD_WATCH` = `on`. News and
+headline settings are in `cloud/watch.json`. Its messages start with ☁️; if the Mac app is also sending, you'll
 see both.
 
 ## Position size from your broker account
-With cTrader connected, the coin pop-up's Size tab on a broker market (and NBB Watch triggers) sizes in lots from your real
+With cTrader connected, the coin pop-up's Size tab on a broker market sizes in lots from your real
 balance (read-only), your risk %, the entry and stop, and the contract size and volume step your broker uses, converting the
 profit currency to your account currency with your broker's forex prices.
 
@@ -155,18 +140,18 @@ now, strength vs BTC and range expansion. Use the Momentum tab, the RSI filter, 
 RSI Divergence and RSI Reset in Uptrend views. The coin chart has an RSI pane, suggested plays warn about divergence or a
 stretched RSI, and the backtest's Model × RSI at Entry view shows whether high-momentum entries pay.
 
-## Bot simulator (forward test)
-Paper-trades every strategy (NBB, Bounce, Fade, Breaker, V-Trade, Pullback, plus Claude's Leader Pullback and Daily 20
-Reset; ORB and AMD excluded) on live prices, each in its own account. Set the account size, risk %, max open positions,
-fees and slippage, press Start Bots, and compare balances, win rates, R, drawdowns and equity curves. The bots trade while
-the app is open; on reopen they settle stops and targets hit while it was closed (using 15m candles).
-
 ## Claude's setups
 **Leader Pullback (day, 1H):** a fresh 48h high on a big, high-volume impulse; a quiet pullback into the 1H 20 or the 38% of
 the leg that holds the 50 and gives back ≤ 62%; a reclaim candle. Stop below the pullback low, target 2R.
 **Daily 20 Reset (swing, 4H + Daily):** in a Daily uptrend with a rising 20, price resets into the Daily 20 zone (closing
 below the 4H 20 at least twice), then a 4H candle reclaims the 20. Stop below the reset low, target 3R, up to 10 days.
-Both run long and short and are hypotheses until the backtest and the bots prove them.
+Both run long and short and are hypotheses until the backtest proves them.
+
+## Model Guide: your own models
+Sidebar → Lab → Model Guide. Next to the scanned models, **+ Add a model** saves your own: name, timeframe, an icon, what it
+is, its rules (one per line), how you trade it and notes. It's kept in this browser (each device has its own), with Edit and
+Delete. The scanner doesn't look for your own models: their rules are your checklist. **Copy for Claude** copies the model as
+text so you can ask Claude to turn it into a scanned model.
 
 ## Model backtest
 The Model Backtest card replays every model on the last 30, 60 or 90 days of real candles for your top coins

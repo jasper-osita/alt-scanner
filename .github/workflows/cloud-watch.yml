@@ -1,4 +1,4 @@
-# The Finder's cloud watcher: Telegram alerts while the Mac is off (NBB triggers, news reminders, market-moving headlines).
+# The Finder's cloud watcher: Telegram alerts while the Mac is off (news reminders, market-moving headlines).
 # Turn it on: Settings → Secrets and variables → Actions: secrets TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID, variable CLOUD_WATCH = on.
 name: Cloud watcher
 on:

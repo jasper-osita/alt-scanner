@@ -25,8 +25,6 @@ async def main():
         await pg.click('.dtabs [data-pane="size"]'); await pg.fill("#cAcct", "1000"); await asyncio.sleep(0.3)
         print("   size tab:", await pg.evaluate("() => document.querySelector('#cOut').innerText.split('\\n')[0]"))
         await pg.keyboard.press("Escape")
-        await pg.evaluate("() => goPage('bots')"); await pg.click("#botRun"); await asyncio.sleep(1.5)
-        print("5) bots:", await pg.evaluate("() => JSON.stringify(Object.fromEntries(BOT_STRATS().map(k => [k, BOT.bots[k].positions.length])))"))
         await pg.select_option("#dirF", "Short"); await asyncio.sleep(0.4)
         print("6) shorts only:", await pg.evaluate("() => [...new Set([...data.day.map(p => p.dir), ...data.swing.map(p => p.dir), ...(data.suggest || []).map(x => x.m.dir)])].join(',')"))
         await pg.select_option("#dirF", "Both")

@@ -79,6 +79,12 @@ async def main():
             e = EXPECT[k]; good = ok and move == e["move"] and rate == e["rate"] and hawk == e["hawk"] and dove == e["dove"] and ns >= e["minSentences"]
             print(f"   {'ok ' if good else 'BAD'} {k.split('/')[0]} {k.split('/')[-1] or k.split('/')[-2]}: {move} {rate} hawk {hawk} dove {dove}, {ns} sentences | {first[0][:70] if first else ''}")
             check(good, f"{k}: read {move} {rate} {hawk}/{dove} {ns}, expected {e}")
+        mixed = """<div id="article"><p>The Federal Open Market Committee approved the following statement for release by a 9 – 3 vote:</p>
+<p>The Committee decided to lower the target range for the federal funds rate by 1/4 percentage point to 3-1/2 to 3-3/4 percent.</p><p>Economic activity has been expanding at a moderate pace.</p>
+<p>Job gains have slowed this year, and the unemployment rate has edged up.</p><p>Inflation has moved up since earlier in the year and remains somewhat elevated.</p>
+<p>Voting against this action were Stephen I. Miran, who preferred to lower the target range for the federal funds rate by 1/2 percentage point at this meeting; and Austan D. Goolsbee and Jeffrey R. Schmid, who preferred no change to the target range for the federal funds rate at this meeting.</p>For media inquiries</div>"""
+        mx = await q("h => { const p = cbParse('USD', h); return [p.move, p.rate, p.hawk, p.dove]; }", mixed)
+        print("   Fed dissents both ways (cut; 1 wanted a bigger cut, 2 no change):", mx); check(mx == ["cut", 3.75, 2, 1], "mixed Fed dissents")
         print("   BoJ PDF:", await q("() => cbParse('JPY', '', 'Statement on Monetary Policy', 'en/mopo/mpmdeci/mpr_2026/k261030a.pdf')"))
         # 2) wording changes, verdict, lean
         V = await q("""() => { const E = {added: [], dropped: []}, r = {};

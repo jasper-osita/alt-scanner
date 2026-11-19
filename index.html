@@ -3052,8 +3052,9 @@ function cbParse(ccy, html, title, path) {            // a statement page → { 
   out.sentences = sents;
   let m, dissent = [];
   if (ccy === "USD") { m = all.match(/decided to (raise|lower|maintain|reduce|increase)\b(?:[^.]|\.\d)*?target range for the federal funds rate(?:[^.]|\.\d)*?(?:at|to) ([\d\-\/]+) to ([\d\-\/]+) percent/i); if (m) { out.move = cbMove(m[1]); out.rate = cbFrac(m[3]); }
-    const v = all.match(/Voting against[^:]*? (?:was|were) ([\s\S]{3,400}?), who preferred (?:to )?(\w+)/i);
-    if (v) { const n = v[1].split(/,\s*and\s+|,\s*|\s+and\s+/).filter(x => x.trim()).length, d = cbMove(v[2]); dissent.push([n, d === "hike" ? 1 : d === "cut" ? -1 : out.move === "hike" ? -1 : out.move === "cut" ? 1 : 0]); } }
+    const vi = all.search(/Voting against/i), vs = vi < 0 ? "" : all.slice(vi), re = /(?:\b(?:was|were)\s+|;\s*(?:and\s+)?)([^;]{3,300}?), who preferred (?:to )?(\w+)/gi; let v;   // every group: "A, who preferred to lower…; and B and C, who preferred no change…"
+    while ((v = re.exec(vs))) { const n = v[1].split(/,\s*and\s+|,\s*|\s+and\s+/).filter(x => x.trim()).length, d = /^no$/i.test(v[2]) ? "hold" : cbMove(v[2]);
+      dissent.push([n, d === "hike" ? 1 : d === "cut" ? -1 : out.move === "hike" ? -1 : out.move === "cut" ? 1 : 0]); } }
   else if (ccy === "EUR") { m = all.match(/decided to (raise|increase|lower|reduce|cut|keep|maintain|leave)\b(?:[^.]|\.\d)*?key ECB interest rates/i); if (m) out.move = cbMove(m[1]);
     const r = all.match(/deposit facility[^%]*?(?:at|to) (\d+(?:\.\d+)?)%(?:, (\d+(?:\.\d+)?)%)?/i); if (r) { out.rate = +r[1]; if (r[2]) out.mro = +r[2]; } }
   else if (ccy === "GBP") { m = all.match(/voted (?:by a majority of [\d–-]+ |unanimously )?to (increase|reduce|maintain|cut|raise|lower|hold|keep) Bank Rate(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }

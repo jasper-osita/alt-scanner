@@ -133,6 +133,11 @@ async def main():
         await q("t => cbTick(t)", at + 240e3)
         await pg.reload(); await ready(pg); await wait("() => CBW.rounds > 0", 30)
         print("   after reload alerts:", len(await q(bank_alerts))); check(len(await q(bank_alerts)) == 1, "alerted again")
+        await q("""at => { CAL.items = CAL.items.filter(x => x.id !== 'test-fomc').concat([{ id: 'test-fomc', at, ccy: 'USD', title: 'Federal Funds Rate', impact: 'High', type: 'Central Bank', forecast: '4.00%', previous: '4.00%' }]); }""", at)
+        CB_SRV["swap"][FEED] = fed_feed(None); await q("t => cbTick(t)", at + 300e3)          # a stale copy of the list (older decision on top), then the fresh one again
+        CB_SRV["swap"][FEED] = fed_feed(30); await q("t => cbTick(t)", at + 360e3)
+        st = await q("() => [CBR.USD.map(r => r.path.split('/').pop()), NC.filter(n => n.icon === '🏦').length]")
+        print("   stale list, then fresh:", st); check(st == [["monetary20261028a.htm", "monetary20260916a.htm"], 1], "a stale list re-read the old statement or alerted twice")
         # 4) catch-up on open: a decision 2 days old alerts once; 10 days old is read but doesn't alert; no stored read: the previous comes from the list
         for age, want in [(2 * 86400, 1), (10 * 86400, 0)]:
             CB_SRV["swap"][FEED] = fed_feed(age); await q(reset); await q("() => cbCatchUp()")

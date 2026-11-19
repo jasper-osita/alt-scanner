@@ -10366,13 +10366,14 @@ function cbForecast(ccy, t, p) {                       // the calendar's forecas
 }
 async function cbCheck(ccy, now = Date.now()) {        // read the newest decision if it's new (or retry a failed read, 3 tries at most)
   if (CBW.busy[ccy]) return; CBW.busy[ccy] = true;
-  try { const L = await cbList(ccy, now), it = L[0]; if (!it) return; const have = (CBR[ccy] || [])[0];
+  try { const L = await cbList(ccy, now), it = L[0]; if (!it) return; const R = CBR[ccy] || [], have = R[0];
+    if (have && (it.t < have.at || R.some((x, i) => i && x.id === it.link))) return;      // a stale copy of the list: never step back to an older decision
     if (have && have.id === it.link && (have.ok || /\.pdf$/i.test(it.path) || have.tries >= 3 && now - have.readAt < 30 * 60e3)) return;   // 3 quick tries, then every 30 min
     await cbRead(ccy, it, L, now); }
   catch (e) {} finally { CBW.busy[ccy] = false; }
 }
 async function cbRead(ccy, it, L, now = Date.now()) {
-  const B = CB_BANKS[ccy], old = CBR[ccy] || [], same = old[0] && old[0].id === it.link ? old[0] : null;
+  const B = CB_BANKS[ccy], old = CBR[ccy] || [], same = old.find(x => x.id === it.link) || null;
   const rd = { id: it.link, path: it.path, title: it.title, at: it.t, readAt: now, tries: (same ? same.tries || 0 : 0) + 1, alerted: same ? same.alerted || false : false };   // alerted: false, "fail" (couldn't read) or "ok"
   if (/\.pdf$/i.test(it.path)) rd.p = cbParse(ccy, "", it.title, it.path);
   else try { const r = await fetch(cbUrl(B, it.path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); rd.p = cbParse(ccy, await r.text(), it.title, it.path); }

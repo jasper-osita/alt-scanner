@@ -911,7 +911,7 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .cbc{padding:9px 11px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.45;min-width:0}.cbh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .cbl{display:flex;flex-wrap:wrap;gap:4px}.cbl .fk{cursor:pointer}.cbsh{color:var(--mute);font-size:11.5px;font-weight:600}.cbsh span{font-weight:400}.cbw ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
 .cbw li{padding-left:14px;text-indent:-14px;overflow-wrap:anywhere}.cbw li.add::before{content:"+ ";color:var(--green);font-weight:700}.cbw li.drop::before{content:"− ";color:var(--red);font-weight:700}.cbw li.drop{color:var(--mute)}
-.cbwhy{font-size:11.5px}.cblink{font-size:12px;align-self:flex-start}.cbfoot{padding:8px 11px;font-size:11.5px}
+.cbwhy{font-size:11.5px}.cblink{font-size:12px;margin-left:auto}.cbmore{display:flex;flex-direction:column;gap:6px}.cbmore summary{cursor:pointer;color:var(--mute);font-size:12px}.cbmore[open] summary{margin-bottom:6px}.cbmore>*+*{margin-top:6px}.cbfoot{padding:8px 11px;font-size:11.5px}
 .fk{display:inline-block;padding:0 6px;border-radius:4px;background:var(--pill);color:var(--mute);font-size:11px;font-weight:600}.fk.up{color:var(--green)}.fk.dn{color:var(--red)}
 .fbar{height:8px;background:var(--pill);border-radius:4px;position:relative;overflow:hidden}.fbar i{position:absolute;top:0;bottom:0}
 .fcurve{display:flex;gap:12px;padding:10px 11px 0;align-items:flex-end}.fsvg{width:100%;height:118px;display:block}.fkv{display:grid;grid-template-columns:auto auto;gap:3px 12px;font-size:12.5px;align-content:end;padding-bottom:6px}.fkv b{text-align:right;font-weight:600}
@@ -3083,7 +3083,7 @@ function cbVerdict(p, diff, forecast) {               // the surprise counts mos
   let w = 0; const said = [];
   (diff && diff.added || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w++; said.push(`added “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w--; said.push(`added “${x}”`); }); });
   (diff && diff.dropped || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w--; said.push(`dropped “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w++; said.push(`dropped “${x}”`); }); });
-  w = Math.max(-2, Math.min(2, w)); sc += w; if (said.length) why.push("Wording: " + said.slice(0, 3).join(", "));
+  w = Math.max(-2, Math.min(2, w)); sc += w; if (said.length) why.push("Wording: " + [...new Set(said)].slice(0, 3).join(", "));
   return { score: sc, label: sc >= 2 ? "Hawkish" : sc <= -2 ? "Dovish" : "As expected", why };
 }
 </script>
@@ -10398,32 +10398,33 @@ const cbVerb = p => p.move === "hike" ? "Raised to" : p.move === "cut" ? "Cut to
 const cbChip = v => v ? `<span class="fk ${v.label === "Hawkish" ? "dn" : v.label === "Dovish" ? "up" : ""}" title="${CB_HINT}">${v.label}</span>` : "";
 const cbLeanHTML = (ccy, v) => (v ? cbLean(ccy, v.label) : []).slice(0, 6).map(x => `<span class="fk ${x.dir === "long" ? "up" : "dn"}" data-fmk="${xEsc(x.k)}" role="button" tabindex="0" title="Open the ${xEsc(x.k)} brief">${xEsc(x.k)} ${x.dir}</span>`).join("");
 const cbRank = s => cbHits(s, CB_HAWK).length + cbHits(s, CB_DOVE).length;
-function cbCardHTML(ccy, rd) {
-  const B = CB_BANKS[ccy], p = rd.p || {}, v = rd.v, now = Date.now(), next = fbMeet(ccy), fc = rd.forecast;
+function cbCardHTML(ccy, rd, open) {
+  const B = CB_BANKS[ccy], p = rd.p || {}, v = rd.v, now = Date.now(), next = fbMeet(ccy), fc = rd.forecast, pdf = /\.pdf$/i.test(rd.path || "");
   const dec = cbVerb(p) ? `${cbVerb(p)} ${p.rate != null ? p.rate.toFixed(2) + "%" : ""}${fc != null ? ` · expected ${fc.toFixed(2)}%` : " · no forecast in the calendar"}` : "";
   const votes = [p.hawk ? `${p.hawk} voted for a higher rate` : "", p.dove ? `${p.dove} voted for a lower rate` : ""].filter(Boolean).join(" · ");
   const d = rd.diff, add = d ? [...d.added].sort((a, b) => cbRank(b) - cbRank(a)).slice(0, 3) : [], drop = d ? [...d.dropped].sort((a, b) => cbRank(b) - cbRank(a)).slice(0, 3) : [];
   const changed = !rd.ok ? "" : !d ? `<div class="cbw"><div class="cbsh">What changed</div><div class="mu">Nothing to compare yet: this is the first ${B.bank} statement read.</div></div>`
-    : `<div class="cbw"><div class="cbsh">What changed <span>since ${phtDay(rd.prevAt).slice(4)}${d.added.length + d.dropped.length > 6 ? ` · ${d.added.length} new, ${d.dropped.length} dropped sentences` : ""}</span></div>${add.length + drop.length
+    : `<div class="cbw"><div class="cbsh">What changed <span>since ${phtDay(rd.prevAt).slice(4)}${d.added.length + d.dropped.length > 6 ? ` · ${d.added.length} new, ${d.dropped.length} dropped sentences, the strongest shown` : ""}</span></div>${add.length + drop.length
       ? `<ul>${add.map(x => `<li class="add">${xEsc(x)}</li>`).join("")}${drop.map(x => `<li class="drop">${xEsc(x)}</li>`).join("")}</ul>` : `<div class="mu">Same wording as last time, apart from dates and numbers.</div>`}</div>`;
   const st = FB_BANK[ccy] ? fundBank(FB_BANK[ccy].id).stance : "", fe = ccy === "USD" ? fbFedExp() : null;
   const data = (typeof calAll === "function" ? calAll() : []).filter(e => e.ccy === ccy && e.impact === "High" && e.type !== "Central Bank" && e.at > now && (!next || e.at < next)).slice(0, 4);
-  const out = !v || v.label === "As expected" ? "No new lean from this meeting: the drivers on each market's brief decide."
-    : v.label === "Hawkish" ? `Leans ${ccy} up until the next meeting, unless the data below comes in weak.` : `Leans ${ccy} down until the next meeting, unless the data below comes in hot.`;
+  const out = !v || v.label === "As expected" ? "no new lean from this meeting; the drivers on each market's brief decide."
+    : v.label === "Hawkish" ? `leans ${ccy} up, unless the data before it comes in weak.` : `leans ${ccy} down, unless the data before it comes in hot.`;
+  const lean = cbLeanHTML(ccy, v), nd = d ? d.added.length + d.dropped.length : 0;
   return `<div class="cbc" data-cb="${ccy}">
-    <div class="cbh"><b>${B.bank}</b><span class="mu">${ccy} · ${rd.at ? phtDay(rd.at).slice(4) + " " + phtHM(rd.at) : ""}</span>${cbChip(v)}</div>
-    ${!rd.ok ? `<div class="dn">Couldn't read the statement (${xEsc(rd.err || "unknown reason")}).</div>` : ""}${dec ? `<div><b>${dec}</b></div>` : ""}${votes ? `<div class="mu">${votes}</div>` : ""}
-    ${v ? `<div class="cbwhy mu">${v.why.map(xEsc).join(" · ")}</div>` : ""}${cbLeanHTML(ccy, v) ? `<div class="cbl">${cbLeanHTML(ccy, v)}</div>` : ""}${changed}
-    <div class="cbn"><div class="cbsh">Until the next meeting <span>${next ? `${phtDay(next).slice(4)} · in ${inTxt(next - now)}` : "date not in the calendar yet"}</span></div>
-      <div>${out}${st ? ` Stance from the rate history: ${st}.` : ""}${fe ? " " + xEsc(fe.txt) : ""}</div>
-      <div class="mu">${data.length ? "Could change it: " + data.map(x => `${xEsc(x.title)} (${fbWhen(x)})`).join(", ") : `No high-impact ${ccy} data in the calendar yet (it covers this week).`}</div></div>
-    <a class="cblink" href="${xEsc(B.host + "/" + rd.path)}" target="_blank" rel="noopener noreferrer">Read the statement ↗</a></div>`;
+    <div class="cbh"><b>${B.bank}</b><span class="mu">${ccy} · ${rd.at ? phtDay(rd.at).slice(4) + " " + phtHM(rd.at) : ""}</span>${cbChip(v)}<a class="cblink" href="${xEsc(B.host + "/" + rd.path)}" target="_blank" rel="noopener noreferrer">Statement ↗</a></div>
+    ${pdf ? `<div class="mu">The ${B.bank} publishes this statement as a PDF, which the app can't read yet. Open it with the link above.</div>` : !rd.ok ? `<div class="dn">Couldn't read the statement (${xEsc(rd.err || "unknown reason")}).</div>` : ""}
+    ${dec || votes ? `<div>${dec ? `<b>${dec}</b>` : ""}${votes ? ` <span class="mu">· ${votes}</span>` : ""}</div>` : ""}${lean ? `<div class="cbl">${lean}</div>` : ""}
+    <div class="cbout"><span class="cbsh">Until the next meeting</span> <span class="mu">(${next ? `${phtDay(next).slice(4)}, in ${inTxt(next - now)}` : "date not in the calendar yet"})</span>: ${out}</div>
+    <details class="cbmore"${open ? " open" : ""}><summary>Why and what changed${nd ? ` <span class="mu">(${d.added.length} new, ${d.dropped.length} dropped)</span>` : ""}</summary>
+      ${v ? `<div class="cbwhy mu">${v.why.map(xEsc).join(" · ")}</div>` : ""}${changed}
+      <div class="mu">${st ? `Stance from the rate history: ${st}. ` : ""}${fe ? xEsc(fe.txt) + " " : ""}${data.length ? "Could change it: " + data.map(x => `${xEsc(x.title)} (${fbWhen(x)})`).join(", ") + "." : `No high-impact ${ccy} data in the calendar yet (it covers this week).`}</div></details></div>`;
 }
 function fundCBReads() {
   const R = Object.keys(CB_BANKS).filter(c => CBR[c] && CBR[c][0]).sort((a, b) => CBR[b][0].at - CBR[a][0].at);
   if (!R.length) { const now = Date.now(), nx = Object.keys(CB_BANKS).map(c => [c, fbMeet(c)]).filter(x => x[1] && x[1] > now).sort((a, b) => a[1] - b[1])[0];
     return `<div class="empty">No decisions read yet.${nx ? ` The next one: ${CB_BANKS[nx[0]].bank} ${phtDay(nx[1]).slice(4)}.` : ""}</div>`; }
-  return R.map(c => cbCardHTML(c, CBR[c][0])).join("") + `<div class="cbfoot mu">Read by rules from each bank's own statement (decision, votes, wording changes). A lean for your bias, not an entry.</div>`;
+  return R.map((c, i) => cbCardHTML(c, CBR[c][0], !i && Date.now() - CBR[c][0].at < 7 * 864e5)).join("") + `<div class="cbfoot mu">Read by rules from each bank's own statement (decision, votes, wording changes). A lean for your bias, not an entry.</div>`;
 }
 function cbBriefHTML(m) {                              // the market brief: the latest read for this market's currencies (last 60 days)
   const L = [...new Set(fbCcys(m) || [])].map(c => [c, CBR[c] && CBR[c][0]]).filter(([c, r]) => CB_BANKS[c] && r && Date.now() - r.at < 60 * 864e5); if (!L.length) return "";

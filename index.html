@@ -902,12 +902,16 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .nwedit{border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 12px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
 .nwer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nwer label{display:flex;gap:4px;align-items:center;font-size:13px}.nweacts{display:flex;gap:8px;align-items:center}
 .fundcard .momohead{gap:10px}.fstrip{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;margin:4px 0 10px;background:var(--pill);border:1px solid var(--line);border-radius:10px;font-variant-numeric:tabular-nums;font-size:13px}
-.fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w p n";gap:10px;font-variant-numeric:tabular-nums}
-.fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}
+.fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w r n" "w p n";gap:10px;font-variant-numeric:tabular-nums}
+.fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}.fcbr{grid-area:r}
 .fph{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--line);color:var(--accent);font:700 11.5px var(--font);letter-spacing:.05em;text-transform:uppercase}.fph span{margin-left:auto;color:var(--mute);font-weight:500;letter-spacing:0;text-transform:none}.fph.fsub{border-top:1px solid var(--line)}
 .ftbl{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px}.ftbl td{padding:5px 11px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.ftbl td.r{text-align:right}.ftbl tr:hover{background:transparent}.ftbl tr.fclk{cursor:pointer}.ftbl tr.fclk:hover{background:var(--hover)}
 .fworld .ftbl td{padding:5px 7px}.fworld .ftbl td:first-child{padding-left:11px;white-space:normal}.fnewsp .ftbl td{white-space:normal;padding:5px 8px}.fnewsp .ftbl td.r{font-size:11.5px}.fp{overflow:hidden}
 .ftbl .fgrp{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:9px}.fam{color:var(--accent)}
+.cbc{padding:9px 11px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.45;min-width:0}.cbh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cbl{display:flex;flex-wrap:wrap;gap:4px}.cbl .fk{cursor:pointer}.cbsh{color:var(--mute);font-size:11.5px;font-weight:600}.cbsh span{font-weight:400}.cbw ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.cbw li{padding-left:14px;text-indent:-14px;overflow-wrap:anywhere}.cbw li.add::before{content:"+ ";color:var(--green);font-weight:700}.cbw li.drop::before{content:"− ";color:var(--red);font-weight:700}.cbw li.drop{color:var(--mute)}
+.cbwhy{font-size:11.5px}.cblink{font-size:12px;align-self:flex-start}.cbfoot{padding:8px 11px;font-size:11.5px}
 .fk{display:inline-block;padding:0 6px;border-radius:4px;background:var(--pill);color:var(--mute);font-size:11px;font-weight:600}.fk.up{color:var(--green)}.fk.dn{color:var(--red)}
 .fbar{height:8px;background:var(--pill);border-radius:4px;position:relative;overflow:hidden}.fbar i{position:absolute;top:0;bottom:0}
 .fcurve{display:flex;gap:12px;padding:10px 11px 0;align-items:flex-end}.fsvg{width:100%;height:118px;display:block}.fkv{display:grid;grid-template-columns:auto auto;gap:3px 12px;font-size:12.5px;align-content:end;padding-bottom:6px}.fkv b{text-align:right;font-weight:600}
@@ -946,8 +950,8 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .fbpos{display:flex;align-items:center;gap:12px}.fbnews{display:flex;flex-direction:column}.fbnews a{display:block;padding:5px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none}.fbnews a:hover .fnt{text-decoration:underline}
 @media (max-width:760px){dialog#fbDlg{max-height:94vh;width:98vw}.fblean,.fbcols{grid-template-columns:minmax(0,1fr)}.fbcols>div+div{border-left:0;border-top:1px solid var(--line)}.fblv{grid-template-columns:repeat(2,minmax(0,1fr))}.fbkeys{display:none}}
 @media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
-@media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
+@media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "r r" "w n" "p p"}}
+@media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "r" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
 .calviews{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden}.calviews button{background:transparent;border:0;color:var(--mute);font:500 12px var(--font);padding:5px 11px;cursor:pointer}.calviews button+button{border-left:1px solid var(--pill-b)}.calviews button.on{background:var(--pill);color:var(--accent)}
 .calnav{display:flex;align-items:center;gap:8px;margin:4px 0 10px}.calnav b{font-size:15px;color:var(--strong);margin-left:4px}.calnav .btn{min-width:30px}
@@ -10094,11 +10098,11 @@ function fundCardsData() {
   const riskL = (good) => S.risk === "on" ? [good, `Risk appetite is up (VIX ${S.vix.toFixed(0)})`] : S.risk === "off" ? [-good, `Markets are nervous (VIX ${S.vix.toFixed(0)})`] : null;
   const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]);
   return [
-    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
-    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
+    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [cbL("USD", -1), realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
+    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [cbL("USD", -1), riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
     { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
-      L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
-    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
+      L: [cbL("USD", 1), S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
+    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [cbL("USD", -1), riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
   ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
     return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
@@ -10134,6 +10138,7 @@ function fundRender() {
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
+    <div class="fp fcbr"><div class="fph">Central bank reads <span>from each bank's own statement</span></div>${fundCBReads()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
   el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk));            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
@@ -10214,7 +10219,7 @@ function cbLean(ccy, label) {                      // which way a bank's read le
   return FB_MK.map(m => { const g = m.kind === "fx" ? (m.b === ccy ? s : m.q === ccy ? -s : 0) : m.kind === "usd" ? (ccy === "USD" ? s : 0)
     : ["gold", "oil", "copper", "btc"].includes(m.kind) ? (ccy === "USD" ? -s : 0) : m.kind === "idx" ? (m.ccy[0] === ccy ? -s : 0) : 0;
     return g ? { k: m.k, dir: g > 0 ? "long" : "short" } : null; }).filter(Boolean)
-    .map((x, i) => { const j = mine.indexOf(x.k); return [j >= 0 ? j : x.k === "US dollar" ? mine.length : mine.length + 1 + i, x]; }).sort((a, b) => a[0] - b[0]).map(x => x[1]);   // your markets first, then the dollar
+    .map((x, i) => { const j = mine.indexOf(x.k), fx = (fbMk(x.k) || {}).kind === "fx"; return [j >= 0 ? j : x.k === "US dollar" ? mine.length : (fx ? 100 : 200) + i, x]; }).sort((a, b) => a[0] - b[0]).map(x => x[1]);   // your markets, the dollar, the pairs, the rest
 }
 function fbWhen(x, now = Date.now()) { return x.at - now > 6 * 864e5 ? phtDay(x.at).slice(4) : `${phtDayKey(x.at) === phtDayKey(now) ? "Today" : phtDay(x.at).slice(0, 3)} ${x.earn ? x.timeLbl : x.timeLbl || phtHM(x.at)}`; }
 function fbEvents(m) {                             // high-impact events for this market's currencies, the next Fed decision, big tech earnings
@@ -10388,6 +10393,48 @@ function cbAlert(ccy, rd) {                            // in the app only (noTg)
   const detail = !rd.ok ? `Couldn't read the statement (${rd.err || "unknown reason"}). Open the brief for the link.` : lean.length ? lean.slice(0, 3).map(x => `${x.k} ${x.dir}`).join(" · ") : `No strong lean. ${v ? v.why[0] : ""}`;
   return ncAdd({ kind: "News", icon: "🏦", tone: "warn", action: "brief", mk: mine ? mine.k : RX_MK[ccy], title, detail, noTg: true });
 }
+const CB_HINT = "Hawkish = leaning toward higher rates (supports the currency, weighs on gold and stocks). Dovish = leaning toward lower rates.";
+const cbVerb = p => p.move === "hike" ? "Raised to" : p.move === "cut" ? "Cut to" : p.move === "hold" ? "Held at" : "";
+const cbChip = v => v ? `<span class="fk ${v.label === "Hawkish" ? "dn" : v.label === "Dovish" ? "up" : ""}" title="${CB_HINT}">${v.label}</span>` : "";
+const cbLeanHTML = (ccy, v) => (v ? cbLean(ccy, v.label) : []).slice(0, 6).map(x => `<span class="fk ${x.dir === "long" ? "up" : "dn"}" data-fmk="${xEsc(x.k)}" role="button" tabindex="0" title="Open the ${xEsc(x.k)} brief">${xEsc(x.k)} ${x.dir}</span>`).join("");
+const cbRank = s => cbHits(s, CB_HAWK).length + cbHits(s, CB_DOVE).length;
+function cbCardHTML(ccy, rd) {
+  const B = CB_BANKS[ccy], p = rd.p || {}, v = rd.v, now = Date.now(), next = fbMeet(ccy), fc = rd.forecast;
+  const dec = cbVerb(p) ? `${cbVerb(p)} ${p.rate != null ? p.rate.toFixed(2) + "%" : ""}${fc != null ? ` · expected ${fc.toFixed(2)}%` : " · no forecast in the calendar"}` : "";
+  const votes = [p.hawk ? `${p.hawk} voted for a higher rate` : "", p.dove ? `${p.dove} voted for a lower rate` : ""].filter(Boolean).join(" · ");
+  const d = rd.diff, add = d ? [...d.added].sort((a, b) => cbRank(b) - cbRank(a)).slice(0, 3) : [], drop = d ? [...d.dropped].sort((a, b) => cbRank(b) - cbRank(a)).slice(0, 3) : [];
+  const changed = !rd.ok ? "" : !d ? `<div class="cbw"><div class="cbsh">What changed</div><div class="mu">Nothing to compare yet: this is the first ${B.bank} statement read.</div></div>`
+    : `<div class="cbw"><div class="cbsh">What changed <span>since ${phtDay(rd.prevAt).slice(4)}${d.added.length + d.dropped.length > 6 ? ` · ${d.added.length} new, ${d.dropped.length} dropped sentences` : ""}</span></div>${add.length + drop.length
+      ? `<ul>${add.map(x => `<li class="add">${xEsc(x)}</li>`).join("")}${drop.map(x => `<li class="drop">${xEsc(x)}</li>`).join("")}</ul>` : `<div class="mu">Same wording as last time, apart from dates and numbers.</div>`}</div>`;
+  const st = FB_BANK[ccy] ? fundBank(FB_BANK[ccy].id).stance : "", fe = ccy === "USD" ? fbFedExp() : null;
+  const data = (typeof calAll === "function" ? calAll() : []).filter(e => e.ccy === ccy && e.impact === "High" && e.type !== "Central Bank" && e.at > now && (!next || e.at < next)).slice(0, 4);
+  const out = !v || v.label === "As expected" ? "No new lean from this meeting: the drivers on each market's brief decide."
+    : v.label === "Hawkish" ? `Leans ${ccy} up until the next meeting, unless the data below comes in weak.` : `Leans ${ccy} down until the next meeting, unless the data below comes in hot.`;
+  return `<div class="cbc" data-cb="${ccy}">
+    <div class="cbh"><b>${B.bank}</b><span class="mu">${ccy} · ${rd.at ? phtDay(rd.at).slice(4) + " " + phtHM(rd.at) : ""}</span>${cbChip(v)}</div>
+    ${!rd.ok ? `<div class="dn">Couldn't read the statement (${xEsc(rd.err || "unknown reason")}).</div>` : ""}${dec ? `<div><b>${dec}</b></div>` : ""}${votes ? `<div class="mu">${votes}</div>` : ""}
+    ${v ? `<div class="cbwhy mu">${v.why.map(xEsc).join(" · ")}</div>` : ""}${cbLeanHTML(ccy, v) ? `<div class="cbl">${cbLeanHTML(ccy, v)}</div>` : ""}${changed}
+    <div class="cbn"><div class="cbsh">Until the next meeting <span>${next ? `${phtDay(next).slice(4)} · in ${inTxt(next - now)}` : "date not in the calendar yet"}</span></div>
+      <div>${out}${st ? ` Stance from the rate history: ${st}.` : ""}${fe ? " " + xEsc(fe.txt) : ""}</div>
+      <div class="mu">${data.length ? "Could change it: " + data.map(x => `${xEsc(x.title)} (${fbWhen(x)})`).join(", ") : `No high-impact ${ccy} data in the calendar yet (it covers this week).`}</div></div>
+    <a class="cblink" href="${xEsc(B.host + "/" + rd.path)}" target="_blank" rel="noopener noreferrer">Read the statement ↗</a></div>`;
+}
+function fundCBReads() {
+  const R = Object.keys(CB_BANKS).filter(c => CBR[c] && CBR[c][0]).sort((a, b) => CBR[b][0].at - CBR[a][0].at);
+  if (!R.length) { const now = Date.now(), nx = Object.keys(CB_BANKS).map(c => [c, fbMeet(c)]).filter(x => x[1] && x[1] > now).sort((a, b) => a[1] - b[1])[0];
+    return `<div class="empty">No decisions read yet.${nx ? ` The next one: ${CB_BANKS[nx[0]].bank} ${phtDay(nx[1]).slice(4)}.` : ""}</div>`; }
+  return R.map(c => cbCardHTML(c, CBR[c][0])).join("") + `<div class="cbfoot mu">Read by rules from each bank's own statement (decision, votes, wording changes). A lean for your bias, not an entry.</div>`;
+}
+function cbBriefHTML(m) {                              // the market brief: the latest read for this market's currencies (last 60 days)
+  const L = [...new Set(fbCcys(m) || [])].map(c => [c, CBR[c] && CBR[c][0]]).filter(([c, r]) => CB_BANKS[c] && r && Date.now() - r.at < 60 * 864e5); if (!L.length) return "";
+  return `<div class="fbs"><div class="fbsh">Last central bank read</div>${L.map(([c, r]) => { const p = r.p || {}, x = r.v ? cbLean(c, r.v.label).find(y => y.k === m.k) : null;
+    return `<div><b>${CB_BANKS[c].bank}</b> <span class="mu">${phtDay(r.at).slice(4)}</span> ${cbVerb(p) ? `${cbVerb(p).toLowerCase()} ${p.rate != null ? p.rate.toFixed(2) + "%" : ""}` : r.ok ? "" : "couldn't read the statement"} ${cbChip(r.v)}${x ? ` <b class="${x.dir === "long" ? "up" : "dn"}">${xEsc(m.k)} ${x.dir}</b>` : ""}
+      ${r.v ? `<div class="mu">${r.v.why.map(xEsc).join(" · ")}</div>` : ""}<a class="cblink" href="${xEsc(CB_BANKS[c].host + "/" + r.path)}" target="_blank" rel="noopener noreferrer">Read the statement ↗</a></div>`; }).join("")}</div>`;
+}
+function cbL(ccy, g) {                                 // "Today's read" reason: a fresh (under 7 days) hawkish or dovish read
+  const r = CBR[ccy] && CBR[ccy][0]; if (!r || !r.v || r.v.label === "As expected" || Date.now() - r.at > 7 * 864e5) return null;
+  return [g * (r.v.label === "Hawkish" ? 1 : -1), `${CB_BANKS[ccy].bank} statement ${r.v.label.toLowerCase()} (${phtDay(r.at).slice(4)})`];
+}
 async function cbCatchUp(now = Date.now()) { for (const ccy of Object.keys(CB_BANKS)) { CBW.caught[ccy] = now; await cbCheck(ccy, now); } }
 async function cbTick(now = Date.now()) {
   try { const due = cbDue(now);
@@ -10477,6 +10524,7 @@ function fbRender() {
       <div class="fbs"><div class="fbsh">What moves ${xEsc(m.k)} <span>now · change · effect</span></div>${drv}${W.length ? `<ul class="fwhy">${W.map(t => `<li class="fwatch"><i>⚠</i><span>${xEsc(t)}</span></li>`).join("")}</ul>` : ""}</div>
       ${fe ? `<div class="fbs"><div class="fbsh">What the market expects from the Fed</div><div>US 2-year <b>${fe.two.toFixed(2)}%</b> vs Fed <b>${fe.fed.toFixed(2)}%</b>: <b class="${fe.s === "hike" ? "dn" : fe.s === "cut" ? "up" : ""}">${fe.s === "hike" ? "more hikes" : fe.s === "cut" ? "cuts" : "a hold"} priced in</b></div><div class="mu">${fe.txt}</div></div>` : ""}
       ${gap}
+      ${cbBriefHTML(m)}
       ${cs ? `<div class="fbs"><div class="fbsh">Currency strength <span>strongest → weakest</span></div><div class="fbccs"><span class="mu">Today</span>${csRow(cs, "d")}</div><div class="fbccs"><span class="mu">Week</span>${csRow(cs, "w")}</div></div>` : ""}
       ${c ? `<div class="fbs"><div class="fbsh">Positioning <span>CFTC large speculators</span></div><div class="fbpos"><b class="${fCls(c.net)}">${(c.net >= 0 ? "+" : "") + c.net.toFixed(0)}% net ${c.net >= 0 ? "long" : "short"}</b>${spark(c.hist)}</div>
         <div><span class="${fCls(c.chg)}">${c.chg == null ? "" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(1)}</span> <span class="mu">this week ·</span> ${c.pct}${c.pct % 100 >= 11 && c.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][c.pct % 10] || "th"} <span class="mu">of the year${c.pct >= 90 || c.pct <= 10 ? "" : ": not crowded"}</span>${m.cot === "Yen" || m.cot === "Canadian dollar" || m.cot === "Swiss franc" ? ` <span class="mu">(this is ${m.cw}: long here pushes ${m.k} down)</span>` : ""}</div></div>` : ""}
@@ -10495,7 +10543,7 @@ function fbRender() {
       `Lean: ${v[1]} (score ${sc}: ${nf} for, ${na} against)`, `Read: ${fbSay(D, sc)}`, T(fbTip(D, sc)),
       "Drivers: " + D.map(x => `${x.v > 0 ? "▲" : x.v < 0 ? "▼" : "–"} ${x.name} ${x.now} ${x.chg}`.trim()).join("; "), ...W.map(x => "⚠ " + x),
       ...fbAlerts(m).map(([, h]) => T(h)), lv ? T($("fbBody").querySelector(".fblv") ? $("fbBody").querySelector(".fblv").innerText.replace(/\n/g, " ") : "") : "",
-      fe ? `Fed: 2Y ${fe.two.toFixed(2)}% vs Fed ${fe.fed.toFixed(2)}%: ${fe.txt}` : "", c ? `Positioning: ${c.net.toFixed(0)}% net, ${c.pct}th of the year` : "",
+      fe ? `Fed: 2Y ${fe.two.toFixed(2)}% vs Fed ${fe.fed.toFixed(2)}%: ${fe.txt}` : "", T(cbBriefHTML(m).replace(/<a [\s\S]*?<\/a>/g, "")).replace(/^Last central bank read/, "Central bank:"), c ? `Positioning: ${c.net.toFixed(0)}% net, ${c.pct}th of the year` : "",
       ev.length ? "Coming up: " + ev.map(x => `${fbWhen(x)} ${x.ccy} ${x.title}`).join("; ") : "", news.length ? "Headlines: " + news.slice(0, 4).map(x => `${phtHM(x.t)} ${x.title} (${x.src})`).join("; ") : "",
       r && r.s1h ? `Chart: 1H ${r.s1h.state}, 4H ${r.s4h.state}, D ${r.s1d.state}` : ""].filter(Boolean).join("\n");
     const b = $("fbCopy"); try { await navigator.clipboard.writeText(t); b.textContent = "Copied ✓"; } catch (e) { b.textContent = "Copy blocked"; } setTimeout(() => { if ($("fbCopy")) $("fbCopy").textContent = "Copy brief"; }, 1500); };

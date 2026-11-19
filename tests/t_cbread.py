@@ -113,6 +113,33 @@ async def main():
         t = await q("""() => { lsSet(TG_KEY, { token: '1:x', chat: '1', kinds: { News: true } }); let n = 0; const keep = tgSend; tgSend = () => { n++; return Promise.resolve({ ok: true }); };
           cbAlert('USD', CBR.USD[0]); const bank = n; ncAdd({ kind: 'News', icon: '📰', title: 'control' }); const other = n - bank; tgSend = keep; lsSet(TG_KEY, null); return [bank, other]; }""")
         print("6) Telegram sends: bank alert", t[0], "| other alert", t[1]); check(t == [0, 1], "bank alert went to Telegram")
+        # 7) Fundamentals: the panel, a card per bank, a lean chip opens the brief, today's read, phone width
+        CB_SRV["swap"][FEED] = fed_feed(3600); await q(reset); await q("() => cbCatchUp()")
+        await q("() => goPage('fund')"); await wait("() => document.querySelector('#fundBody .fcbr')", 20); await q("() => fundRender()")
+        P = await q("""() => { const p = document.querySelector('#fundBody .fcbr'); if (!p) return null; const cards = [...p.querySelectorAll('.cbc')];
+          const fed = p.querySelector('.cbc[data-cb="USD"]'), a = fed && fed.querySelector('a.cblink');
+          return { head: p.querySelector('.fph').textContent, order: cards.map(c => c.dataset.cb), want: Object.keys(CBR).filter(c => CBR[c][0]).sort((x, y) => CBR[y][0].at - CBR[x][0].at),
+            fed: fed && fed.innerText.replace(/\s+/g, ' '), plus: fed ? fed.querySelectorAll('.cbw li.add').length : -1, minus: fed ? fed.querySelectorAll('.cbw li.drop').length : -1,
+            link: a && [a.href, a.target, a.rel], next: phtDay(fbMeet('USD')).slice(4), boj: (p.querySelector('.cbc[data-cb="JPY"]') || {}).innerText }; }""")
+        print("7) panel:", P and P["head"], "| cards:", P and P["order"]); print("   Fed card:", P and P["fed"][:600]); print("   +", P and P["plus"], "−", P and P["minus"], "| link:", P and P["link"], "| BoJ:", P and (P["boj"] or "")[:120].replace("\n", " "))
+        check(P and "Central bank reads" in P["head"] and P["order"] == P["want"] and P["order"][0] == "USD", "panel and card order")
+        check(all(x in P["fed"] for x in ["Held at 4.00%", "Hawkish", "Gold short", "What changed", "Until the next meeting", P["next"]]) and 0 < P["plus"] <= 3 and 0 < P["minus"] <= 3, "Fed card content")
+        chips = await q("() => [...document.querySelectorAll('#fundBody .cbc[data-cb=\"USD\"] .cbl [data-fmk]')].map(x => x.textContent)")
+        print("   Fed lean chips:", chips); check(chips == ["Gold short", "Nasdaq 100 short", "US dollar long", "EUR/USD short", "GBP/USD short", "USD/JPY long"], "lean chips: yours, the dollar, then pairs, 6 at most")
+        check(P["link"][0].startswith("https://www.federalreserve.gov/") and P["link"][1] == "_blank" and "noopener" in P["link"][2], "statement link")
+        check("Couldn't read the statement" in (P["boj"] or ""), "a statement that can't be read says so")
+        await q("() => document.querySelector('#fundBody .fcbr .cbc[data-cb=\"USD\"] [data-fmk=\"Gold\"]').click()"); await asyncio.sleep(0.4)
+        B = await q("() => [FB.k, document.getElementById('fbDlg').open, document.getElementById('fbBody').textContent.includes('Last central bank read'), (document.getElementById('fbBody').textContent.match(/Last central bank read[\s\S]{0,160}/) || [''])[0].replace(/\s+/g, ' ')]")
+        print("   chip → brief:", B); check(B[0] == "Gold" and B[1] and B[2], "lean chip opens the brief with the read")
+        await q("() => document.getElementById('fbDlg').close()")
+        T = await q("() => (document.querySelector('#fundRead [data-fmk=\"Gold\"]') || {}).innerText || ''")
+        print("   today's read, Gold:", T.replace("\n", " | ")[:220]); check("Fed statement hawkish" in T, "today's read line")
+        await pg.set_viewport_size({"width": 390, "height": 900}); await asyncio.sleep(0.4)
+        W = await q("() => [document.documentElement.scrollWidth, document.querySelector('#fundBody .fcbr').getBoundingClientRect().width]")
+        print("   phone width:", W); check(W[0] <= 390, "page scrolls sideways on a phone")
+        await pg.set_viewport_size({"width": 1500, "height": 1000})
+        E = await q("() => { const keep = CBR; CBR = {}; fundRender(); const t = document.querySelector('#fundBody .fcbr').innerText; CBR = keep; fundRender(); return t; }")
+        print("   empty:", E.replace("\n", " | ")[:160]); check("No decisions read yet" in E, "empty state")
         CB_SRV["swap"].clear(); await q(reset); await q("() => cbCatchUp()")
         print("errors:", errs or "none")
         await b.close()

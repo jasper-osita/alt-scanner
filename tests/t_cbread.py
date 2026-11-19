@@ -30,6 +30,11 @@ async def main():
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
         q = lambda js, arg=None: pg.evaluate(js, arg)
+        async def wait(js, secs=30):
+            for _ in range(secs * 4):
+                if await q(js): return True
+                await asyncio.sleep(0.25)
+            return False
         print("   mock serves a sample:", await q("async () => { const r = await fetch('/proxy/cbpage/fed/feeds/press_monetary.xml'); return [r.status, (await r.text()).includes('FOMC statement')]; }"))
         # 1) the reader: each bank's decision list, then each saved statement against what was read by hand (tests/cb/expect.json)
         LISTS = {"USD": ["fed/feeds/press_monetary.xml", "newsevents/pressreleases/monetary20261028a.htm", 4], "EUR": ["ecb/press/govcdec/mopo/2026/html/index_include.en.html", "press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html", 5],
@@ -66,6 +71,49 @@ async def main():
             d = await q("""async ([a, b]) => { const p = cbParse('USD', await (await fetch('/proxy/cbpage/' + a)).text()), c = cbParse('USD', await (await fetch('/proxy/cbpage/' + b)).text()); return cbDiff(p.sentences, c.sentences); }""", [prev, cur])
             print(f"   {cur.split('/')[-1]} vs {prev.split('/')[-1]}: +{len(d['added'])} -{len(d['dropped'])} | + {[x[:60] for x in d['added']]}")
             check(len(d["added"]) == na and len(d["dropped"]) == nd, f"diff {prev} -> {cur}")
+        # 3) the watcher: a Fed decision is due; the list still shows the old one, then the new statement appears
+        import email.utils, re as _re
+        FEED = "/proxy/cbpage/fed/feeds/press_monetary.xml"; real = open(os.path.join(ROOT, "tests/cb/fed/feeds/press_monetary.xml"), encoding="utf-8").read()
+        OCT = _re.search(r"<item>(?:(?!</item>)[\s\S])*?monetary20261028a\.htm[\s\S]*?</item>", real).group(0)
+        def fed_feed(age_s=None):                     # without the Oct 28 statement, or with it dated age_s seconds ago
+            if age_s is None: return real.replace(OCT, "")
+            return real.replace(OCT, _re.sub(r"<pubDate>[\s\S]*?</pubDate>", f"<pubDate>{email.utils.formatdate(time.time() - age_s, usegmt=True)}</pubDate>", OCT))
+        await wait("() => CBW.rounds > 0", 30)
+        reset = """() => { CBR = {}; lsSet('finder-cbreads', {}); CBW.poll = {}; CBW.caught = {}; NC = NC.filter(n => n.icon !== '🏦'); ncSave(); }"""
+        bank_alerts = "() => NC.filter(n => n.icon === '🏦').map(n => [n.title, n.detail, n.kind, n.noTg, n.action, n.mk])"
+        CB_SRV["swap"][FEED] = fed_feed(None); await q(reset); await q("() => cbCatchUp()")
+        print("3) before: Fed newest stored:", await q("() => CBR.USD && CBR.USD[0].path"), "| alerts:", await q(bank_alerts))
+        at = await q("""() => { const at = Date.now() + 60e3; CAL.items = CAL.items.filter(x => x.id !== 'test-fomc').concat([{ id: 'test-fomc', at, ccy: 'USD', title: 'Federal Funds Rate', impact: 'High', type: 'Central Bank', forecast: '4.00%', previous: '4.00%' }]); return at; }""")
+        print("   due:", await q("t => cbDue(t)", at + 60e3))
+        await q("t => cbTick(t)", at + 60e3)
+        old = await q("() => [CBR.USD.length, CBR.USD[0].path, NC.filter(n => n.icon === '🏦').length]")
+        print("   still old:", old); check(old[1].endswith("20260916a.htm") and old[2] == 0, "re-read or alerted the old statement")
+        CB_SRV["swap"][FEED] = fed_feed(30); await q("t => cbTick(t)", at + 120e3)
+        r = await q("() => { const r = CBR.USD[0]; return [r.path, r.ok, r.p.move, r.p.rate, r.forecast, r.v.label, r.v.why, r.diff.added.length, r.diff.dropped.length, CBR.USD[1] && CBR.USD[1].path]; }")
+        al = await q(bank_alerts); print("   new read:", r); print("   alerts:", al)
+        check(r[0].endswith("20261028a.htm") and r[1] and r[5] == "Hawkish" and r[7] == 3 and r[8] == 3 and r[9].endswith("20260916a.htm"), "new statement read wrong")
+        check(len(al) == 1 and al[0][0] == "Fed held at 4.00%: hawkish" and al[0][1].startswith("Gold short · Nasdaq 100 short · US dollar long") and al[0][2] == "News" and al[0][3] is True and al[0][4] == "brief", "one in-app alert")
+        await q("t => cbTick(t)", at + 240e3)
+        await pg.reload(); await ready(pg); await wait("() => CBW.rounds > 0", 30)
+        print("   after reload alerts:", len(await q(bank_alerts))); check(len(await q(bank_alerts)) == 1, "alerted again")
+        # 4) catch-up on open: a decision 2 days old alerts once; 10 days old is read but doesn't alert; no stored read: the previous comes from the list
+        for age, want in [(2 * 86400, 1), (10 * 86400, 0)]:
+            CB_SRV["swap"][FEED] = fed_feed(age); await q(reset); await q("() => cbCatchUp()")
+            c = await q("() => [CBR.USD[0].path, CBR.USD[0].ok, CBR.USD[1] && CBR.USD[1].path, CBR.USD[0].diff && CBR.USD[0].diff.added.length, NC.filter(n => n.icon === '🏦').map(n => n.title)]")
+            print(f"4) {age // 86400} days old:", c); check(c[0].endswith("20261028a.htm") and c[2].endswith("20260916a.htm") and c[3] == 3 and len(c[4]) == want, "catch-up")
+        # 5) the statement page fails: the read keeps the error, retries at most 3 times, and says so
+        PAGE = "/proxy/cbpage/fed/newsevents/pressreleases/monetary20261028a.htm"; CB_SRV["status"][PAGE] = 500
+        CB_SRV["swap"][FEED] = fed_feed(3600); await q(reset); await q("() => cbCatchUp()")
+        await q("""at => { CAL.items = CAL.items.filter(x => x.id !== 'test-fomc').concat([{ id: 'test-fomc', at, ccy: 'USD', title: 'Federal Funds Rate', impact: 'High', type: 'Central Bank', forecast: '4.00%', previous: '4.00%' }]); }""", at)
+        for k in range(5): await q("t => cbTick(t)", at + 60e3 * (k + 1))
+        f = await q("() => [CBR.USD[0].ok, CBR.USD[0].err, CBR.USD[0].tries, NC.filter(n => n.icon === '🏦').map(n => n.title + ' | ' + n.detail)]")
+        print("5) failing page:", f); check(f[0] is False and "500" in f[1] and f[2] == 3 and len(f[3]) == 1, "failure handling")
+        del CB_SRV["status"][PAGE]
+        # 6) Telegram set up with News on: the bank alert stays in the app, other alerts still go out
+        t = await q("""() => { lsSet(TG_KEY, { token: '1:x', chat: '1', kinds: { News: true } }); let n = 0; const keep = tgSend; tgSend = () => { n++; return Promise.resolve({ ok: true }); };
+          cbAlert('USD', CBR.USD[0]); const bank = n; ncAdd({ kind: 'News', icon: '📰', title: 'control' }); const other = n - bank; tgSend = keep; lsSet(TG_KEY, null); return [bank, other]; }""")
+        print("6) Telegram sends: bank alert", t[0], "| other alert", t[1]); check(t == [0, 1], "bank alert went to Telegram")
+        CB_SRV["swap"].clear(); await q(reset); await q("() => cbCatchUp()")
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

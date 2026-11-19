@@ -3051,7 +3051,7 @@ function cbParse(ccy, html, title, path) {            // a statement page → { 
     const v = all.match(/Voting against[^:]*? (?:was|were) ([\s\S]{3,400}?), who preferred (?:to )?(\w+)/i);
     if (v) { const n = v[1].split(/,\s*and\s+|,\s*|\s+and\s+/).filter(x => x.trim()).length, d = cbMove(v[2]); dissent.push([n, d === "hike" ? 1 : d === "cut" ? -1 : out.move === "hike" ? -1 : out.move === "cut" ? 1 : 0]); } }
   else if (ccy === "EUR") { m = all.match(/decided to (raise|increase|lower|reduce|cut|keep|maintain|leave)\b(?:[^.]|\.\d)*?key ECB interest rates/i); if (m) out.move = cbMove(m[1]);
-    const r = all.match(/deposit facility[^%]*?(?:at|to) (\d+(?:\.\d+)?)%/i); if (r) out.rate = +r[1]; }
+    const r = all.match(/deposit facility[^%]*?(?:at|to) (\d+(?:\.\d+)?)%(?:, (\d+(?:\.\d+)?)%)?/i); if (r) { out.rate = +r[1]; if (r[2]) out.mro = +r[2]; } }
   else if (ccy === "GBP") { m = all.match(/voted (?:by a majority of [\d–-]+ |unanimously )?to (increase|reduce|maintain|cut|raise|lower|hold|keep) Bank Rate(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
   else if (ccy === "AUD") { m = all.match(/decided to (increase|raise|lower|reduce|cut|leave|keep|hold|maintain)\b(?:[^.]|\.\d)*?cash rate target(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?) per ?cent/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
   else if (ccy === "CAD") { m = all.match(/\b(increased|raised|lowered|reduced|cut|held|maintained|kept)\b(?:[^.]|\.\d)*?target for the overnight rate[^%]*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
@@ -9874,7 +9874,7 @@ async function tgPump() {
 function tgSend(text) { return new Promise(res => { if (TGQ.length > 20) TGQ.shift(); TGQ.push({ text, res: (ok, why) => res({ ok, why }) }); tgPump(); }); }
 const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.url ? "\n" + xEsc(n.url) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
 const _ncAdd = ncAdd;
-ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
+ncAdd = function (n) { const it = _ncAdd(n); try { const c = tgCfg(); if (!it.noTg && tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };   // noTg: in-app only
 function openTGSettings() {
   killChart();
   const c = tgCfg() || {}, kinds = c.kinds || {}, local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
@@ -10210,10 +10210,11 @@ function fbDrivers(m, S) {                         // the forces on this market 
   return D;
 }
 function cbLean(ccy, label) {                      // which way a bank's read leans each market: hawkish = its currency up (same signs as fbDrivers' bank())
-  const s = label === "Hawkish" ? 1 : label === "Dovish" ? -1 : 0; if (!s) return [];
+  const s = label === "Hawkish" ? 1 : label === "Dovish" ? -1 : 0, mine = typeof naMine === "function" ? naMine().map(m => m.k) : []; if (!s) return [];
   return FB_MK.map(m => { const g = m.kind === "fx" ? (m.b === ccy ? s : m.q === ccy ? -s : 0) : m.kind === "usd" ? (ccy === "USD" ? s : 0)
     : ["gold", "oil", "copper", "btc"].includes(m.kind) ? (ccy === "USD" ? -s : 0) : m.kind === "idx" ? (m.ccy[0] === ccy ? -s : 0) : 0;
-    return g ? { k: m.k, dir: g > 0 ? "long" : "short" } : null; }).filter(Boolean);
+    return g ? { k: m.k, dir: g > 0 ? "long" : "short" } : null; }).filter(Boolean)
+    .map((x, i) => { const j = mine.indexOf(x.k); return [j >= 0 ? j : x.k === "US dollar" ? mine.length : mine.length + 1 + i, x]; }).sort((a, b) => a[0] - b[0]).map(x => x[1]);   // your markets first, then the dollar
 }
 function fbWhen(x, now = Date.now()) { return x.at - now > 6 * 864e5 ? phtDay(x.at).slice(4) : `${phtDayKey(x.at) === phtDayKey(now) ? "Today" : phtDay(x.at).slice(0, 3)} ${x.earn ? x.timeLbl : x.timeLbl || phtHM(x.at)}`; }
 function fbEvents(m) {                             // high-impact events for this market's currencies, the next Fed decision, big tech earnings
@@ -10336,6 +10337,66 @@ function rxTick(now = Date.now()) {
       RX = [{ ccy: x.ccy, title: x.title, at: x.at, mv2: L.mv, mv10: mv, read: L.read, read10: L.read10 }, ...RX.filter(y => !(y.title === x.title && y.at === x.at))].slice(0, 200); lsSet(RX_KEY, RX); }
   });
 }
+/* central bank reads: while a high-impact rate decision is due, watch that bank's own list every 45 s until the new statement is out, then read it,
+   keep it (finder-cbreads: the last 2 per bank, with their sentences so the next meeting can be compared) and alert in the app only (not Telegram).
+   Every 6 hours (and when the app opens) each bank's list is checked once, so a meeting missed while the app was closed is still read. */
+const CBR_KEY = "finder-cbreads"; let CBR = lsGet(CBR_KEY, {}); const CBW = { poll: {}, caught: {}, busy: {}, rounds: 0 };
+const cbSave = () => lsSet(CBR_KEY, CBR), cbUrl = (B, path) => `/proxy/cbpage/${B.key}/${path}`;
+async function cbList(ccy, now = Date.now()) {         // the bank's decisions, newest first (last year's too when this year's list is short)
+  const B = CB_BANKS[ccy], y = new Date(now).getUTCFullYear(), get = async path => { const r = await fetch(cbUrl(B, path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); return cbItems(ccy, await r.text()); };
+  let L = await get(B.list.replace("{y}", y)); if (L.length < 2 && B.list.includes("{y}")) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));
+  return L;
+}
+function cbDue(now = Date.now()) {                     // banks with a high-impact decision from 2 minutes before to 90 minutes after
+  const due = new Set(); (typeof calAll === "function" ? calAll() : []).forEach(e => { if (CB_BANKS[e.ccy] && e.impact === "High" && e.type === "Central Bank" && now >= e.at - 2 * 60e3 && now <= e.at + 90 * 60e3) due.add(e.ccy); });
+  return [...due];
+}
+function cbForecast(ccy, t, p) {                       // the calendar's forecast for this decision's rate (the ECB's is quoted on its main refinancing rate)
+  const E = (typeof calAll === "function" ? calAll() : []).filter(e => e.ccy === ccy && e.type === "Central Bank" && Math.abs(e.at - t) < 864e5 && /^[<>]?\s*-?\d+(\.\d+)?%$/.test(String(e.forecast || "").trim()))
+    .sort((a, b) => Math.abs(a.at - t) - Math.abs(b.at - t)); if (!E.length) return null;
+  const v = parseFloat(String(E[0].forecast).replace(/[<>\s%]/g, "")); if (!isFinite(v)) return null;
+  return ccy === "EUR" && /refinanc/i.test(E[0].title) ? (p && p.mro != null && p.rate != null ? +(v - (p.mro - p.rate)).toFixed(4) : null) : v;
+}
+async function cbCheck(ccy, now = Date.now()) {        // read the newest decision if it's new (or retry a failed read, 3 tries at most)
+  if (CBW.busy[ccy]) return; CBW.busy[ccy] = true;
+  try { const L = await cbList(ccy, now), it = L[0]; if (!it) return; const have = (CBR[ccy] || [])[0];
+    if (have && have.id === it.link && (have.ok || have.tries >= 3 || /\.pdf$/i.test(it.path))) return;
+    await cbRead(ccy, it, L, now); }
+  catch (e) {} finally { CBW.busy[ccy] = false; }
+}
+async function cbRead(ccy, it, L, now = Date.now()) {
+  const B = CB_BANKS[ccy], old = CBR[ccy] || [], same = old[0] && old[0].id === it.link ? old[0] : null;
+  const rd = { id: it.link, path: it.path, title: it.title, at: it.t, readAt: now, tries: (same ? same.tries || 0 : 0) + 1, alerted: !!(same && same.alerted) };
+  if (/\.pdf$/i.test(it.path)) rd.p = cbParse(ccy, "", it.title, it.path);
+  else try { const r = await fetch(cbUrl(B, it.path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); rd.p = cbParse(ccy, await r.text(), it.title, it.path); }
+  catch (e) { rd.p = cbParse(ccy, "", it.title, it.path); rd.p.err = e.message || "couldn't reach the bank's site"; }
+  rd.ok = !!rd.p.ok; rd.err = rd.p.err || null;
+  let prev = old.find(x => x.id !== it.link && x.ok && x.p && x.p.sentences.length);            // the last statement before this one: kept, else the list's next decision
+  const nx = (L || []).find(x => x.link !== it.link && x.t < it.t);
+  if (!prev && rd.ok && nx && !/\.pdf$/i.test(nx.path)) try { const r = await fetch(cbUrl(B, nx.path)); if (r.ok) { const pp = cbParse(ccy, await r.text(), nx.title, nx.path); if (pp.ok) prev = { id: nx.link, path: nx.path, title: nx.title, at: nx.t, ok: true, p: pp }; } } catch (e) {}
+  rd.prevAt = prev ? prev.at : null; rd.diff = prev && rd.ok ? cbDiff(prev.p.sentences, rd.p.sentences) : null;
+  rd.forecast = cbForecast(ccy, it.t, rd.p); rd.v = rd.p.move ? cbVerdict(rd.p, rd.diff, rd.forecast) : null;
+  CBR[ccy] = [rd, ...(prev ? [prev] : [])].slice(0, 2);
+  if (!rd.alerted && now - it.t < 7 * 864e5 && (rd.ok || rd.tries >= 3 || /\.pdf$/i.test(it.path))) { rd.alerted = true; cbAlert(ccy, rd); }
+  cbSave(); if (typeof fundRender === "function") fundRender();
+  return rd;
+}
+function cbAlert(ccy, rd) {                            // in the app only (noTg)
+  const B = CB_BANKS[ccy], p = rd.p || {}, v = rd.v, lean = v ? cbLean(ccy, v.label) : [], mine = naMine().find(m => fbCcys(m).includes(ccy));
+  const verb = p.move === "hike" ? "raised" : p.move === "cut" ? "cut" : p.move === "hold" ? "held" : null;
+  const title = verb ? `${B.bank} ${verb}${p.rate != null ? ` ${verb === "held" ? "at" : "to"} ${p.rate.toFixed(2)}%` : ""}${v ? ": " + v.label.toLowerCase() : ""}` : `${B.bank} statement is out`;
+  const detail = !rd.ok ? `Couldn't read the statement (${rd.err || "unknown reason"}). Open the brief for the link.` : lean.length ? lean.slice(0, 3).map(x => `${x.k} ${x.dir}`).join(" · ") : `No strong lean. ${v ? v.why[0] : ""}`;
+  return ncAdd({ kind: "News", icon: "🏦", tone: "warn", action: "brief", mk: mine ? mine.k : RX_MK[ccy], title, detail, noTg: true });
+}
+async function cbCatchUp(now = Date.now()) { for (const ccy of Object.keys(CB_BANKS)) { CBW.caught[ccy] = now; await cbCheck(ccy, now); } }
+async function cbTick(now = Date.now()) {
+  try { const due = cbDue(now);
+    for (const ccy of Object.keys(CB_BANKS)) {
+      if (due.includes(ccy)) { if (now - (CBW.poll[ccy] || 0) < 45e3) continue; CBW.poll[ccy] = now; await cbCheck(ccy, now); }
+      else if (now - (CBW.caught[ccy] || 0) > 6 * 3600e3) { CBW.caught[ccy] = now; await cbCheck(ccy, now); } } }
+  finally { CBW.rounds++; }
+}
+setTimeout(() => { cbTick().catch(() => {}); setInterval(() => cbTick().catch(() => {}), 15e3); }, 5e3);
 const rxLast = x => RX.find(y => y.ccy === x.ccy && y.title === x.title && y.at < x.at - 60e3);       // the same event's last release
 /* sudden moves: live prices sampled every 2 seconds; a jump of 15% of an average day (or FB_THR) inside 3 minutes is flagged, usually before any headline */
 function fbShockOf(m, a, now) {

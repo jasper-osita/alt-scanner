@@ -8,17 +8,45 @@ EXPECT = {k: v for k, v in json.load(open(os.path.join(ROOT, "tests/cb/expect.js
 def check(ok, msg):                               # the runner flags a Traceback
     if not ok: raise AssertionError(msg)
 
-def relay_check():                                 # server.py only ever fetches the six banks' own sites
-    sys.path.insert(0, ROOT); import server
+def relay_check():                                 # server.py and the Vercel function only ever fetch the six banks' own sites
+    sys.path.insert(0, ROOT); import server, subprocess
+    from urllib.parse import urlencode
     seen = []; server.cached_get = lambda key, url, ttl, headers: (seen.append(url), (200, b"ok"))[1]
-    bad = ["/proxy/cbpage/fed/@evil.com/x", "/proxy/cbpage/fed/../x", "/proxy/cbpage/fed//evil.com/x", "/proxy/cbpage/fed/a%2Fb",
-           "/proxy/cbpage/fed/a:b", "/proxy/cbpage/xyz/feeds/a.xml", "/proxy/cbpage/fed/", "/proxy/cbpage/fed/a?b=1"]
-    codes = [server.relay_fund(p, "")[0] for p in bad]
-    print("0) relay: abusive paths ->", codes, "| fetched:", seen)
-    check(all(c == 400 for c in codes) and not seen, "relay let a bad path through")
-    ok = server.relay_fund("/proxy/cbpage/fed/feeds/press_monetary.xml", "")[0], server.relay_fund("/proxy/cbpage/ecb/press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html", "")[0]
-    print("   valid paths ->", ok, seen)
+    bad = [("fed", "@evil.com/x"), ("fed", "../x"), ("fed", "/evil.com/x"), ("fed", "a%2Fb"), ("fed", "a:b"), ("xyz", "feeds/a.xml"), ("fed", ""), ("fed", "a?b=1"), ("fed", "a b"), ("fed", "a//b")]
+    codes = [server.relay_fund("/proxy/cbpage", urlencode({"bank": b, "p": x}))[0] for b, x in bad]
+    old = server.relay_fund("/proxy/cbpage/fed/feeds/press_monetary.xml", "")[0]
+    print("0) relay: abusive ->", codes, "| old path form ->", old, "| fetched:", seen)
+    check(all(c == 400 for c in codes) and old in (400, 404) and not seen, "relay let a bad path through")
+    ok = [server.relay_fund("/proxy/cbpage", urlencode({"bank": "fed", "p": "feeds/press_monetary.xml"}))[0], server.relay_fund("/proxy/cbpage", urlencode({"bank": "ecb", "p": "press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html"}))[0]]
+    print("   valid ->", ok, seen)
     check(seen == ["https://www.federalreserve.gov/feeds/press_monetary.xml", "https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html"], "relay built the wrong URL")
+    # the Vercel function (api/cb.js): same allowlist, redirects must stay on the bank's site, served as plain text in a sandbox
+    NODE = r"""
+const h = require(process.argv[1]); const seen = []; let plan = [];
+const mk = (status, body, loc) => ({ status, headers: { get: k => k.toLowerCase() === "location" ? loc || null : null }, text: async () => body });
+global.fetch = async (url, o) => { seen.push([url, o && o.redirect]); return plan.shift() || mk(200, "ok"); };
+const run = async (query, p0 = []) => { plan = p0; const H = {}; let code = 0, body = "";
+  await h({ method: "GET", query }, { setHeader: (k, v) => { H[k.toLowerCase()] = v; }, set statusCode(c) { code = c; }, get statusCode() { return code; }, end: b => { body = String(b || ""); } });
+  return { code, ct: H["content-type"], csp: H["content-security-policy"], nos: H["x-content-type-options"] }; };
+(async () => { const o = { bad: [] };
+  for (const [b, p] of [["fed", "@evil.com/x"], ["fed", "../x"], ["fed", "/evil.com/x"], ["fed", "a%2Fb"], ["fed", "a:b"], ["xyz", "feeds/a.xml"], ["fed", ""], ["fed", "a//b"]]) o.bad.push((await run({ bank: b, p })).code);
+  o.fetchedForBad = seen.length;
+  let n = seen.length; o.ok = await run({ bank: "ecb", p: "press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html" }); o.okUrls = seen.slice(n);
+  o.off = await run({ bank: "fed", p: "x.htm" }, [mk(301, "", "https://evil.example/x")]);
+  n = seen.length; o.same = await run({ bank: "boc", p: "2026/10/fad-press-release-2026-10-28/" }, [mk(301, "", "/2026/10/fad-press-release-2026-10-28/index.html"), mk(200, "page")]); o.sameUrls = seen.slice(n).map(x => x[0]);
+  console.log(JSON.stringify(o)); })().catch(e => console.log(JSON.stringify({ error: String(e) })));
+"""
+    r = subprocess.run(["node", "-e", NODE, os.path.join(ROOT, "api/cb.js")], capture_output=True, text=True)
+    o = json.loads((r.stdout or "{}").strip().splitlines()[-1] if r.stdout.strip() else json.dumps({"error": r.stderr[-300:]}))
+    print("   Vercel function:", o)
+    check(not o.get("error") and all(c == 400 for c in o["bad"]) and o["fetchedForBad"] == 0, "Vercel function let a bad path through")
+    check(o["ok"]["code"] == 200 and o["ok"]["ct"].startswith("text/plain") and "sandbox" in o["ok"]["csp"] and o["ok"]["nos"] == "nosniff"
+          and o["okUrls"] == [["https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html", "manual"]], "Vercel function fetch / headers")
+    check(o["off"]["code"] == 502 and o["same"]["code"] == 200 and o["sameUrls"] == ["https://www.bankofcanada.ca/2026/10/fad-press-release-2026-10-28/", "https://www.bankofcanada.ca/2026/10/fad-press-release-2026-10-28/index.html"], "Vercel function redirects")
+    v = json.load(open(os.path.join(ROOT, "vercel.json")))
+    rw = [x for x in v["rewrites"] if "cbpage" in x["source"]]
+    print("   vercel.json cbpage rewrites:", rw)
+    check(rw == [{"source": "/proxy/cbpage", "destination": "/api/cb"}], "vercel.json should send /proxy/cbpage to the function only (cleanUrls would mangle .html paths)")
 
 async def main():
     relay_check()
@@ -30,21 +58,22 @@ async def main():
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
         q = lambda js, arg=None: pg.evaluate(js, arg)
+        await q("() => { window.cbU = k => '/proxy/cbpage?bank=' + k.slice(0, k.indexOf('/')) + '&p=' + encodeURIComponent(k.slice(k.indexOf('/') + 1)); }")
         async def wait(js, secs=30):
             for _ in range(secs * 4):
                 if await q(js): return True
                 await asyncio.sleep(0.25)
             return False
-        print("   mock serves a sample:", await q("async () => { const r = await fetch('/proxy/cbpage/fed/feeds/press_monetary.xml'); return [r.status, (await r.text()).includes('FOMC statement')]; }"))
+        print("   mock serves a sample:", await q("async () => { const r = await fetch(cbU('fed/feeds/press_monetary.xml')); return [r.status, (await r.text()).includes('FOMC statement')]; }"))
         # 1) the reader: each bank's decision list, then each saved statement against what was read by hand (tests/cb/expect.json)
         LISTS = {"USD": ["fed/feeds/press_monetary.xml", "newsevents/pressreleases/monetary20261028a.htm", 4], "EUR": ["ecb/press/govcdec/mopo/2026/html/index_include.en.html", "press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html", 5],
                  "GBP": ["boe/rss/news", "monetary-policy-summary-and-minutes/2026/november-2026", 3], "JPY": ["boj/en/rss/whatsnew.xml", "en/mopo/mpmdeci/mpr_2026/k261030a.pdf", 1],
                  "AUD": ["rba/media-releases/2026/", "media-releases/2026/mr-26-30.html", 6], "CAD": ["boc/content_type/press-releases/feed/", "2026/10/fad-press-release-2026-10-28/", 3]}
-        items = await q("""async L => { const o = {}; for (const [c, [f]] of Object.entries(L)) { const it = cbItems(c, await (await fetch('/proxy/cbpage/' + f)).text()); o[c] = [it.length, it[0] && it[0].path, it[0] && it[0].title, it.every((x, i) => !i || x.t <= it[i - 1].t && x.t > 0)]; } return o; }""", LISTS)
+        items = await q("""async L => { const o = {}; for (const [c, [f]] of Object.entries(L)) { const it = cbItems(c, await (await fetch(cbU(f))).text()); o[c] = [it.length, it[0] && it[0].path, it[0] && it[0].title, it.every((x, i) => !i || x.t <= it[i - 1].t && x.t > 0)]; } return o; }""", LISTS)
         for c, (n, path, title, ordered) in items.items():
             print(f"1) {c} list: {n} decisions, newest {path} ({title}), newest first: {ordered}")
             check(n >= LISTS[c][2] and path == LISTS[c][1] and ordered, f"{c} decision list read wrong")
-        got = await q("""async E => { const o = []; for (const [k, e] of Object.entries(E)) { const p = cbParse(e.ccy, await (await fetch('/proxy/cbpage/' + k)).text());
+        got = await q("""async E => { const o = []; for (const [k, e] of Object.entries(E)) { const p = cbParse(e.ccy, await (await fetch(cbU(k))).text());
             o.push([k, p.ok, p.move, p.rate, p.hawk, p.dove, p.sentences.length, p.sentences.slice(0, 2)]); } return o; }""", EXPECT)
         for k, ok, move, rate, hawk, dove, ns, first in got:
             e = EXPECT[k]; good = ok and move == e["move"] and rate == e["rate"] and hawk == e["hawk"] and dove == e["dove"] and ns >= e["minSentences"]
@@ -68,12 +97,12 @@ async def main():
         check(all(x in V["jpy"] for x in ["USD/JPY short", "Nikkei 225 short"]), "JPY lean")
         check("EUR/USD short" in V["eurDove"] and "EUR/GBP short" in V["eurDove"] and V["none"] == [], "EUR dovish lean / none when as expected")
         for prev, cur, na, nd in json.load(open(os.path.join(ROOT, "tests/cb/expect.json")))["_diffs"]:
-            d = await q("""async ([a, b]) => { const p = cbParse('USD', await (await fetch('/proxy/cbpage/' + a)).text()), c = cbParse('USD', await (await fetch('/proxy/cbpage/' + b)).text()); return cbDiff(p.sentences, c.sentences); }""", [prev, cur])
+            d = await q("""async ([a, b]) => { const p = cbParse('USD', await (await fetch(cbU(a))).text()), c = cbParse('USD', await (await fetch(cbU(b))).text()); return cbDiff(p.sentences, c.sentences); }""", [prev, cur])
             print(f"   {cur.split('/')[-1]} vs {prev.split('/')[-1]}: +{len(d['added'])} -{len(d['dropped'])} | + {[x[:60] for x in d['added']]}")
             check(len(d["added"]) == na and len(d["dropped"]) == nd, f"diff {prev} -> {cur}")
         # 3) the watcher: a Fed decision is due; the list still shows the old one, then the new statement appears
         import email.utils, re as _re
-        FEED = "/proxy/cbpage/fed/feeds/press_monetary.xml"; real = open(os.path.join(ROOT, "tests/cb/fed/feeds/press_monetary.xml"), encoding="utf-8").read()
+        FEED = "fed/feeds/press_monetary.xml"; real = open(os.path.join(ROOT, "tests/cb/fed/feeds/press_monetary.xml"), encoding="utf-8").read()
         OCT = _re.search(r"<item>(?:(?!</item>)[\s\S])*?monetary20261028a\.htm[\s\S]*?</item>", real).group(0)
         def fed_feed(age_s=None):                     # without the Oct 28 statement, or with it dated age_s seconds ago
             if age_s is None: return real.replace(OCT, "")
@@ -102,7 +131,7 @@ async def main():
             c = await q("() => [CBR.USD[0].path, CBR.USD[0].ok, CBR.USD[1] && CBR.USD[1].path, CBR.USD[0].diff && CBR.USD[0].diff.added.length, NC.filter(n => n.icon === '🏦').map(n => n.title)]")
             print(f"4) {age // 86400} days old:", c); check(c[0].endswith("20261028a.htm") and c[2].endswith("20260916a.htm") and c[3] == 3 and len(c[4]) == want, "catch-up")
         # 5) the statement page fails: the read keeps the error, retries at most 3 times, and says so
-        PAGE = "/proxy/cbpage/fed/newsevents/pressreleases/monetary20261028a.htm"; CB_SRV["status"][PAGE] = 500
+        PAGE = "fed/newsevents/pressreleases/monetary20261028a.htm"; CB_SRV["status"][PAGE] = 500
         CB_SRV["swap"][FEED] = fed_feed(3600); await q(reset); await q("() => cbCatchUp()")
         await q("""at => { CAL.items = CAL.items.filter(x => x.id !== 'test-fomc').concat([{ id: 'test-fomc', at, ccy: 'USD', title: 'Federal Funds Rate', impact: 'High', type: 'Central Bank', forecast: '4.00%', previous: '4.00%' }]); }""", at)
         for k in range(5): await q("t => cbTick(t)", at + 60e3 * (k + 1))
@@ -119,7 +148,7 @@ async def main():
         P = await q("""() => { const p = document.querySelector('#fundBody .fcbr'); if (!p) return null; const cards = [...p.querySelectorAll('.cbc')];
           const fed = p.querySelector('.cbc[data-cb="USD"]'), a = fed && fed.querySelector('a.cblink');
           return { head: p.querySelector('.fph').textContent, order: cards.map(c => c.dataset.cb), want: Object.keys(CBR).filter(c => CBR[c][0]).sort((x, y) => CBR[y][0].at - CBR[x][0].at),
-            fed: fed && fed.innerText.replace(/\s+/g, ' '), plus: fed ? fed.querySelectorAll('.cbw li.add').length : -1, minus: fed ? fed.querySelectorAll('.cbw li.drop').length : -1,
+            fed: fed && fed.innerText.replace(/\\s+/g, ' '), plus: fed ? fed.querySelectorAll('.cbw li.add').length : -1, minus: fed ? fed.querySelectorAll('.cbw li.drop').length : -1,
             link: a && [a.href, a.target, a.rel], next: phtDay(fbMeet('USD')).slice(4), boj: (p.querySelector('.cbc[data-cb="JPY"]') || {}).innerText }; }""")
         print("7) panel:", P and P["head"], "| cards:", P and P["order"]); print("   Fed card:", P and P["fed"][:600]); print("   +", P and P["plus"], "−", P and P["minus"], "| link:", P and P["link"], "| BoJ:", P and (P["boj"] or "")[:120].replace("\n", " "))
         check(P and "Central bank reads" in P["head"] and P["order"] == P["want"] and P["order"][0] == "USD", "panel and card order")
@@ -134,7 +163,7 @@ async def main():
         W2 = await q("() => [...new Set((CBR.AUD[0].v.why.find(w => w.startsWith('Wording')) || '').split(', '))].length === (CBR.AUD[0].v.why.find(w => w.startsWith('Wording')) || '').split(', ').length")
         check(W2, "wording reasons repeat")
         await q("() => document.querySelector('#fundBody .fcbr .cbc[data-cb=\"USD\"] [data-fmk=\"Gold\"]').click()"); await asyncio.sleep(0.4)
-        B = await q("() => [FB.k, document.getElementById('fbDlg').open, document.getElementById('fbBody').textContent.includes('Last central bank read'), (document.getElementById('fbBody').textContent.match(/Last central bank read[\s\S]{0,160}/) || [''])[0].replace(/\s+/g, ' ')]")
+        B = await q("() => [FB.k, document.getElementById('fbDlg').open, document.getElementById('fbBody').textContent.includes('Last central bank read'), (document.getElementById('fbBody').textContent.match(/Last central bank read[\\s\\S]{0,160}/) || [''])[0].replace(/\\s+/g, ' ')]")
         print("   chip → brief:", B); check(B[0] == "Gold" and B[1] and B[2], "lean chip opens the brief with the read")
         await q("() => document.getElementById('fbDlg').close()")
         T = await q("() => (document.querySelector('#fundRead [data-fmk=\"Gold\"]') || {}).innerText || ''")

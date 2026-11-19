@@ -3013,7 +3013,7 @@ const NEWS_FEEDS = { fxstreet: "https://www.fxstreet.com/rss/news", marketwatch:
   coindesk: "https://www.coindesk.com/arc/outboundfeeds/rss/", financialjuice: "https://www.financialjuice.com/feed.ashx?xy=rss" };
 /* ===================== central bank reads: each bank's own decision list and statement, read by rules (no AI, nothing paid) =====================
    list: where the bank lists its decisions (a path on its own site, {y} = year); item: which entries are rate decisions;
-   from/to: where the statement text starts and ends in the page. The relay (/proxy/cbpage/<key>/<path>) only reaches these sites. */
+   from/to: where the statement text starts and ends in the page. The relay (/proxy/cbpage?bank=<key>&p=<path>: server.py, api/cb.js) only reaches these sites. */
 const CB_BANKS = {
   USD: { bank: "Fed", key: "fed", host: "https://www.federalreserve.gov", list: "feeds/press_monetary.xml", item: /^Federal Reserve issues FOMC statement$/i, from: 'id="article"', to: ["For media inquiries", "Implementation Note", "Last Update"] },
   EUR: { bank: "ECB", key: "ecb", host: "https://www.ecb.europa.eu", list: "press/govcdec/mopo/{y}/html/index_include.en.html", item: /^Monetary policy decisions$/i, from: "<main", to: ["Related topics", "Media contacts"] },
@@ -10346,7 +10346,7 @@ function rxTick(now = Date.now()) {
    keep it (finder-cbreads: the last 2 per bank, with their sentences so the next meeting can be compared) and alert in the app only (not Telegram).
    Every 6 hours (and when the app opens) each bank's list is checked once, so a meeting missed while the app was closed is still read. */
 const CBR_KEY = "finder-cbreads"; let CBR = lsGet(CBR_KEY, {}); const CBW = { poll: {}, caught: {}, busy: {}, rounds: 0 };
-const cbSave = () => lsSet(CBR_KEY, CBR), cbUrl = (B, path) => `/proxy/cbpage/${B.key}/${path}`;
+const cbSave = () => lsSet(CBR_KEY, CBR), cbUrl = (B, path) => `/proxy/cbpage?bank=${B.key}&p=${encodeURIComponent(path)}`;
 async function cbList(ccy, now = Date.now()) {         // the bank's decisions, newest first (last year's too when this year's list is short)
   const B = CB_BANKS[ccy], y = new Date(now).getUTCFullYear(), get = async path => { const r = await fetch(cbUrl(B, path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); return cbItems(ccy, await r.text()); };
   let L = await get(B.list.replace("{y}", y)); if (L.length < 2 && B.list.includes("{y}")) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));

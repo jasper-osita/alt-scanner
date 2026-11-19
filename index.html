@@ -3007,6 +3007,60 @@ function rssItems(xml) {
 }
 const NEWS_FEEDS = { fxstreet: "https://www.fxstreet.com/rss/news", marketwatch: "https://feeds.content.dowjones.io/public/rss/mw_topstories", investing: "https://www.investing.com/rss/news_25.rss",
   coindesk: "https://www.coindesk.com/arc/outboundfeeds/rss/", financialjuice: "https://www.financialjuice.com/feed.ashx?xy=rss" };
+/* ===================== central bank reads: each bank's own decision list and statement, read by rules (no AI, nothing paid) =====================
+   list: where the bank lists its decisions (a path on its own site, {y} = year); item: which entries are rate decisions;
+   from/to: where the statement text starts and ends in the page. The relay (/proxy/cbpage/<key>/<path>) only reaches these sites. */
+const CB_BANKS = {
+  USD: { bank: "Fed", key: "fed", host: "https://www.federalreserve.gov", list: "feeds/press_monetary.xml", item: /^Federal Reserve issues FOMC statement$/i, from: 'id="article"', to: ["For media inquiries", "Implementation Note", "Last Update"] },
+  EUR: { bank: "ECB", key: "ecb", host: "https://www.ecb.europa.eu", list: "press/govcdec/mopo/{y}/html/index_include.en.html", item: /^Monetary policy decisions$/i, from: "<main", to: ["Related topics", "Media contacts"] },
+  GBP: { bank: "BoE", key: "boe", host: "https://www.bankofengland.co.uk", list: "rss/news", item: /^Bank Rate (maintained|increased|reduced|cut|raised|held|lowered)\b/i, from: "<h2>Monetary Policy Summary", to: ["<h2>Minutes of the Monetary Policy Committee", "Other Monetary Policy Committee news"] },
+  JPY: { bank: "BoJ", key: "boj", host: "https://www.boj.or.jp", list: "en/rss/whatsnew.xml", item: /^Statement on Monetary Policy$/i, from: "<main", to: [] },
+  AUD: { bank: "RBA", key: "rba", host: "https://www.rba.gov.au", list: "media-releases/{y}/", item: /Monetary Policy Decision/i, from: 'class="rss-mr-content"', to: ["Enquiries", "</article>"] },
+  CAD: { bank: "BoC", key: "boc", host: "https://www.bankofcanada.ca", list: "content_type/press-releases/feed/", item: /^Bank of Canada (raises|increases|lowers|reduces|cuts|maintains|holds)\b.*policy rate/i, from: "<main", to: ["Information note", "Content Type(s)"] } };
+const CB_ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", rsquo: "’", lsquo: "‘", ldquo: "“", rdquo: "”", ndash: "–", mdash: "—", hellip: "…", frac12: "½", frac14: "¼", frac34: "¾" };
+const cbDec = s => String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d)).replace(/&([a-z0-9]+);/gi, (m, n) => CB_ENT[n.toLowerCase()] ?? m);
+const cbPath = link => String(link || "").trim().replace(/^https?:\/\/[^/]+/i, "").replace(/^\/+/, "");
+function cbItems(ccy, text) {                         // a bank's decision list → [{ title, link, path, t }], newest first
+  const B = CB_BANKS[ccy], s = String(text || ""); if (!B) return []; let L = [];
+  if (B.key === "rba") L = (s.match(/<article[\s\S]*?<\/article>/g) || []).map(a => { const h = a.match(/itemprop="headline">([^<]*)</), l = a.match(/href="([^"]+)"/), d = a.match(/datetime="([^"]+)"/);
+    return { title: h ? cbDec(h[1]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1].replace(/T(\d\d:\d\d)([+-])/, "T$1:00$2")) || 0 : 0 }; });
+  else if (B.key === "ecb") L = (s.match(/<dt[^>]*isoDate="[^"]+"[\s\S]*?<\/dd>/g) || []).map(a => { const d = a.match(/isoDate="([^"]+)"/), l = a.match(/<div class="title"><a href="([^"]+)"[^>]*>([^<]*)</);
+    return { title: l ? cbDec(l[2]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1] + "T12:15:00Z") || 0 : 0 }; });
+  else L = rssItems(s).map(x => ({ title: x.title, link: x.link, t: x.t }));
+  return L.filter(x => x.title && x.link && B.item.test(x.title)).map(x => ({ ...x, path: cbPath(x.link) })).sort((a, b) => b.t - a.t);
+}
+const CB_NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+const cbFrac = s => { const m = String(s).match(/^(\d+)(?:-(\d+)\/(\d+))?$|^(\d+)\/(\d+)$/); return !m ? parseFloat(s) : m[4] ? m[4] / m[5] : +m[1] + (m[2] ? m[2] / m[3] : 0); };
+const cbPct = s => { const m = String(s).match(/(\d+(?:\.\d+)?)\s*([¼½¾])?/); return m ? +m[1] + ({ "¼": 0.25, "½": 0.5, "¾": 0.75 }[m[2]] || 0) : null; };
+const cbMove = v => /^(rais|increas|hik)/i.test(v) ? "hike" : /^(lower|reduc|cut)/i.test(v) ? "cut" : /^(maintain|keep|kept|leave|left|hold|held|unchanged)/i.test(v) ? "hold" : null;
+const CB_VOTE = /\bvot(e|ed|es|ing)\b|decision was (unanimous|by majority)/i;
+function cbParse(ccy, html, title, path) {            // a statement page → { ok, err?, sentences, move, rate, hawk, dove }
+  const B = CB_BANKS[ccy], out = { ok: false, sentences: [], move: null, rate: null, hawk: 0, dove: 0 };
+  const fromTitle = () => { const t = String(title || ""); out.move = cbMove((t.match(/\b(raises|increases|increased|raised|lowers|lowered|reduces|reduced|cuts|cut|maintains|maintained|holds|held)\b/i) || [])[1] || ""); const r = t.match(/(\d+(?:\.\d+)?\s*[¼½¾]?)\s*(%|per cent|percent)/i); out.rate = r ? cbPct(r[1]) : null; };
+  if (!B) { out.err = "unknown bank"; return out; }
+  if (/\.pdf$/i.test(path || "")) { fromTitle(); out.err = "statement is a PDF"; return out; }
+  const h = String(html || ""), a = h.indexOf(B.from); if (a < 0) { fromTitle(); out.err = "the page layout changed"; return out; }
+  const ends = B.to.map(m => h.indexOf(m, a + B.from.length)).filter(i => i > 0), b = ends.length ? Math.min(...ends) : a + 30000;
+  const lines = cbDec(h.slice(a, b).replace(/^[^>]*>/, "").replace(/\s+/g, " ").replace(/<br\s*\/?>|<\/(p|h\d|li|div|dt|dd|td|tr|section|article|header|ul|ol|table)>|<h\d[^>]*>/gi, "\n").replace(/<[^>]+>/g, " "))
+    .split(/\n+/).map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const all = lines.join(" "), sents = [];
+  lines.forEach(l => l.split(/(?<=[.!?:])(?<!\b[A-Z]\.)(?<!\bU\.S\.)(?<!\b[ap]\.m\.)\s+(?=[A-Z"“‘(])/).forEach(x => { x = x.trim(); if (x.length >= 25 && /[.!?;]["”’)]?$/.test(x) && !CB_VOTE.test(x)) sents.push(x); }));
+  out.sentences = sents;
+  let m, dissent = [];
+  if (ccy === "USD") { m = all.match(/decided to (raise|lower|maintain|reduce|increase)\b(?:[^.]|\.\d)*?target range for the federal funds rate(?:[^.]|\.\d)*?(?:at|to) ([\d\-\/]+) to ([\d\-\/]+) percent/i); if (m) { out.move = cbMove(m[1]); out.rate = cbFrac(m[3]); }
+    const v = all.match(/Voting against[^:]*? (?:was|were) ([\s\S]{3,400}?), who preferred (?:to )?(\w+)/i);
+    if (v) { const n = v[1].split(/,\s*and\s+|,\s*|\s+and\s+/).filter(x => x.trim()).length, d = cbMove(v[2]); dissent.push([n, d === "hike" ? 1 : d === "cut" ? -1 : out.move === "hike" ? -1 : out.move === "cut" ? 1 : 0]); } }
+  else if (ccy === "EUR") { m = all.match(/decided to (raise|increase|lower|reduce|cut|keep|maintain|leave)\b(?:[^.]|\.\d)*?key ECB interest rates/i); if (m) out.move = cbMove(m[1]);
+    const r = all.match(/deposit facility[^%]*?(?:at|to) (\d+(?:\.\d+)?)%/i); if (r) out.rate = +r[1]; }
+  else if (ccy === "GBP") { m = all.match(/voted (?:by a majority of [\d–-]+ |unanimously )?to (increase|reduce|maintain|cut|raise|lower|hold|keep) Bank Rate(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
+  else if (ccy === "AUD") { m = all.match(/decided to (increase|raise|lower|reduce|cut|leave|keep|hold|maintain)\b(?:[^.]|\.\d)*?cash rate target(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?) per ?cent/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
+  else if (ccy === "CAD") { m = all.match(/\b(increased|raised|lowered|reduced|cut|held|maintained|kept)\b(?:[^.]|\.\d)*?target for the overnight rate[^%]*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
+  if (ccy === "GBP" || ccy === "AUD") { const re = /\b(one|two|three|four|five|six|seven|eight|nine|\d+) members? voted to (increase|reduce|maintain|cut|raise|lower|leave|keep|hold)\b(?:[^;.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?) ?(?:%|per ?cent)/gi; let v;
+    while ((v = re.exec(all))) { const n = CB_NUM[v[1].toLowerCase()] || +v[1], r = +v[3]; if (out.rate != null && Math.abs(r - out.rate) > 1e-9) dissent.push([n, r > out.rate ? 1 : -1]); } }
+  dissent.forEach(([n, d]) => { if (d > 0) out.hawk += n; else if (d < 0) out.dove += n; });
+  if (out.move == null) { fromTitle(); out.err = "couldn't find the decision"; return out; }
+  out.ok = sents.length >= 3; if (!out.ok) out.err = "the page layout changed"; return out;
+}
 </script>
 <script>/* ===================== UI ===================== */
 const $ = id => document.getElementById(id);

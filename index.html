@@ -3061,6 +3061,27 @@ function cbParse(ccy, html, title, path) {            // a statement page → { 
   if (out.move == null) { fromTitle(); out.err = "couldn't find the decision"; return out; }
   out.ok = sents.length >= 3; if (!out.ok) out.err = "the page layout changed"; return out;
 }
+// what changed: sentences compared with numbers, fractions and month names blanked, so "In October, inflation rose to 2.9%" isn't a new sentence
+const cbNorm = s => String(s).toLowerCase().replace(/\d+(?:[.,]\d+)?(?:-\d+\/\d+|\/\d+)?\s*[¼½¾]?/g, "#").replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/g, "@").replace(/[’']/g, "'").replace(/\s+/g, " ").trim();
+function cbDiff(prev, cur) { const P = new Set((prev || []).map(cbNorm)), C = new Set((cur || []).map(cbNorm));
+  return { added: (cur || []).filter(x => !P.has(cbNorm(x))), dropped: (prev || []).filter(x => !C.has(cbNorm(x))) }; }
+const CB_HAWK = ["upside risk", "further tightening", "additional policy firming", "additional firming", "remain vigilant", "inflation remains elevated", "inflation remains high", "restrictive for longer", "price pressures", "need to increase", "further increase"];
+const CB_DOVE = ["further adjustments", "additional adjustments", "downside risk", "has softened", "have softened", "has eased", "have eased", "reduce the degree of", "less restrictive", "further reductions", "lower interest rates"];
+const cbHits = (s, L) => L.filter(w => s.toLowerCase().includes(w));
+function cbVerdict(p, diff, forecast) {               // the surprise counts most, dissents next, wording least; +2 or more = Hawkish, −2 or less = Dovish
+  const why = []; let sc = 0; const f2 = v => v.toFixed(2) + "%";
+  if (p.rate != null && forecast != null && isFinite(forecast)) {
+    if (Math.abs(p.rate - forecast) >= 0.05) { const s = p.rate > forecast ? 1 : -1; sc += 3 * s; why.push(`Rate ${f2(p.rate)} vs ${f2(forecast)} expected: ${s > 0 ? "higher" : "lower"} than the market thought`); }
+    else why.push(`Rate ${f2(p.rate)}, as expected`);
+  } else why.push("No forecast to compare the decision with");
+  const dv = Math.max(-2, Math.min(2, (p.hawk || 0) - (p.dove || 0)));
+  if (p.hawk) why.push(`${p.hawk} voted for a higher rate`); if (p.dove) why.push(`${p.dove} voted for a lower rate`); sc += dv;
+  let w = 0; const said = [];
+  (diff && diff.added || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w++; said.push(`added “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w--; said.push(`added “${x}”`); }); });
+  (diff && diff.dropped || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w--; said.push(`dropped “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w++; said.push(`dropped “${x}”`); }); });
+  w = Math.max(-2, Math.min(2, w)); sc += w; if (said.length) why.push("Wording: " + said.slice(0, 3).join(", "));
+  return { score: sc, label: sc >= 2 ? "Hawkish" : sc <= -2 ? "Dovish" : "As expected", why };
+}
 </script>
 <script>/* ===================== UI ===================== */
 const $ = id => document.getElementById(id);
@@ -10187,6 +10208,12 @@ function fbDrivers(m, S) {                         // the forces on this market 
   else { risk(1); dollar(1); }                       // oil, copper, Bitcoin
   trend(m.dollar ? usdW : q && q.w, m.dollar ? "The dollar" : m.k);
   return D;
+}
+function cbLean(ccy, label) {                      // which way a bank's read leans each market: hawkish = its currency up (same signs as fbDrivers' bank())
+  const s = label === "Hawkish" ? 1 : label === "Dovish" ? -1 : 0; if (!s) return [];
+  return FB_MK.map(m => { const g = m.kind === "fx" ? (m.b === ccy ? s : m.q === ccy ? -s : 0) : m.kind === "usd" ? (ccy === "USD" ? s : 0)
+    : ["gold", "oil", "copper", "btc"].includes(m.kind) ? (ccy === "USD" ? -s : 0) : m.kind === "idx" ? (m.ccy[0] === ccy ? -s : 0) : 0;
+    return g ? { k: m.k, dir: g > 0 ? "long" : "short" } : null; }).filter(Boolean);
 }
 function fbWhen(x, now = Date.now()) { return x.at - now > 6 * 864e5 ? phtDay(x.at).slice(4) : `${phtDayKey(x.at) === phtDayKey(now) ? "Today" : phtDay(x.at).slice(0, 3)} ${x.earn ? x.timeLbl : x.timeLbl || phtHM(x.at)}`; }
 function fbEvents(m) {                             // high-impact events for this market's currencies, the next Fed decision, big tech earnings

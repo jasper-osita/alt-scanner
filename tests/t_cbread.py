@@ -46,6 +46,26 @@ async def main():
             print(f"   {'ok ' if good else 'BAD'} {k.split('/')[0]} {k.split('/')[-1] or k.split('/')[-2]}: {move} {rate} hawk {hawk} dove {dove}, {ns} sentences | {first[0][:70] if first else ''}")
             check(good, f"{k}: read {move} {rate} {hawk}/{dove} {ns}, expected {e}")
         print("   BoJ PDF:", await q("() => cbParse('JPY', '', 'Statement on Monetary Policy', 'en/mopo/mpmdeci/mpr_2026/k261030a.pdf')"))
+        # 2) wording changes, verdict, lean
+        V = await q("""() => { const E = {added: [], dropped: []}, r = {};
+          r.surprise = cbVerdict({move: "hike", rate: 4.25, hawk: 0, dove: 0}, E, 4.0); r.asExp = cbVerdict({move: "hike", rate: 4.0, hawk: 0, dove: 0}, E, 4.0);
+          r.doves = cbVerdict({move: "hold", rate: 4, hawk: 0, dove: 2}, E, 4); r.words = cbVerdict({move: "hold", rate: 4, hawk: 0, dove: 0}, {added: ["Upside risks to inflation have increased."], dropped: ["The Committee will consider further adjustments to the target range."]}, 4);
+          r.noFc = cbVerdict({move: "hike", rate: 4, hawk: 0, dove: 0}, E, null);
+          r.dates = cbDiff(["In September, inflation rose to 3.1 percent."], ["In October, inflation rose to 2.9 percent."]);
+          const L = (c, l) => cbLean(c, l).map(x => x.k + " " + x.dir); r.usd = L("USD", "Hawkish"); r.jpy = L("JPY", "Hawkish"); r.eurDove = L("EUR", "Dovish"); r.none = L("USD", "As expected"); return r; }""")
+        print("2) surprise:", V["surprise"]["label"], V["surprise"]["score"], V["surprise"]["why"][0], "| as expected:", V["asExp"]["label"], "| 2 doves:", V["doves"]["label"], "| wording:", V["words"]["score"], V["words"]["label"], "| no forecast:", V["noFc"]["label"], V["noFc"]["why"])
+        check(V["surprise"]["label"] == "Hawkish" and "4.25%" in V["surprise"]["why"][0] and "4.00%" in V["surprise"]["why"][0], "a surprise hike should read hawkish")
+        check(V["asExp"]["label"] == "As expected" and V["doves"]["label"] == "Dovish" and V["words"]["score"] == 2 and V["words"]["label"] == "Hawkish", "verdict scoring")
+        check(V["noFc"]["label"] == "As expected" and any("no forecast to compare" in w.lower() for w in V["noFc"]["why"]), "no forecast")
+        check(V["dates"] == {"added": [], "dropped": []}, f"month and number changes aren't wording changes: {V['dates']}")
+        print("   lean USD hawkish:", V["usd"], "| JPY hawkish:", V["jpy"], "| EUR dovish:", V["eurDove"], "| as expected:", V["none"])
+        check(all(x in V["usd"] for x in ["Gold short", "Nasdaq 100 short", "US dollar long", "EUR/USD short", "USD/JPY long"]), "USD lean")
+        check(all(x in V["jpy"] for x in ["USD/JPY short", "Nikkei 225 short"]), "JPY lean")
+        check("EUR/USD short" in V["eurDove"] and "EUR/GBP short" in V["eurDove"] and V["none"] == [], "EUR dovish lean / none when as expected")
+        for prev, cur, na, nd in json.load(open(os.path.join(ROOT, "tests/cb/expect.json")))["_diffs"]:
+            d = await q("""async ([a, b]) => { const p = cbParse('USD', await (await fetch('/proxy/cbpage/' + a)).text()), c = cbParse('USD', await (await fetch('/proxy/cbpage/' + b)).text()); return cbDiff(p.sentences, c.sentences); }""", [prev, cur])
+            print(f"   {cur.split('/')[-1]} vs {prev.split('/')[-1]}: +{len(d['added'])} -{len(d['dropped'])} | + {[x[:60] for x in d['added']]}")
+            check(len(d["added"]) == na and len(d["dropped"]) == nd, f"diff {prev} -> {cur}")
         print("errors:", errs or "none")
         await b.close()
 asyncio.run(main())

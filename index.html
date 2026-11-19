@@ -3085,7 +3085,8 @@ function cbVerdict(p, diff, forecast) {               // the surprise counts mos
   (diff && diff.added || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w++; said.push(`added “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w--; said.push(`added “${x}”`); }); });
   (diff && diff.dropped || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w--; said.push(`dropped “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w++; said.push(`dropped “${x}”`); }); });
   w = Math.max(-2, Math.min(2, w)); sc += w; if (said.length) why.push("Wording: " + [...new Set(said)].slice(0, 3).join(", "));
-  return { score: sc, label: sc >= 2 ? "Hawkish" : sc <= -2 ? "Dovish" : "As expected", why };
+  const known = forecast != null && isFinite(forecast);                // without a forecast the app can't say the decision was expected
+  return { score: sc, label: sc >= 2 ? "Hawkish" : sc <= -2 ? "Dovish" : known ? "As expected" : "No clear lean", why };
 }
 </script>
 <script>/* ===================== UI ===================== */
@@ -10394,7 +10395,7 @@ function cbAlert(ccy, rd) {                            // in the app only (noTg)
   const detail = !rd.ok ? `Couldn't read the statement (${rd.err || "unknown reason"}). Open the brief for the link.` : lean.length ? lean.slice(0, 3).map(x => `${x.k} ${x.dir}`).join(" · ") : `No strong lean. ${v ? v.why[0] : ""}`;
   return ncAdd({ kind: "News", icon: "🏦", tone: "warn", action: "brief", mk: mine ? mine.k : RX_MK[ccy], title, detail, noTg: true });
 }
-const CB_HINT = "Hawkish = leaning toward higher rates (supports the currency, weighs on gold and stocks). Dovish = leaning toward lower rates.";
+const CB_HINT = "Hawkish = leaning toward higher rates (supports the currency, weighs on gold and stocks). Dovish = leaning toward lower rates. No clear lean = no forecast to compare and the votes and wording are mixed.";
 const cbVerb = p => p.move === "hike" ? "Raised to" : p.move === "cut" ? "Cut to" : p.move === "hold" ? "Held at" : "";
 const cbChip = v => v ? `<span class="fk ${v.label === "Hawkish" ? "dn" : v.label === "Dovish" ? "up" : ""}" title="${CB_HINT}">${v.label}</span>` : "";
 const cbLeanHTML = (ccy, v) => (v ? cbLean(ccy, v.label) : []).slice(0, 6).map(x => `<span class="fk ${x.dir === "long" ? "up" : "dn"}" data-fmk="${xEsc(x.k)}" role="button" tabindex="0" title="Open the ${xEsc(x.k)} brief">${xEsc(x.k)} ${x.dir}</span>`).join("");
@@ -10409,7 +10410,8 @@ function cbCardHTML(ccy, rd, open) {
       ? `<ul>${add.map(x => `<li class="add">${xEsc(x)}</li>`).join("")}${drop.map(x => `<li class="drop">${xEsc(x)}</li>`).join("")}</ul>` : `<div class="mu">Same wording as last time, apart from dates and numbers.</div>`}</div>`;
   const st = FB_BANK[ccy] ? fundBank(FB_BANK[ccy].id).stance : "", fe = ccy === "USD" ? fbFedExp() : null;
   const data = (typeof calAll === "function" ? calAll() : []).filter(e => e.ccy === ccy && e.impact === "High" && e.type !== "Central Bank" && e.at > now && (!next || e.at < next)).slice(0, 4);
-  const out = !v || v.label === "As expected" ? "no new lean from this meeting; the drivers on each market's brief decide."
+  const out = v && v.label === "No clear lean" ? "no clear lean: there was no forecast to compare the decision with, and the votes and wording don't lean far enough. The drivers on each market's brief decide."
+    : !v || v.label === "As expected" ? "no new lean from this meeting; the drivers on each market's brief decide."
     : v.label === "Hawkish" ? `leans ${ccy} up, unless the data before it comes in weak.` : `leans ${ccy} down, unless the data before it comes in hot.`;
   const lean = cbLeanHTML(ccy, v), nd = d ? d.added.length + d.dropped.length : 0;
   return `<div class="cbc" data-cb="${ccy}">
@@ -10434,7 +10436,7 @@ function cbBriefHTML(m) {                              // the market brief: the 
       ${r.v ? `<div class="mu">${r.v.why.map(xEsc).join(" · ")}</div>` : ""}<a class="cblink" href="${xEsc(CB_BANKS[c].host + "/" + r.path)}" target="_blank" rel="noopener noreferrer">Read the statement ↗</a></div>`; }).join("")}</div>`;
 }
 function cbL(ccy, g) {                                 // "Today's read" reason: a fresh (under 7 days) hawkish or dovish read
-  const r = CBR[ccy] && CBR[ccy][0]; if (!r || !r.v || r.v.label === "As expected" || Date.now() - r.at > 7 * 864e5) return null;
+  const r = CBR[ccy] && CBR[ccy][0]; if (!r || !r.v || !["Hawkish", "Dovish"].includes(r.v.label) || Date.now() - r.at > 7 * 864e5) return null;
   return [g * (r.v.label === "Hawkish" ? 1 : -1), `${CB_BANKS[ccy].bank} statement ${r.v.label.toLowerCase()} (${phtDay(r.at).slice(4)})`];
 }
 async function cbCatchUp(now = Date.now()) { for (const ccy of Object.keys(CB_BANKS)) { CBW.caught[ccy] = now; await cbCheck(ccy, now); } }

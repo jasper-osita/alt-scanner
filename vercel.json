@@ -111,6 +111,30 @@
     {
       "source": "/proxy/rss/financialjuice",
       "destination": "https://www.financialjuice.com/feed.ashx?xy=rss"
+    },
+    {
+      "source": "/proxy/cbpage/fed/:path*",
+      "destination": "https://www.federalreserve.gov/:path*"
+    },
+    {
+      "source": "/proxy/cbpage/ecb/:path*",
+      "destination": "https://www.ecb.europa.eu/:path*"
+    },
+    {
+      "source": "/proxy/cbpage/boe/:path*",
+      "destination": "https://www.bankofengland.co.uk/:path*"
+    },
+    {
+      "source": "/proxy/cbpage/boj/:path*",
+      "destination": "https://www.boj.or.jp/:path*"
+    },
+    {
+      "source": "/proxy/cbpage/rba/:path*",
+      "destination": "https://www.rba.gov.au/:path*"
+    },
+    {
+      "source": "/proxy/cbpage/boc/:path*",
+      "destination": "https://www.bankofcanada.ca/:path*"
     }
   ]
 }

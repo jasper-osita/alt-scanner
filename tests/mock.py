@@ -434,3 +434,19 @@ async def route_fund(route):
     return await route.fulfill(status=404, body="")
 async def setup_fund(ctx):
     for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**"]: await ctx.route(pat, route_fund)
+# Central bank reads: real statements and decision lists saved under tests/cb/<bank>/<path on the bank's site> (a path ending in / is <path>index).
+# CB_SRV["swap"][path] = another saved file (or raw text) to serve instead; CB_SRV["status"][path] = HTTP status to force; CB_HITS lists every request.
+CB_DIR = os.path.join(APP, "tests", "cb"); CB_SRV = {"swap": {}, "status": {}}; CB_HITS = []
+async def route_cb(route):
+    p = urlparse(route.request.url).path; CB_HITS.append(p)
+    m = re.match(r"^/proxy/cbpage/([a-z]+)/(.+)$", p)
+    if not m: return await route.fulfill(status=400, body='{"error":"not allowed"}')
+    if p in CB_SRV["status"]: return await route.fulfill(status=CB_SRV["status"][p], body="")
+    sw = CB_SRV["swap"].get(p)
+    if sw is not None and not sw.startswith("/"): return await route.fulfill(status=200, content_type="text/plain; charset=utf-8", body=sw)
+    rel = (sw or p)[len("/proxy/cbpage/"):]
+    f = os.path.join(CB_DIR, rel + ("index" if rel.endswith("/") else ""))
+    if not os.path.isfile(f): return await route.fulfill(status=404, body="")
+    with open(f, "rb") as fh: return await route.fulfill(status=200, content_type="text/plain; charset=utf-8", body=fh.read())
+async def setup_cb(ctx):
+    await ctx.route("**/proxy/cbpage/**", route_cb)

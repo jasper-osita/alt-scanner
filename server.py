@@ -68,6 +68,9 @@ RSS_FEEDS = {"fxstreet": "https://www.fxstreet.com/rss/news", "marketwatch": "ht
              "financialjuice": "https://www.financialjuice.com/feed.ashx?xy=rss"}
 FRED_SERIES = {"DFEDTARU", "ECBDFR", "IRSTCI01GBM156N", "IRSTCI01JPM156N", "IRSTCI01AUM156N", "IRSTCI01CAM156N", "IRSTCI01CHM156N", "IRSTCI01NZM156N",
                "CPIAUCSL", "UNRATE", "T10YIE", "BAMLH0A0HYM2", "VIXCLS"}
+# Central bank reads: each bank's own decision list and statements, nothing else (the path must stay on that bank's site).
+CB_HOSTS = {"fed": "https://www.federalreserve.gov", "ecb": "https://www.ecb.europa.eu", "boe": "https://www.bankofengland.co.uk",
+            "boj": "https://www.boj.or.jp", "rba": "https://www.rba.gov.au", "boc": "https://www.bankofcanada.ca"}
 def fred_key():                                    # FRED_API_KEY, or the file ~/.finder-fred-key (one line); read each time so no restart is needed
     k = os.environ.get("FRED_API_KEY", "")
     if not k:
@@ -94,6 +97,10 @@ def relay_fund(path, q):
     m = re.match(r"^/proxy/rss/([a-z]+)$", path)
     if m and m.group(1) in RSS_FEEDS:
         return cached_get("rss" + m.group(1), RSS_FEEDS[m.group(1)], 60, {**BROWSER, "Accept": "application/rss+xml,application/xml,text/xml,*/*"})
+    if path.startswith("/proxy/cbpage/"):
+        m = re.match(r"^/proxy/cbpage/([a-z]+)/([A-Za-z0-9_.~-][A-Za-z0-9/_.~-]*)$", path)
+        if not m or m.group(1) not in CB_HOSTS or ".." in m.group(2) or "//" in m.group(2): return 400, b'{"error":"not allowed"}'
+        return cached_get("cb" + path, CB_HOSTS[m.group(1)] + "/" + m.group(2), 30, {**BROWSER, "Accept": "text/html,application/xhtml+xml,application/xml,*/*"})
     return 404, b'{"error":"unknown source"}'
 # Keep this Mac awake while a trading session is on (asked for by the app; caffeinate stops by itself after the time given).
 AWAKE = {"proc": None, "until": 0}
@@ -129,9 +136,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
             return
         path, _, query = self.path.partition("?")
-        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/")):
+        if path.startswith(("/proxy/ust/", "/proxy/cot", "/proxy/fred/", "/proxy/rss/", "/proxy/cbpage/")):
             code, body = relay_fund(path, query)
-            ctype = "text/csv" if path.startswith("/proxy/ust/") else "application/xml" if path.startswith("/proxy/rss/") else "application/json"
+            ctype = "text/csv" if path.startswith("/proxy/ust/") else "application/xml" if path.startswith("/proxy/rss/") else "text/plain; charset=utf-8" if path.startswith("/proxy/cbpage/") else "application/json"
             self.send_response(code)
             self.send_header("Content-Type", ctype); self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)

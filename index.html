@@ -10367,13 +10367,13 @@ function cbForecast(ccy, t, p) {                       // the calendar's forecas
 async function cbCheck(ccy, now = Date.now()) {        // read the newest decision if it's new (or retry a failed read, 3 tries at most)
   if (CBW.busy[ccy]) return; CBW.busy[ccy] = true;
   try { const L = await cbList(ccy, now), it = L[0]; if (!it) return; const have = (CBR[ccy] || [])[0];
-    if (have && have.id === it.link && (have.ok || have.tries >= 3 || /\.pdf$/i.test(it.path))) return;
+    if (have && have.id === it.link && (have.ok || /\.pdf$/i.test(it.path) || have.tries >= 3 && now - have.readAt < 30 * 60e3)) return;   // 3 quick tries, then every 30 min
     await cbRead(ccy, it, L, now); }
   catch (e) {} finally { CBW.busy[ccy] = false; }
 }
 async function cbRead(ccy, it, L, now = Date.now()) {
   const B = CB_BANKS[ccy], old = CBR[ccy] || [], same = old[0] && old[0].id === it.link ? old[0] : null;
-  const rd = { id: it.link, path: it.path, title: it.title, at: it.t, readAt: now, tries: (same ? same.tries || 0 : 0) + 1, alerted: !!(same && same.alerted) };
+  const rd = { id: it.link, path: it.path, title: it.title, at: it.t, readAt: now, tries: (same ? same.tries || 0 : 0) + 1, alerted: same ? same.alerted || false : false };   // alerted: false, "fail" (couldn't read) or "ok"
   if (/\.pdf$/i.test(it.path)) rd.p = cbParse(ccy, "", it.title, it.path);
   else try { const r = await fetch(cbUrl(B, it.path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); rd.p = cbParse(ccy, await r.text(), it.title, it.path); }
   catch (e) { rd.p = cbParse(ccy, "", it.title, it.path); rd.p.err = e.message || "couldn't reach the bank's site"; }
@@ -10384,7 +10384,8 @@ async function cbRead(ccy, it, L, now = Date.now()) {
   rd.prevAt = prev ? prev.at : null; rd.diff = prev && rd.ok ? cbDiff(prev.p.sentences, rd.p.sentences) : null;
   rd.forecast = cbForecast(ccy, it.t, rd.p); rd.v = rd.p.move ? cbVerdict(rd.p, rd.diff, rd.forecast) : null;
   CBR[ccy] = [rd, ...(prev ? [prev] : [])].slice(0, 2);
-  if (!rd.alerted && now - it.t < 7 * 864e5 && (rd.ok || rd.tries >= 3 || /\.pdf$/i.test(it.path))) { rd.alerted = true; cbAlert(ccy, rd); }
+  const sent = rd.alerted === "ok" || rd.alerted === true;            // one alert per statement, plus one with the real read if it only came through later
+  if (now - it.t < 7 * 864e5 && (rd.ok ? !sent : !rd.alerted && (rd.tries >= 3 || /\.pdf$/i.test(it.path)))) { rd.alerted = rd.ok ? "ok" : "fail"; cbAlert(ccy, rd); }
   cbSave(); if (typeof fundRender === "function") fundRender();
   return rd;
 }

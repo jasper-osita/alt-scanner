@@ -145,7 +145,10 @@ async def main():
         for k in range(5): await q("t => cbTick(t)", at + 60e3 * (k + 1))
         f = await q("() => [CBR.USD[0].ok, CBR.USD[0].err, CBR.USD[0].tries, NC.filter(n => n.icon === '🏦').map(n => n.title + ' | ' + n.detail)]")
         print("5) failing page:", f); check(f[0] is False and "500" in f[1] and f[2] == 3 and len(f[3]) == 1, "failure handling")
-        del CB_SRV["status"][PAGE]
+        del CB_SRV["status"][PAGE]                    # the site recovers: 30+ minutes after the last try the app tries again and sends the real read once
+        await q("t => cbTick(t)", at + 35 * 60e3); await q("t => cbTick(t)", at + 36 * 60e3)
+        f2 = await q("() => [CBR.USD[0].ok, CBR.USD[0].v && CBR.USD[0].v.label, NC.filter(n => n.icon === '🏦').map(n => n.title)]")
+        print("   site back 35 min later:", f2); check(f2[0] is True and f2[2] == ["Fed held at 4.00%: hawkish", "Fed statement is out"], "a read that failed at release should be retried later and sent once")
         # 6) Telegram set up with News on: the bank alert stays in the app, other alerts still go out
         t = await q("""() => { lsSet(TG_KEY, { token: '1:x', chat: '1', kinds: { News: true } }); let n = 0; const keep = tgSend; tgSend = () => { n++; return Promise.resolve({ ok: true }); };
           cbAlert('USD', CBR.USD[0]); const bank = n; ncAdd({ kind: 'News', icon: '📰', title: 'control' }); const other = n - bank; tgSend = keep; lsSet(TG_KEY, null); return [bank, other]; }""")

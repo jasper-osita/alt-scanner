@@ -41,8 +41,8 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   sudden moves `fbSample` (every 2 s, live prices, alert via `ncAdd` for your NBB Watch markets); release read `rxTick` (market reaction 2 and 10 min after a high-impact release, history `finder-react`);
   headline alerts on any page `naCheck` (core `NEWS_TAGS`/`newsBig`, MACRO tag; alerts carry `action: "brief"`). Cloud watcher sends headlines too (`.github/workflows/cloud-watch.yml`). Test: `t_brief`.
   Central bank reads (no AI, free): core `CB_BANKS` (Fed/ECB/BoE/BoJ/RBA/BoC: decision list + statement markers), `cbItems`, `cbParse` (decision, rate, dissents), `cbDiff`, `cbVerdict`
-  (surprise vs forecast ±3, dissents ±2, wording ±2 → Hawkish/Dovish); UI `cbTick` (polls a bank 2 min before to 90 min after its high-impact decision, catch-up every 6 h), `cbRead`, `CBR`
-  (`finder-cbreads`), `cbLean`, panel `fundCBReads`, brief `cbBriefHTML`, today's read `cbL`; alerts are `noTg` (in-app only). Relay `/proxy/cbpage/<bank>/<path>` (bank sites only). BoJ is PDF-only (not read). Test: `t_cbread` (samples in tests/cb).
+  (surprise vs forecast ±3, dissents ±2, wording ±2 → Hawkish/Dovish; As expected, or No clear lean when the calendar has no forecast); UI `cbTick` (polls a bank 2 min before to 90 min after its high-impact decision, catch-up every 6 h), `cbRead`, `CBR`
+  (`finder-cbreads`), `cbLean`, panel `fundCBReads`, brief `cbBriefHTML`, today's read `cbL`; alerts are `noTg` (in-app only). Relay `/proxy/cbpage?bank=&p=` (server.py; Vercel `api/cb.js`: bank sites only, plain text, sandboxed). BoJ is PDF-only (not read). Test: `t_cbread` (samples in tests/cb).
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow

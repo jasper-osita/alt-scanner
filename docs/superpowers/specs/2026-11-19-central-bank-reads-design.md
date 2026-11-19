@@ -19,16 +19,17 @@ no paid AI, no API key, and nothing for him to copy or paste.
   - **Until the next meeting**: the date and countdown, the bank's stance, what the market prices
     (2-year yield for the Fed, from `fbFedExp`), and the high-impact data for that currency before the
     next meeting that could change the picture.
-- An alert when the read is ready (`ncAdd`, which already forwards to Telegram), for example:
-  "🏦 Fed held at 3.75%: hawkish · Gold short, Nasdaq short, dollar long".
+- An in-app alert when the read is ready (bell icon), for example:
+  "🏦 Fed held at 3.75%: hawkish · Gold short, Nasdaq short, dollar long". Not sent to Telegram yet
+  (Jas's call).
 - If the app was closed during the meeting, it reads any statement it missed the next time it opens.
 
 ## Non-goals (for now)
 - Press-conference transcripts, minutes and speeches. These come later or as PDFs days later.
 - Economic data (CPI, jobs). Those keep the existing market-reaction read (`rxTick`).
 - Paid AI, or a "Copy for Claude" step.
-- Cloud watcher (GitHub Actions) Telegram reads while the Mac is off. Possible later, because the reader
-  lives in core.
+- Telegram, from the app or from the cloud watcher. Jas asked to leave it out for now. It's possible
+  later, because the reader lives in core.
 
 ## Anti-goals
 - A read that sounds more certain than rules can be. Every verdict shows its evidence (the decision, the
@@ -92,7 +93,8 @@ BoJ (JPY), RBA (AUD) and BoC (CAD). SNB and RBNZ come later. *(My call.)*
    - **Market brief:** a "Last central bank read" section for the market's currencies.
    - **"Today's read" cards:** a fresh hawkish/dovish read (less than 7 days old) adds a reason line,
      such as "Fed statement hawkish (Oct 28)".
-6. **Alert.** `ncAdd` with `kind: "News"` and `action: "brief"`, sent once per statement.
+6. **Alert.** `ncAdd` with `kind: "News"`, `action: "brief"` and a new `noTg: true` flag, sent once per
+   statement. The Telegram wrapper around `ncAdd` skips any alert carrying `noTg`.
 
 ## Constraints
 - No new paid services, no keys, and no secrets.

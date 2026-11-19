@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.18.1601">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.19.1527">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -324,7 +324,7 @@ body.fopen .fpanel{display:block}
 .boosts{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:var(--green)}
 .cautions{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:var(--amber)}
 
-/* watchlist, calculator, chart, scorecard */
+/* watchlist, calculator, chart */
 dialog{width:min(760px,96vw)}
 .star{background:transparent;border:0;cursor:pointer;color:var(--mute);font-size:16px;line-height:1;padding:0 2px}
 .star.on{color:var(--amber)}
@@ -348,15 +348,7 @@ dialog{width:min(760px,96vw)}
 .clegend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-left:4px}
 #mchart{height:300px;position:relative}
 .cload{padding:12px}
-.scard{margin-top:14px}
-.schead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.schead h2{margin:0;font-size:16px;font-weight:600;color:var(--strong)}
-.scbtns{margin-left:auto;display:flex;gap:6px}
-.sctabs{display:flex;gap:4px;margin:10px 0 6px;overflow-x:auto;scrollbar-width:none}.sctabs .tab{flex:none}
-.sctabs .tab{font-size:13px;padding:5px 12px}
 table.sct{min-width:640px;font-size:13px}
-.screcent .mv{grid-template-columns:120px minmax(0,1fr) auto 70px}
-.sct-t{font-size:12px}
 
 
 /* coin panel: wide, no page scroll */
@@ -393,18 +385,15 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
   .dpane{overflow:visible}
 }
 
-/* session picks */
+/* momentum board columns */
 .sesscard{margin-top:14px}
 .sesscard>h2{margin:0;font-size:16px;font-weight:600;color:var(--strong)}
 .sesscard>.why{font-size:12.5px;color:var(--mute);margin:3px 0 10px}
-#sessionPicks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-@media (max-width:1100px){#sessionPicks{grid-template-columns:1fr}}
 .sess{border:1px solid var(--line);border-radius:10px;padding:10px 10px 4px;background:var(--bg);min-width:0}
 .sess.live{border-color:var(--green);box-shadow:0 0 0 1px color-mix(in srgb,var(--green) 35%,transparent) inset}
 .sess.next:not(.live){border-color:var(--blue)}
 .sesshead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .sesshead h3{margin:0;font-size:15px;color:var(--strong)}
-.sesstime{font-size:12px;color:var(--mute)}
 .sessstat{font-size:12px;margin:2px 0 6px;color:var(--mute)}
 .sessstat.live{color:var(--green);font-weight:600}
 .sessstat.soon{color:var(--blue)}
@@ -425,9 +414,6 @@ dialog#dlg{width:min(1500px,97vw);height:min(960px,94vh);max-height:none;overflo
 .ohlc b{color:var(--text);font-weight:600}
 .ohlc i{font-style:normal}
 .cdlabel{position:absolute;right:0;z-index:3;color:#fff;font-size:11px;line-height:16px;text-align:center;font-variant-numeric:tabular-nums;pointer-events:none;border-radius:2px;opacity:.92}
-.btcard{margin-top:14px}
-.btctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:10px 0 4px}
-.btcard .tog{white-space:normal;align-items:flex-start}.btcard .tog input{margin-top:3px}
 /* ===== Charts page ===== */
 body.pg-charts .pills,body.pg-charts #pageTitle,body.pg-charts .subline{display:none}
 body.pg-charts .wrap{max-width:none;padding:10px 14px 10px}body.pg-charts .layout{grid-template-columns:minmax(0,1fr)!important}body.pg-charts #fPanel{display:none!important}
@@ -511,17 +497,6 @@ body.chfocus .side,body.chfocus .topbar{display:none}body.chfocus .shell{grid-te
   .chtools{flex-direction:row;overflow-x:auto;padding:3px}.chtsep{width:1px;height:22px;margin:0 4px}
   .chsp{flex-direction:column!important}.chgut{display:none}.chleaf{flex:none!important;height:360px}.chhint{margin-left:0;width:100%}
   .chlaypop{min-width:0;left:-60px}.chbody.nowl{grid-template-columns:minmax(0,1fr)}.chbody.nowl .chwl{height:40px}.chwlopen{flex-direction:row;justify-content:center;padding:0}.chwlopen span{writing-mode:horizontal-tb}}
-.btpick{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:4px 0 10px;background:var(--panel)}
-.btpbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}.btpbar input[type=search]{flex:1 1 220px;min-width:180px;height:32px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;color:var(--text);padding:0 10px;font:inherit}
-.btpchips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}.btpc{background:var(--pill);border:1px solid var(--accent);color:var(--text);border-radius:999px;padding:2px 9px;font-size:12px;cursor:pointer}
-.btplist{max-height:300px;overflow:auto;margin-top:8px;padding-right:4px}.btpg{font-size:12.5px;font-weight:600;margin:8px 0 4px;color:var(--text)}
-.btpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px}
-.btpi{display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:7px;cursor:pointer;font-size:13px;min-width:0}
-.btpi b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.btpi span{margin-left:auto;font-size:11.5px;white-space:nowrap}.btpi.on{border-color:var(--accent)}
-.btctl input[type=number]{width:70px;background:transparent;border:0;color:var(--text);font:inherit}
-table.btm td{white-space:nowrap}
-.bteq{height:220px;position:relative;margin-top:4px}
-.bteql{margin:4px 0 0;justify-content:flex-start}
 
 .rsi{display:inline-block;min-width:26px;text-align:center;border-radius:4px;font-weight:600;font-size:12px;padding:0 4px}
 .rz-mo{color:#fff;background:#22ab94}.rz-pm{color:var(--green);background:color-mix(in srgb,var(--green) 16%,transparent)}
@@ -593,12 +568,8 @@ h1,h2,h3,.nav,.ngrp,.brand,.crumb,.btn,.tab,.qchip,.gchip,.pill,.livebadge,.regi
 .subline{color:var(--mute);font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .subline #title{color:var(--text);font-weight:500}
 .pg-off{display:none!important}
-.edget td,.edget th{vertical-align:middle}.edgem td{border-top:1px solid var(--pill-b)}
-.edgesub{padding:4px 10px 8px 26px!important;border-top:0!important}
-.edgerule{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.edgeab{margin-left:auto;font-size:12.5px}
-.edgeintro{line-height:1.55;max-width:110ch}.pbag{margin-left:auto;font-size:13px}
+.pbag{margin-left:auto;font-size:13px}
 .obchk{list-style:none;margin:8px 0 6px;padding:0;display:grid;gap:3px;font-size:12.5px}
-.btsub td{font-size:12.5px;color:var(--mute)}.btsub td.l{padding-left:22px}
 .obchk li{display:flex;gap:6px;align-items:baseline}.obchk li>span:first-child{width:14px;font-weight:700}
 .obchk li.ok>span:first-child{color:var(--green)}.obchk li.no>span:first-child{color:var(--red)}.obchk b{font-weight:600;color:var(--text)}
 /* ===== notifications: bell, drawer, toast cards ===== */
@@ -1138,12 +1109,6 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
     <div id="momoBoard"><div class="empty">Run a scan to see the momentum board.</div></div>
   </section>
 
-  <section class="card sesscard" data-page="sessions">
-    <h2>Session Picks</h2>
-    <div class="why">The best 3 coins to day trade in each session: how much each coin really moves in that session (last 14 days), its day score, and any setup. Each coin is listed under its strongest session only.</div>
-    <div id="sessionPicks"><div class="empty">Run a scan to see session picks.</div></div>
-  </section>
-
   <section class="boards single" data-page="day swing aots">
     <div class="board" data-page="day">
       <div class="board-head"><h2>Day Trade</h2></div>
@@ -1232,11 +1197,8 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 
   <section class="card mguide" data-page="guide"><h2>Model Guide</h2><div id="guide"></div></section>
 
-  <section class="card scard" id="scorecard" data-page="scorecard"></section>
 
-  <section class="card btcard" id="backtest" data-page="backtest"></section>
 
-  <section class="card btcard" id="edgeCard" data-page="backtest"></section>
 
 
   <section class="trpage" id="tradePage" data-page="trade">
@@ -1281,7 +1243,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
     Wick % is the share of each candle that is wick, averaged over the last 48 1H and 42 4H candles: under 50% is clean, over 65% (or 3+ spikes larger than 1.5× ATR) is wicky.
     Day score: 1H structure 40, relative volume now (last 6 hours vs the same hours on the previous 7 days) 20, volatility fit 15, strength vs BTC over 24h 15, entry location (distance from the 1H 20) 10. Swing score: 4H and Daily structure 50, daily relative volume 20, volatility fit 15, strength vs BTC over 7 days 15. Boards keep at most 2 coins per sector. Picks are a watchlist, not entries.
     RSI is the 14-period Wilder RSI on 1H, 4H and Daily: 70+ momentum, 60–70 pre-momentum, 40–60 neutral, 30–40 pre-weak, 30 or below weak; divergence compares the last two swing highs (or lows) with RSI; ignition is a cross of 60 (or 40) in the last 3 candles. Momentum score: RSI alignment 40, volume now 20, strength vs BTC 20, range expansion 20, minus 10 for a divergence against the move.
-    Position sizing, the watchlist, notes, alerts and the scorecard are saved in this browser only. Alerts fire while the app is open. Charts by TradingView Lightweight Charts™ (Apache 2.0).
+    Position sizing, the watchlist, notes and alerts are saved in this browser only. Alerts fire while the app is open. Charts by TradingView Lightweight Charts™ (Apache 2.0).
     Data: Binance and Bybit public APIs, read in your browser. Logos: TradingView. <span id="verLbl"></span>
   </footer>
   </main>
@@ -1308,7 +1270,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 <div class="mscrim" id="mScrim" hidden></div>
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 
-<script id="core">/* ===================== scanner core (mirrors crypto_screener.py rules) ===================== */
+<script id="core">/* ===================== scanner core: structure, models, sessions, calendar rules (DOM-free; cloud/watch.mjs runs it too) ===================== */
 const FAPI = "https://fapi.binance.com";
 /* Binance TradFi perpetuals (gold, oil, index ETFs): always read from Binance futures, whatever exchange the crypto scan uses */
 const TRADFI_SYMS = new Set();
@@ -1899,55 +1861,6 @@ function oezZone(k, a) {
   const H = k.h[ih], L = k.l[il]; if (H - L < 3 * a) return null;
   return { ih, il, H, L, hi: H - 0.62 * (H - L), lo: H - 0.79 * (H - L) };
 }
-/* Bounce: with-trend pullback into the OEZ, then a trigger */
-function bounceLong(k, a) {
-  const n = k.c.length, z = oezZone(k, a); if (!z) return null;
-  const after = k.l.slice(z.ih + 1); if (!after.length) return null;
-  if (k.c.slice(z.ih + 1).some(x => x < z.lo)) return null;                               // closed through the zone: failed
-  const ml = Math.min(...after), c = k.c[n - 1];
-  if (ml > z.hi) return c - z.hi <= a ? { model: "Bounce", state: "Approaching OEZ", trig: false, zoneHi: z.hi, zoneLo: z.lo, ...levels(z.hi, z.lo - 0.25 * a),
-    note: "Pullback is heading into the 62–79% zone but hasn't reached it." } : null;
-  const tap = z.ih + 1 + after.indexOf(ml);
-  const engulf = k.c[n - 1] > k.o[n - 1] && k.c[n - 1] >= k.o[n - 2] && k.o[n - 1] <= k.c[n - 2];
-  const trig = engulf && c > z.lo;
-  const sweep = ml < minOf(k.l.slice(Math.max(0, tap - 10), tap));
-  return { model: "Bounce", state: trig ? "OEZ tap + trigger" : c <= z.hi ? "In OEZ" : "Tapped OEZ, reacting", trig, zoneHi: z.hi, zoneLo: z.lo,
-    ...levels(trig ? c : z.hi, ml - 0.1 * a), sweep, note: `Pullback reached the OEZ of the last leg${sweep ? " and swept a minor low" : ""}.` };
-}
-/* Fade: swing failure at a swept extreme, then an MSS (counter-trend) */
-function fadeLong(k, a) {
-  const n = k.c.length, p = pivots(k, 3, Math.max(0, n - 80));
-  for (let j = n - 1; j >= n - 4; j--) {
-    const lows = p.lo.filter(i => i < j - 3 && i > j - 60); if (!lows.length) continue;
-    const lvl = Math.min(...lows.map(i => k.l[i]));
-    if (!(k.l[j] < lvl && k.c[j] > lvl)) continue;                                          // wicked below and closed back above
-    const fell = k.c[Math.max(0, j - 20)] > k.c[j] + 2 * a, lowest = k.l[j] <= minOf(k.l.slice(Math.max(0, j - 60), j));
-    if (!fell || !lowest) continue;
-    const ph = p.hi.filter(i => i < j).at(-1), mss = ph != null && k.c.slice(j + 1).some(x => x > k.h[ph]);
-    const lv = levels(k.c[n - 1], k.l[j] - 0.1 * a);
-    return { model: "Fade", state: mss ? "Swept + MSS" : "Swept, waiting for MSS", trig: mss, ...lv, t3: null, sweep: true,
-      note: "Took out the swing low and closed back inside (swing failure). Counter-trend: caps at B-Silver, 2R." };
-  }
-  return null;
-}
-/* Breaker (Flip): a lower high broken with displacement, then price returns to it */
-function breakerLong(k, a) {
-  const n = k.c.length, p = pivots(k, 3, Math.max(0, n - 80)), ab = avgBody(k, n - 40, n) || 1e-12;
-  for (const ip of [...p.hi].reverse()) {
-    if (ip > n - 8 || ip < n - 70) continue;
-    const PH = k.h[ip];
-    const earlier = p.hi.filter(i => i < ip && i > ip - 40);
-    if (!earlier.length || maxOf(earlier.map(i => k.h[i])) <= PH) continue;                // must be a lower high (bearish structure)
-    let jb = -1; for (let i = ip + 1; i < n; i++) if (k.c[i] > PH) { jb = i; break; }
-    if (jb < 0 || jb > n - 3 || !(body(k, jb) >= 1.5 * ab && k.c[jb] > k.o[jb])) continue;
-    if (maxOf(k.h.slice(jb, n)) < PH + a) continue;                                        // never left the zone
-    if (minOf(k.l.slice(n - 3)) > PH + 0.5 * a || k.c[n - 1] < PH - 0.5 * a) continue;      // not back at it, or broke back through
-    const trig = k.c[n - 1] > k.o[n - 1] && (k.c[n - 1] - k.l[n - 1]) >= 0.6 * (k.h[n - 1] - k.l[n - 1]);
-    return { model: "Breaker", state: trig ? "Rejected off the flip" : "Back at the flip", trig, zoneHi: PH + 0.25 * a, zoneLo: PH - 0.5 * a,
-      ...levels(trig ? k.c[n - 1] : PH, PH - 0.75 * a), note: "A lower high was broken with displacement; price has come back to retest it from above." };
-  }
-  return null;
-}
 /* V-Trade: morning star at a swept low or at the OEZ */
 function vtradeLong(k, a) {
   const n = k.c.length, ab = avgBody(k, n - 30, n - 3) || 1e-12, z = oezZone(k, a);
@@ -1963,71 +1876,10 @@ function vtradeLong(k, a) {
     if (e === n - 2) return { model: "V-Trade", state: "Missed V", trig: false, missed: true, bars: 1, entry: null, stop: null, t2: null, t3: null,
       note: "The V finished a candle ago. Don't chase it: wait for the next one." };
     return { model: "V-Trade", state: atOEZ ? "Star at the OEZ" : "Star at a swept low", trig: true, bars: n - 1 - e, ...levels(k.c[i3], tip - 0.1 * a), t3: null,
-      note: atOEZ ? "With-trend re-entry off the OEZ: can reach A." : "Reversal trigger at a swept low: Fade rules apply, caps at B-Silver." };
+      note: atOEZ ? "With-trend re-entry off the OEZ: can reach A." : "Reversal at a swept low, against the trend: it can't reach A-grade, so keep it small." };
   }
   return null;
 }
-/* Pullback: HTF (4H) trend is down here; ride the confirmed retrace up to the 4H OEZ near edge */
-function pullbackLong(k, a, k4) {
-  const n4 = k4.c.length, p4 = pivots(k4, 2, Math.max(0, n4 - 80)); if (!p4.lo.length) return null;
-  const il = p4.lo.at(-1); let ih = Math.max(0, il - 30); for (let i = ih; i < il; i++) if (k4.h[i] > k4.h[ih]) ih = i;
-  const H4 = k4.h[ih], L4 = k4.l[il], target = L4 + 0.62 * (H4 - L4);
-  const n = k.c.length, p = pivots(k, 3, Math.max(0, n - 80));
-  let jx = n - 30; for (let i = n - 30; i < n; i++) if (k.l[i] < k.l[jx]) jx = i;
-  const prior = p.lo.filter(i => i < jx - 1 && i > jx - 60); if (!prior.length || !(k.l[jx] < Math.min(...prior.map(i => k.l[i])))) return null;
-  const ph = p.hi.filter(i => i < jx).at(-1); if (ph == null || !k.c.slice(jx + 1).some(x => x > k.h[ph])) return null;   // CHoCH up
-  const c = k.c[n - 1]; if (c >= target) return null;                                      // already at the OEZ: that's Bounce territory
-  const stop = minOf(k.l.slice(Math.max(jx, n - 8))), room = target - c >= 2 * (c - stop);
-  return { model: "Pullback", state: room ? "Retrace underway" : "Retrace underway, little room", trig: room, entry: c, stop, t2: target, t3: null, sweep: true,
-    note: "Swept the extreme, LTF structure shifted; target is the 4H OEZ near edge (62%). Counter-HTF: caps at B-Silver." };
-}
-/* ===================== Claude's setups: Leader Pullback (day) and Daily 20 Reset (swing) ===================== */
-/* Leader Pullback, 1H: a fresh 48h high made by a big, high-volume impulse, a quiet pullback into the 20 or the 38% of the
-   leg that holds the 50 and gives back at most 62%, then a reclaim candle. */
-function leaderLong(k, a) {
-  const n = k.c.length; if (n < 120) return null;
-  const e20 = ema(k.c, 20), e50 = ema(k.c, 50), e100 = ema(k.c, 100), i = n - 1;
-  if (!(e20[i] > e50[i] && e50[i] > e100[i] && e50[i] > e50[i - 10])) return null;              // 1H uptrend, rising 50
-  const ab = avgBody(k, n - 40, n - 12) || 1e-12, vb = k.qv.slice(n - 40, n - 12), av = (vb.reduce((x, y) => x + y, 0) / vb.length) || 1e-12;
-  let imp = -1;
-  for (let j = n - 12; j < n - 1; j++) {
-    if (k.h[j] > maxOf(k.h.slice(Math.max(0, j - 48), j)) && k.c[j] > k.o[j] && body(k, j) >= 1.8 * ab && k.qv[j] >= 1.8 * av) imp = j;
-  }
-  if (imp < 0 || imp > n - 3) return null;                                                        // needs a pullback after the impulse
-  const legLow = minOf(k.l.slice(Math.max(0, imp - 12), imp + 1)), top = maxOf(k.h.slice(imp, n)), pbLow = minOf(k.l.slice(imp + 1, n));
-  if (top - legLow <= 0) return null;
-  const fib38 = top - 0.382 * (top - legLow);
-  let touched = false, held = true;                          // pullback reaches the 20 or the 38% of the leg, holds the 50
-  for (let j = imp + 1; j < n; j++) { if (k.l[j] <= Math.max(e20[j] + 0.3 * a, fib38)) touched = true; if (k.c[j] < e50[j]) held = false; }
-  if (!touched || !held || (top - pbLow) / (top - legLow) > 0.62) return null;
-  const pbVol = k.qv.slice(imp + 1, i), quiet = pbVol.length ? pbVol.reduce((x, y) => x + y, 0) / pbVol.length < 0.7 * k.qv[imp] : true;
-  const trig = k.c[i] > k.o[i] && k.c[i] > k.h[i - 1] && k.c[i] > e20[i];
-  const stop = pbLow - 0.2 * a, entry = trig ? k.c[i] : Math.max(k.h[i], e20[i]);
-  return { model: "Leader", state: trig ? "Reclaim after the pullback" : "Pulling back to the 20", trig, zoneHi: e20[i] + 0.3 * a, zoneLo: pbLow, ...levels(entry, stop),
-    note: `Fresh 48h high on a ${(k.qv[imp] / av).toFixed(1)}× volume impulse, pullback held the 50 and gave back ${Math.round((top - pbLow) / (top - legLow) * 100)}% of the leg${quiet ? " on lighter volume" : ""}.` };
-}
-/* Daily 20 Reset, 4H trigger: Daily uptrend with a rising 20; price dips into the Daily 20 zone (±0.5 daily ATR), closes below
-   the 4H 20 at least twice (the reset), then a 4H candle reclaims the 20 and the prior high. Target 3R. */
-function reset20Long(k4, kd) {
-  if (!kd || kd.c.length < 110 || k4.c.length < 120) return null;
-  const d20 = ema(kd.c, 20), d50 = ema(kd.c, 50), d100 = ema(kd.c, 100), m = kd.c.length - 1;
-  if (!(d20[m] > d50[m] && d50[m] > d100[m] && d20[m] > d20[m - 5])) return null;
-  for (let j = m - 9; j <= m; j++) if (kd.c[j] < d50[j]) return null;                            // no daily close below the 50 lately
-  const da = atr(kd.h, kd.l, kd.c).at(-1), a4 = atr(k4.h, k4.l, k4.c).at(-1); if (!da || !a4) return null;
-  const zTop = d20[m] + 0.5 * da, zBot = d20[m] - 0.5 * da;
-  const e20 = ema(k4.c, 20), n = k4.c.length, i = n - 1, win = [];
-  for (let j = n - 12; j < n; j++) win.push(j);
-  const low = minOf(win.map(j => k4.l[j]));
-  if (low > zTop || low < zBot - 0.5 * da) return null;                                           // must reach the zone, not crash through it
-  if (win.filter(j => k4.c[j] < e20[j]).length < 2) return null;                                  // a real reset below the 4H 20
-  const trig = k4.c[i] > e20[i] && k4.c[i] > k4.h[i - 1] && k4.c[i] > k4.o[i];
-  const entry = trig ? k4.c[i] : Math.max(e20[i], k4.h[i]), stop = low - 0.25 * a4, R = entry - stop;
-  if (R <= 0) return null;
-  return { model: "Reset20", state: trig ? "Reclaimed the 4H 20" : "Resetting at the Daily 20", trig, zoneHi: zTop, zoneLo: zBot,
-    entry, stop, t2: entry + 3 * R, t3: entry + 4 * R, tf: "4H",
-    note: `Daily uptrend; price reset into the Daily 20 zone and closed below the 4H 20 ${win.filter(j => k4.c[j] < e20[j]).length} times${trig ? ", then reclaimed it" : ""}. Swing target 3R.` };
-}
-
 function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
   const out = [], a = atr(k1h.h, k1h.l, k1h.c).at(-1); if (!a || k1h.c.length < 120) return out;
   const D = FULL.includes(s1h.state) ? s1h.dir : null, dD = FULL.includes(s1d.state) ? s1d.dir : null;
@@ -2039,161 +1891,14 @@ function detectModels(k1h, k4h, s1h, s4h, s1d, kd) {
     } catch (e) {}
   };
   for (const dir of ["Long", "Short"]) {
-    if (D === dir) { run(nbbLong, dir); run(bounceLong, dir); run(leaderLong, dir); }
-    run(breakerLong, dir); run(fadeLong, dir); run(vtradeLong, dir); run(igniteLong, dir);
-  }
-  const T = FULL.includes(s4h.state) ? s4h.dir : null;
-  if (T && k4h.c.length > 40) run(pullbackLong, T === "Short" ? "Long" : "Short", k4h);
-  if (kd) for (const dir of ["Long", "Short"]) {                    // Daily 20 Reset reads the 4H and Daily candles
-    try {
-      let m = reset20Long(dir === "Long" ? k4h : mirror(k4h), dir === "Long" ? kd : mirror(kd));
-      if (m) { if (dir === "Short") m = unmirror(m); out.push({ ...m, dir, tf: "4H", withDaily: true }); }
-    } catch (e) {}
+    if (D === dir) run(nbbLong, dir);
+    run(vtradeLong, dir);
   }
   return out;
 }
 
 
-/* ===================== OB Entry (Jas's checklist) =====================
-   1 bias (4H, else Daily) → 2 POI: session high/low, PDH/PDL or an unfilled 1H/4H FVG → 3 price interacts with the POI →
-   4 on the 15m it sweeps the local lows → 5 a strong change in state of delivery engulfs the sweep candle →
-   6 the order block it leaves → 7 limit order at the OB. Missing any one = no trade. Written for longs; shorts run mirrored. */
-const OB_SESS = [["Asia", 0, 240], ["London", 240, 600], ["New York", 810, 1200]];     // UTC minutes in US summer (PHT 8 AM–12 NN, 12 NN–6 PM, 9:30 PM–4 AM); 1 hour later in US winter
-const obLastClosed = (k, iv, T) => { let i = k.t.length - 1; while (i >= 0 && k.t[i] + iv > T) i--; return i; };
 const stDir = st => /^(Bull stack|Pullback in bull)$/.test(st) ? "Long" : /^(Bear stack|Pullback in bear)$/.test(st) ? "Short" : null;
-function obFVGs(k, label, look) {                         // unfilled bullish gaps (bearish ones on a mirrored chart)
-  const out = [], n = k.c.length; if (n < 20) return out;
-  const a = avgBody(k, n - 14, n) * 1.6 || 0;
-  for (let i = Math.max(1, n - look); i < n - 1; i++) {
-    const lo = k.h[i - 1], hi = k.l[i + 1]; if (!(hi > lo) || hi - lo < 0.15 * a) continue;
-    if (minOf(k.l.slice(i + 2)) <= lo) continue;          // fully filled since: no longer a POI
-    out.push({ kind: "fvg", label, lo, hi, t: k.t[i] });
-  }
-  return out.slice(-4);
-}
-function obPOIs(k15, k1, k4, kd, T) {
-  const pois = [], D = 86400e3, Q = 900e3;
-  const jd = obLastClosed(kd, D, T); if (jd >= 0) pois.push({ kind: "swing", label: "Previous Day Low", lv: kd.l[jd] });
-  for (let day = Math.floor(T / D) * D - D; day <= T; day += D) {        // completed sessions in the last ~30 hours
-    for (const [name, a, b] of OB_SESS) {
-      const sh = sessShift(day + a * 60e3) * 3600e3, st = day + a * 60e3 + sh, en = day + b * 60e3 + sh; if (en > T || en < T - 30 * 3600e3) continue;
-      let lo = Infinity; for (let i = 0; i < k15.t.length; i++) if (k15.t[i] >= st && k15.t[i] + Q <= en) lo = Math.min(lo, k15.l[i]);
-      if (isFinite(lo)) pois.push({ kind: "swing", label: `${name} Low`, lv: lo });
-    }
-  }
-  pois.push(...obFVGs(k1, "1H FVG", 120), ...obFVGs(k4, "4H FVG", 40));
-  return pois;
-}
-function obLong(k, pois, a) {
-  const n = k.c.length; if (n < 60 || !a || !pois.length) return null;
-  const ab = avgBody(k, n - 30, n) || a * 0.3;
-  let pending = null;
-  for (let s = n - 1; s >= Math.max(12, n - 24); s--) {
-    if (!(k.l[s] < minOf(k.l.slice(s - 5, s)))) continue;                       // the sweep: takes out the 5 candles before it
-    const poi = pois.find(p => p.kind === "swing"
-      ? k.l[s] < p.lv && minOf(k.l.slice(Math.max(0, s - 16), s)) >= p.lv       // first trade through the level in 4 hours
-      : k.l[s] <= p.hi && k.l[s] >= p.lo - 0.5 * (p.hi - p.lo) && k.c[s - 8] > p.hi);   // into the FVG from above, not straight through
-    if (!poi) continue;
-    let d = -1, bodyX = 0;
-    for (let j = s + 1; j <= Math.min(n - 1, s + 4); j++) {
-      if (k.l[j] < k.l[s]) break;                                              // a new low first cancels it
-      const bd = k.c[j] - k.o[j], rng = k.h[j] - k.l[j] || 1e-12;
-      if (bd > 0 && bd >= 1.3 * ab && bd >= 0.55 * rng && k.c[j] > maxOf(k.h.slice(s, j))) { d = j; bodyX = bd / ab; break; }
-    }
-    if (d < 0) {                                                               // swept, no change in state of delivery yet
-      if (!pending && s >= n - 6 && minOf(k.l.slice(s + 1)) >= k.l[s])
-        pending = { model: "OB", state: `Swept the ${poi.label}, waiting for displacement`, trig: false, entry: null, stop: null, t2: null, t3: null, poi: poi.label, poiKind: poi.kind,
-          note: `Price swept the ${poi.label} on the 15m. No trade until a strong candle closes above the sweep candle's high.`, sweep: true, step: 4 };
-      continue;
-    }
-    let ob = -1; for (let j = d - 1; j >= s; j--) if (k.c[j] < k.o[j]) { ob = j; break; }
-    if (ob < 0) ob = s;
-    const entry = Math.max(k.o[ob], k.c[ob]), obLow = minOf(k.l.slice(s, d)), stop = obLow - 0.1 * a, lv = levels(entry, stop);
-    if (lv.t2 == null || entry - stop < 0.05 * a) continue;
-    let filled = -1, done = false;
-    for (let j = d + 1; j < n; j++) {
-      if (filled < 0) { if (k.h[j] >= lv.t2) { done = true; break; } if (k.l[j] <= entry) { filled = j; if (k.l[j] <= stop) { done = true; break; } } }
-      else if (k.l[j] <= stop || k.h[j] >= lv.t2) { done = true; break; }
-    }
-    if (done || (filled < 0 && n - 1 - d > 16) || (filled >= 0 && n - 1 - filled > 8)) return pending;   // used up or stale
-    const state = filled < 0 ? "Limit at the OB" : "Filled at the OB";
-    return { model: "OB", state, trig: true, ...lv, zoneHi: entry, zoneLo: obLow, poi: poi.label, poiKind: poi.kind, sweep: true, step: 7, fresh: d === n - 1,
-      sweepT: k.t[s], csdT: k.t[d], bodyX: r1(bodyX),
-      note: `Swept the ${poi.label}, then a ${r1(bodyX)}× displacement closed above the sweep candle's high: a change in state of delivery. ` +
-            (filled < 0 ? "Limit order at the order block's body; stop just beyond the sweep low." : "Price came back and filled the limit at the order block.") };
-  }
-  return pending;
-}
-function obModels(k15, k1, k4, kd, s4, sd, T) {
-  if (!k15 || k15.c.length < 80 || !k1 || !k4 || !kd) return [];
-  T = T || k15.t.at(-1) + 900e3;
-  const d4 = s4 ? stDir(s4.state) : null, dD = sd ? stDir(sd.state) : null, bias = d4 || dD;
-  if (!bias) return [];                                                        // step 1 missing: no trade
-  const L = bias === "Long", f = k => L ? k : mirror(k);
-  const K = f(k15), a = atr(K.h, K.l, K.c).at(-1);
-  let m = obLong(K, obPOIs(K, f(k1), f(k4), f(kd), T), a); if (!m) return [];
-  if (!L) { m = unmirror(m); m.poi = swapWords(m.poi); }
-  const ok = m.step >= 7;
-  m.checks = [
-    ["Trend / bias", true, `${bias === "Long" ? "Bullish" : "Bearish"} from the ${d4 ? "4H" : "Daily"} (${d4 ? s4.state : sd.state})`],
-    ["POI identified", true, `${m.poi}${m.poiKind === "fvg" ? " (higher-timeframe gap)" : " (swing liquidity)"}`],
-    ["Price interacts with the POI", true, "Reached it on the 15m"], ["Sweep", true, `Took the ${L ? "lows" : "highs"} of the 5 candles before`],
-    ["Strong change in state of delivery", ok, ok ? `${m.bodyX}× the average body` : "Not yet"], ["Displacement engulfs the sweep candle", ok, ok ? `Closed ${L ? "above its high" : "below its low"}` : "Not yet"],
-    ["Order block created", ok, ok ? "Last opposite candle before the displacement" : "Not yet"], ["Limit order at the OB", ok, ok ? (m.state === "Filled at the OB" ? "Filled" : "Waiting for price") : "Not yet"]];
-  return [{ ...m, dir: bias, tf: "15m", withDaily: dD ? dD === bias : null }];
-}
-
-/* ORB and AMD: session models on 15m, anchored to the real 9:30 New York open (handles daylight saving) */
-function nyOpenUTC(ms) {
-  const f = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
-  const p = Object.fromEntries(f.formatToParts(new Date(ms)).map(x => [x.type, x.value]));
-  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute), offset = wall - Math.floor(ms / 60000) * 60000;
-  return Date.UTC(+p.year, +p.month - 1, +p.day, 9, 30) - offset;
-}
-function sessionModels(k15, r, now = Date.now()) {
-  const out = []; if (!k15 || k15.c.length < 40) return out;
-  const open = nyOpenUTC(now), Q = 15 * 60000, n = k15.c.length, ab = avgBody(k15, n - 20, n) || 1e-12;
-  const D = FULL.includes(r.s1h.state) ? r.s1h.dir : null;
-  const lv = (dir, entry, stop) => { const rr = Math.abs(entry - stop), s = dir === "Long" ? 1 : -1; return { entry, stop, t2: entry + 2 * s * rr, t3: entry + 3 * s * rr }; };
-  const io = k15.t.indexOf(open);
-  if (io >= 0 && now <= open + 60 * 60000 + Q) {                                            // ORB lives 9:30–10:30 NY
-    const hi = k15.h[io], lo = k15.l[io]; let brk = null, sHi = false, sLo = false;
-    for (let i = io + 1; i < n; i++) {
-      if (k15.c[i] > hi && k15.c[i] > k15.o[i] && body(k15, i) >= 1.5 * ab) { brk = { dir: "Long", i }; break; }
-      if (k15.c[i] < lo && k15.c[i] < k15.o[i] && body(k15, i) >= 1.5 * ab) { brk = { dir: "Short", i }; break; }
-      if (k15.h[i] > hi) sHi = true; if (k15.l[i] < lo) sLo = true;
-    }
-    if (brk) { const sweep = brk.dir === "Long" ? sLo : sHi;
-      out.push({ model: "ORB", tf: "15m", dir: brk.dir, state: sweep ? "Sweep, then break" : "Broke the range", trig: true, zoneHi: hi, zoneLo: lo, sweep,
-        ...lv(brk.dir, k15.c[brk.i], brk.dir === "Long" ? lo : hi), withDaily: D ? D === brk.dir : null,
-        note: `Displacing 15m close out of the 9:30–9:45 range${sweep ? " after sweeping the other side (A-grade)" : ""}.` }); }
-    else out.push({ model: "ORB", tf: "15m", dir: "any", state: "Range set, no break yet", trig: false, zoneHi: hi, zoneLo: lo, note: "Opening range marked; waiting for a displacing close outside it." });
-  }
-  const acc = []; for (let i = 0; i < n; i++) if (k15.t[i] >= open - 2 * 3600000 && k15.t[i] < open) acc.push(i);
-  if (acc.length >= 6) {
-    const ahi = Math.max(...acc.map(i => k15.h[i])), alo = Math.min(...acc.map(i => k15.l[i]));
-    if (now < open) out.push({ model: "AMD", tf: "15m", dir: "any", state: "Accumulating", trig: false, zoneHi: ahi, zoneLo: alo, note: "Pre-NY range is building; watch which side gets swept after the open." });
-    else if (now <= open + 2 * 3600000 + Q) {
-      let sw = null, dist = null;
-      for (let i = acc.at(-1) + 1; i < n; i++) {
-        if (k15.t[i] < open) continue;
-        if (!sw) {
-          if (k15.h[i] > ahi && k15.c[i] <= ahi) sw = { side: "high", ext: k15.h[i] };
-          else if (k15.l[i] < alo && k15.c[i] >= alo) sw = { side: "low", ext: k15.l[i] };
-          else if (k15.c[i] > ahi || k15.c[i] < alo) break;                                  // a real break with no trap: no AMD
-        } else {
-          if (sw.side === "high" && k15.c[i] < alo && body(k15, i) >= 1.5 * ab) { dist = { dir: "Short", i }; break; }
-          if (sw.side === "low" && k15.c[i] > ahi && body(k15, i) >= 1.5 * ab) { dist = { dir: "Long", i }; break; }
-        }
-      }
-      if (dist) out.push({ model: "AMD", tf: "15m", dir: dist.dir, state: "Distribution", trig: true, zoneHi: ahi, zoneLo: alo, sweep: true,
-        ...lv(dist.dir, k15.c[dist.i], sw.ext), withDaily: D ? D === dist.dir : null, note: `Swept the ${sw.side} of the pre-NY range, then broke the other side with displacement.` });
-      else if (sw) out.push({ model: "AMD", tf: "15m", dir: sw.side === "high" ? "Short" : "Long", state: `Swept the ${sw.side}, waiting for distribution`, trig: false,
-        zoneHi: ahi, zoneLo: alo, stop: sw.ext, note: "Manipulation sweep done; the trade is the break of the opposite side." });
-    }
-  }
-  return out;
-}
 function levFrom(k15, levMax = 20) {
   const a = atr(k15.h, k15.l, k15.c).at(-1) || 0, stop = 1.5 * a / k15.c.at(-1);
   return stop > 0 ? Math.min(levMax, Math.floor(1 / (3 * stop))) : 0;
@@ -2258,7 +1963,7 @@ function rsiCross(rs) {                            // momentum ignition: RSI cro
   for (let i = n - 1; i >= n - 3; i--) { if (i < 1 || rs[i - 1] == null) continue; if (rs[i - 1] < 60 && rs[i] >= 60) return "up60"; if (rs[i - 1] > 40 && rs[i] <= 40) return "down40"; }
   return null;
 }
-/* ---- Momentum board + Ignition: price breaking out of bunched 20/50/100 with RSI (written for longs; shorts run mirrored) ---- */
+/* ---- Momentum board: price breaking out of bunched 20/50/100 with RSI (written for longs; shorts run mirrored) ---- */
 function igniteCore(k, a, e20, e50, e100, rs) {
   const n = k.c.length, i = n - 1, c = k.c;
   if (n < 120 || !a) return null;
@@ -2282,18 +1987,6 @@ function igniteCore(k, a, e20, e50, e100, rs) {
     if (below >= 15) return { pressing: true, tight: sp, breakLevel: top(i), floor: bot(i) };
   }
   return null;
-}
-function igniteLong(k, a) {                  // the Ignition model: a new trend starting out of bunched MAs, with RSI behind it
-  const c = k.c, n = c.length, i = n - 1, e20 = ema(c, 20), e50 = ema(c, 50), e100 = ema(c, 100), rs = rsiSeries(c);
-  const g = igniteCore(k, a, e20, e50, e100, rs); if (!g) return null;
-  if (g.pressing) return { model: "Ignite", state: "Pressing the MAs", trig: false, zoneHi: g.breakLevel, zoneLo: g.floor,
-    ...levels(g.breakLevel + 0.25 * a, minOf(k.l.slice(n - 6)) - 0.2 * a),
-    note: `20/50/100 bunched within ${g.tight.toFixed(1)} ATR; price is testing them with RSI ${rs[i].toFixed(0)} and rising. The trigger is a clear close above ${fmtNum(g.breakLevel + 0.25 * a)} with RSI 60+.` };
-  const ext = (c[i] - e20[i]) / a, stop = Math.min(minOf(k.l.slice(Math.max(0, g.jb - 2), n)), g.floor) - 0.2 * a;
-  const stretched = ext >= 3, trig = g.ago <= 2 && rs[i] >= 60 && g.volx >= 1.5 && !stretched && c[i] - stop <= 3 * a;
-  return { model: "Ignite", state: stretched ? "Broke out, stretched" : rs[i] >= 70 ? "Broke out, RSI 70+" : g.rsiPeak >= 70 ? "Broke out, RSI cooling" : "Broke out, RSI building",
-    trig, zoneHi: g.breakLevel, zoneLo: g.floor, ...levels(c[i], stop),
-    note: `Closed above the bunched 20/50/100 ${g.ago === 0 ? "this candle" : g.ago + " candle" + (g.ago > 1 ? "s" : "") + " ago"} on ${g.volx.toFixed(1)}× volume; RSI ${rs[i].toFixed(0)}${g.rsiPeak >= 70 ? ` (peaked ${g.rsiPeak.toFixed(0)})` : ""}.${stretched ? ` Already ${ext.toFixed(1)} ATR above the 20: don't chase.` : ""}` };
 }
 const fmtNum = v => v >= 100 ? v.toFixed(2) : v >= 1 ? v.toFixed(4) : v.toPrecision(4);
 function momoLong(k, k4, a) {                // which stage a coin is in, read for longs
@@ -2344,8 +2037,7 @@ function momentum(r) {                             // 0–100: RSI alignment 40,
 
 /* ---- per-coin analysis (1H / 4H / Daily) ---- */
 async function analyse(c, maFn) {
-  const [k1h, k4h, k1d, k15] = await Promise.all([klines(c.symbol, "1h", 400), klines(c.symbol, "4h", 160), klines(c.symbol, "1d", 130),
-                                                 klines(c.symbol, "15m", 200).catch(() => null)]);
+  const [k1h, k4h, k1d] = await Promise.all([klines(c.symbol, "1h", 400), klines(c.symbol, "4h", 160), klines(c.symbol, "1d", 130)]);
   if (k1h.c.length < 30) return null;
   const s1h = structure(k1h, maFn), s4h = structure(k4h, maFn), s1d = structure(k1d, maFn);
   const qv = k1d.qv, base = qv.slice(-21, -1), baseAvg = base.reduce((a, b) => a + b, 0) / (base.length || 1);
@@ -2365,7 +2057,7 @@ async function analyse(c, maFn) {
   return { ...c, price: k1h.c.at(-1), s1h, s4h, s1d, rvol: r2(rvol), rvolNow: rvn == null ? null : r2(rvn), rvolPts: r1(rvolPts), atrPct: r2(atrPct), volPts,
            dayParts, swingParts, dayScore: sum(dayParts), swingScore: sum(swingParts), swingDir,
            ret24: ret(k1h.c, 24), ret7: ret(k4h.c, 42), atr1h: atr(k1h.h, k1h.l, k1h.c).at(-1), atr4h: atr(k4h.h, k4h.l, k4h.c).at(-1), sector: sectorOf(c.base),
-           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: [...detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...(() => { try { return obModels(k15, k1h, k4h, k1d, s4h, s1d); } catch (e) { return []; } })()], ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
+           session: sess.best, sessionRanges: sess.avg, aots4h: a4, aots1h: a1, pre4h: p4, pre1h: p1, maxLev: null, models: detectModels(k1h, k4h, s1h, s4h, s1d, k1d), ...rsiPack(k1h, k4h, k1d), momo: momoRead(k1h, k4h), range48: { hi: maxOf(k1h.h.slice(-48)), lo: minOf(k1h.l.slice(-48)) },
            wick: wick === null ? null : r1(wick), spikes, wicky: (wick !== null && wick > WICK_MAX) || spikes >= SPIKE_MAX,
            ret90: k1d.c.length > 91 ? k1d.c.at(-1) / k1d.c.at(-91) - 1 : null, ret30: k1d.c.length > 31 ? k1d.c.at(-1) / k1d.c.at(-31) - 1 : null,
            ...rate(s1h, s4h, s1d, a4, a1), mp: { "1H": maPack(k1h), "4H": maPack(k4h), "1D": maPack(k1d) },
@@ -2849,12 +2541,10 @@ async function scan({ exchange = "binance", market = "futures", quote = "USDT", 
   const dayMin = DAY_MIN_VOL[MODE];
   let dayPool = results.filter(r => FULL.includes(r.s1h.state) && (canShort || r.s1h.dir === "Long")
     && (r.vol24h >= dayMin || (r.trending && r.vol24h >= AOTS_MIN_VOL))).sort((a, b) => b.dayScore - a.dayScore).slice(0, 25);
-  progress("Checking leverage and session models (ORB, AMD) on the day-trade candidates…", 0.95);
-  await pool(dayPool, 6, async r => {
-    const k15 = await klines(r.symbol, "15m", 100);
-    if (market === "futures") r.maxLev = levFrom(k15);
-    try { r.models.push(...sessionModels(k15, r)); } catch (e) {}
-  }, () => {});
+  if (market === "futures") {
+    progress("Checking leverage on the day-trade candidates…", 0.95);
+    await pool(dayPool, 6, async r => { r.maxLev = levFrom(await klines(r.symbol, "15m", 100)); }, () => {});
+  }
   if (market === "futures") dayPool = dayPool.filter(r => r.maxLev >= 5);
   const dayPoolSyms = dayPool.map(r => r.symbol);
 
@@ -2981,9 +2671,7 @@ function buildRibbon() {                                 // the PHT day, 0–24;
   segs.sort((a, b) => a.s - b.s);
   $("bar").innerHTML = segs.map(s => `<div class="seg" data-s="${s.s}" data-e="${s.e}" style="flex:${s.e - s.s}" title="${s.name}">${s.e - s.s >= 1.5 ? s.name : ""}</div>`).join("");
 }
-let sessTick = 0;
 function tickClock() {
-  if (data && data.env && ++sessTick % 2 === 0 && typeof renderSessions === "function") renderSessions();
   if (ribbonShift !== sessShift()) buildRibbon();
   const d = new Date(Date.now() + PHT_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6, sh = ribbonShift, hs = sessH();
   $("clock").innerHTML = `<b>${fmtPHT(d)}</b>${weekend ? " · weekend, thin liquidity" : ""}${data ? ` · last scan ${fmtPHT(new Date(Date.parse(data.at) + PHT_MS)).split(", ")[1]}` : ""}`;
@@ -3160,7 +2848,7 @@ function renderAots() {
     (e.a.stage === "Fresh AOTS" ? `<span class="tag trade">Fresh AOTS</span>` : `<span class="tag">Breaking out</span>`) + flagTags(e.flags), false)).join("");
   bindRows(el);
 }
-function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAots(); renderPre(); try { aotsPromotions(); } catch (e) {} if (typeof renderSessions === "function" && data && data.env) { renderSessions(); renderMomentum(); } }
+function renderBoards() { computeBoards(); renderDay(); renderSwing(); renderAots(); renderPre(); try { aotsPromotions(); } catch (e) {} if (data && data.env) renderMomentum(); }
 
 /* ---- why it's moving + fundamentals in the coin panel ---- */
 const drvCache = {};
@@ -3266,7 +2954,7 @@ const KINDS = [
     make: () => ({ kind: "ma_ma", ma: "ema", p: 20, p2: 50, tf: "4H", cond: "above" }) },
   { kind: "stack", title: "MA Stack (20/50/100)", sub: "Bull stack, bear stack, pullback or tangled on a timeframe",
     make: () => ({ kind: "stack", tf: "4H", cond: "bull_any" }) },
-  { kind: "model", title: "Model Setup", sub: "NBB, Bounce (OEZ), Fade, Breaker (Flip), V-Trade, Pullback, ORB, AMD",
+  { kind: "model", title: "Model Setup", sub: "NBB, V-Trade",
     make: () => ({ kind: "model", model: "NBB", stage: "any", dir: "any" }) },
   { kind: "momo", title: "Momentum Stage", sub: "In momentum (RSI 70+), awaiting momentum (tapped 70, holding), or breaking out of bunched MAs",
     make: () => ({ kind: "momo", stage: "breakout" }) },
@@ -3584,7 +3272,6 @@ const QUICK = [
   { name: "Pullback to the 1H 20", filters: [{ kind: "stack", tf: "1H", cond: "bull_any" }, { kind: "ma_price", ma: "ema", p: 20, tf: "1H", cond: "near" }, { kind: "num", field: "vol24h", op: ">", a: 20 }], tab: "day", key: "day", dir: -1, boards: true },
   { name: "Strong Buy, Clean", filters: [{ kind: "rating", set: ["Strong buy"] }, { kind: "flag", name: "notWicky" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "overview", key: "rating", dir: -1, boards: true },
   { name: "Strong Sell", filters: [{ kind: "rating", set: ["Strong sell"] }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "overview", key: "rating", dir: 1, boards: false },
-  { name: "OB Entries (limit at the OB)", filters: [{ kind: "model", model: "OB", stage: "trig", dir: "any" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "models", key: "mdl", dir: -1, boards: false },
   { name: "Triggered Setups", filters: [{ kind: "model", model: "any", stage: "trig", dir: "any" }, { kind: "num", field: "vol24h", op: ">", a: 10 }], tab: "models", key: "mdl", dir: -1, boards: false },
   { name: "Crowded Longs", filters: [{ kind: "num", field: "funding", op: ">", a: 0.05 }], tab: "deriv", key: "fund", dir: -1, boards: false },
   { name: "Squeeze Fuel", filters: [{ kind: "num", field: "funding", op: "<", a: -0.03 }], tab: "deriv", key: "fund", dir: 1, boards: false },
@@ -3614,18 +3301,6 @@ function renderQuick() {
 
 /* ===================== Models: guide card, filter, table ===================== */
 const MODELS = {
-  "OB": { icon: "🎯", name: "OB Entry (Sweep + Change in State of Delivery)", tf: "15m + 1H/4H/Daily POIs",
-    what: "Jas's order-block entry. With the higher-timeframe bias set, price runs into a point of interest (a session high/low, the previous day's high/low, or a 1H/4H FVG) and sweeps it. On the 15m, a strong change in state of delivery engulfs the sweep candle, and the order block it leaves is where the limit order goes. If any step is missing, there's no trade.",
-    rules: ["<b>1 · Bias</b>: the 4H stack (full or pullback) sets the direction; if the 4H is tangled, the Daily does. No bias, no trade",
-      "<b>2 · POI</b>: Asia, London and New York session highs/lows from the last 30 hours, the previous day's high/low, and unfilled 1H and 4H FVGs",
-      "<b>3 · Interaction</b>: a 15m candle trades through the session level or PDH/PDL for the first time in 4 hours, or wicks into the FVG from the right side",
-      "<b>4 · Sweep</b>: that same candle takes out the lows (highs for shorts) of the 5 candles before it",
-      "<b>5 · Change in state of delivery</b>: within 4 candles, a candle in the bias direction with a body ≥ 1.3× the average and ≥ 55% of its range closes beyond the sweep candle's high (low for shorts) and every candle since. A new low first cancels it",
-      "<b>6 · Order block</b>: the last opposite-colour candle before the displacement. Entry at its body edge, stop just beyond the sweep extreme",
-      "<b>Limit at the OB</b> = displacement printed, limit waiting (valid 4 hours; cancelled if price reaches 2R without filling)",
-      "<b>Filled at the OB</b> = price came back and filled the limit", "<b>Swept, waiting for displacement</b> = steps 1–4 done, no change in state of delivery yet: no trade"],
-    trade: "Limit order at the order block's body edge. Stop beyond the sweep extreme. 2–3R. Every checklist item must pass; one missing means no trade.",
-    grade: "Strongest when the POI is the previous day's high/low or a 4H FVG and the Daily agrees with the 4H." },
   "NBB": { icon: "🥪", name: "NBB (Next-Base Breakout)", tf: "1H",
     what: "The core momentum continuation. Price consolidates into a base, then breaks and closes out of it with displacement, continuing the trend. The 2nd base is the cleanest (momentum already proven).",
     rules: ["1H trend in force: 1H stack (full or pullback) in the trade direction", "Base: 6–24 candles, total height ≤ 2.5 ATR, moving sideways (net drift ≤ 60% of its range)",
@@ -3634,65 +3309,17 @@ const MODELS = {
       "Leaked out on small candles = drift, rejected", "Also reports: FVG left, base swept first, base # (2nd is prime), room to the next swing level ≥ 2R",
       "<b>A-grade</b> needs all three: BTC stacked with you on both the 1H and the 4H · the 1H trend stacked for 74 candles or fewer (about 3 days) · the breakout closes between 8:00 AM and 7:30 PM PHT (9:00 AM – 8:30 PM while New York is on winter time, November to March)"],
     trade: "Enter at the breakout close. Stop just beyond the far side of the base (don't tighten it). One target at 3R; if neither the stop nor 3R is hit within 48 hours, close at market.", grade: "A-grade when all three checks pass. Tested on 71 coins, 111 other coins and the 6 months before: A-grade NBB closed in profit about 40% of the time for +0.14 to +0.28R per trade after fees (3R target, 48 hours); NBB failing any check averaged −0.02 to −0.11R. Expect losing streaks of 8–10 trades." },
-  "Bounce": { icon: "⤴️", name: "Bounce (OEZ)", tf: "1H", alias: "OEZ",
-    what: "With-trend continuation. After an impulse leg, price pulls back into the OEZ (62–79% fib of that leg), taps a fresh POI and continues. Buying the discount inside a trend, not calling a reversal.",
-    rules: ["1H trend in force in the trade direction", "Last impulse leg ≥ 3 ATR; OEZ = its 62–79% retracement", "<b>Approaching</b> = within 1 ATR of the 62% line",
-      "<b>In OEZ / Tapped</b> = pullback reached 62–79% without closing through 79%", "<b>OEZ tap + trigger</b> = engulfing candle at the zone", "Closed through 79% = failed, dropped. Shallow pullback = no edge, dropped"],
-    trade: "Enter the trigger close. Stop beyond the sweep / tap extreme. 2–3R, bank it, hard close by 11:00 NY.", grade: "Can reach A-Platinum (sweep of a minor low/high on the tap)." },
-  "Fade": { icon: "🔁", name: "Fade", tf: "1H",
-    what: "The counter-trend reversal. Fade a swing extreme only as a reaction to a liquidity sweep that fails (swing failure), confirmed by a structure break. The setup most likely to tempt a forced trade.",
-    rules: ["Price fell into the low (or rallied into the high) by 2+ ATR over 20 candles", "Sweep: wicked beyond a prior swing low/high and closed back inside, in the last 4 candles; must be the 60-candle extreme",
-      "<b>Swept, waiting for MSS</b> = sweep done, no structure break yet: don't trade", "<b>Swept + MSS</b> = closed beyond the last swing on the other side"],
-    trade: "Enter the reversal trigger close. Stop beyond the swept extreme. 2R, tight and quick.", grade: "Caps at B-Silver. No sweep = C-Bronze, log only." },
-  "Breaker": { icon: "🧱", name: "Breaker (Flip)", tf: "1H", alias: "Flip",
-    what: "A level that failed and flipped polarity. Price breaks an old level with displacement, shifting structure, then returns to it; the failed level becomes the launchpad.",
-    rules: ["A lower high (in bearish structure) broken by a displacing close (body ≥ 1.5× average)", "Price moved at least 1 ATR beyond it, then came back to within ±0.5 ATR of the level",
-      "<b>Back at the flip</b> = retesting now", "<b>Rejected off the flip</b> = last candle closed strong off the zone (trigger)", "Shorts mirror this: a higher low broken down, then retested"],
-    trade: "Enter the trigger close. Stop: far side of the flipped zone. 2–3R, hard close by 11:00 NY.", grade: "Add Daily With-Trend if the flip is with the trend." },
   "V-Trade": { icon: "🔥", name: "V-Trade", tf: "1H",
-    what: "A sharp 3-candle reversal (morning / evening star) that prints a V at a level. It's a trigger: the entry for a Fade at a swept extreme, or a with-trend re-entry off a deep OEZ.",
+    what: "A sharp 3-candle reversal (morning / evening star) that prints a V at a level: a with-trend re-entry off a deep pullback (the OEZ, 62–79% of the last impulse leg), or a reversal at a swept extreme.",
     rules: ["Drive candle (≥ average body) → small indecision candle (≤ half average) → strong reversal candle (≥ 1.2× average) closing past the drive's midpoint and the middle candle's high",
       "Must sit at a level: a swept 20-candle low/high after a 2+ ATR move into it, or inside the OEZ", "A V in the middle of a range is rejected",
       "Triggers only on the candle that just closed; a V one candle old shows as <b>Missed V</b>: don't chase it",
       "<b>A-grade</b> needs both: BTC stacked with you on the 1H and 4H · the coin's own 1H trend stacked with the trade (a with-trend V, not a reversal)"],
     trade: "Enter at the 3rd candle's close. Stop just beyond the V tip. One target at 2R; if neither is hit within 48 hours, close at market.",
     grade: "A-grade when both checks pass. Tested on 71 coins, 111 other coins and the 6 months before: A-grade closed in profit 40–52% of the time for +0.12 to +0.39R per trade; the rest lost −0.15 to −0.17R in 2026. Rare (about one every 2 days across the top coins) and small samples: secondary to NBB." },
-  "Pullback": { icon: "↪️", name: "Pullback", tf: "1H + 4H",
-    what: "Counter-HTF retrace. Price is extended to an extreme, sweeps it, shifts structure, and retraces toward the 4H OEZ. Join the confirmed retrace mid-leg and bank at the OEZ, where the HTF trend resumes.",
-    rules: ["4H trend in force (that's the trend you're trading against)", "1H swept the extreme (undercut prior swing lows/highs) and then closed beyond the last swing on the other side (CHoCH)",
-      "Target: the 4H OEZ near edge (62% of the last 4H leg)", "<b>Retrace underway</b> = room to the target ≥ 2× the stop distance; less room is flagged", "Already at the OEZ = that's a Bounce, dropped"],
-    trade: "Enter on a with-pullback trigger mid-leg. TP at the 4H OEZ near edge only. Stop beyond the last LTF swing.", grade: "Caps at B-Silver, 2R. New model: hypothesis until the scoreboard proves it." },
-  "ORB": { icon: "⭕", name: "ORB (Opening Range Breakout)", tf: "15m",
-    what: "The NY opening range (first 15 minutes after 9:30 NY) is the base; trade a displacing close outside it. A Next-Base Breakout anchored to the session's first base.",
-    rules: ["Range = the 9:30–9:45 NY 15m candle (9:30 PM PHT while New York is on summer time, 10:30 PM PHT from November to March)", "<b>Range set</b> = marked, no break yet",
-      "<b>Broke the range</b> = 15m close outside it with body ≥ 1.5× average", "<b>Sweep, then break</b> = the opposite side was swept first (A-grade)", "Only shown 9:30–10:30 NY, and only for the day-trade candidates (they're the coins with 15m data)"],
-    trade: "Enter the breakout close or the retest of the broken edge. Stop beyond the far side of the range. 2–3R, hard close by 11:00 NY.", grade: "Sweep-then-break with trend = A; clean break = B." },
-  "Leader": { icon: "🦅", name: "Leader Pullback (Claude's day setup)", tf: "1H",
-    what: "My day-trade setup, built to buy only the coins that are leading. A coin prints a fresh 48-hour high on a big, high-volume impulse candle, then pulls back quietly into its 1H 20 or the 38% of that leg while holding the 50, then reclaims. Leaders that pull back on light volume tend to resume; the 48-hour high and the volume prove it's a leader, not a random pop. A hypothesis until the backtest proves it.",
-    rules: ["1H 20 > 50 > 100 with the 50 rising", "Impulse in the last 12 candles: a new 48-hour high on a candle with a body ≥ 1.8× average and volume ≥ 1.8× average",
-      "Pullback reaches the 1H 20 (within 0.3 ATR) or the 38% retracement of the impulse leg", "Holds the 50 (no close below it) and gives back no more than 62% of the leg; lighter pullback volume is noted",
-      "<b>Pulling back to the 20</b> = in the zone, no trigger yet", "<b>Reclaim after the pullback</b> = a green candle closes above the prior candle's high and the 20", "Shorts mirror this on the weakest coins"],
-    trade: "Enter the reclaim close. Stop below the pullback low (−0.2 ATR). Target 2R.", grade: "With-trend, can reach A when the Daily agrees. Mine, not yet proven: check the backtest." },
-  "Reset20": { icon: "🌊", name: "Daily 20 Reset (Claude's swing setup)", tf: "4H + Daily",
-    what: "My swing setup. In a Daily uptrend, the Daily 20 is where institutions defend the trend. Wait for price to dip into the Daily 20 zone and reset below the 4H 20 (shaking out late longs), then buy the 4H reclaim. It aims for a bigger move (3R) and holds up to 10 days. A hypothesis until the backtest proves it.",
-    rules: ["Daily 20 > 50 > 100, with the Daily 20 rising over the last 5 days and no daily close below the 50 in the last 10", "In the last 12 4H candles price reached the Daily 20 zone (±0.5 daily ATR) without crashing more than 0.5 daily ATR below it",
-      "At least 2 of those 4H candles closed below the 4H 20 (the reset)", "<b>Resetting at the Daily 20</b> = in the zone, waiting", "<b>Reclaimed the 4H 20</b> = a green 4H candle closes above the 4H 20 and the prior candle's high",
-      "Shorts mirror this in a Daily downtrend"],
-    trade: "Enter the 4H reclaim close. Stop below the reset low (−0.25 × 4H ATR). Target 3R, time limit 10 days. Spot is fine for longs.", grade: "Swing, Daily with-trend by design. Mine, not yet proven: check the backtest." },
-  "Ignite": { icon: "🚀", name: "Ignition (MA breakout + RSI)", tf: "1H",
-    what: "A new trend starting: the 20, 50 and 100 bunch up while price chops around them, then price closes clearly beyond all three with volume and RSI pushing to 60–70+. It's the moment a coin like LONGXIA turns from flat to trending. A hypothesis until the backtest proves it.",
-    rules: ["The 1H 20/50/100 are bunched (within 1.5 ATR of each other) just before the break", "Price spent at least 15 of the 48 hours before the break on the other side of the cluster, so it's a new trend, not a continuation",
-      "<b>Pressing the MAs</b> = within 0.5 ATR of the cluster with RSI 55+ and rising: not a trade yet", "<b>Broke out</b> = a close at least 0.25 ATR clear of all three MAs in the last 6 candles, with RSI reaching 60+",
-      "<b>Triggered</b> = broke out in the last 2 candles, RSI 60+, breakout volume 1.5×+ average, stop within 3 ATR, and not stretched (under 3 ATR from the 20)", "4H RSI 50+ with price above the 4H 20 is shown as \"4H agrees\" and ranks higher; it isn't required", "Shorts mirror this: a breakdown below all three with RSI 40 or below"],
-    trade: "Enter the trigger close or the first retest of the cluster. Stop beyond the breakout low and the cluster (−0.2 ATR). Target 2R. If it's stretched, wait for the first base.", grade: "New-trend entry: strongest when 4H agrees and the Daily isn't against it. Not proven yet: check the backtest." },
-  "AMD": { icon: "💯", name: "AMD (Power of 3)", tf: "15m",
-    what: "Accumulation, manipulation, distribution. The pre-open range builds, the open sweeps one side to trap breakout traders, then price expands hard the other way. Trade the distribution leg.",
-    rules: ["Accumulation = the 2 hours before the NY open (Pre-NY window)", "<b>Accumulating</b> = before the open, range building", "<b>Swept the high/low</b> = after the open, a wick beyond one side closed back inside",
-      "<b>Distribution</b> = then a displacing 15m close beyond the opposite side", "A clean break with no trap first = no AMD", "Day-trade candidates only, within 2 hours of the open"],
-    trade: "Enter the distribution break. Stop beyond the manipulation extreme. 2–3R into the opposite liquidity, hard close by 11:00 NY.", grade: "Liquidity Sweep is required (the manipulation is the sweep)." },
 };
 const MODEL_KEYS = Object.keys(MODELS);
-const tLabel = m => m.model === "Pullback" ? "Target" : m.model === "Reset20" || m.model === "NBB" ? "3R" : "2R";
+const tLabel = m => m.model === "NBB" ? "3R" : "2R";
 let guideSel = "NBB";
 function modelTag(m, short) {
   const M = MODELS[m.model], cls = m.dir === "Long" ? "long" : m.dir === "Short" ? "short" : "";
@@ -3786,8 +3413,6 @@ function renderGuide(force) {
         <p>${M.what}</p>
         <h4>How the Scanner Finds It</h4><ul>${M.rules.map(x => `<li>${x}</li>`).join("")}</ul>
         <h4>How You Trade It</h4><p>${M.trade}</p><p class="meta">${M.grade}</p>
-        ${(() => { const s = btFor(guideSel, null), e = data && data.env ? btFor(guideSel, data.env.label) : null;
-          return s ? `<h4>Your Backtest</h4><p>${fmtR(s.avg)} per trade over ${s.n} trades (win ${s.win.toFixed(0)}%, total ${fmtR(s.tot)})${e ? `; in today's environment ${fmtR(e.avg)} over ${e.n}` : ""}.</p>` : ""; })()}
       </div>
       <div class="gcol">
         <div class="gnow">${data ? `<b>${modelCount(guideSel, true)}</b> triggered · <b>${modelCount(guideSel)}</b> total right now` : "Run a scan to see matches."}</div>
@@ -3809,7 +3434,7 @@ function setupsHTML(r) {
   if (!r.models || !r.models.length) return `<div class="meta">No model setup detected on this coin right now.</div>`;
   const fitOf = m => {                                     // model fit, but a setup against today's direction counts as against
     if (!data || !data.env) return null; const e = data.env;
-    if (e.dirBias !== "Both" && m.dir !== "any" && m.dir !== e.dirBias && m.model !== "Fade") return "avoid";
+    if (e.dirBias !== "Both" && m.dir !== "any" && m.dir !== e.dirBias) return "avoid";
     return e.fit[m.model];
   };
   return r.models.map(m => `<div class="setup">${modelTag(m)}${edgeTag(r, m)}${isCounter(r, m) ? `<span class="tag flag">Against the coin's ${r.rating} rating${m.trig ? "" : ", not triggered"}</span>` : ""}${fitOf(m) && fitOf(m) !== "neutral" ? `<span class="tag fit-${fitOf(m)}">${fitOf(m) === "avoid" ? (data.env.fit[m.model] === "avoid" ? "Avoid today" : "Against today's bias") : FIT_LABEL[fitOf(m)] + " today"}</span>` : ""}${m.withDaily === true ? (m.model === "NBB" ? '<span class="tag">Daily with-trend</span>' : '<span class="tag long">Daily with-trend</span>') : m.withDaily === false ? '<span class="tag flag">Against Daily</span>' : ""}
@@ -3817,7 +3442,7 @@ function setupsHTML(r) {
     <div class="meta">${m.note || ""}</div>
     ${m.checks ? `<ul class="obchk">${m.checks.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.checks.every(c => c[1]) ? '<span class="up">All checklist items pass: valid trade.</span>' : '<span class="dn">Checklist incomplete: no trade.</span>'}</div>` : ""}
     ${m.grade ? `<div class="meta"><b>A-grade checks</b></div><ul class="obchk">${m.grade.items.map(([k, ok, t]) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${k}</b> <span class="mute">${t}</span></li>`).join("")}</ul><div class="meta">${m.grade.pass ? `<span class="up">${(GRADE_TEXT[m.model] || [])[0] || "A-grade: all checks pass."}</span>` : `<span class="dn">${(GRADE_TEXT[m.model] || [])[1] || "Not A-grade."}</span>`}</div>` : ""}
-    <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : m.model === "NBB" ? "Target 3R" : tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
+    <div class="lv">${m.zoneHi != null ? `<span>Zone ${fmtPrice(Math.min(m.zoneLo, m.zoneHi))} – ${fmtPrice(Math.max(m.zoneLo, m.zoneHi))}</span>` : ""}${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${m.model === "Pullback" ? "Target (4H OEZ)" : m.model === "NBB" ? "Target 3R" : tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>3R ${fmtPrice(m.t3)}</span>` : ""}</div></div>`).join("");
 }
 
 /* ===================== Today's playbook: which models fit the environment ===================== */
@@ -3825,8 +3450,7 @@ function median(a) { const s = a.filter(x => x != null && !Number.isNaN(x)).sort
 function environment() {
   const b = data.btc.regime, br = breadth(), f = EXT.fng, mf = medianFunding(), as = altSeason();
   const atrMed = median(data.all.filter(r => r.vol24h >= 10e6).map(r => r.atrPct));
-  const now = Date.now(), open = nyOpenUTC(now), mins = (now - open) / 60000;
-  const pd = new Date(now + PHT_MS), weekend = pd.getUTCDay() === 0 || pd.getUTCDay() === 6;
+  const now = Date.now(), pd = new Date(now + PHT_MS), weekend = pd.getUTCDay() === 0 || pd.getUTCDay() === 6;
   const bull = br ? br.bull : 0, bear = br ? br.bear : 0;
   const fit = {}; MODEL_KEYS.forEach(k => fit[k] = "neutral");
   const set = (lvl, ...ks) => ks.forEach(k => fit[k] = lvl), why = [];
@@ -3834,51 +3458,42 @@ function environment() {
   if (b === "Risk-on" && bull >= 45) {
     label = "Trend Up: Risk-On Alts"; dirBias = "Long";
     desc = "BTC is stacked up on 1H and 4H and most liquid alts are in 4H bull structure. Continuation setups pay; fighting the trend doesn't.";
-    set("primary", "NBB", "Bounce", "Leader", "OB"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Fade", "Pullback");
+    set("primary", "NBB"); set("secondary", "V-Trade");
   } else if (b === "Risk-off" && bear >= 45) {
     label = "Trend Down: Risk-Off"; dirBias = "Short";
-    desc = "BTC is stacked down and most liquid alts are in 4H bear structure. Sell breakdowns and rallies into the premium OEZ; longs only as a swept, MSS-confirmed Fade.";
-    set("primary", "NBB", "Bounce", "Leader", "OB"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Pullback"); set("neutral", "Fade");
+    desc = "BTC is stacked down and most liquid alts are in 4H bear structure. Sell breakdowns and rallies into the OEZ; don't bottom-fish.";
+    set("primary", "NBB"); set("secondary", "V-Trade");
   } else if (b === "Risk-on" && bull < 35) {
     label = "BTC-Led: Alts Lagging"; dirBias = "Long";
     desc = `BTC is trending up but only ${bull}% of liquid alts are in 4H bull structure. Most alts aren't following: be selective, take only the strongest coins, and prefer pullbacks over chasing breakouts.`;
-    set("primary", "Bounce", "Leader"); set("secondary", "NBB", "Breaker", "Reset20", "OB"); set("avoid", "Fade", "Pullback", "ORB");
+    set("secondary", "NBB");
   } else if (b !== "Risk-off" && bull >= 55 && bear <= 25) {
     label = "Alts Trending Up: BTC Ranging"; dirBias = "Long";
     desc = `BTC isn't trending cleanly, but ${bull}% of liquid alts are in 4H bull structure (only ${bear}% bearish). Money is rotating into alts: take continuation longs on the strongest coins, not range fades.`;
-    set("primary", "NBB", "Bounce", "Leader", "OB"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Fade", "Pullback");
+    set("primary", "NBB"); set("secondary", "V-Trade");
   } else if (b !== "Risk-on" && bear >= 55 && bull <= 25) {
     label = "Alts Trending Down: BTC Ranging"; dirBias = "Short";
     desc = `BTC isn't trending cleanly, but ${bear}% of liquid alts are in 4H bear structure (only ${bull}% bullish). Alts are bleeding: sell breakdowns and rallies into the OEZ, and don't bottom-fish.`;
-    set("primary", "NBB", "Bounce", "Leader", "OB"); set("secondary", "Breaker", "V-Trade", "ORB", "Reset20", "Ignite"); set("avoid", "Pullback"); set("neutral", "Fade");
+    set("primary", "NBB"); set("secondary", "V-Trade");
   } else {
     label = "Chop: Range Day"; dirBias = "Both";
-    desc = `BTC isn't trending cleanly (${b}) and alt breadth is split (${bull}% bull / ${bear}% bear). Breakouts tend to fail; the edge is at range extremes after a sweep. Size down or stand aside.`;
-    set("primary", "Fade", "AMD"); set("secondary", "V-Trade", "Breaker", "OB"); set("avoid", "NBB", "ORB", "Pullback", "Leader", "Reset20", "Ignite");
+    desc = `BTC isn't trending cleanly (${b}) and alt breadth is split (${bull}% bull / ${bear}% bear). Breakouts tend to fail; the only edge is a V at a swept range extreme. Size down or stand aside.`;
+    set("secondary", "V-Trade"); set("avoid", "NBB");
   }
   // modifiers
   const demote = k => { fit[k] = fit[k] === "primary" ? "secondary" : fit[k] === "secondary" ? "neutral" : fit[k]; };
   const promote = k => { fit[k] = fit[k] === "avoid" ? "neutral" : fit[k] === "neutral" ? "secondary" : fit[k] === "secondary" ? "primary" : fit[k]; };
   const greed = f && f.v >= 80, fear = f && f.v <= 20, hotFunding = mf !== null && mf > FUNDING_EXTREME;
-  if (dirBias === "Long" && (greed || hotFunding)) { demote("NBB"); promote("Pullback");
+  if (dirBias === "Long" && (greed || hotFunding)) { demote("NBB");
     why.push(`${greed ? `Extreme greed (${f.v})` : "Hot funding"}: late-stage trend. Skip base #3+ breakouts; retraces toward the OEZ are more likely.`); }
-  if (dirBias === "Short" && fear) { promote("Fade"); why.push(`Extreme fear (${f.v}): swept-low Fades (longs) get more reliable.`); }
-  if (atrMed !== null && atrMed < 2) { demote("NBB"); demote("ORB"); why.push(`Low volatility (median daily ATR ${atrMed.toFixed(1)}%): breakouts lack follow-through.`); }
+  if (dirBias === "Short" && fear) why.push(`Extreme fear (${f.v}): watch for a V at a swept low before pressing shorts.`);
+  if (atrMed !== null && atrMed < 2) { demote("NBB"); why.push(`Low volatility (median daily ATR ${atrMed.toFixed(1)}%): breakouts lack follow-through.`); }
   if (atrMed !== null && atrMed > 7) why.push(`High volatility (median daily ATR ${atrMed.toFixed(1)}%): use the low end of your leverage.`);
-  if (weekend) { demote("NBB"); demote("ORB"); why.push("Weekend: thin liquidity, breakouts fail more often. Prefer retests over breakouts, and smaller size."); }
-  if (mins >= 0 && mins <= 60 && !weekend) {
-    if (dirBias !== "Both") { promote("ORB"); why.push("Inside 9:30–10:30 NY: the ORB window is live."); }
-    else why.push("Inside 9:30–10:30 NY, but on a chop day opening breaks often fail. Watch for the AMD sweep-and-reverse instead.");
-  }
-  else if (mins > 60 && mins <= 120) fit.ORB = fit.ORB === "avoid" ? "avoid" : "neutral";
-  if (mins >= -120 && mins < 0) why.push("Pre-NY: the AMD accumulation range is building. Mark its high and low before the open.");
-  if (mins >= 0 && mins <= 120 && dirBias === "Both") promote("AMD");
-  if (mins > 150 || mins < -120) { if (fit.ORB !== "avoid") fit.ORB = "neutral"; if (fit.AMD === "primary") fit.AMD = "secondary"; }
+  if (weekend) { demote("NBB"); why.push("Weekend: thin liquidity, breakouts fail more often. Prefer retests over breakouts, and smaller size."); }
   if (as != null && as >= 75) why.push(`Altcoin season (${as}): alts are outperforming BTC. Momentum setups on alts get extra follow-through.`);
   const rot = data.rotation || rotationRead();
   if (rot) why.push(`Money flow: ${rot.label}. ${rot.tradeNote}`);
-  btApply(label, fit, why);
-  return { label, desc, dirBias, fit, why, facts: { b, bull, bear, f, mf, atrMed, as, mins, weekend } };
+  return { label, desc, dirBias, fit, why, facts: { b, bull, bear, f, mf, atrMed, as, weekend } };
 }
 const FIT_W = { primary: 3, secondary: 2, neutral: 1, avoid: 0 };
 function suggestions(env, n = 3) {
@@ -3888,10 +3503,9 @@ function suggestions(env, n = 3) {
     liveModels(r).forEach(m => {
       const fw = FIT_W[env.fit[m.model]]; if (!fw) return;
       if (dirSel() !== "Both") { if (m.dir !== dirSel()) return; }
-      else if (env.dirBias !== "Both" && m.dir !== "any" && m.dir !== env.dirBias && m.model !== "Fade") return;
+      else if (env.dirBias !== "Both" && m.dir !== "any" && m.dir !== env.dirBias) return;
       if (m.dir === "any") return;
       if (blockedCounter(r, m)) return;                                   // no untriggered or strong-trend counter plays in the top 3
-      if (["Fade", "Pullback"].includes(m.model) && !m.trig) return;      // counter-trend models must have triggered to be suggested
       const reasons = [];
       let s = fw * 10 + (m.trig ? 12 : 4);
       if (m.grade) { if (m.grade.pass) { s += 8; reasons.push(`A-grade ${m.model} (${m.grade.of}/${m.grade.of} checks)`); } else s -= 4; }
@@ -3931,7 +3545,7 @@ function renderPlaybook() {
   const F = env.facts, groups = ["primary", "secondary", "avoid"].map(lvl => [lvl, MODEL_KEYS.filter(k => env.fit[k] === lvl)]);
   const sug = suggestions(env); data.suggest = sug;
   $("playbook").innerHTML = `
-    <div class="pbhead"><h2>Today's Playbook</h2><span class="pblabel ${env.dirBias === "Long" ? "up" : env.dirBias === "Short" ? "dn" : "chopc"}">${env.label}</span><label class="tog pbag"><input type="checkbox" id="pbAGrade" ${EDGE.aOnly ? "checked" : ""}> A-grade only <span class="mute">(NBB + V-Trade checks${EDGE.rules.length ? ` + ${EDGE.rules.length} rule${EDGE.rules.length === 1 ? "" : "s"}` : ""})</span></label></div>
+    <div class="pbhead"><h2>Today's Playbook</h2><span class="pblabel ${env.dirBias === "Long" ? "up" : env.dirBias === "Short" ? "dn" : "chopc"}">${env.label}</span><label class="tog pbag"><input type="checkbox" id="pbAGrade" ${EDGE.aOnly ? "checked" : ""}> A-grade only <span class="mute">(NBB and V-Trade that pass all their checks)</span></label></div>
     <p class="pbdesc">${env.desc}</p>
     <div class="pbfacts">
       <span>BTC <b>${F.b}</b></span><span>Breadth <b class="up">${F.bull}%</b>/<b class="dn">${F.bear}%</b></span>
@@ -3954,7 +3568,7 @@ function renderPlaybook() {
   if ($("pbAGrade")) $("pbAGrade").onchange = () => { EDGE.aOnly = $("pbAGrade").checked; edgeChanged(); };
   $("playbook").querySelectorAll("[data-pm]").forEach(b => b.onclick = () => {
     const k = b.dataset.pm; guideEdit = null; guideSel = k; renderGuide(true);
-    FS.filters = [{ kind: "model", model: k, stage: "any", dir: env.dirBias === "Both" || k === "Fade" ? "any" : env.dirBias }]; FS.template = `${k} setups`; FS.boards = false;
+    FS.filters = [{ kind: "model", model: k, stage: "any", dir: env.dirBias === "Both" ? "any" : env.dirBias }]; FS.template = `${k} setups`; FS.boards = false;
     tab = "models"; sortKey = null; sortDir = -1; fsSave(); renderPanel(); renderQuick(); renderTabs(); renderBoards(); renderTable();
     if (window.goPage) goPage("screener", true);
     document.querySelector("#tabs").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -4013,31 +3627,31 @@ function coinPlay(r) {
         short: `Pre-AOTS ${q.dir === "Long" ? "▲" : "▼"}: alert ${fmtPrice(q.trig)}` };
     } else if ((bull1 || bear1) && Math.abs(ext) > 3) {
       const d = bull1 ? "Long" : "Short";
-      play = { kind: "watch", model: "Bounce", dir: d, head: `Stretched: wait for a ${d === "Long" ? "pullback" : "rally"} (Bounce watch)`,
-        text: `In a 1H ${d === "Long" ? "up" : "down"}trend but ${Math.abs(ext).toFixed(1)} ATR from the 20, so chasing here is a bad location. Wait for price to come back into the OEZ of the last leg${ema20 ? ` or toward the 1H 20 at ${L(ema20)}` : ""}, then take a trigger.`,
+      play = { kind: "watch", model: "NBB", dir: d, head: `Stretched: wait for a ${d === "Long" ? "pullback" : "rally"}`,
+        text: `In a 1H ${d === "Long" ? "up" : "down"}trend but ${Math.abs(ext).toFixed(1)} ATR from the 20, so chasing here is a bad location. Wait for price to come back into the OEZ of the last leg${ema20 ? ` or toward the 1H 20 at ${L(ema20)}` : ""}, then take a V there (V-Trade) or the next base (NBB).`,
         short: `Stretched ${d === "Long" ? "▲" : "▼"}: wait for pullback` };
     } else if (r.s1h.state === "Pullback in bull" || r.s1h.state === "Pullback in bear") {
       const d = r.s1h.state === "Pullback in bull" ? "Long" : "Short";
-      play = { kind: "watch", model: "Bounce", dir: d, head: `Pulling back inside the trend: Bounce watch`,
-        text: `The 1H stack is ${d === "Long" ? "up" : "down"} and price is retracing into it. If it reaches the 62–79% OEZ of the last leg and prints a trigger (engulfing / V), that's the ${d.toLowerCase()} Bounce. A close through the 100 cancels it.`,
-        short: `Bounce watch ${d === "Long" ? "▲" : "▼"}` };
+      play = { kind: "watch", model: "V-Trade", dir: d, head: `Pulling back inside the trend: V-Trade watch`,
+        text: `The 1H stack is ${d === "Long" ? "up" : "down"} and price is retracing into it. If it reaches the 62–79% OEZ of the last leg and prints a V, that's the ${d.toLowerCase()} V-Trade re-entry. A close through the 100 cancels it.`,
+        short: `V-Trade watch ${d === "Long" ? "▲" : "▼"}` };
     } else if (bull1 || bear1) {
       const d = bull1 ? "Long" : "Short";
       play = { kind: "watch", model: "NBB", dir: d, head: `In trend, no base yet: NBB watch`,
         text: `Trending ${d === "Long" ? "up" : "down"} on 1H without a clean base. Wait for 6+ candles of sideways action, then a displacing close ${d === "Long" ? "above" : "below"} it. The 2nd base is prime.`,
         short: `NBB watch ${d === "Long" ? "▲" : "▼"}` };
     } else if (bull4 && r.s1h.state.startsWith("Bear")) {
-      play = { kind: "watch", model: "Pullback", dir: "Short", head: `Counter-move inside a 4H uptrend`,
-        text: `1H is pointing down against a 4H uptrend. Either ride the retrace short toward the 4H OEZ (Pullback, B-Silver max) or wait at the 4H OEZ for the long Bounce, which is the cleaner trade.`,
+      play = { kind: "watch", model: null, dir: "Long", head: `Counter-move inside a 4H uptrend`,
+        text: `1H is pointing down against a 4H uptrend. Don't short into the 4H trend: wait for the 1H to line back up, then the next base (NBB) or a V at the OEZ (V-Trade).`,
         short: "4H up, 1H down: wait" };
     } else if (bear4 && r.s1h.state.startsWith("Bull")) {
-      play = { kind: "watch", model: "Pullback", dir: "Long", head: `Counter-move inside a 4H downtrend`,
-        text: `1H is pointing up against a 4H downtrend. Either ride the retrace long toward the 4H OEZ (Pullback, B-Silver max) or wait at the 4H OEZ for the short Bounce, which is the cleaner trade.`,
+      play = { kind: "watch", model: null, dir: "Short", head: `Counter-move inside a 4H downtrend`,
+        text: `1H is pointing up against a 4H downtrend. Don't buy into the 4H trend: wait for the 1H to line back up, then the next base (NBB) or a V at the OEZ (V-Trade).`,
         short: "4H down, 1H up: wait" };
     } else {
-      play = { kind: "chop", model: "Fade", dir: "any", head: `No trend: chop`,
-        text: `1H and 4H aren't aligned. The only play is a Fade at the range edges after a sweep and an MSS${rg ? `: range ${L(rg.lo)} – ${L(rg.hi)} over the last 48 hours` : ""}. Otherwise leave it.`,
-        short: "Chop: Fade edges only" };
+      play = { kind: "chop", model: null, dir: "any", head: `No trend: chop`,
+        text: `1H and 4H aren't aligned, so there's no NBB here. The only play is a V-Trade at a swept range edge${rg ? ` (range ${L(rg.lo)} – ${L(rg.hi)} over the last 48 hours)` : ""}. Otherwise leave it.`,
+        short: "Chop: leave it" };
     }
   }
   // compare with today's playbook
@@ -4045,8 +3659,7 @@ function coinPlay(r) {
   if (env) {
     const fit = env.fit[play.model], dirOk = env.dirBias === "Both" || play.dir === "any" || play.dir === env.dirBias;
     if (fit === "avoid" || !dirOk) stance = { cls: "against", text: `Against today's playbook (${env.label}). ` +
-      (play.kind === "chop" ? "The market is trending but this coin isn't. Better to pick a coin that's moving with the market; if you trade this one, only Fade its range edges with sweep + MSS, B-Silver max." :
-       ["Fade", "Pullback"].includes(play.model) ? "Counter-trend on a trend day: B-Silver max, half size, 2R, and only with sweep + MSS." :
+      (play.kind === "chop" ? "The market is trending but this coin isn't. Better to pick a coin that's moving with the market." :
        `This coin is moving against the market. Only take it with an A-grade trigger and clear relative ${play.dir === "Short" ? "weakness" : "strength"} vs BTC, at reduced size, or skip it.`) };
     else if (fit === "primary" || fit === "secondary") stance = { cls: "with", text: `Fits today's playbook (${env.label}): ${play.model} is a ${fit} model today.` };
     else stance = { cls: "", text: `Neutral for today's playbook (${env.label}).` };
@@ -4088,7 +3701,7 @@ function playHTML(r) {
   return `<div class="play ${p.kind}">
     <div class="phead">${p.dir !== "any" ? biasTag(p.dir) : ""}<b>${p.head}</b></div>
     <p>${p.text}</p>
-    ${m ? `<div class="lv">${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>${m.model === "Reset20" ? "4R" : "3R"} ${fmtPrice(m.t3)}</span>` : ""}</div>` : ""}
+    ${m ? `<div class="lv">${m.entry != null ? `<span>Entry ${fmtPrice(m.entry)}</span>` : ""}${m.stop != null ? `<span>Stop ${fmtPrice(m.stop)}</span>` : ""}${m.t2 != null ? `<span>${tLabel(m)} ${fmtPrice(m.t2)}</span>` : ""}${m.t3 != null ? `<span>3R ${fmtPrice(m.t3)}</span>` : ""}</div>` : ""}
     ${p.stance ? `<div class="stance ${p.stance.cls}">${p.stance.text}</div>` : ""}
     ${p.boosts && p.boosts.length ? `<ul class="boosts">${p.boosts.map(c => `<li>${c}</li>`).join("")}</ul>` : ""}
     ${p.cautions.length ? `<ul class="cautions">${p.cautions.map(c => `<li>${c}</li>`).join("")}</ul>` : ""}
@@ -4308,7 +3921,7 @@ async function drawChart(r, tf) {
     if (m) {
       const pl = (price, color, title, style = 0) => { if (price == null || !isFinite(price)) return; if (!near(price)) { if (title) offChart.push(`${title} ${fmtPrice(price)}`); return; } shown.push(price); cs.createPriceLine({ price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: true, title }); };
       if (m.zoneHi != null && m.zoneLo != null) { pl(Math.max(m.zoneHi, m.zoneLo), "#f7a600", "Zone", 2); pl(Math.min(m.zoneHi, m.zoneLo), "#f7a600", "", 2); }
-      pl(m.entry, "#2962ff", "Entry"); pl(m.stop, "#f23645", "Stop"); pl(m.t2, "#22ab94", tLabel(m)); pl(m.t3, "#22ab94", m.model === "Reset20" ? "4R" : "3R", 2);
+      pl(m.entry, "#2962ff", "Entry"); pl(m.stop, "#f23645", "Stop"); pl(m.t2, "#22ab94", tLabel(m)); pl(m.t3, "#22ab94", "3R", 2);
     }
     { const lg = document.querySelector("#tfRow .clegend"); if (lg) { lg.querySelectorAll(".offc").forEach(x => x.remove()); if (offChart.length) lg.insertAdjacentHTML("beforeend", `<span class="offc mute"> · off-chart: ${offChart.join(", ")}</span>`); } }
     const nBars = k.c.length;
@@ -4351,183 +3964,8 @@ function initPanelExtras(r) {
   drawChart(r, tf);
 }
 
-/* ===================== Scorecard: did the picks work? ===================== */
-const HIST_KEY = "altscan-history";
-let HIST = [];
-try { HIST = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); } catch (e) { HIST = []; }
-const histSave = () => { try { localStorage.setItem(HIST_KEY, JSON.stringify(HIST.slice(-500))); } catch (e) {} };
-let scView = "src";
-function recordScan() {
-  if (!data) return;
-  const at = Date.parse(data.at), env = data.env ? data.env.label : "";
-  const add = (r, src, model, dir, entry, stop, t2, horizonH) => {
-    if (!r || !dir || dir === "any" || entry == null || stop == null || t2 == null || entry === stop) return;
-    if (HIST.some(h => h.sym === r.symbol && h.src === src && h.dir === dir && (h.ex || "Binance") === exName() && Math.abs(h.at - at) < 12 * 3600e3)) return;   // no duplicates within 12h
-    HIST.push({ id: at.toString(36) + r.symbol, at, sym: r.symbol, ex: exName(), mode: data.mode, src, model, dir, entry, stop, t2, env, horizonH, status: "open", r: null, closedAt: null });
-  };
-  const atrLv = (r, dir, a, mult = 1.5) => { const s = dir === "Long" ? r.price - mult * a : r.price + mult * a, R = Math.abs(r.price - s); return [r.price, s, dir === "Long" ? r.price + 2 * R : r.price - 2 * R]; };
-  (data.suggest || []).forEach(x => add(x.r, "Playbook", x.m.model, x.m.dir, x.m.entry, x.m.stop, x.m.t2, 48));
-  (data.day || []).filter(p => p.status === "TRADEABLE").forEach(p => { const r = bySym[p.symbol], pl = coinPlay(r);
-    if (pl.lv && pl.lv.entry != null && pl.lv.stop != null && pl.lv.t2 != null && pl.dir === p.dir) add(r, "Day board", pl.model, p.dir, pl.lv.entry, pl.lv.stop, pl.lv.t2, 48);
-    else if (r.atr1h) add(r, "Day board", "—", p.dir, ...atrLv(r, p.dir, r.atr1h), 48); });
-  (data.swing || []).forEach(p => { const r = bySym[p.symbol]; if (r.atr4h) add(r, "Swing board", "—", p.dir, ...atrLv(r, p.dir, r.atr4h), 168); });
-  aotsList().slice(0, 5).forEach(e => { const r = bySym[e.symbol], a = e.a.tf === "4H" ? r.atr4h : r.atr1h; if (a) add(r, "AOTS board", "AOTS " + e.a.tf, e.a.dir, ...atrLv(r, e.a.dir, a), 72); });
-  histSave();
-}
-async function klinesSince(sym, startMs, interval = "1h", limit = 200, ex = "Binance", mode = MODE) {
-  if (isMX(sym)) { ex = "MEXC"; mode = "futures"; }
-  if (ex === "MEXC") {
-    if (EXCHANGE !== "mexc") { if (!MX_PINGED.f) await pingMexc(false); if (mode !== "futures" && !MX_PINGED.s) await pingMexc(true); }
-    await spend(1); const iv = MX_IVMS[interval];
-    const rows = mode === "futures" ? await mxKlinesF(sym, interval, startMs, Math.min(Date.now(), startMs + limit * iv))
-      : (await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], startTime: startMs, limit })}`, 2)).map(mxSpotRow);
-    return rows.map(r => ({ t: r[0], h: r[2], l: r[3], c: r[4] }));
-  }
-  if (ex === "Bybit") {
-    if (BYBIT_HOSTS.indexOf(BYBIT) < 0 || EXCHANGE !== "bybit") await pingBybit();
-    await spend(1);
-    const res = await byGet("/v5/market/kline", { category: mode === "futures" ? "linear" : "spot", symbol: sym, interval: BY_IV[interval], start: startMs, limit: Math.min(1000, limit) }, 2);
-    return res.list.slice().reverse().map(k => ({ t: +k[0], h: +k[2], l: +k[3], c: +k[4] }));
-  }
-  await spend(2);
-  const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
-  const raw = await getJSON(`${base}?${qs({ symbol: sym, interval, startTime: startMs, limit })}`, 2);
-  return raw.map(k => ({ t: +k[0], h: +k[2], l: +k[3], c: +k[4] }));
-}
-async function evaluateHistory() {
-  if (!data) return;
-  const now = Date.now(), open = HIST.filter(h => h.status === "open" && now - h.at >= 3600e3);
-  const bySymbol = {}; open.forEach(h => { const k = (h.ex || "Binance") + "|" + (h.mode || "futures") + "|" + h.sym; (bySymbol[k] = bySymbol[k] || []).push(h); });
-  const syms = Object.keys(bySymbol).slice(0, 25);
-  await pool(syms, 4, async key => {
-    const [ex, mode, sym] = key.split("|"), recs = bySymbol[key], start = Math.min(...recs.map(h => h.at));
-    const ks = await klinesSince(sym, start, "1h", Math.min(1000, Math.ceil((now - start) / 3600e3) + 2), ex, mode);
-    recs.forEach(h => {
-      const long = h.dir === "Long", R = h.entry - h.stop;
-      for (const k of ks) {
-        if (k.t < h.at) continue;
-        const stopHit = long ? k.l <= h.stop : k.h >= h.stop, tHit = long ? k.h >= h.t2 : k.l <= h.t2;
-        if (stopHit) { h.status = "Stopped"; h.r = -1; h.closedAt = k.t; break; }            // same candle as target: count the stop (conservative)
-        if (tHit) { h.status = "Target hit"; h.r = r2((h.t2 - h.entry) / R); h.closedAt = k.t; break; }
-        if (k.t - h.at > h.horizonH * 3600e3) { h.status = "Expired"; h.r = r2((k.c - h.entry) / R); h.closedAt = k.t; break; }
-      }
-      if (h.status === "open" && now - h.at > (h.horizonH + 2) * 3600e3 && ks.length) { const last = ks.at(-1); h.status = "Expired"; h.r = r2((last.c - h.entry) / R); h.closedAt = last.t; }
-    });
-  }, () => {});
-  histSave();
-}
-function scoreRows(key) {
-  const g = {};
-  HIST.forEach(h => { const k = h[key] || (key === "ex" ? "Binance" : "—"); (g[k] = g[k] || []).push(h); });
-  return Object.entries(g).map(([k, hs]) => {
-    const done = hs.filter(h => h.status !== "open"), wins = done.filter(h => h.status === "Target hit").length, losses = done.filter(h => h.status === "Stopped").length;
-    const totalR = done.reduce((s, h) => s + (h.r || 0), 0);
-    return { k, n: hs.length, open: hs.length - done.length, done: done.length, wins, losses, win: wins + losses ? wins / (wins + losses) * 100 : null, avgR: done.length ? totalR / done.length : null, totalR };
-  }).sort((a, b) => b.done - a.done || b.n - a.n);
-}
-function renderScorecard() {
-  const el = $("scorecard"); if (!el) return;
-  const key = { src: "src", model: "model", env: "env", ex: "ex" }[scView];
-  const rows = scoreRows(key), recent = HIST.slice().sort((a, b) => b.at - a.at).slice(0, 12);
-  const done = HIST.filter(h => h.status !== "open"), tot = done.reduce((s, h) => s + (h.r || 0), 0);
-  el.innerHTML = `
-    <div class="schead"><h2>Scorecard</h2>
-      <span class="meta">${HIST.length ? `${HIST.length} picks tracked · ${done.length} resolved · ${done.length ? `${tot >= 0 ? "+" : ""}${tot.toFixed(1)}R total` : "results come in after an hour or more"}` : "Every scan's picks are saved here and checked against what price did next."}</span>
-      <div class="scbtns"><button class="btn sm" id="scUpd">Update Results</button><button class="btn sm" id="scCsv" ${HIST.length ? "" : "disabled"}>Export CSV</button><button class="btn sm" id="scClr" ${HIST.length ? "" : "disabled"}>Clear</button></div></div>
-    <div class="sctabs">${[["src", "By Source"], ["model", "By Model"], ["env", "By Environment"], ["ex", "By Exchange"]].map(([v, l]) => `<button class="tab ${scView === v ? "on" : ""}" data-sv="${v}">${l}</button>`).join("")}</div>
-    ${rows.length ? `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">${{ src: "Source", model: "Model", env: "Environment", ex: "Exchange" }[scView]}</th><th>Picks</th><th>Open</th><th>Target hit</th><th>Stopped</th><th>Win rate</th><th>Avg R</th><th>Total R</th></tr></thead>
-      <tbody>${rows.map(x => `<tr><td class="l">${x.k}</td><td>${x.n}</td><td>${x.open}</td><td class="up">${x.wins}</td><td class="dn">${x.losses}</td><td>${x.win == null ? "—" : x.win.toFixed(0) + "%"}</td>
-        <td class="${x.avgR == null ? "" : x.avgR >= 0 ? "up" : "dn"}">${x.avgR == null ? "—" : (x.avgR >= 0 ? "+" : "") + x.avgR.toFixed(2)}</td><td class="${x.totalR >= 0 ? "up" : "dn"}">${x.done ? (x.totalR >= 0 ? "+" : "") + x.totalR.toFixed(1) : "—"}</td></tr>`).join("")}</tbody></table></div>` : ""}
-    ${recent.length ? `<h3 class="pbh3">Recent Picks</h3><div class="screcent">${recent.map(h => `<div class="mv" data-s="${h.sym}" tabindex="0" role="button">
-      <span class="mute sct-t">${fmtPHT(new Date(h.at + PHT_MS)).replace(/^\w+, /, "")}</span><span><b>${coin(h.sym)}</b> ${h.dir === "Long" ? "▲" : "▼"} <span class="mute">${h.src}${h.model !== "—" ? " · " + h.model : ""}</span></span>
-      <span class="tag ${h.status === "Target hit" ? "long" : h.status === "Stopped" ? "short" : ""}">${h.status === "open" ? "Open" : h.status}</span><span class="${h.r == null ? "mute" : h.r >= 0 ? "up" : "dn"}">${h.r == null ? "—" : (h.r >= 0 ? "+" : "") + h.r.toFixed(2) + "R"}</span></div>`).join("")}</div>` : ""}
-    <p class="meta">Board picks without a setup are scored with a standard yardstick: entry at the scan price, stop 1.5× ATR away (1H for day and AOTS, 4H for swing), target 2R. Setups use their own levels. Day picks expire after 48 hours, AOTS after 3 days, swing after 7. If the stop and target land in the same 1H candle, it counts as a loss. Saved on this device only.</p>`;
-  el.querySelectorAll("[data-sv]").forEach(b => b.onclick = () => { scView = b.dataset.sv; renderScorecard(); });
-  $("scUpd").onclick = async () => { $("scUpd").disabled = true; $("scUpd").textContent = "Checking…"; try { await evaluateHistory(); } catch (e) {} renderScorecard(); };
-  $("scClr").onclick = () => { if (confirm("Clear all tracked picks and results?")) { HIST = []; histSave(); renderScorecard(); } };
-  $("scCsv").onclick = () => {
-    const head = "time_pht,coin,source,model,direction,entry,stop,target,environment,status,r\n";
-    const csv = head + HIST.map(h => [fmtPHT(new Date(h.at + PHT_MS)), h.sym, h.src, h.model, h.dir, h.entry, h.stop, h.t2, `"${h.env}"`, h.status, h.r ?? ""].join(",")).join("\n");
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "the-finder-scorecard.csv"; a.click();
-  };
-  if (data) bindRows(el);
-}
-
-/* ===================== Session Picks: what to day trade in Asia, London and New York ===================== */
-const SESSION_DEFS = [
-  { key: "Asia", label: "🇯🇵 Asia", start: 8, end: 12, models: ["NBB", "Leader", "Bounce", "Breaker", "V-Trade"] },
-  { key: "London", label: "🇬🇧 London", start: 12, end: 18, models: ["NBB", "Leader", "Bounce", "Breaker", "Fade"] },
-  { key: "NY AM", label: "🇺🇸 New York", start: 21.5, end: 24, models: ["ORB", "AMD", "Leader", "Bounce"] },
-];
-function sessionStatus(def) {
-  const h = sessH();
-  const fmt = x => `${Math.floor(x)}h ${Math.round((x % 1) * 60)}m`;
-  if (h >= def.start && h < def.end) return { cls: "live", text: `Live now · ends in ${fmt(def.end - h)}`, order: 0 };
-  if (h < def.start) return { cls: "soon", text: `Starts in ${fmt(def.start - h)}`, order: 1 + (def.start - h) / 24 };
-  return { cls: "done", text: `Done today · next in ${fmt(24 - h + def.start)}`, order: 2 + (24 - h + def.start) / 24 };
-}
-function sessionScore(r, def, med) {
-  const rng = r.sessionRanges[def.key]; if (rng == null) return null;
-  const others = SESSION_DEFS.filter(x => x.key !== def.key).map(x => r.sessionRanges[x.key]).filter(v => v != null);
-  const rel = others.length ? rng / (others.reduce((a, b) => a + b, 0) / others.length) : 1;     // moves more here than in its other sessions?
-  let s = r.dayScore * 0.6 + clamp((rel - 0.8) / 0.8) * 20 + clamp(rng / (2 * (med || rng))) * 10;
-  const why = [];
-  if (rel >= 1.15) why.push(`moves ${rel.toFixed(1)}× more here than in its other sessions`);
-  why.push(`~${rng.toFixed(2)}% per hour in ${def.key === "NY AM" ? "NY" : def.key}`);
-  const dir = r.s1h.dir, ms = (r.models || []).filter(m => m.dir === dir && !m.missed);
-  const best = ms.slice().sort((a, b) => b.trig - a.trig)[0];
-  if (best) {
-    s += best.trig ? 8 : 4;
-    if (def.models.includes(best.model)) { s += 4; }
-    if (def.key === "NY AM" && ["ORB", "AMD"].includes(best.model)) { s += 6; why.unshift(`${best.model} ${best.trig ? "triggered" : "forming"} at the open`); }
-    else why.push(`${best.model} ${best.trig ? "triggered" : "setting up"}`);
-  }
-  const fit = data.env && best ? data.env.fit[best.model] : null;
-  if (fit === "primary") s += 4; else if (fit === "avoid") s -= 6;
-  if (data.env && data.env.dirBias !== "Both" && dir !== data.env.dirBias) s -= 6;
-  if (r.rs24 != null && Math.abs(r.rs24) >= 2 && ((dir === "Long" && r.rs24 > 0) || (dir === "Short" && r.rs24 < 0))) why.push(`${dir === "Long" ? "stronger" : "weaker"} than BTC (${fmtRS(r.rs24)})`);
-  return { s: r1(s), rel, rng, why, best };
-}
-function sessionPicks() {
-  if (!data) return {};
-  const dayMin = DAY_MIN_VOL[data.mode], hw = hideWicky();
-  const pool = data.all.filter(r => FULL.includes(r.s1h.state) && dirOK(r.s1h.dir) && (r.vol24h >= dayMin || (r.trending && r.vol24h >= AOTS_MIN_VOL))
-    && !(hw && r.wicky) && passBoards(r) && !(data.market === "futures" && r.maxLev != null && r.maxLev < 5) && (data.canShort || r.s1h.dir === "Long"));
-  const med = {}; SESSION_DEFS.forEach(d => med[d.key] = median(pool.map(r => r.sessionRanges[d.key])));
-  const scored = pool.map(r => { const per = {}; SESSION_DEFS.forEach(d => { const x = sessionScore(r, d, med[d.key]); if (x) per[d.key] = x; }); return { r, per }; });
-  const out = {}; SESSION_DEFS.forEach(d => out[d.key] = []);
-  scored.forEach(({ r, per }) => {                       // each coin goes to the session where it scores best
-    const bestKey = Object.keys(per).sort((a, b) => per[b].s - per[a].s)[0];
-    if (bestKey) out[bestKey].push({ r, ...per[bestKey] });
-  });
-  SESSION_DEFS.forEach(d => { out[d.key] = capSectors(out[d.key].sort((a, b) => b.s - a.s), x => x.r.symbol).slice(0, 3); });
-  return out;
-}
-function renderSessions() {
-  const el = $("sessionPicks"); if (!el) return;
-  if (!data) { el.innerHTML = `<div class="empty">Run a scan to see session picks.</div>`; return; }
-  const picks = sessionPicks(); data.sessionPicks = picks;
-  const defs = SESSION_DEFS.map(d => ({ d, st: sessionStatus(d) }));
-  const nextKey = defs.slice().sort((a, b) => a.st.order - b.st.order)[0].d.key;
-  el.innerHTML = defs.map(({ d, st }) => `
-    <div class="sess ${st.cls} ${d.key === nextKey ? "next" : ""}">
-      <div class="sesshead"><h3>${d.label}</h3><span class="sesstime">${sessLbl(d.start)} – ${sessLbl(d.end)} PHT</span></div>
-      <div class="sessstat ${st.cls}">${st.text}${d.key === nextKey && st.cls !== "live" ? " · up next" : ""}</div>
-      ${picks[d.key].length ? picks[d.key].map((x, i) => { const p = coinPlay(x.r), lv = p.lv;
-        return `<div class="row" data-s="${x.r.symbol}" tabindex="0" role="button">
-          <span class="rk">${i + 1}</span>
-          <div><div class="nm">${instHTML(x.r)}${biasTag(x.r.s1h.dir)}${ratingHTML(x.r.rating)}</div>
-            <div class="ln">${p.short}${lv && lv.entry != null ? ` · E ${fmtPrice(lv.entry)} · S ${fmtPrice(lv.stop)}` : ""}</div>
-            <div class="ln">${x.why.slice(0, 3).join(" · ")}</div></div>
-          <span class="sc">${x.s}</span>${chartBtn(x.r.symbol)}</div>`; }).join("")
-        : `<div class="empty">No clean day trade for this session right now.</div>`}
-    </div>`).join("");
-  bindRows(el);
-}
-
-
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.18.1601";
+const APP_VERSION = "2026.11.19.1527";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4684,29 +4122,27 @@ function focusSymbols() {                 // coins worth re-checking at each can
   const s = new Set(Object.keys(WL.coins).filter(x => bySym[x]));
   (data.day || []).forEach(p => s.add(p.symbol)); (data.swing || []).forEach(p => s.add(p.symbol));
   aotsList().slice(0, 5).forEach(e => s.add(e.symbol)); (data.suggest || []).forEach(x => s.add(x.r.symbol));
-  Object.values(data.sessionPicks || {}).flat().forEach(x => s.add(x.r.symbol));
   (data.momoBoard || []).forEach(x => s.add(x));
   if ($("dlg").open && bySym[$("dlgBody").dataset.sym]) s.add($("dlgBody").dataset.sym);
   return [...s].slice(0, 60);
 }
 function desiredStreams() {
-  const want = new Set(), T = LIVE.kind, focus = focusSymbols(), pool = (data.dayPool || []).slice(0, 25);
+  const want = new Set(), T = LIVE.kind, focus = focusSymbols();
   if (T === "binance") {
     want.add("!miniTicker@arr"); if (data.mode === "futures") want.add("!markPrice@arr@1s");
     want.add("btcusdt@kline_1h");
     focus.forEach(s => want.add(s.toLowerCase() + "@kline_1h"));
-    pool.forEach(s => want.add(s.toLowerCase() + "@kline_15m"));
     if (LIVE.chart && !CT_SYMS.has(LIVE.chart.sym) && !isMX(LIVE.chart.sym) && (!TRADFI_SYMS.has(LIVE.chart.sym) || data.mode === "futures")) want.add(LIVE.chart.sym.toLowerCase() + "@kline_" + LIVE.chart.tf);
   } else if (T === "mexc") {
     want.add("tickers");
-    focus.forEach(s => want.add("kline.Min60." + mxF(s))); pool.forEach(s => want.add("kline.Min15." + mxF(s)));
+    focus.forEach(s => want.add("kline.Min60." + mxF(s)));
     want.add("kline.Min60.BTC_USDT");
     if (MACRO.rows.some(r => r.mx)) MACRO.rows.filter(r => r.mx).forEach(r => want.add("kline.Min60." + mxF(r.symbol)));
     if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym) && MXF_IV[LIVE.chart.tf]) want.add(`kline.${MXF_IV[LIVE.chart.tf]}.${mxF(LIVE.chart.sym)}`);
   } else {
     data.all.forEach(r => want.add("tickers." + r.symbol));
     want.add("kline.60.BTCUSDT");
-    focus.forEach(s => want.add("kline.60." + s)); pool.forEach(s => want.add("kline.15." + s));
+    focus.forEach(s => want.add("kline.60." + s));
     if (LIVE.chart && !TRADFI_SYMS.has(LIVE.chart.sym) && !CT_SYMS.has(LIVE.chart.sym) && !isMX(LIVE.chart.sym)) want.add(`kline.${BY_IV[LIVE.chart.tf]}.${LIVE.chart.sym}`);
   }
   if (typeof chStreams === "function") chStreams().forEach(s => want.add(s));
@@ -4823,7 +4259,6 @@ function onLiveKline(sym, iv, bar, closed) {
   if (LIVE.chart && LIVE.chart.sym === sym && LIVE.chart.tf === iv) chartLiveBar(bar);
   if (!closed) return;
   if (iv === "1h") liveQueue(sym === "BTCUSDT" ? "BTC" : sym, "coin");
-  else if (iv === "15m") { const mins = (Date.now() - nyOpenUTC(Date.now())) / 60000; if (mins >= -120 && mins <= 150) liveQueue(sym, "session"); }
 }
 function liveQueue(sym, what) {
   if (LIVE.queue.some(q => q.sym === sym && q.what === what)) return;
@@ -4835,8 +4270,7 @@ async function liveDrain() {
     const { sym, what } = LIVE.queue.shift();
     try {
       if (sym === "BTC") { data.btc = await btcRegime(data.ma === "sma" ? sma : ema); renderRegime(); }
-      else if (what === "coin") await refreshCoin(sym);
-      else await refreshSession(sym);
+      else await refreshCoin(sym);
     } catch (e) {}
     await sleep(250);
   }
@@ -4849,14 +4283,7 @@ async function refreshCoin(sym) {
   if (!n) return;
   applyRS(n, data.btc);
   n.maxLev = old.maxLev; n.drv = old.drv;
-  n.models = [...(n.models || []), ...(old.models || []).filter(m => m.tf === "15m" && m.model !== "OB")];
   const i = data.all.indexOf(old); if (i >= 0) data.all[i] = n; bySym[sym] = n;
-}
-async function refreshSession(sym) {
-  const r = bySym[sym]; if (!r) return;
-  const k15 = await klines(sym, "15m", 100);
-  if (data.market === "futures") r.maxLev = levFrom(k15);
-  r.models = (r.models || []).filter(m => m.tf !== "15m" || m.model === "OB").concat(sessionModels(k15, r));
 }
 function scheduleRerender() {
   clearTimeout(LIVE.rerender);
@@ -4898,588 +4325,18 @@ setInterval(() => {
   if (Date.now() - LIVE.moversAt > 10000) { LIVE.moversAt = Date.now(); renderMovers(); }
 }, 1000);
 
-/* ===================== Model Backtest: replay the detectors on history, no look-ahead ===================== */
-const BT_KEY = "altscan-backtest";
-let BT = null; try { BT = JSON.parse(localStorage.getItem(BT_KEY) || "null"); } catch (e) { BT = null; }
-let btView = "model", btRunning = false;
-const BT_USE_KEY = "altscan-bt-use";
-/* ---- backtest market picker: top N, or your own pick of coins and Binance TradFi perps ---- */
-const BTP_KEY = "finder-bt-pick";
-let BTP = (() => { try { return { sel: "30", syms: [], ...(JSON.parse(localStorage.getItem(BTP_KEY)) || {}) }; } catch (e) { return { sel: "30", syms: [] }; } })(), btPickOpen = false, btPickQ = "";
-const btpSave = () => { try { localStorage.setItem(BTP_KEY, JSON.stringify(BTP)); } catch (e) {} };
-function btpTradfi() {                                     // gold, oil and index perps: MEXC's own when the exchange is MEXC, else Binance's
-  if (EXCHANGE === "mexc" || $("exF").value === "mexc") { const live = new Map(MACRO.rows.filter(r => r.mx).map(r => [r.symbol, r]));
-    return Object.entries(MX_INFO).map(([k, [name, group]]) => ({ sym: "MX:" + k, name, group: group === "Indices" ? "US Indices" : group, vol: live.get("MX:" + k) ? live.get("MX:" + k).vol24h : null, tf: true })); }
-  if (EXCHANGE === "bybit") return [];
-  const live = new Map(MACRO.rows.filter(r => !r.ct).map(r => [r.base, r]));
-  return Object.entries(MACRO_INFO).filter(([b]) => !MACRO.rows.length || live.has(b))
-    .map(([b, [name, group]]) => ({ sym: b + "USDT", name, group, vol: live.get(b) ? live.get(b).vol24h : null, tf: true }));
-}
-function btpItems() {
-  const crypto = (data ? data.all : []).filter(r => !r.macro).slice().sort((a, b) => b.vol24h - a.vol24h)
-    .map((r, i) => ({ sym: r.symbol, name: coin(r.symbol), group: "Crypto", vol: r.vol24h, rank: i + 1 }));
-  return [...btpTradfi(), ...crypto];
-}
-function btpTop(n) { return data ? data.all.filter(r => !r.macro && r.vol24h >= 10e6).sort((a, b) => b.vol24h - a.vol24h).slice(0, n).map(r => r.symbol) : []; }
-function renderBtPick() {
-  const el = $("btPick"); if (!el) return;
-  el.hidden = !btPickOpen;
-  if (!btPickOpen) return;
-  const items = btpItems(), sel = new Set(BTP.syms), q = btPickQ.trim().toLowerCase();
-  const nameOf = s => { const it = items.find(x => x.sym === s); return it ? it.name : coin(s); };
-  const shown = items.filter(x => !q || x.name.toLowerCase().includes(q) || x.sym.toLowerCase().includes(q) || x.group.toLowerCase().includes(q));
-  const tf = shown.filter(x => x.tf), cr = shown.filter(x => !x.tf);
-  const row = x => `<label class="btpi${sel.has(x.sym) ? " on" : ""}"><input type="checkbox" data-ps="${x.sym}" ${sel.has(x.sym) ? "checked" : ""}><b title="${x.name}${x.tf ? " · " + x.group : ""}">${x.name}</b>${x.tf ? "" : x.vol != null ? `<span class="mute">${fmtVol(x.vol)}</span>` : ""}</label>`;
-  el.innerHTML = `
-    <div class="btpbar"><input id="btPickQ" type="search" placeholder="Search coins, gold, Nasdaq…" value="${btPickQ.replace(/"/g, "&quot;")}" autocomplete="off">
-      <button class="btn sm" data-pp="20">+ Top 20</button><button class="btn sm" data-pp="50">+ Top 50</button>
-      <button class="btn sm" data-pp="watch">+ Watchlist</button>${btpTradfi().length ? '<button class="btn sm" data-pp="tradfi">+ Gold, oil &amp; indices</button>' : ""}
-      <button class="btn sm" data-pp="clear">Clear</button><span class="meta"><b>${sel.size}</b> picked</span></div>
-    ${sel.size ? `<div class="btpchips">${BTP.syms.map(s => `<button class="btpc" data-px="${s}" title="Remove">${nameOf(s)} ×</button>`).join("")}</div>` : '<div class="meta">Nothing picked yet: tick markets below or add a group.</div>'}
-    <div class="btplist">
-      ${tf.length ? `<div class="btpg">Gold, oil &amp; US indices <span class="mute">(Binance TradFi perps, listed April 2026: shorter history, so fewer trades)</span></div><div class="btpgrid">${tf.map(row).join("")}</div>` : ""}
-      ${cr.length ? `<div class="btpg">Crypto <span class="mute">(by 24h volume)</span></div><div class="btpgrid">${cr.map(row).join("")}</div>` : ""}
-      ${!tf.length && !cr.length ? '<div class="meta">No market matches that search.</div>' : ""}
-    </div>`;
-  const changed = () => { btpSave(); renderBtPick(); const o = $("btCoins") && $("btCoins").querySelector('option[value="pick"]'); if (o) o.textContent = `My pick (${BTP.syms.length})`; };
-  const qi = $("btPickQ");
-  qi.oninput = () => { btPickQ = qi.value; const pos = qi.selectionStart; renderBtPick(); const n = $("btPickQ"); n.focus(); n.setSelectionRange(pos, pos); };
-  el.querySelectorAll("[data-ps]").forEach(c => c.onchange = () => { const s = c.dataset.ps;
-    BTP.syms = c.checked ? [...new Set([...BTP.syms, s])] : BTP.syms.filter(x => x !== s); changed(); });
-  el.querySelectorAll("[data-px]").forEach(b => b.onclick = () => { BTP.syms = BTP.syms.filter(x => x !== b.dataset.px); changed(); });
-  el.querySelectorAll("[data-pp]").forEach(b => b.onclick = () => { const p = b.dataset.pp;
-    const add = p === "clear" ? null : p === "watch" ? Object.keys(WL.coins).filter(s => bySym[s] || TRADFI_SYMS.has(s)) : p === "tradfi" ? btpTradfi().map(x => x.sym) : btpTop(+p);
-    BTP.syms = add ? [...new Set([...BTP.syms, ...add])] : []; changed(); });
-}
-const btUse = () => { try { return localStorage.getItem(BT_USE_KEY) !== "off"; } catch (e) { return true; } };
-const IV_MS = { "15m": 900e3, "1h": 3600e3, "4h": 14400e3, "1d": 86400e3 };
-const MODEL_HOLD_H = { Reset20: 240, OB: 12 };                     // swing setups can be held up to 10 days
-const SESS_LABELS = ["🇯🇵 Asia", "🇬🇧 London", "🇬🇧 Lunch", "🇺🇸 Pre-NY", "🇺🇸 NY AM", "🇺🇸 NY PM", "💤 Out"];
-function sessOf(ms) {                                   // your session map, on the session clock (1 hour later in PHT while New York is on winter time)
-  const h = sessH(ms);
-  return h >= 8 && h < 12 ? "🇯🇵 Asia" : h >= 12 && h < 18 ? "🇬🇧 London" : h >= 18 && h < 19.5 ? "🇬🇧 Lunch" : h >= 19.5 && h < 21.5 ? "🇺🇸 Pre-NY"
-       : h >= 21.5 ? "🇺🇸 NY AM" : h < 4 ? "🇺🇸 NY PM" : "💤 Out";
-}
-function envLabel(b, bull, bear) {                      // the same environment rules the playbook uses
-  if (b === "Risk-on" && bull >= 45) return "Trend Up: Risk-On Alts";
-  if (b === "Risk-off" && bear >= 45) return "Trend Down: Risk-Off";
-  if (b === "Risk-on" && bull < 35) return "BTC-Led: Alts Lagging";
-  if (b !== "Risk-off" && bull >= 55 && bear <= 25) return "Alts Trending Up: BTC Ranging";
-  if (b !== "Risk-on" && bear >= 55 && bull <= 25) return "Alts Trending Down: BTC Ranging";
-  return "Chop: Range Day";
-}
-async function klinesRange(sym, interval, startMs, endMs) {
-  const step = IV_MS[interval], rows = new Map();
-  if ((EXCHANGE === "mexc" && !TRADFI_SYMS.has(sym)) || isMX(sym)) {
-    if (MODE === "futures" || isMX(sym)) {
-      for (let cur = startMs, n = 0; cur < endMs && n < 20; n++) {             // up to 2,000 candles per request
-        await spend(1);
-        const to = Math.min(endMs, cur + 1990 * step), list = await mxKlinesF(sym, interval, cur, to);
-        list.forEach(r => rows.set(r[0], r)); cur = to + 1;
-      }
-    } else {
-      let cur = startMs;
-      for (let n = 0; n < 12 && cur < endMs; n++) {
-        await spend(1);
-        const list = await getJSON(`${MXS}/api/v3/klines?${qs({ symbol: sym, interval: MXS_IV[interval], startTime: cur, endTime: endMs, limit: 1000 })}`, 2);
-        if (!list.length) break; list.forEach(k => rows.set(+k[0], mxSpotRow(k)));
-        const next = +list.at(-1)[0] + step; if (list.length < 1000 || next <= cur) break; cur = next;
-      }
-    }
-  } else if (EXCHANGE === "bybit") {
-    let end = endMs;
-    for (let n = 0; n < 12 && end > startMs; n++) {
-      await spend(1);
-      const res = await byGet("/v5/market/kline", { category: byCat(), symbol: sym, interval: BY_IV[interval], start: startMs, end, limit: 1000 }, 2);
-      const list = res.list || []; if (!list.length) break;
-      list.forEach(k => rows.set(+k[0], [+k[0], +k[1], +k[2], +k[3], +k[4], +k[6]]));
-      const oldest = +list.at(-1)[0]; if (list.length < 1000 || oldest >= end) break; end = oldest - 1;
-    }
-  } else {
-    const base = MODE === "futures" || TRADFI_SYMS.has(sym) ? `${FAPI}/fapi/v1/klines` : `${SPOT_BASE}/api/v3/klines`;
-    let cur = startMs;
-    for (let n = 0; n < 12 && cur < endMs; n++) {
-      await spend(5);
-      const list = await getJSON(`${base}?${qs({ symbol: sym, interval, startTime: cur, endTime: endMs, limit: 1000 })}`, 2);
-      if (!list.length) break;
-      list.forEach(k => rows.set(+k[0], [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]]));
-      const next = +list.at(-1)[0] + step; if (list.length < 1000 || next <= cur) break; cur = next;
-    }
-  }
-  const now = Date.now(), arr = [...rows.values()].filter(r => r[0] + step <= now).sort((a, b) => a[0] - b[0]);   // closed candles only
-  return { t: arr.map(r => r[0]), o: arr.map(r => r[1]), h: arr.map(r => r[2]), l: arr.map(r => r[3]), c: arr.map(r => r[4]), qv: arr.map(r => r[5]) };
-}
-const sliceK = (k, a, b) => ({ t: k.t.slice(a, b), o: k.o.slice(a, b), h: k.h.slice(a, b), l: k.l.slice(a, b), c: k.c.slice(a, b), qv: k.qv.slice(a, b) });
-function lastClosedIdx(k, ivMs, T) {                    // last candle that had fully closed by time T
-  let lo = 0, hi = k.t.length - 1, ans = -1;
-  while (lo <= hi) { const mid = (lo + hi) >> 1; if (k.t[mid] + ivMs <= T) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
-  return ans;
-}
-function stateSeries(k, maFn) {
-  const c = k.c, a = maFn(c, 20), b = maFn(c, 50), d = maFn(c, 100);
-  return c.map((p, i) => {
-    if (a[i] == null || b[i] == null || d[i] == null) return "Tangled";
-    if (a[i] > b[i] && b[i] > d[i]) return p > a[i] ? "Bull stack" : p > d[i] ? "Pullback in bull" : "Bull stack, price below 100";
-    if (a[i] < b[i] && b[i] < d[i]) return p < a[i] ? "Bear stack" : p < d[i] ? "Pullback in bear" : "Bear stack, price above 100";
-    return "Tangled";
-  });
-}
-function simulate(k, i, m, maxBars, hardCloseMs) {      // walk forward from the candle after entry
-  const long = m.dir === "Long", R = m.entry - m.stop;
-  for (let j = i + 1; j < k.c.length && j <= i + maxBars; j++) {
-    if (hardCloseMs && k.t[j] >= hardCloseMs) return { j: j - 1, r: (k.c[j - 1] - m.entry) / R, reason: "11:00 NY close" };
-    const stopHit = long ? k.l[j] <= m.stop : k.h[j] >= m.stop, tHit = long ? k.h[j] >= m.t2 : k.l[j] <= m.t2;
-    if (stopHit) return { j, r: -1, reason: "Stop" };                       // stop and target in the same candle count as a stop
-    if (tHit) return { j, r: (m.t2 - m.entry) / R, reason: "Target" };
-  }
-  const j = Math.min(k.c.length - 1, i + maxBars);
-  return j > i ? { j, r: (k.c[j] - m.entry) / R, reason: "Time limit" } : null;
-}
-function btVariants(k, i, m, maxBars, hardCloseMs, feePct) {   // the same entry, managed three other ways
-  const long = m.dir === "Long", sg = long ? 1 : -1, R = Math.abs(m.entry - m.stop); if (!(R > 0)) return null;
-  const at = x => m.entry + sg * x * R, tgtR = m.t2 != null ? Math.abs(m.t2 - m.entry) / R : 2;
-  const hit = (j, lvl) => long ? k.h[j] >= lvl : k.l[j] <= lvl, under = (j, lvl) => long ? k.l[j] <= lvl : k.h[j] >= lvl, rAt = j => sg * (k.c[j] - m.entry) / R;
-  const v = { t1: null, t15: null, pbe: null }; let pbePhase = 0, last = i;
-  for (let j = i + 1; j < k.c.length && j <= i + maxBars; j++) {
-    if (hardCloseMs && k.t[j] >= hardCloseMs) break;
-    last = j;
-    for (const [key, x] of [["t1", 1], ["t15", 1.5]]) if (v[key] == null) { if (under(j, m.stop)) v[key] = -1; else if (hit(j, at(x))) v[key] = x; }
-    if (v.pbe == null) {
-      if (pbePhase === 0) { if (under(j, m.stop)) v.pbe = -1; else if (hit(j, at(1))) { pbePhase = 1; if (hit(j, at(tgtR))) v.pbe = 0.5 + 0.5 * tgtR; } }
-      else if (under(j, m.entry)) v.pbe = 0.5; else if (hit(j, at(tgtR))) v.pbe = 0.5 + 0.5 * tgtR;
-    }
-    if (v.t1 != null && v.t15 != null && v.pbe != null) break;
-  }
-  if (last === i) return null;
-  const end = rAt(last);
-  if (v.t1 == null) v.t1 = end; if (v.t15 == null) v.t15 = end; if (v.pbe == null) v.pbe = pbePhase ? 0.5 + 0.5 * end : end;
-  return { t1: r2(netR(m, v.t1, feePct)), t15: r2(netR(m, v.t15, feePct)), pbe: r2(netR(m, v.pbe, feePct)) };
-}
-function netR(m, gross, feePct) { const sp = Math.abs(m.entry - m.stop) / m.entry; return gross - (feePct / 100) / sp; }
-function validLevels(m) {
-  if (m.entry == null || m.stop == null || m.t2 == null || m.dir === "any") return false;
-  const long = m.dir === "Long", ordered = long ? (m.stop < m.entry && m.t2 > m.entry) : (m.stop > m.entry && m.t2 < m.entry);
-  return ordered && Math.abs(m.entry - m.stop) / m.entry >= 0.001;          // skip unrealistically tight stops
-}
-function replay1h(sym, k1, k4, kd, maFn, winStart, ctx) {
-  const trades = [], busyUntil = {}, H = IV_MS["1h"], W = 220, rs1 = rsiSeries(k1.c);
-  for (let i = W; i < k1.c.length - 1; i++) {
-    const T = k1.t[i] + H; if (T < winStart) continue;
-    const j4 = lastClosedIdx(k4, IV_MS["4h"], T), jd = lastClosedIdx(kd, IV_MS["1d"], T);
-    if (j4 < 120 || jd < 110) continue;
-    const s1 = sliceK(k1, i - W + 1, i + 1), s4 = sliceK(k4, Math.max(0, j4 - 159), j4 + 1), sd = sliceK(kd, Math.max(0, jd - 129), jd + 1);
-    let ms; try { ms = detectModels(s1, s4, structure(s1, maFn), structure(s4, maFn), structure(sd, maFn), sd); } catch (e) { continue; }
-    for (const m of ms) {
-      if (!m.trig || !validLevels(m)) continue;
-      if (m.model === "NBB") m.grade = nbbGrade(m, ctx.btc1At ? ctx.btc1At(T) : null, ctx.btc4At ? ctx.btc4At(T) : null, T);
-      else if (m.model === "V-Trade") m.grade = vtGrade(m, ctx.btc1At ? ctx.btc1At(T) : null, ctx.btc4At ? ctx.btc4At(T) : null);
-      const key = m.model + m.dir; if ((busyUntil[key] ?? -1) >= i) continue;      // one trade per model and side at a time
-      const out = simulate(k1, i, m, MODEL_HOLD_H[m.model] || 48); if (!out) continue;
-      busyUntil[key] = out.j;
-      trades.push({ sym, model: m.model, dir: m.dir, tf: "1H", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-        reason: out.reason, bars: out.j - i, session: sessOf(T), env: ctx.envAt(T), state: m.state, rsi: rsiBand(rs1[i], m.dir), rot: rotBand(kd, ctx.btcD, T, m.dir),
-        v: btVariants(k1, i, m, MODEL_HOLD_H[m.model] || 48, null, ctx.fee), wd: m.withDaily ?? null, sw: !!m.sweep,
-        ...(m.grade ? { ag: m.grade.pass } : {}), ...(m.grade && m.model === "NBB" ? { tr: r2(netR(m, trailExit(k1, i, m, 12, 168), ctx.fee)) } : {}) });
-    }
-  }
-  return trades;
-}
-function trailExit(k, i, m, N, maxBars) {                 // exit on a close beyond the last N candles' range (gross R)
-  const long = m.dir === "Long", R = Math.abs(m.entry - m.stop);
-  for (let x = i + 1; x < k.c.length && x <= i + maxBars; x++) {
-    if (long ? k.l[x] <= m.stop : k.h[x] >= m.stop) return -1;
-    if (x <= i + 1) continue;
-    let lo = Infinity, hi = -Infinity; for (let y = Math.max(0, x - N); y < x; y++) { lo = Math.min(lo, k.l[y]); hi = Math.max(hi, k.h[y]); }
-    if (long ? k.c[x] < lo : k.c[x] > hi) return (long ? k.c[x] - m.entry : m.entry - k.c[x]) / R;
-  }
-  const x = Math.min(k.c.length - 1, i + maxBars); return (long ? k.c[x] - m.entry : m.entry - k.c[x]) / R;
-}
-function rotBand(kd, btcD, T, dir) {                      // coin vs BTC over the 30 days before entry, read for the trade's side
-  if (!btcD) return "n/a";
-  const D = IV_MS["1d"], j = lastClosedIdx(kd, D, T), b = lastClosedIdx(btcD, D, T);
-  if (j < 30 || b < 30) return "n/a";
-  const rel = ((kd.c[j] / kd.c[j - 30]) - (btcD.c[b] / btcD.c[b - 30])) * 100, x = dir === "Short" ? -rel : rel;
-  return x >= 5 ? "With the trade (5+ pts)" : x <= -10 ? "Against the trade (10+ pts)" : "In line";
-}
-function rsiBand(v, dir) {                                 // RSI at entry, read in the trade's direction
-  if (v == null) return "n/a";
-  const x = dir === "Short" ? 100 - v : v;
-  return x >= 70 ? "70+ momentum" : x >= 60 ? "60–70 pre-momentum" : x >= 50 ? "50–60" : x >= 40 ? "40–50 reset" : "below 40";
-}
-function replayOB(sym, x, winStart, ctx) {              // OB Entry on 15m: limit at the OB, filled only if price comes back
-  const trades = [], Q = IV_MS["15m"], H = IV_MS["1h"], k15 = x.k15, taken = new Set(); let busy = -1;
-  if (!k15 || k15.t.length < 260) return trades;
-  for (let j = 200; j < k15.c.length - 1; j++) {
-    const T = k15.t[j] + Q; if (T < winStart || j <= busy) continue;
-    const j1 = lastClosedIdx(x.k1, H, T), j4 = lastClosedIdx(x.k4, IV_MS["4h"], T), jd = lastClosedIdx(x.kd, IV_MS["1d"], T);
-    if (j1 < 130 || j4 < 50 || jd < 2) continue;
-    let ms; try { ms = obModels(sliceK(k15, j - 199, j + 1), sliceK(x.k1, j1 - 149, j1 + 1), sliceK(x.k4, Math.max(0, j4 - 59), j4 + 1), sliceK(x.kd, Math.max(0, jd - 4), jd + 1),
-      { state: x.s4[j4] }, { state: x.sd[jd] }, T); } catch (e) { continue; }
-    const m = ms[0]; if (!m || !m.fresh || !validLevels(m) || taken.has(m.sweepT)) continue;
-    taken.add(m.sweepT);
-    const long = m.dir === "Long", R = Math.abs(m.entry - m.stop); let f = -1;
-    for (let i = j + 1; i < k15.c.length && i <= j + 16; i++) {           // the limit waits up to 4 hours; 2R first = missed
-      if (long ? k15.h[i] >= m.t2 : k15.l[i] <= m.t2) break;
-      if (long ? k15.l[i] <= m.entry : k15.h[i] >= m.entry) { f = i; break; }
-    }
-    if (f < 0) continue;
-    let out = null;
-    if (long ? k15.l[f] <= m.stop : k15.h[f] >= m.stop) out = { j: f, r: -1, reason: "Stop" };
-    else { const s2 = simulate(k15, f, m, 48); out = s2; }
-    if (!out) continue;
-    busy = out.j;
-    trades.push({ sym, model: "OB", dir: m.dir, tf: "15m", t: k15.t[f], entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-      reason: out.reason, bars: out.j - f, session: sessOf(k15.t[f]), env: ctx.envAt(T), state: `${m.state} · ${m.poi}`, rot: rotBand(x.kd, ctx.btcD, T, m.dir),
-      v: out.reason === "Stop" && out.j === f ? { t1: r2(netR(m, -1, ctx.fee)), t15: r2(netR(m, -1, ctx.fee)), pbe: r2(netR(m, -1, ctx.fee)) } : btVariants(k15, f, m, 48, null, ctx.fee),
-      wd: m.withDaily ?? null, sw: true });
-  }
-  return trades;
-}
-function replaySession(sym, k15, winStart, ctx) {        // ORB and AMD at each NY open, hard close at 11:00 NY
-  const trades = [], Q = IV_MS["15m"], done = new Set();
-  if (k15.t.length < 120) return trades;
-  for (let day = Math.max(winStart, k15.t[100]); day < k15.t.at(-1); day += 86400e3) {
-    const open = nyOpenUTC(day - (day % 86400e3) + 18 * 3600e3), close11 = open + 90 * 60e3;
-    if (open < winStart || done.has(open)) continue; done.add(open);
-    const taken = new Set();
-    for (let j = lastClosedIdx(k15, Q, open + Q); j >= 0 && k15.t[j] < open + 120 * 60e3 && j < k15.t.length - 1; j++) {
-      const T = k15.t[j] + Q;
-      let ms; try { ms = sessionModels(sliceK(k15, Math.max(0, j - 99), j + 1), { s1h: { state: "Tangled" } }, T); } catch (e) { continue; }
-      for (const m of ms) {
-        if (!m.trig || taken.has(m.model) || !validLevels(m)) continue;
-        taken.add(m.model);
-        const out = simulate(k15, j, m, 12, close11); if (!out) continue;
-        trades.push({ sym, model: m.model, dir: m.dir, tf: "15m", t: T, entry: m.entry, stop: m.stop, t2: m.t2, gross: r2(out.r), r: r2(netR(m, out.r, ctx.fee)),
-          reason: out.reason, bars: out.j - j, session: sessOf(T), env: ctx.envAt(T), state: m.state,
-          v: btVariants(k15, j, m, 12, close11, ctx.fee), wd: null, sw: !!m.sweep });
-      }
-    }
-  }
-  return trades;
-}
-async function runBacktest() {
-  if (!data || btRunning) return;
-  btRunning = true;
-  const days = +$("btDays").value, selV = $("btCoins").value, pick = selV === "pick", nCoins = pick ? 0 : +selV, fee = +$("btFee").value || 0;
-  if (pick && !BTP.syms.length) { btRunning = false; $("btStatus").textContent = "Pick at least one market first (Pick markets…)."; btPickOpen = true; renderBtPick(); return; }
-  const maFn = data.ma === "sma" ? sma : ema, now = Date.now(), winStart = now - days * 86400e3, H = IV_MS["1h"];
-  const prog = (msg, f) => { $("btStatus").textContent = msg; $("btProg").style.width = (f * 100) + "%"; };
-  if (pick) btpTradfi().forEach(x => { if (BTP.syms.includes(x.sym) && !isMX(x.sym)) TRADFI_SYMS.add(x.sym); });      // routes their candles to Binance futures
-  const syms = pick ? BTP.syms.slice() : [...new Set([...btpTop(nCoins), ...Object.keys(WL.coins).filter(s => bySym[s] && !TRADFI_SYMS.has(s))])];
-  const series = {}; let done = 0;
-  try {
-    prog("Downloading BTC history…", 0.01);
-    const btc1 = await klinesRange("BTCUSDT", "1h", winStart - 220 * H, now), btc4 = await klinesRange("BTCUSDT", "4h", winStart - 170 * IV_MS["4h"], now);
-    const btcD = await klinesRange("BTCUSDT", "1d", winStart - 40 * IV_MS["1d"], now);
-    const b1 = stateSeries(btc1, maFn), b4 = stateSeries(btc4, maFn);
-    for (const s of syms) {
-      try {
-        const [k1, k4, kd] = [await klinesRange(s, "1h", winStart - 230 * H, now), await klinesRange(s, "4h", winStart - 170 * IV_MS["4h"], now),
-                              await klinesRange(s, "1d", winStart - 140 * IV_MS["1d"], now)];
-        const k15 = await klinesRange(s, "15m", Math.max(winStart, now - 30 * 86400e3) - 210 * IV_MS["15m"], now);
-        series[s] = { k1, k4, kd, k15, s4: stateSeries(k4, maFn), sd: stateSeries(kd, maFn) };
-      } catch (e) {}
-      done++; prog(`Downloading history: ${done} of ${syms.length} markets…`, 0.02 + 0.55 * done / syms.length);
-    }
-    const coins = Object.keys(series);
-    const envAt = T => {
-      const i1 = lastClosedIdx(btc1, H, T), i4 = lastClosedIdx(btc4, IV_MS["4h"], T);
-      const s1 = b1[i1], s4 = b4[i4], regime = s1 === "Bull stack" && s4 === "Bull stack" ? "Risk-on" : s1 === "Bear stack" && s4 === "Bear stack" ? "Risk-off" : "Chop";
-      let bull = 0, bear = 0, n = 0;
-      coins.forEach(c => { if (TRADFI_SYMS.has(c)) return; const x = series[c], j = lastClosedIdx(x.k4, IV_MS["4h"], T); if (j < 100) return; n++;
-        const st = x.s4[j]; if (st === "Bull stack" || st === "Pullback in bull") bull++; else if (st === "Bear stack" || st === "Pullback in bear") bear++; });
-      return n ? envLabel(regime, Math.round(bull / n * 100), Math.round(bear / n * 100)) : envLabel(regime, 0, 0);
-    };
-    const btc1At = T => { const st = b1[lastClosedIdx(btc1, H, T)] || ""; return /^Bull/.test(st) ? "Long" : /^Bear/.test(st) ? "Short" : null; };
-    const btc4At = T => { const st = b4[lastClosedIdx(btc4, IV_MS["4h"], T)] || ""; return /^Bull/.test(st) ? "Long" : /^Bear/.test(st) ? "Short" : null; };
-    const ctx = { fee, envAt, btcD, btc1At, btc4At }, trades = [];
-    for (let i = 0; i < coins.length; i++) {
-      const c = coins[i], x = series[c];
-      trades.push(...replay1h(c, x.k1, x.k4, x.kd, maFn, winStart, ctx), ...replaySession(c, x.k15, Math.max(winStart, now - 30 * 86400e3), ctx),
-                  ...replayOB(c, x, Math.max(winStart, now - 30 * 86400e3), ctx));
-      prog(`Replaying the models: ${i + 1} of ${coins.length} coins…`, 0.57 + 0.42 * (i + 1) / coins.length);
-      await sleep(0);                                       // keep the app responsive
-    }
-    trades.sort((a, b) => a.t - b.t);
-    BT = { at: now, exchange: exName(), mode: data.mode, days, coins: coins.length, fee, ma: data.ma, trades, pick: pick ? coins.map(s => TRADFI_SYMS.has(s) && MACRO_INFO[s.replace(/USDT$/, "")] ? MACRO_INFO[s.replace(/USDT$/, "")][0] : coin(s)) : null };
-    try { localStorage.setItem(BT_KEY, JSON.stringify(BT)); } catch (e) {}
-    prog(`Done: ${trades.length} trades across ${coins.length} coins.`, 1);
-    renderBacktest(); renderPlaybook(); renderGuide();
-  } catch (e) { $("btStatus").textContent = `Backtest stopped: ${e.message}`; }
-  btRunning = false; setTimeout(() => $("btProg") && ($("btProg").style.width = "0"), 1500);
-}
-function btStats(trades) {
-  const n = trades.length; if (!n) return null;
-  const wins = trades.filter(t => t.reason === "Target").length, losses = trades.filter(t => t.reason === "Stop").length;
-  const tot = trades.reduce((s, t) => s + t.r, 0), gw = trades.filter(t => t.r > 0).reduce((s, t) => s + t.r, 0), gl = -trades.filter(t => t.r < 0).reduce((s, t) => s + t.r, 0);
-  let eq = 0, peak = 0, dd = 0; trades.forEach(t => { eq += t.r; peak = Math.max(peak, eq); dd = Math.max(dd, peak - eq); });
-  return { n, wins, losses, win: n ? wins / n * 100 : 0, prof: trades.filter(t => t.r > 0).length / n * 100, avg: tot / n, tot, pf: gl ? gw / gl : (gw ? 99 : 0), dd, bars: trades.reduce((s, t) => s + t.bars, 0) / n };
-}
-const btGroup = (trades, f) => { const g = {}; trades.forEach(t => { const k = f(t); (g[k] = g[k] || []).push(t); }); return g; };
-function btFor(model, env) {                               // expectancy for a model in an environment (used by the playbook)
-  if (!BT || !BT.trades) return null;
-  const s = btStats(BT.trades.filter(t => t.model === model && (!env || t.env === env)));
-  return s && s.n >= 15 ? s : null;
-}
-function btApply(label, fit, why) {                        // let your own backtest move models up or down
-  if (!BT || !btUse()) return;
-  const notes = [];
-  MODEL_KEYS.forEach(k => {
-    const s = btFor(k, label); if (!s) return;
-    const was = fit[k];
-    if (s.avg <= -0.1 && fit[k] !== "avoid") fit[k] = "avoid";
-    else if (s.avg >= 0.25 && fit[k] === "avoid") fit[k] = "neutral";
-    else if (s.avg >= 0.25 && fit[k] === "neutral") fit[k] = "secondary";
-    else if (s.avg >= 0.35 && fit[k] === "secondary") fit[k] = "primary";
-    if (was !== fit[k]) notes.push(`${k} ${s.avg >= 0 ? "+" : ""}${s.avg.toFixed(2)}R over ${s.n} trades → ${fit[k]}`);
-  });
-  if (notes.length) why.push(`Your backtest in this environment moved: ${notes.join("; ")}.`);
-}
-const fmtR = v => `${v >= 0 ? "+" : ""}${v.toFixed(2)}R`;
-const rCls = v => v >= 0.05 ? "up" : v <= -0.05 ? "dn" : "mute";
-function btMatrix(trades, rowKey, colKey, rows, cols) {
-  const head = `<tr><th class="l">Model</th>${cols.map(c => `<th>${c}</th>`).join("")}</tr>`;
-  const body = rows.map(rw => `<tr><td class="l">${MODELS[rw] ? MODELS[rw].icon + " " : ""}${rw}</td>${cols.map(c => {
-    const s = btStats(trades.filter(t => t[rowKey] === rw && t[colKey] === c));
-    return s ? `<td title="${s.n} trades · win ${s.win.toFixed(0)}% · total ${fmtR(s.tot)}"><span class="${s.n < 10 ? "mute" : rCls(s.avg)}">${fmtR(s.avg)}</span> <span class="mute">${s.n}</span></td>` : `<td class="mute">—</td>`;
-  }).join("")}</tr>`).join("");
-  return `<div class="tablewrap"><table class="sct btm"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
-}
-let btChart = null;
-async function drawEquity(trades) {
-  const el = $("btEq"); if (!el) return;
-  try {
-    await ensureLWC();
-    if (btChart) { try { btChart.remove(); } catch (e) {} btChart = null; }
-    el.innerHTML = "";
-    const line = cssVar("--line");
-    btChart = LightweightCharts.createChart(el, { width: el.clientWidth, height: 220, layout: { background: { type: "solid", color: "transparent" }, textColor: cssVar("--mute"), fontFamily: cssVar("--font") },
-      grid: { vertLines: { color: line }, horzLines: { color: line } }, rightPriceScale: { borderColor: line }, timeScale: { borderColor: line, timeVisible: true },
-      localization: { locale: "en-US", priceFormatter: v => v.toFixed(1) + "R", timeFormatter: phtTime } });
-    if (window.ResizeObserver) { const ch = btChart; new ResizeObserver(() => { if (btChart === ch && el.clientWidth) ch.applyOptions({ width: el.clientWidth }); }).observe(el); }
-    const colors = ["#2962ff", "#22ab94", "#f7a600", "#f23645", "#9c27b0", "#00bcd4", "#e91e63", "#8bc34a"];
-    const byModel = btGroup(trades, t => t.model), addLine = (list, color, width) => {
-      const s = btChart.addLineSeries({ color, lineWidth: width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-      let eq = 0, last = 0; const pts = [];
-      list.forEach(t => { eq += t.r; let ts = Math.floor(t.t / 1000); if (ts <= last) ts = last + 1; last = ts; pts.push({ time: ts, value: +eq.toFixed(3) }); });
-      s.setData(pts);
-    };
-    addLine(trades, cssVar("--strong") || "#fff", 2);
-    Object.keys(byModel).forEach((k, i) => addLine(byModel[k], colors[i % colors.length], 1));
-    btChart.timeScale().fitContent();
-    $("btEqLegend").innerHTML = `<i style="background:${cssVar("--strong") || "#fff"}"></i>All` + Object.keys(byModel).map((k, i) => `<i style="background:${colors[i % colors.length]}"></i>${k}`).join("");
-  } catch (e) { el.innerHTML = `<div class="meta">Couldn't draw the equity curve (${e.message}).</div>`; }
-}
-function renderBacktest() {
-  const el = $("backtest"); if (!el) return;
-  const T = BT && BT.trades ? BT.trades : [], all = btStats(T);
-  const viewTabs = [["model", "By Model"], ["session", "Model × Session"], ["env", "Model × Environment"], ["rsi", "Model × RSI at Entry"], ["rot", "Model × Strength vs BTC"], ["dir", "By Direction"], ["coin", "By Coin"], ["trades", "Trades"]];
-  let body = "";
-  if (all) {
-    const models = MODEL_KEYS.filter(k => T.some(t => t.model === k));
-    if (btView === "model") body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Model</th><th>Trades</th><th>Hit target</th><th>Stopped</th><th title="Hit the target ÷ trades">Win rate</th><th title="Closed above zero after fees, including time exits">In profit</th><th>Avg R (after fees)</th><th>Total R</th><th>Profit factor</th><th>Max drawdown</th><th>Avg hold</th></tr></thead><tbody>${
-      models.map(k => { const row = (label, s, sub) => `<tr${sub ? ' class="btsub"' : ""}><td class="l">${label}</td><td>${s.n}</td><td class="up">${s.wins}</td><td class="dn">${s.losses}</td><td>${s.win.toFixed(0)}%</td><td>${s.prof.toFixed(0)}%</td><td class="${rCls(s.avg)}"><b>${fmtR(s.avg)}</b></td><td class="${rCls(s.tot)}">${fmtR(s.tot)}</td><td>${s.pf >= 99 ? "∞" : s.pf.toFixed(2)}</td><td class="dn">−${s.dd.toFixed(1)}R</td><td>${s.bars.toFixed(1)} candles</td></tr>`;
-        const tk = T.filter(t => t.model === k); let out = row(`${MODELS[k].icon} ${k}`, btStats(tk));
-        if (tk.some(t => t.ag != null)) { const a = btStats(tk.filter(t => t.ag === true)), b = btStats(tk.filter(t => t.ag === false));
-          if (a) out += row("↳ A-grade (all checks)", a, true); if (b) out += row("↳ the rest", b, true);
-          const ag = tk.filter(t => t.ag === true && t.tr != null), TRAIL_ENV = ["BTC-Led: Alts Lagging", "Chop: Range Day"];
-          if (ag.length) { const sw = btStats(ag.map(t => TRAIL_ENV.includes(t.env) ? { ...t, r: t.tr, reason: t.tr > 0 ? "Trail" : "Stop" } : t));
-            out += row(`↳ A-grade, trailing on BTC-Led / Chop days <span class="mute">(test only)</span>`, sw, true); } }
-        return out; }).join("")}</tbody></table></div>`;
-    else if (btView === "session") body = btMatrix(T, "model", "session", models, SESS_LABELS.filter(x => T.some(t => t.session === x)));
-    else if (btView === "env") body = btMatrix(T, "model", "env", models, [...new Set(T.map(t => t.env))]);
-    else if (btView === "rot") body = btMatrix(T.filter(t => t.rot && t.rot !== "n/a"), "model", "rot", models, ["With the trade (5+ pts)", "In line", "Against the trade (10+ pts)"].filter(x => T.some(t => t.rot === x)));
-    else if (btView === "rsi") body = btMatrix(T.filter(t => t.rsi), "model", "rsi", models, ["70+ momentum", "60–70 pre-momentum", "50–60", "40–50 reset", "below 40"].filter(x => T.some(t => t.rsi === x)));
-    else if (btView === "dir") body = btMatrix(T, "model", "dir", models, ["Long", "Short"]);
-    else if (btView === "coin") { const g = btGroup(T, t => t.sym), rows = Object.entries(g).map(([k, v]) => ({ k, s: btStats(v) })).sort((a, b) => b.s.tot - a.s.tot);
-      body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Coin</th><th>Trades</th><th>Win rate</th><th>Avg R</th><th>Total R</th></tr></thead><tbody>${rows.map(x => `<tr><td class="l">${coin(x.k)}</td><td>${x.s.n}</td><td>${x.s.win.toFixed(0)}%</td><td class="${rCls(x.s.avg)}">${fmtR(x.s.avg)}</td><td class="${rCls(x.s.tot)}">${fmtR(x.s.tot)}</td></tr>`).join("")}</tbody></table></div>`; }
-    else body = `<div class="tablewrap"><table class="sct"><thead><tr><th class="l">Time (PHT)</th><th class="l">Coin</th><th class="l">Model</th><th class="l">Side</th><th class="l">Session</th><th class="l">Environment</th><th class="l">Exit</th><th>R</th></tr></thead><tbody>${
-      T.slice(-60).reverse().map(t => `<tr><td class="l mute">${fmtPHT(new Date(t.t + PHT_MS))}</td><td class="l">${coin(t.sym)}</td><td class="l">${MODELS[t.model].icon} ${t.model} <span class="mute">${t.tf}</span></td><td class="l">${biasTag(t.dir)}</td><td class="l">${t.session}</td><td class="l mute">${t.env}</td><td class="l">${t.reason}</td><td class="${rCls(t.r)}">${fmtR(t.r)}</td></tr>`).join("")}</tbody></table></div>`;
-  }
-  el.innerHTML = `
-    <div class="schead"><h2>Model Backtest</h2>
-      <span class="meta">${all ? `${BT.exchange} · last ${BT.days} days · ${BT.pick ? `your pick of ${BT.coins} market${BT.coins === 1 ? "" : "s"}${BT.coins <= 6 ? ` (${BT.pick.join(", ")})` : ""}` : `${BT.coins} coins`} · run ${fmtPHT(new Date(BT.at + PHT_MS))} · <b>${all.n}</b> trades · avg <b class="${rCls(all.avg)}">${fmtR(all.avg)}</b> · total <b class="${rCls(all.tot)}">${fmtR(all.tot)}</b>` : "Replays every model on real history to show which ones actually pay, and where."}</span></div>
-    <div class="btctl">
-      <label class="pill"><span>Period</span><select id="btDays"><option value="30">30 days</option><option value="60" selected>60 days</option><option value="90">90 days</option></select></label>
-      <label class="pill"><span>Markets</span><select id="btCoins"><option value="20">Top 20</option><option value="30" selected>Top 30</option><option value="50">Top 50</option><option value="100">Top 100</option><option value="pick">My pick (${BTP.syms.length})</option></select></label>
-      <button class="btn sm" id="btPickBtn" aria-expanded="${btPickOpen}">${btPickOpen ? "Hide picklist" : "Pick markets…"}</button>
-      <label class="pill"><span>Fees (round trip %)</span><input id="btFee" type="number" step="0.01" value="${BT ? BT.fee : 0.1}"></label>
-      <button class="btn primary" id="btRun" ${data && !btRunning ? "" : "disabled"}>${btRunning ? "Running…" : all ? "Run Again" : "Run Backtest"}</button>
-      <label class="tog"><input type="checkbox" id="btUse" ${btUse() ? "checked" : ""}> Use results in the playbook</label>
-      ${all ? `<button class="btn sm" id="btCsv">Export CSV</button>` : ""}
-    </div>
-    <div class="btpick" id="btPick" hidden></div>
-    <div class="status" id="btStatus">${data ? (all ? "Results below. Run it again any time, for example weekly, to keep the numbers fresh." : "Takes about a minute: it downloads the history, then replays each model candle by candle.") : "Run a scan first."}</div>
-    <div class="progress"><i id="btProg"></i></div>
-    ${all ? `<div class="sctabs">${viewTabs.map(([v, l]) => `<button class="tab ${btView === v ? "on" : ""}" data-bv="${v}">${l}</button>`).join("")}</div>${body}
-      <h3 class="pbh3">Equity Curve <span class="meta">cumulative R after fees</span></h3><div id="btEq" class="bteq"></div><div class="clegend bteql" id="btEqLegend"></div>` : ""}
-    <p class="meta">How it works: at every historical candle the detectors only see candles that had already closed (your 1H, plus the 4H and Daily closed by then), exactly as the live scanner would. A triggered setup is entered at that candle's close and walked forward until the stop, the target (2R, or the 4H OEZ for Pullback) or 48 hours. ORB and AMD are replayed on 15m candles for the last 30 days with your 11:00 NY hard close. If the stop and target land in the same candle it counts as a stop, and fees come off every trade. The environment uses the playbook's rules (BTC regime plus 4H breadth of the tested coins). Limits: today's top coins (coins that died aren't in the list), no slippage beyond fees, and the gray cells have fewer than 10 trades, too few to trust.</p>`;
-  if ($("btDays") && BT) $("btDays").value = BT.days;
-  if ($("btCoins")) { $("btCoins").value = BTP.sel || "30"; $("btCoins").onchange = () => { BTP.sel = $("btCoins").value; if (BTP.sel === "pick") btPickOpen = true; btpSave(); renderBacktest(); }; }
-  if ($("btPickBtn")) $("btPickBtn").onclick = () => { btPickOpen = !btPickOpen; if (btPickOpen && BTP.sel !== "pick") { BTP.sel = "pick"; btpSave(); } renderBacktest(); };
-  renderBtPick();
-  if ($("btRun")) $("btRun").onclick = () => { runBacktest(); renderBacktestControls(); };
-  if ($("btUse")) $("btUse").onchange = () => { try { localStorage.setItem(BT_USE_KEY, $("btUse").checked ? "on" : "off"); } catch (e) {} if (data) { renderPlaybook(); renderGuide(); } };
-  el.querySelectorAll("[data-bv]").forEach(b => b.onclick = () => { btView = b.dataset.bv; renderBacktest(); });
-  if ($("btCsv")) $("btCsv").onclick = () => {
-    const csv = "time_pht,coin,model,timeframe,side,session,environment,entry,stop,target,exit,r_after_fees,r_before_fees,candles\n" +
-      T.map(t => [fmtPHT(new Date(t.t + PHT_MS)), t.sym, t.model, t.tf, t.dir, t.session.replace(/^\S+\s/, ""), `"${t.env}"`, t.entry, t.stop, t.t2, t.reason, t.r, t.gross, t.bars].join(",")).join("\n");
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "the-finder-backtest.csv"; a.click();
-  };
-  if (all) drawEquity(T);
-  renderEdge();
-}
-function renderBacktestControls() { const b = $("btRun"); if (b) { b.disabled = btRunning || !data; b.textContent = btRunning ? "Running…" : "Run Backtest"; } }
-
-
-/* ===================== Edge Finder: where each model actually wins, checked on trades it never saw ===================== */
+/* ---- A-grade only (Playbook switch): the playbook, coin plays and alerts use only NBB and V-Trade setups that pass all their checks ---- */
 const EDGE_KEY = "finder-edge";
-let EDGE = { rules: [], aOnly: false, minN: 30 };
-try { Object.assign(EDGE, JSON.parse(localStorage.getItem(EDGE_KEY) || "{}")); } catch (e) {}
+let EDGE = { aOnly: false };
+try { EDGE.aOnly = !!(JSON.parse(localStorage.getItem(EDGE_KEY) || "{}") || {}).aOnly; } catch (e) {}
 const edgeSave = () => { try { localStorage.setItem(EDGE_KEY, JSON.stringify(EDGE)); } catch (e) {} };
-const EDGE_VARS = { base: "Model target", t15: "1.5R target", t1: "1R target", pbe: "Half at 1R, rest to target or breakeven" };
-const EDGE_FEATS = {
-  env: ["Environment", t => t.env || null], session: ["Session", t => t.session || null], dir: ["Side", t => t.dir || null],
-  rsi: ["RSI at entry", t => t.rsi || null], rot: ["Strength vs BTC", t => t.rot && t.rot !== "n/a" ? t.rot : null],
-  wd: ["Daily", t => t.wd === true ? "With the Daily" : t.wd === false ? "Against the Daily" : null],
-  sw: ["Sweep", t => t.sw === true ? "Swept first" : t.sw === false ? "No sweep" : null] };
-const edgeR = (t, v) => v === "base" ? t.r : (t.v ? t.v[v] : null);
-function edgeStats(ts, v) {
-  const rs = ts.map(t => edgeR(t, v)).filter(x => x != null && isFinite(x)), n = rs.length; if (!n) return null;
-  const tot = rs.reduce((a, b) => a + b, 0), avg = tot / n, sd = Math.sqrt(rs.reduce((a, x) => a + (x - avg) ** 2, 0) / Math.max(1, n - 1)) || 1e-9;
-  return { n, win: rs.filter(x => x > 0).length / n * 100, avg, tot, t: avg / (sd / Math.sqrt(n)) };   // t: how far the average is from zero, in standard errors
-}
-const edgeMatch = (t, cs) => cs.every(([f, x]) => EDGE_FEATS[f][1](t) === x);
-const edgeCondText = cs => cs.map(([f, x]) => f === "dir" ? x + "s" : x).join(" · ");
-const edgeId = (model, v, cs) => `${model}|${v}|${cs.map(c => c.join("=")).join("&")}`;
-function edgeSearch(T, minN = 30) {
-  const hasV = T.some(t => t.v), vars = hasV ? Object.keys(EDGE_VARS) : ["base"], out = [];
-  MODEL_KEYS.forEach(model => {
-    const ts = T.filter(t => t.model === model).sort((a, b) => a.t - b.t), n = ts.length; if (!n) return;
-    const row = { model, n, base: {}, rules: [], tested: 0 };
-    vars.forEach(v => row.base[v] = edgeStats(ts, v));
-    if (n < minN) { out.push(row); return; }
-    const cut = Math.floor(n * 2 / 3), train = ts.slice(0, cut), test = ts.slice(cut);
-    row.split = { trainTo: train.at(-1).t, testFrom: test[0] ? test[0].t : null };
-    const fk = Object.keys(EDGE_FEATS), vals = {};
-    fk.forEach(f => vals[f] = [...new Set(train.map(EDGE_FEATS[f][1]).filter(x => x != null))]);
-    const conds = [];
-    fk.forEach(f => vals[f].forEach(x => conds.push([[f, x]])));
-    for (let a = 0; a < fk.length; a++) for (let b = a + 1; b < fk.length; b++) vals[fk[a]].forEach(x => vals[fk[b]].forEach(y => conds.push([[fk[a], x], [fk[b], y]])));
-    const minTrain = Math.ceil(minN * 2 / 3), minTest = Math.ceil(minN / 3), cands = [];
-    conds.forEach(cs => {
-      const tr = train.filter(t => edgeMatch(t, cs)); if (tr.length < minTrain) return;
-      vars.forEach(v => { const st = edgeStats(tr, v); row.tested++;
-        if (st && st.n >= minTrain && st.win >= 50 && st.avg > 0 && st.t >= 2.5) cands.push({ v, cs, train: st, score: st.t }); });   // strong enough that luck is unlikely
-    });
-    // commit to the 5 strongest candidates on the OLDER trades first (one per distinct trade set), then test only those:
-    // scoring every candidate on the newest trades and keeping the winners would quietly turn the test into another search
-    cands.sort((a, b) => b.score - a.score);
-    const seen = new Set(), picked = [];
-    for (const c of cands) {
-      const sel = ts.filter(t => edgeMatch(t, c.cs)), k = sel.length + ":" + sel.reduce((a, t) => a + t.t, 0);
-      if (seen.has(k)) continue; seen.add(k); picked.push(c); if (picked.length >= 5) break;
-    }
-    picked.forEach(c => {                                  // judged only on the newest third, which played no part in finding it
-      const te = edgeStats(test.filter(t => edgeMatch(t, c.cs)), c.v);
-      c.test = te;                                         // must stay at 50%+, clearly positive, and keep at least a third of the older edge
-      c.verdict = !te || te.n < minTest ? "few" : te.win >= 50 && te.avg >= Math.max(0.05, c.train.avg / 3) && te.t >= 1.5 ? "ok" : te.avg > 0 ? "part" : "fail";
-      c.all = edgeStats(ts.filter(t => edgeMatch(t, c.cs)), c.v); c.id = edgeId(model, c.v, c.cs); c.model = model;
-    });
-    const rank = { ok: 0, part: 1, few: 2, fail: 3 };
-    row.rules = picked.filter(c => c.verdict !== "fail").sort((a, b) => rank[a.verdict] - rank[b.verdict] || b.score - a.score).slice(0, 3);
-    row.failed = picked.filter(c => c.verdict === "fail").length; row.cands = cands.length; row.picked = picked.length;
-    out.push(row);
-  });
-  return out;
-}
-let EDGE_RES = null, EDGE_AT = null;
-function edgeResults() { if (!BT || !BT.trades) return null; if (EDGE_AT !== BT.at + ":" + EDGE.minN) { EDGE_RES = edgeSearch(BT.trades, EDGE.minN); EDGE_AT = BT.at + ":" + EDGE.minN; } return EDGE_RES; }
 const aGradeOn = () => !!EDGE.aOnly;
-function edgeLiveFeat(r, m, f) {
-  switch (f) {
-    case "env": return data && data.env ? data.env.label : null;
-    case "session": return sessOf(Date.now());
-    case "dir": return m.dir;
-    case "rsi": return r.rsi && r.rsi.h1 != null ? rsiBand(r.rsi.h1, m.dir) : null;
-    case "rot": { const c = coinRot(r); if (c.rel30 == null) return null; const x = m.dir === "Short" ? -c.rel30 : c.rel30;
-      return x >= 5 ? "With the trade (5+ pts)" : x <= -10 ? "Against the trade (10+ pts)" : "In line"; }
-    case "wd": return m.withDaily === true ? "With the Daily" : m.withDaily === false ? "Against the Daily" : null;
-    case "sw": return m.sweep ? "Swept first" : "No sweep";
-  }
-  return null;
-}
-function edgeRuleFor(r, m) { return EDGE.rules.find(x => x.model === m.model && x.cs.every(([f, v]) => edgeLiveFeat(r, m, f) === v)) || null; }
-const edgeOK = (r, m) => (m.grade && m.grade.pass) || !!edgeRuleFor(r, m);
-function liveModels(r) { const ms = ((r && r.models) || []).filter(m => !m.missed); return aGradeOn() ? ms.filter(m => edgeOK(r, m)) : ms; }
+function liveModels(r) { const ms = ((r && r.models) || []).filter(m => !m.missed); return aGradeOn() ? ms.filter(m => m.grade && m.grade.pass) : ms; }
 function edgeTag(r, m) {
-  if (m.grade) return m.grade.pass ? `<span class="tag long" title="All ${m.model} checks pass">A-grade · ${m.grade.of}/${m.grade.of}</span>` : `<span class="tag" title="${m.grade.items.filter(x => !x[1]).map(x => x[0]).join(", ")} failed">Not A-grade · ${m.grade.n}/${m.grade.of}</span>`;
-  if (!EDGE.rules.length) return "";
-  const rule = edgeRuleFor(r, m);
-  if (rule) return `<span class="tag long" title="${edgeCondText(rule.cs)}: newest trades ${rule.test.n}, win ${rule.test.win.toFixed(0)}%, ${fmtR(rule.test.avg)}">A-grade · ${rule.v === "base" ? "model target" : EDGE_VARS[rule.v].toLowerCase()}</span>`;
-  if (!EDGE.rules.some(x => x.model === m.model)) return aGradeOn() ? '<span class="tag">No proven edge yet</span>' : "";
-  return '<span class="tag">Not A-grade</span>';
+  if (!m.grade) return "";
+  return m.grade.pass ? `<span class="tag long" title="All ${m.model} checks pass">A-grade · ${m.grade.of}/${m.grade.of}</span>` : `<span class="tag" title="${m.grade.items.filter(x => !x[1]).map(x => x[0]).join(", ")} failed">Not A-grade · ${m.grade.items.filter(x => x[1]).length}/${m.grade.of}</span>`;
 }
-function edgeChanged() { edgeSave(); renderEdge(); if (data) { renderPlaybook(); renderTable(); renderBoards(); } if (typeof navBadges === "function") navBadges(); }
-const edgeCell = s => s ? `<span class="${s.win >= 50 ? "up" : ""}">${s.win.toFixed(0)}%</span> · <span class="${rCls(s.avg)}">${fmtR(s.avg)}</span> <span class="mute">${s.n}</span>` : '<span class="mute">—</span>';
-const EDGE_VERDICT = { ok: ["long", "Confirmed"], part: ["", "Holds R, not 50%"], few: ["", "Too few new trades"], fail: ["short", "Failed"] };
-function edgeText() {
-  const res = edgeResults(); if (!res) return "";
-  let t = `EDGE FINDER (${BT.exchange}, last ${BT.days} days, ${BT.coins} coins, fees ${BT.fee}% round trip, min ${EDGE.minN} trades per condition; found on the older 2/3, confirmed on the newest 1/3)\n`;
-  res.forEach(row => {
-    const b = row.base;
-    t += `\n${row.model}: ${row.n} trades | model target ${b.base ? `${b.base.win.toFixed(0)}% win, ${fmtR(b.base.avg)}` : "n/a"}` +
-      (b.t15 ? ` | 1.5R ${b.t15.win.toFixed(0)}%, ${fmtR(b.t15.avg)} | 1R ${b.t1.win.toFixed(0)}%, ${fmtR(b.t1.avg)} | half@1R+BE ${b.pbe.win.toFixed(0)}%, ${fmtR(b.pbe.avg)}` : "") + "\n";
-    if (row.n < EDGE.minN) { t += `  not enough trades to search\n`; return; }
-    if (!row.rules.length) t += `  no condition reached 50% with positive R (${row.tested} tested, ${row.failed || 0} failed on new trades)\n`;
-    row.rules.forEach(c => t += `  ${EDGE_VERDICT[c.verdict][1]}: ${edgeCondText(c.cs)} + ${EDGE_VARS[c.v]} | older ${c.train.n} trades ${c.train.win.toFixed(0)}% ${fmtR(c.train.avg)} | newest ${c.test ? `${c.test.n} trades ${c.test.win.toFixed(0)}% ${fmtR(c.test.avg)}` : "none"}\n`);
-  });
-  return t;
-}
-function renderEdge() {
-  const el = $("edgeCard"); if (!el) return;
-  const res = edgeResults(), hasV = BT && BT.trades && BT.trades.some(t => t.v);
-  const used = new Set(EDGE.rules.map(x => x.id)), nOk = res ? res.reduce((s, r) => s + r.rules.filter(c => c.verdict === "ok").length, 0) : 0;
-  const tested = res ? res.reduce((s, r) => s + r.tested, 0) : 0;
-  let body;
-  if (!res) body = `<div class="empty">Run the backtest above first. The Edge Finder searches its trades.</div>`;
-  else body = `${hasV ? "" : `<div class="status err">This backtest was run before management variants existed: press Run Again above to include the 1R, 1.5R and half-at-1R results.</div>`}
-    <div class="tablewrap"><table class="sct edget"><thead><tr><th class="l">Model</th><th>Trades</th><th>Model target</th>${hasV ? "<th>1.5R</th><th>1R</th><th>Half at 1R + BE</th>" : ""}</tr></thead><tbody>${res.map(row => {
-      const head = `<tr class="edgem"><td class="l">${MODELS[row.model].icon} <b>${row.model}</b></td><td>${row.n}</td><td>${edgeCell(row.base.base)}</td>${hasV ? `<td>${edgeCell(row.base.t15)}</td><td>${edgeCell(row.base.t1)}</td><td>${edgeCell(row.base.pbe)}</td>` : ""}</tr>`;
-      const span = hasV ? 6 : 3;
-      if (row.n < EDGE.minN) return head + `<tr><td colspan="${span}" class="l mute edgesub">Not enough trades to search (${row.n} of ${EDGE.minN}). Run a longer backtest or more coins.</td></tr>`;
-      if (!row.rules.length) return head + `<tr><td colspan="${span}" class="l mute edgesub">No condition reached a 50% win rate with positive R on the older trades${row.failed ? `; ${row.failed} that did were rejected by the newest trades` : ""}. Treat this model as unproven.</td></tr>`;
-      return head + row.rules.map(c => `<tr><td colspan="${span}" class="l edgesub"><div class="edgerule">
-        <label class="tog"><input type="checkbox" data-edge="${c.id}" ${used.has(c.id) ? "checked" : ""} ${c.verdict === "ok" || c.verdict === "part" ? "" : "disabled"}> Use</label>
-        <span class="tag ${EDGE_VERDICT[c.verdict][0]}">${EDGE_VERDICT[c.verdict][1]}</span>
-        <b>${edgeCondText(c.cs)}</b><span class="mute">+ ${EDGE_VARS[c.v]}</span>
-        <span class="edgeab">Older ⅔: ${edgeCell(c.train)} · Newest ⅓: ${edgeCell(c.test)}</span></div></td></tr>`).join("");
-    }).join("")}</tbody></table></div>`;
-  el.innerHTML = `
-    <div class="schead"><h2>Edge Finder</h2><span class="meta">${res ? `${nOk} confirmed rule${nOk === 1 ? "" : "s"} · ${tested.toLocaleString("en-US")} conditions tested · ${EDGE.rules.length} in use` : "Finds where each model wins 50%+ with positive R"}</span></div>
-    <p class="meta edgeintro">For each model it looks for conditions (environment, session, side, RSI at entry, strength vs BTC, with or against the Daily, sweep first) and a way to manage the trade where the win rate is 50%+ <b>and</b> the average R is positive. It searches only the <b>older two-thirds</b> of the backtest and then checks each find on the <b>newest third</b>, which it never saw. A rule needs ${Math.ceil(EDGE.minN * 2 / 3)}+ older trades with an edge too strong to be luck (average R at least 2.5 standard errors above zero), then ${Math.ceil(EDGE.minN / 3)}+ newer trades that keep 50%+, stay clearly positive and keep at least a third of the edge. Only <span class="tag long">Confirmed</span> rules held up on new trades; the more conditions tested, the more likely a lucky one slips through, so re-run the backtest weekly and drop rules that stop confirming.</p>
-    <div class="btctl">
-      <label class="pill"><span>Min trades per rule</span><select id="edgeMin"><option value="30">30</option><option value="50">50</option><option value="80">80</option></select></label>
-      ${res && nOk ? `<button class="btn" id="edgeAll">Use all confirmed</button>` : ""}
-      ${EDGE.rules.length ? `<button class="btn" id="edgeNone">Clear rules in use</button>` : ""}
-      <label class="tog"><input type="checkbox" id="edgeAOnly" ${EDGE.aOnly ? "checked" : ""}> <b>A-grade only</b>: playbook, coin plays and alerts use only NBB and V-Trade setups that pass all their checks, plus setups matching a rule in use</label>
-      ${res ? `<button class="btn sm" id="edgeCopy">Copy for Claude</button>` : ""}
-    </div>
-    ${body}
-    <p class="meta">Win rate needed just to break even before fees: 50% at a 1R target, 40% at 1.5R, 33% at 2R, 25% at 3R. A lower win rate with bigger winners can still be the better model, so read the R column with the win rate.</p>`;
-  if ($("edgeMin")) { $("edgeMin").value = String(EDGE.minN); $("edgeMin").onchange = () => { EDGE.minN = +$("edgeMin").value; edgeChanged(); }; }
-  el.querySelectorAll("[data-edge]").forEach(cb => cb.onchange = () => {
-    const c = res.flatMap(r => r.rules).find(x => x.id === cb.dataset.edge); if (!c) return;
-    EDGE.rules = EDGE.rules.filter(x => x.id !== c.id);
-    if (cb.checked) EDGE.rules.push({ id: c.id, model: c.model, v: c.v, cs: c.cs, train: c.train, test: c.test, verdict: c.verdict });
-    if (!EDGE.rules.length) EDGE.aOnly = false;
-    edgeChanged();
-  });
-  if ($("edgeAll")) $("edgeAll").onclick = () => { res.forEach(r => r.rules.filter(c => c.verdict === "ok").forEach(c => { if (!EDGE.rules.some(x => x.id === c.id)) EDGE.rules.push({ id: c.id, model: c.model, v: c.v, cs: c.cs, train: c.train, test: c.test, verdict: c.verdict }); })); edgeChanged(); };
-  if ($("edgeNone")) $("edgeNone").onclick = () => { EDGE.rules = []; EDGE.aOnly = false; edgeChanged(); };
-  if ($("edgeAOnly")) $("edgeAOnly").onchange = () => { EDGE.aOnly = $("edgeAOnly").checked; edgeChanged(); };
-  if ($("edgeCopy")) $("edgeCopy").onclick = async () => { const t = edgeText(); try { await navigator.clipboard.writeText(t); toast("Edge Finder results copied. Paste them to Claude."); } catch (e) { prompt("Copy this:", t); } };
-}
+function edgeChanged() { edgeSave(); if (data) { renderPlaybook(); renderTable(); renderBoards(); } if (typeof navBadges === "function") navBadges(); }
 
 /* ---- RSI + momentum display helpers ---- */
 const rsiCls = v => v == null ? "mute" : v >= 70 ? "rz-mo" : v >= 60 ? "rz-pm" : v > 40 ? "rz-ne" : v > 30 ? "rz-pw" : "rz-wk";
@@ -5671,11 +4528,11 @@ function momoLine(r, m) {
   return `Tapped ${m.dir === "Long" ? "70" : "30"} ${m.tappedAgo === 0 ? "this candle" : m.tappedAgo + "h ago"} · holding ${m.dir === "Long" ? "above" : "below"} the 20`;
 }
 function momoRowHTML(x, i) {
-  const r = x.r, m = x.m, ig = (r.models || []).find(mm => mm.model === "Ignite" && mm.dir === m.dir);
+  const r = x.r, m = x.m;
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
     <div><div class="nm">${instHTML(r)}${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln">${momoLine(r, m)}</div>
-      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
+      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
 }
 function momoAlerts(fresh) {
@@ -5904,7 +4761,6 @@ function claudeText() {
   if (data.env) { const e = data.env, by = l => MODEL_KEYS.filter(k => e.fit[k] === l).join(", ") || "none";
     t += `Playbook: ${e.label} | bias ${e.dirBias} | primary ${by("primary")} | secondary ${by("secondary")} | avoid ${by("avoid")}${e.why.length ? " | " + e.why.join(" ") : ""}\n`;
     t += `Suggested setups: ${(data.suggest || []).map(x => `${x.r.symbol} ${x.m.model} ${x.m.dir} ${x.m.state}${x.m.entry != null ? ` E ${fmtPrice(x.m.entry)}` : ""}${x.m.stop != null ? ` S ${fmtPrice(x.m.stop)}` : ""}`).join("; ") || "none"}\n`; }
-  if (data.sessionPicks) { t += "Session picks: " + SESSION_DEFS.map(d => `${d.key} (${sessionStatus(d).text}): ${(data.sessionPicks[d.key] || []).map(x => `${x.r.symbol} ${x.r.s1h.dir} [${coinPlay(x.r).short}]`).join(", ") || "none"}`).join(" | ") + "\n"; }
   t += `BTC regime: ${b.regime} (1H: ${b.h1} | 4H: ${b.h4})\n\nDAY TRADE (top 3 tradeable, 4-5 watch only)\n`;
   t += data.day.map((p, i) => { const r = bySym[p.symbol]; return `${i + 1}. ${p.symbol} ${p.dir} | ${r.rating} | score ${p.score} | ${p.status}${dr(r)} | 1H ${r.s1h.state}, 4H ${r.s4h.state} | RVOL now ${r.rvolNow ?? "n/a"}x | vs BTC 24h ${fmtRS(r.rs24)} | D-ATR ${r.atrPct}% | wick ${r.wick}% | max lev ${r.maxLev ?? "n/a"}x | funding ${fmtFund(r.funding)} | best session ${r.session}${p.flags.length ? " | " + p.flags.join(", ") : ""}`; }).join("\n") || "None.";
   t += `\n\nSWING (4H + Daily aligned)\n` + (data.swing.map((p, i) => { const r = bySym[p.symbol]; return `${i + 1}. ${p.symbol} ${p.dir} | ${r.rating} | score ${p.score}${dr(r)} | 4H ${r.s4h.state}, D ${r.s1d.state} | RVOL ${r.rvol}x | wick ${r.wick}%${p.flags.length ? " | " + p.flags.join(", ") : ""}`; }).join("\n") || "None.");
@@ -5912,9 +4768,6 @@ function claudeText() {
   t += `\n\nON DECK (PRE-AOTS)\n` + (preList().slice(0, 5).map((e, i) => { const r = bySym[e.symbol]; return `${i + 1}. ${e.symbol} ${e.a.tf} ${e.a.dir} | ${e.a.stage} | ${e.a.dist} ATR (${e.a.distPct}%) to break at ${fmtPrice(e.a.trig)} | MAs ${e.a.spread} ATR apart | vol ${e.a.vr}x${e.flags.length ? " | " + e.flags.join(", ") : ""}`; }).join("\n") || "None.");
   const trig = data.all.filter(r => r.vol24h >= 10e6 && (r.models || []).some(m => m.trig)).sort((a, b) => b.vol24h - a.vol24h).slice(0, 10);
   t += `\n\nMODEL SETUPS (triggered, $10M+ volume)\n` + (trig.map((r, i) => `${i + 1}. ${r.symbol} | ` + r.models.filter(m => m.trig).map(m => `${m.model} ${m.dir} ${m.state} (${m.tf})${m.entry != null ? ` E ${fmtPrice(m.entry)}` : ""}${m.stop != null ? ` S ${fmtPrice(m.stop)}` : ""}${m.t2 != null ? ` T ${fmtPrice(m.t2)}` : ""}${m.baseNo ? ` base#${m.baseNo}` : ""}${m.sweep ? " swept" : ""}`).join("; ")).join("\n") || "None.");
-  const sc = scoreRows("model").filter(x => x.done);
-  if (sc.length) t += `\n\nSCORECARD (resolved picks on this device, by model)\n` + sc.map(x => `${x.k}: ${x.done} resolved, ${x.wins} hit target, ${x.losses} stopped, win ${x.win == null ? "n/a" : x.win.toFixed(0) + "%"}, avg ${x.avgR >= 0 ? "+" : ""}${x.avgR.toFixed(2)}R`).join("\n");
-  if (BT && BT.trades && BT.trades.length) { t += `\n\nBACKTEST (${BT.exchange}, ${BT.days} days, ${BT.coins} coins, fees ${BT.fee}%)\n` + MODEL_KEYS.map(k => { const s = btStats(BT.trades.filter(x => x.model === k)); return s ? `${k}: ${s.n} trades, win ${s.win.toFixed(0)}%, avg ${fmtR(s.avg)}, total ${fmtR(s.tot)}, PF ${s.pf >= 99 ? "inf" : s.pf.toFixed(2)}` : null; }).filter(Boolean).join("\n"); }
   if (Object.keys(WL.coins).length) t += `\n\nWATCHLIST: ${Object.keys(WL.coins).map(coin).join(", ")}`;
   return t + "\n\nRun the crypto scanner on these.";
 }
@@ -5949,9 +4802,10 @@ async function scShow(key) {                         // the last scan for these 
   let s = null; try { s = await scTx("scan", "readonly", st => st.get(key)); } catch (e) {}
   if (!s || !s.all || (data && data.key === key) || !(Date.now() - Date.parse(s.at) < 3 * 864e5)) return;
   const prev = [data, bySym, EXCHANGE, MODE];
+  s.all.forEach(r => { if (r.models) r.models = r.models.filter(m => MODELS[m.model]); });          // models that were removed since
   try { data = s; data.cached = true; EXCHANGE = s.exchange; MODE = s.mode; bySym = Object.fromEntries(s.all.map(r => [r.symbol, r]));
     renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); tickClock();
-    renderSessions(); renderRotation(); renderMomentum();
+    renderRotation(); renderMomentum();
   } catch (e) { console.warn("last scan couldn't be shown", e); [data, bySym, EXCHANGE, MODE] = prev; renderTable(); }
 }
 function scSave(key, d) { try { scTx("scan", "readwrite", st => st.put(d, key)).catch(() => {}); } catch (e) {} }
@@ -5996,10 +4850,9 @@ async function run() {
     finally { SC.on--; klFlush(); }
     data.key = key;
     bySym = Object.fromEntries(data.all.map(r => [r.symbol, r]));
-    renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); renderBacktest(); tickClock();
-    renderSessions(); checkSetupAlerts(); startPricePoll(); recordScan(); renderRotation(); renderMomentum();
+    renderRegime(); renderBoards(); renderTabs(); renderTable(); renderPanel(); renderMarket(); renderMovers(); renderQuick(); renderPlaybook(); renderGuide(); tickClock();
+    checkSetupAlerts(); startPricePoll(); renderRotation(); renderMomentum();
     { const t = liveTarget(); if (!t || !LIVE.ws || LIVE.url !== t.url) liveConnect(); else liveSync(); }   // no target (MEXC spot): close any old stream, fall back to polling
-    renderScorecard(); evaluateHistory().then(renderScorecard).catch(() => {});
     loadMarketExternal().catch(() => {});
     $("status").textContent = `${data.analysed} coins analysed.`;
     setTimeout(() => $("prog").style.width = "0", 600);
@@ -6035,7 +4888,7 @@ $("search").oninput = renderTable;
 $("auto").onchange = () => { savePrefs(); clearInterval(autoTimer); if ($("auto").checked) autoTimer = setInterval(run, 15 * 60 * 1000); };
 
 $("verLbl").textContent = "Version " + APP_VERSION + ".";
-wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide(); renderScorecard(); renderBacktest();
+wlLoad(); fsLoad(); renderPanel(); renderQuick(); renderGuide();
 $("dlg").addEventListener("close", killChart);
 $("liveBadge").onclick = () => {
   if (LIVE.state === "down") { LIVE.retry = 0; liveConnect(); return; }
@@ -6171,11 +5024,10 @@ ncPrune(); ncSave(); ncRenderBell();
 /* ===================== The Finder: sidebar pages ===================== */
 const PAGES = [
   { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"], ["fund", "Fundamentals"]] },
-  { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
+  { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["guide", "Model Guide"]] },
   { g: "FOREX · METALS · INDICES", items: [["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
-  { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"], ["scorecard", "Scorecard"]] },
-  { g: "LAB", items: [["backtest", "Backtest"], ["guide", "Model Guide"]] },
+  { g: "MY TRADING", items: [["trade", "Trade"], ["watch", "Watchlist & Alerts"]] },
 ];
 const PAGE_TAB = { screener: null, watch: "watch", day: "day", swing: "swing", aots: "aots", momentum: "momentum" };
 const PAGE_INFO = {};
@@ -6225,7 +5077,6 @@ function navBadges() {
   set("day", has ? n("#dayBoard .row") : "");
   set("swing", has ? n("#swingBoard .row") : "");
   set("aots", has ? n("#aotsBoard .row") : "");
-  set("sessions", has ? n("#sessionPicks .row") : "");
   set("screener", has ? data.all.length : "");
   { const n = MACRO.rows.filter(r => coinPlay(r).kind === "setup").length; set("macro", MACRO.rows.length ? (n || MACRO.rows.length) : ""); }
   if (MACRO.rows.length) { const R = xMomoRows(xRows()); set("macromomo", R.momentum.length + R.awaiting.length + R.breakout.length); } else set("macromomo", "");
@@ -6581,11 +5432,11 @@ function xMomoRows(rows) {
   return { ...out, fresh };
 }
 function xMomoRowHTML(x, i) {
-  const r = x.r, m = x.m, ig = (r.models || []).find(mm => mm.model === "Ignite" && mm.dir === m.dir);
+  const r = x.r, m = x.m;
   return `<div class="row" data-s="${r.symbol}" tabindex="0" role="button"><span class="rk">${i + 1}</span>
     <div><div class="nm"><b class="mname">${r.name}</b><span class="tag">${(r.group || "").replace(/^MEXC /, "")}</span>${mxInvTag(r)}${biasTag(m.dir)}<span class="rsis"><span class="mute mrsi">1H</span>${rsiChip(r.rsi && r.rsi.h1)}<span class="mute mrsi">4H</span>${rsiChip(r.rsi && r.rsi.h4)}</span></div>
       <div class="ln"><b class="mpx" data-mp="${r.symbol}">${fmtPrice(r.price)}</b> <span data-mc="${r.symbol}">${pctCell(r.chg24h)}</span> · ${momoLine(r, m)}</div>
-      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${ig && ig.trig ? '<span class="tag long trig">Ignition trigger</span>' : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}${ig && ig.entry != null && !m.stretched ? ` E ${fmtPrice(ig.entry)} · S ${fmtPrice(ig.stop)}` : ""}</div></div>
+      <div class="ln">${m.h4ok ? '<span class="tag long">4H agrees</span>' : '<span class="tag">4H not yet</span>'}${m.stretched ? `<span class="tag flag">Stretched: don't chase</span>` : ""}${r.aots1h ? '<span class="tag">AOTS 1H</span>' : ""}</div></div>
     <span class="sc">${x.s}</span>${chartBtn(r.symbol)}</div>`;
 }
 let XMOMO_TAB = "all";

@@ -1,13 +1,16 @@
-# The Finder (Crypto Coins Screener)
+# The Finder
 
-Binance altcoin scanner: day trade, swing and AOTS boards, model setups (NBB, Bounce/OEZ, Fade, Breaker/Flip,
-V-Trade, Pullback, ORB, AMD), a daily playbook, filters with templates, and a suggested play per coin.
+A screener and trading app for crypto (Binance, Bybit, MEXC) and for forex, gold and the indices from your cTrader account:
+day trade, swing, momentum and AOTS boards, two models (NBB and V-Trade, with their A-grade checks), a daily playbook,
+filters with templates, a suggested play per coin, TradingView-style charts, an economic calendar, Fundamentals, and a Trade
+page for cTrader and MEXC futures.
 
-A static, installable web app (PWA). No build step, no server, no API keys.
+An installable web app (PWA) with no build step. It runs from the Mac app (a small local server that relays a few data feeds
+and updates itself from GitHub) or from Vercel; a few relays (cTrader sign-in, FRED) live there. Your keys stay in your browser.
 
-Also includes: session picks (the best 3 coins to day trade in Asia, London and New York), a position size calculator (your risk rules and the ⅓-to-liquidation leverage check), a mini chart per coin
-(EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, price and setup alerts
-(while the app is open), and a scorecard that tracks every scan's picks and checks whether they hit target or stop.
+Also includes: a position size calculator (your risk rules and the ⅓-to-liquidation leverage check), a mini chart per coin
+(EMA 20/50/100 with the setup's zone, entry, stop and targets), a watchlist with notes, and price and setup alerts (while the
+app is open, or on your phone through Telegram).
 
 ## Trend Starting: AOTS and the stages before it
 
@@ -30,8 +33,7 @@ cooled to 55–70, still holding the 20. 🚀 **Breaking Out**: the first candle
 1.5 ATR) with RSI 60+, after at least 15 of the prior 48 hours on the other side (a new trend, not a continuation); "Pressing"
 = testing the cluster with RSI rising. Shorts mirror everything (RSI 30, breakdowns) and follow the Direction switch. Coins 3+
 ATR from the 20 are flagged "Stretched: don't chase", weak-volume breaks are flagged, and wicky coins follow the Wicks setting.
-New breakouts trigger an alert while the app is open. The **Ignition** model (breakout in the last 2 candles, RSI 60+, 1.5×
-volume, not stretched; stop beyond the breakout low and the cluster, target 2R) is in the Model Guide and the backtest.
+New breakouts trigger an alert while the app is open.
 
 ## Money Flow (rotation, measured)
 Reads where money is actually going over the last 30 days instead of assuming the BTC → ETH → large caps → altseason
@@ -40,7 +42,7 @@ CoinGecko market cap), mid caps (21–100), small caps and memes, plus how many 
 when its checks pass (shown with ✓/✗), alongside what would prove it wrong and what would confirm the next step; otherwise
 it says "No clear rotation", or "Risk-off" when everything is falling. Every coin is tagged Leader, Turning, In line,
 Holding up, Fading or Laggard against BTC. Laggards are never treated as "next": long plays on them carry a caution,
-leaders rank higher, and the backtest's Model × Strength vs BTC view tests whether that holds on real history.
+and leaders rank higher.
 
 ## Forex, metals & indices: Overview and Momentum Board
 The sidebar's Forex · Metals · Indices group has its own Overview, Momentum Board and All Instruments pages, read from
@@ -137,39 +139,23 @@ coins go to MEXC USDT perpetuals.
 RSI (14) on 1H, 4H and Daily for every coin, with your zones (70+ momentum, 60–70 pre-momentum, 30–40 pre-weak, 30 or
 below weak), divergence and ignition (a fresh cross of 60 or 40). The Momentum score (0–100) blends RSI alignment, volume
 now, strength vs BTC and range expansion. Use the Momentum tab, the RSI filter, and the Strong Momentum, Momentum Ignition,
-RSI Divergence and RSI Reset in Uptrend views. The coin chart has an RSI pane, suggested plays warn about divergence or a
-stretched RSI, and the backtest's Model × RSI at Entry view shows whether high-momentum entries pay.
-
-## Claude's setups
-**Leader Pullback (day, 1H):** a fresh 48h high on a big, high-volume impulse; a quiet pullback into the 1H 20 or the 38% of
-the leg that holds the 50 and gives back ≤ 62%; a reclaim candle. Stop below the pullback low, target 2R.
-**Daily 20 Reset (swing, 4H + Daily):** in a Daily uptrend with a rising 20, price resets into the Daily 20 zone (closing
-below the 4H 20 at least twice), then a 4H candle reclaims the 20. Stop below the reset low, target 3R, up to 10 days.
-Both run long and short and are hypotheses until the backtest proves them.
+RSI Divergence and RSI Reset in Uptrend views. The coin chart has an RSI pane, and suggested plays warn about divergence or a
+stretched RSI.
 
 ## Model Guide: your own models
-Sidebar → Lab → Model Guide. Next to the scanned models, **+ Add a model** saves your own: name, timeframe, an icon, what it
+Sidebar → Find → Model Guide. Next to the two scanned models (NBB and V-Trade), **+ Add a model** saves your own: name, timeframe, an icon, what it
 is, its rules (one per line), how you trade it and notes. It's kept in this browser (each device has its own), with Edit and
 Delete. The scanner doesn't look for your own models: their rules are your checklist. **Copy for Claude** copies the model as
 text so you can ask Claude to turn it into a scanned model.
 
-## Model backtest
-The Model Backtest card replays every model on the last 30, 60 or 90 days of real candles for your top coins
-(plus your watchlist) and shows which models pay, by model, session, environment, direction and coin, with an equity
-curve. No look-ahead: at each candle the detectors only see candles that had closed. Trades run to the stop, the target
-or 48 hours (ORB and AMD on 15m candles with the 11:00 NY close); same-candle stop and target counts as a stop; fees
-come off every trade. With "Use results in the playbook" on, a model that loses in an environment (≤ −0.10R over 15+
-trades) is moved to Avoid there, and one that pays (≥ +0.25R) is promoted. Results are saved in your browser.
-
 ## Live data
 The **● Live** badge in the header shows the live stream. While it's live, prices, 24h change and funding update in real
 time, the coin chart's current candle moves as it forms, price alerts fire instantly, and at every 1H candle close the
-coins that matter (watchlist, board picks, session picks, playbook setups) are re-checked; during the NY window the
-15m closes re-check ORB and AMD. Click the badge to pause or resume. If your network blocks the stream, the badge
+coins that matter (watchlist, board picks, playbook setups) are re-checked. Click the badge to pause or resume. If your network blocks the stream, the badge
 shows "Live off: polling" and alerts fall back to checking every 30 seconds.
 
 ## Exchanges
-Switch between **Binance**, **Bybit** and **MEXC** with the Exchange pill. Every board, filter, model, chart, alert and scorecard
+Switch between **Binance**, **Bybit** and **MEXC** with the Exchange pill. Every board, filter, model, chart and alert
 works on either. Bybit's positioning data has open interest, funding and the accounts long/short ratio (Bybit doesn't
 publish taker flow or a top-trader ratio). If Bybit refuses requests made directly from the page, the Mac app's local
 server relays Bybit's public market data (read-only `/v5/market/*` paths only), so open the scanner from the Mac app.
@@ -182,7 +168,7 @@ made directly from the page, the Mac app relays its public market data (read-onl
 MEXC also lists its own 24/7 perpetuals on forex (EUR, GBP, AUD, JPY, CAD, CHF, TRY, BRL against USDT), metals (gold, silver,
 platinum, palladium, copper and industrial metals), energy (WTI, Brent, natural gas), indices (Nasdaq 100, S&P 500, Dow, Nikkei,
 Hang Seng, KOSPI) and 400+ stocks. With the exchange set to MEXC, the Forex, Gold & Indices page reads these instead of Binance's
-TradFi perps (no cTrader needed), the Charts page lists them (stocks under Stocks), and the backtest picker offers them. The crypto
+TradFi perps (no cTrader needed), and the Charts page lists them (stocks under Stocks). The crypto
 scan skips them. MEXC allows about 20 requests per 2 seconds, so the app paces its MEXC calls (starting fast and easing off
 when MEXC refuses) and reads each coin's 1H and 4H from one download: a MEXC scan takes about a minute and a half, and contracts
 under $1M of 24h volume are skipped.
@@ -211,7 +197,7 @@ clone, order) or double-click it for settings: Style, Text, Coordinates and Visi
 - **Market data is fetched by your browser**, straight from Binance, CoinGecko and alternative.me.
   This is deliberate: Binance blocks its API for US server locations, where most hosts run,
   so a server-side proxy would break. Your browser on your network already reaches Binance.
-- Filters, templates, settings, watchlist, alerts and scorecard history are saved in each browser (localStorage), per device.
+- Filters, templates, settings, watchlist and alerts are saved in each browser (localStorage), per device.
 
 ## Install it on your Mac (as an app in your Dock)
 
@@ -228,7 +214,7 @@ It copies the app to `~/Library/Application Support/AltScanner`, serves it at `h
 (or File → Add to Dock in Safari). To update, unzip the new version and run the script again.
 Remove with `bash uninstall-mac-app.sh`. Needs Python 3 (from Apple's Command Line Tools: `xcode-select --install`).
 
-Your watchlist, alerts and scorecard are stored per address, so the Vercel app and the localhost app keep separate data.
+Your watchlist and alerts are stored per address, so the Vercel app and the localhost app keep separate data.
 
 ## Automatic updates (one-time setup, about 5 minutes)
 
@@ -238,7 +224,7 @@ After this, you never install updates yourself: open the app and it's already on
    > Create a GitHub repo called alt-scanner for this folder and push it.
 
    Or by hand: `git init && git add -A && git commit -m "Alt Scanner" && gh repo create alt-scanner --public --source=. --push`.
-   Public is simplest: the code holds no secrets (your watchlist, alerts and scorecard live only in your browser).
+   Public is simplest: the code holds no secrets (your watchlist and alerts live only in your browser).
    For a private repo, run `gh auth login` and `gh auth setup-git` once so the updater can pull.
 2. **Install from the repo:** run `bash install-mac-app.sh` from inside that Git clone (or pass the repo URL as an argument).
    This turns on auto-update: your Mac pulls new versions at login and every 30 minutes.

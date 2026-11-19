@@ -19,7 +19,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
 
 ## Key code areas (grep these names)
 - Scan: `structure`, `aots`, `preAots`, `preBest`, `coinPlay`, `renderBoards`, `TABS`, `testFilter`.
-  Cache (IndexedDB `finder-cache`, `SC`): `scShow` draws the last scan for these settings on open (`data.cached`: alerts, bot and history skip it),
+  Cache (IndexedDB `finder-cache`, `SC`): `scShow` draws the last scan for these settings on open (`data.cached`: alerts skip it),
   `scSave` stores each fresh one; during a scan `klines` keeps closed candles and fetches only new ones (`klinesNet` is the real fetch, `klFlush` saves).
 - cTrader: `ctKlines(sym, tf, limit, keepForming, toMs)`, `ctAccountInfo`, `ctSpec`, `ctLots`, `CT_PERIOD/CT_MS/CT_SPAN`, `ctPrefer`, `ctEquiv`.
   Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct, or via `/api/ct-token`: server.py on the Mac, `api/ct-token.js` on Vercel), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
@@ -36,7 +36,9 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   MEXC auto leverage `mxtLev` (lowest under the margin cap `levCap`%, liquidation ≥ `levBuf`× the stop, isolated; UI `mxtLevUi`). The chart order panel docks right of the charts (`.chbody.trdock`).
 - Trade watch: a row → `twShow` marks the trade cTrader style on the chart (`chTradeMarks`, state `CHM`, `chStudyGo`). Never place real orders in tests; mocks only.
 - Model Guide (`renderGuide`, scanned `MODELS`): your own models `MYM` (localStorage `finder-my-models`; `renderMyGuide`, form `guideEdit`, `mymText` = Copy for Claude); the scanner doesn't look for them. Test: `t_guide`.
-- Removed on purpose (Nov 2026): Bot Simulator, NBB Watch (and its keep-awake and cloud NBB alerts). The NBB model itself stays.
+- Models: only NBB and V-Trade (`MODELS`, `detectModels`, A-grade `gradeModels`; Playbook switch "A-grade only" = `EDGE.aOnly`, `liveModels`).
+- Removed on purpose (Nov 2026): Bot Simulator, NBB Watch (and its keep-awake and cloud NBB alerts), Session Picks, Scorecard,
+  Backtest + Edge Finder, and every model except NBB and V-Trade (OB, Bounce, Fade, Breaker, Pullback, ORB, AMD, Leader, Daily 20 Reset, Ignition). Don't bring them back unasked.
 - Fundamentals page (`fund`, terminal style): "Today's read" on top (`fundSignals` → `fundCardsData`: Gold, Nasdaq, dollar, Bitcoin tailwind/headwind with reasons), live ticks `fundLive`; `fundLoad` → `fundUST` (Treasury curves via /proxy/ust), `fundCOT` (CFTC via /proxy/cot), `fundFRED` (via /proxy/fred; the relay adds its own key: Vercel env FRED_API_KEY in `api/fred.js`, Mac `~/.finder-fred-key`; a key pasted in the panel, `finder-fred`, wins), `fundNews` (RSS via /proxy/rss/<name>, FinancialJuice as the fast wire; relay cache 60 s); relays in server.py `relay_fund` and vercel.json rewrites.
   Clicking a market opens the market brief (`<dialog id="fbDlg">`, `fbOpen`/`fbRender`), not the chart: registry `FB_MK`, lean rules `fbDrivers` (score ±2 = tailwind/headwind, `fbSay`/`fbTip`),
   levels from 1H candles `fbLevels`/`fbLvCalc` (US indices: 15m `fbUsLv`, overnight range, 4 PM close, open gap, first 15 min), `fbFedExp`, `fbStrength`, `fbEvents` (+ `fbEarn`), `fbNews`;

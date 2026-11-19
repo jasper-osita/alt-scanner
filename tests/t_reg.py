@@ -19,7 +19,7 @@ async def main():
         await pg.evaluate(f"() => WL.alerts.push({{id:'x',sym:'{sym}',price:{p0}*1.02,dir:'above',created:Date.now(),fired:false}})")
         WS["ws"].send(json.dumps({"stream": "!miniTicker@arr", "data": [{"s": sym, "c": str(p0 * 1.03), "o": str(p0), "q": "1"}]})); await asyncio.sleep(1.5)
         print("2) live price + instant alert:", await pg.evaluate(f"() => bySym['{sym}'].price.toFixed(4) + ' fired=' + !!WL.alerts.find(a => a.id === 'x').fired"))
-        print("3) session picks:", await pg.evaluate("() => Object.entries(sessionPicks()).map(([k, v]) => k + ' ' + v.length).join(', ')"), "| playbook top 3:", await pg.evaluate("() => (data.suggest || []).length"))
+        print("3) playbook top 3:", await pg.evaluate("() => (data.suggest || []).length"))
         await pg.evaluate(f"() => openDetail(data.all[2].symbol)"); await asyncio.sleep(1.8)
         print("4) panel:", await pg.evaluate("() => ({ canvas: document.querySelectorAll('#dChartHost canvas').length, rsiPane: CH.ind.some(I => I.type === 'rsi' && !I.hide), scrolls: document.getElementById('dlg').scrollHeight > document.getElementById('dlg').clientHeight + 2 })"))
         await pg.click('.dtabs [data-pane="size"]'); await pg.fill("#cAcct", "1000"); await asyncio.sleep(0.3)

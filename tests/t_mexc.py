@@ -29,10 +29,7 @@ async def main():
         print("  XRP after push:", await pg.evaluate("() => bySym.XRPUSDT.price + ' chg ' + bySym.XRPUSDT.chg24h + ' fund ' + bySym.XRPUSDT.funding"))
         r = await pg.evaluate("""async () => { const out = {};
           const now = Date.now();
-          const k = await klinesRange('ETHUSDT', '1h', now - 3000 * 3600e3, now); out.range1h = k.t ? k.t.length : (k.length || JSON.stringify(k).slice(0,80));
-          const k15 = await klinesRange('ETHUSDT', '15m', now - 5 * 86400e3, now); out.range15 = k15.t ? k15.t.length : (k15.length || 0);
           const f = await formingBar('ETHUSDT', '1h'); out.forming = f && { age_min: Math.round((now - f.t) / 60000), c: f.c };
-          try { const s = await klinesSince('SOLUSDT', now - 50 * 3600e3, '1h', 200, 'MEXC', 'futures'); out.since = s && (s.t ? s.t.length : s.length); } catch (e) { out.since = 'ERR ' + e.message; }
           try { await checkPrices(); out.check = 'ok'; } catch (e) { out.check = 'ERR ' + e.message; }
           try { await klines('ETHUSDT', '3m', 10); out.k3m = 'no error?'; } catch (e) { out.k3m = e.message; }
           return out; }""")
@@ -57,14 +54,6 @@ async def main():
             liveMessage({ channel: 'push.kline', data: { symbol: 'BTC_USDT', interval: 'Min15', t: t / 1000 + 900, o: 12345, h: 12400, l: 12300, c: 12350 } });
             return 'same candle c=' + a + ' | next candle: n ' + P.t.length + ' c=' + P.c.at(-1); }"""))
         await pg.screenshot(path="mexc_charts.png")
-        # backtest
-        await pg.evaluate("() => goPage('backtest')")
-        await pg.select_option("#btDays", "30")
-        try: await pg.select_option("#btCoins", "20")
-        except Exception as e: print("  btCoins:", str(e)[:80])
-        t0 = time.time(); await pg.click("#btRun")
-        await waitfor(pg, "() => !btRunning && !!BT", 400)
-        print(f"  backtest {time.time()-t0:.0f}s:", await pg.evaluate("() => BT.trades.length + ' trades · ' + (BT.ex || BT.exchange || '') + ' · ' + (document.querySelector('#backtest') || {}).innerText.slice(0, 160).replace(/\\s+/g, ' ')"))
         # ---- MEXC spot
         await pg.evaluate("() => goPage('overview')")
         MXWS_LOG.clear(); t0 = time.time(); await pg.select_option("#market", "spot")
@@ -72,7 +61,6 @@ async def main():
         print(f"MEXC spot scan ok={ok} {time.time()-t0:.0f}s:", await pg.evaluate("() => data.analysed + ' coins · day ' + data.day.length + ' · swing ' + data.swing.length + ' · title ' + document.getElementById('title').textContent"))
         print("  C001 (futures-only) present?", await pg.evaluate("() => !!bySym.C001USDT"), "| live badge:", await pg.evaluate("() => document.getElementById('liveBadge').className + ' / ' + document.getElementById('liveBadge').title.slice(0, 80)"))
         r = await pg.evaluate("""async () => { const now = Date.now(); const out = {};
-          const k = await klinesRange('ETHUSDT', '1h', now - 1500 * 3600e3, now); out.range1h = k.t ? k.t.length : k.length;
           const f = await formingBar('ETHUSDT', '4h'); out.forming4h = f && Math.round((now - f.t) / 60000) + 'min';
           try { await checkPrices(); out.check = 'ok'; } catch (e) { out.check = 'ERR ' + e.message; } return out; }""")
         print("  data paths:", r)

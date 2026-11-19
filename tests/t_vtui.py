@@ -20,13 +20,6 @@ async def main():
             await q(f"() => openDetail({sym!r})"); await asyncio.sleep(1.2); await pg.click('.dtabs [data-pane="setups"]'); await asyncio.sleep(0.3)
             print("2) setups", sym, ":", await q("() => { const s = [...document.querySelectorAll('.dpane[data-pane=setups] .setup')].find(x => x.innerText.includes('V-Trade')); return s ? s.innerText.replace(/\\s+/g, ' ').slice(0, 520) : 'none'; }"))
             await pg.screenshot(path=f"{OUT}/vt_grade.png"); await pg.keyboard.press("Escape"); await asyncio.sleep(0.3)
-        await q("() => goPage('backtest')"); await pg.select_option("#btCoins", "20"); await pg.select_option("#btDays", "30")
-        t0 = time.time(); await pg.click("#btRun")
-        for _ in range(500):
-            if await q("() => !btRunning && !!BT"): break
-            await asyncio.sleep(0.5)
-        print(f"3) backtest {time.time() - t0:.0f}s:", await q("() => { const v = BT.trades.filter(t => t.model === 'V-Trade'); return v.length + ' V-Trades, graded ' + v.filter(t => t.ag != null).length + ', A ' + v.filter(t => t.ag).length + ', with trail field ' + v.filter(t => t.tr != null).length; }"))
-        print("   rows:", await q("() => [...document.querySelectorAll('#backtest table.sct tbody tr')].map(tr => tr.cells[0].innerText).filter(t => /V-Trade|NBB|A-grade|rest/.test(t)).join(' | ')"))
         await q("() => goPage('guide')"); await q("() => { guideSel = 'V-Trade'; renderGuide(); }"); await asyncio.sleep(0.2)
         print("4) guide:", await q("() => [...document.querySelectorAll('.mguide li')].map(l => l.innerText).filter(t => /Missed V|A-grade/.test(t)).join(' || ').slice(0, 300)"))
         print("CSP:", csp or "none", "| errors:", errs or "none")

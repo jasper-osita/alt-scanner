@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.25.1630">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.25.1715">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -2503,7 +2503,7 @@ function ctBind(ws) {
     CT.lastMsgAt = Date.now();
     if (m.payloadType === 2131) { if (CT.onSpot) CT.onSpot(m.payload || {}); return; }
     if (m.payloadType === 2147 && (ctCfg() || {}).keeper) {                                       // the borrowed login was replaced: fetch the current one, then reconnect
-      const tok = (ctCfg() || {}).accessToken; ctClose(); CT.state = "closed"; ctKeeperPull(tok).catch(() => {}).finally(() => ctScheduleReconnect(true)); return; }
+      const tok = CT.tok || (ctCfg() || {}).accessToken; ctClose(); CT.state = "closed"; ctKeeperPull(tok).catch(() => {}).finally(() => ctScheduleReconnect(true)); return; }
     if (m.payloadType === 2148 || (m.payloadType === 2147 && (ctCfg() || {}).refreshToken)) {      // cTrader dropped the session: reconnect (renewing the token if needed)
       ctClose(); CT.state = "closed"; ctScheduleReconnect(true); if (typeof renderMacro === "function") renderMacro(); return; }
     if (m.payloadType === 2147) {
@@ -2547,7 +2547,7 @@ async function ctConnect(cfg = ctCfg()) {
         catch (e) { if (!/token/i.test(e.message) || !(cfg.keeper || cfg.refreshToken)) throw e;
           cfg = cfg.keeper ? await ctKeeperPull(cfg.accessToken) : await ctRenew(cfg); accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || []; }
         if (!accts.length) throw new Error("this access token has no cTrader accounts attached");
-        CT.accounts = accts;
+        CT.accounts = accts; CT.tok = cfg.accessToken;
         const a = accts.find(x => String(x.ctidTraderAccountId) === String(cfg.accountId)) || accts.find(x => !!x.isLive === live) || accts[0];
         if (!!a.isLive !== live) { live = !!a.isLive; ctClose(); continue; }    // demo accounts live on the demo server
         await ctReq(2102, { ctidTraderAccountId: a.ctidTraderAccountId, accessToken: cfg.accessToken });
@@ -2555,7 +2555,8 @@ async function ctConnect(cfg = ctCfg()) {
         CT.symbols = {}; CT.byId = {};
         list.forEach(x => { if (x.enabled === false) return; const k = ctNorm(x.symbolName); if (!CT.symbols[k]) CT.symbols[k] = x; CT.byId[x.symbolId] = x; });
         CT.acct = a; CT.live = live; CT.broker = a.brokerTitleShort || "Broker"; CT.state = "ready"; if (typeof CT_SUBD !== "undefined") CT_SUBD.clear();
-        ctSaveCfg({ ...cfg, accountId: a.ctidTraderAccountId, live });
+        { const cur = ctCfg() || {}, next = { ...cfg, accountId: a.ctidTraderAccountId, live };      // merge with what's stored now: a Share during this connect wins
+          if (cur.keeper) { next.keeper = true; next.refreshToken = ""; } ctSaveCfg(next); }
         CT.retry = 0; setTimeout(ctResubscribe, 0);                // whoever reconnected, live prices come back
         return CT;
       }
@@ -2575,8 +2576,10 @@ async function ctRenew(cfg) {                                // needs the app-au
 /* ---- the shared login: one keeper on the website renews it (api/ct-keeper.js); a device that borrows it never renews, so none signs another out ---- */
 const KP_KEY = "finder-keeper", KP_SITE = "https://alt-scanner-three.vercel.app";
 const KP = () => { try { return { pass: "", url: "", ...(JSON.parse(localStorage.getItem(KP_KEY) || "null") || {}) }; } catch (e) { return { pass: "", url: "" }; } };
-const kpSave = k => { try { if (k) localStorage.setItem(KP_KEY, JSON.stringify(k)); else localStorage.removeItem(KP_KEY); } catch (e) {} };
-const kpUrl = (k = KP()) => (k.url || (typeof location !== "undefined" ? location.origin : "")).replace(/\/+$/, "") + "/api/ct-keeper";
+const kpSave = k => { try { if (k) { localStorage.setItem(KP_KEY, JSON.stringify(k)); CT.kpGone = false; } else localStorage.removeItem(KP_KEY); } catch (e) {} };
+const kpUrl = (k = KP()) => { let u = (k.url || (typeof location !== "undefined" ? location.origin : "")).trim().replace(/\/+$/, "");
+  if (u && !/^https?:\/\//i.test(u)) u = (/^(localhost|127\.0\.0\.1)(:|$)/i.test(u) ? "http://" : "https://") + u;     // "alt-scanner-three.vercel.app" works as typed
+  return u + "/api/ct-keeper"; };
 async function ctKeeper(action, extra = {}, k = KP()) {
   let r; try { r = await fetch(kpUrl(k), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, pass: k.pass, ...extra }) }); }
   catch (e) { throw new Error(`Couldn't reach the shared login${k.url ? " on " + k.url : ""}.`); }
@@ -2585,16 +2588,23 @@ async function ctKeeper(action, extra = {}, k = KP()) {
   return j;
 }
 async function ctKeeperPull(bad, k = KP()) {                     // borrow the current login (bad = a token cTrader just rejected, so the keeper renews)
-  const j = await ctKeeper("get", bad ? { bad: String(bad).slice(-8) } : {}, k), old = ctCfg() || {};
+  const CHANGED = "The shared login's passphrase changed: enter it again in Connect cTrader.";
+  if (!k.pass) throw Object.assign(new Error(CT.kpGone ? CHANGED : "Enter the shared login's passphrase in Connect cTrader."), { status: 403 });
+  let j; try { j = await ctKeeper("get", bad ? { bad: String(bad).slice(-8) } : {}, k); }
+  catch (e) { if (e.status === 403 && k.pass === KP().pass) { kpSave(null); CT.kpGone = true; e.message = CHANGED; } throw e; }
+  if (!j || typeof j.accessToken !== "string" || !j.accessToken || !j.clientId || !j.clientSecret) throw new Error("That address didn't answer like The Finder's shared login. Check the website address.");
+  const old = ctCfg() || {};
   const next = { ...old, clientId: j.clientId, clientSecret: j.clientSecret, accessToken: j.accessToken, expAt: j.expAt, scope: j.scope || old.scope, keeper: true, refreshToken: "" };
   ctSaveCfg(next); CT.kpAt = Date.now(); return next;
 }
 async function ctKeeperSeed(pass, url) {                          // hand this device's fresh sign-in to the keeper; from now on this device borrows too
+  if (CT.connecting) { try { await CT.connecting; } catch (e) {} }
   const c = ctCfg(); if (!c || !c.accessToken || !c.refreshToken) throw new Error("Sign in with cTrader on this device first.");
   const k = { pass, url: url || "" };
   await ctKeeper("seed", { clientId: c.clientId, clientSecret: c.clientSecret, accessToken: c.accessToken, refreshToken: c.refreshToken, expAt: c.expAt || 0, scope: c.scope || "" }, k);
   kpSave(k); ctSaveCfg({ ...c, keeper: true, refreshToken: "" }); CT.kpAt = Date.now();
 }
+const ctFreshLogin = (c, fields) => ({ ...c, ...fields, keeper: false });     // a new sign-in here: this device holds its own login again (Share hands it over)
 async function ctKeeperJoin(pass, url) { const k = { pass, url: url || "" }, cfg = await ctKeeperPull("", k); kpSave(k); return cfg; }
 const CT_STOP = /rejected the Client|invalid or expired|revoked|enter your|renew/i;   // errors a retry can't fix
 function ctScheduleReconnect(now) {
@@ -2604,7 +2614,7 @@ function ctScheduleReconnect(now) {
   CT.retryT = setTimeout(async () => {
     CT.retryT = null; if (CT.state === "ready" || !ctConfigured()) return;
     try { await ctConnect(); }
-    catch (e) { if (!CT_STOP.test(e.message)) ctScheduleReconnect(); }
+    catch (e) { if (!CT_STOP.test(e.message) && ![403, 404, 429].includes(e.status)) ctScheduleReconnect(); }     // the keeper said no: retrying won't change that
     if (typeof renderMacro === "function") renderMacro();
   }, wait);
 }
@@ -4620,7 +4630,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.25.1630";
+const APP_VERSION = "2026.11.25.1715";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -7005,7 +7015,7 @@ async function ctOAuthReturn() {                // runs on load: finish a sign-i
   const c = ctCfg() || {};
   try {
     const r = await ctTokenCall({ grant_type: "authorization_code", code, redirect_uri: pend.ru, client_id: c.clientId, client_secret: c.clientSecret });
-    ctSaveCfg({ ...c, accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000, scope: pend.sc || "accounts" });
+    ctSaveCfg(ctFreshLogin(c, { accessToken: r.accessToken, refreshToken: r.refreshToken || "", expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000, scope: pend.sc || "accounts" }));
     await ctConnect();
     say(`Signed in to cTrader${pend.sc === "trading" ? " with trading access" : ""}: ${CT.broker} ${CT.live ? "live" : "demo"} account. Access renews by itself`);
     if ((pend.back === "trade" || pend.back === "charts") && typeof goPage === "function") { goPage(pend.back); return; }
@@ -7023,15 +7033,16 @@ function ctShareHTML(c) {                                         // "Use it on 
     ${pass}${addr}<div class="ctacts">${c.refreshToken ? `<button class="btn primary" id="kpShare">Share this login with your other devices</button>` : ""}<button class="btn ${c.refreshToken ? "" : "primary"}" id="kpJoin">Use the shared login</button></div></div>`;
 }
 function ctShareBind() {
+  const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, x => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[x]));
   const msg = h => { $("ctMsg").innerHTML = h; }, val = () => ({ pass: ($("kpPass") || {}).value || "", url: ($("kpUrl") ? $("kpUrl").value.trim().replace(/\/+$/, "") : "") });
   const check = v => { if (v.pass.length < 12) { msg('<span class="dn">The passphrase is the FINDER_PASS you set in Vercel (12 or more characters).</span>'); return false; } return true; };
-  const after = async (ok, b) => { msg(`<span class="up">${ok}</span>`); try { await ctConnect(); macroScan(true); } catch (e) { msg(`<span class="dn">Couldn't connect: ${e.message}</span>`); } if (b) b.disabled = false; renderMacro(); };
+  const after = async (ok, b) => { msg(`<span class="up">${ok}</span>`); try { await ctConnect(); macroScan(true); } catch (e) { msg(`<span class="dn">Couldn't connect: ${esc(e.message)}</span>`); } if (b) b.disabled = false; renderMacro(); };
   if ($("kpShare")) $("kpShare").onclick = async () => { const v = val(); if (!check(v)) return; $("kpShare").disabled = true; msg("Sharing…");
     try { await ctKeeperSeed(v.pass, v.url); await after("Shared. Your other devices can now press “Use the shared login” with the same passphrase.", $("kpShare")); }
-    catch (e) { msg(`<span class="dn">${e.message}</span>`); $("kpShare").disabled = false; } };
+    catch (e) { msg(`<span class="dn">${esc(e.message)}</span>`); $("kpShare").disabled = false; } };
   if ($("kpJoin")) $("kpJoin").onclick = async () => { const v = val(); if (!check(v)) return; $("kpJoin").disabled = true; msg("Getting the shared login…");
     try { await ctKeeperJoin(v.pass, v.url); ctClose(); CT.state = "closed"; await after("Using the shared login. Connecting to cTrader…", $("kpJoin")); }
-    catch (e) { msg(`<span class="dn">${e.message}</span>`); $("kpJoin").disabled = false; } };
+    catch (e) { msg(`<span class="dn">${esc(e.message)}</span>`); $("kpJoin").disabled = false; } };
   if ($("kpLeave")) $("kpLeave").onclick = () => { const c = ctCfg() || {}; kpSave(null); ctClose(); CT.state = "closed";
     ctSaveCfg({ clientId: c.clientId, clientSecret: c.clientSecret, prefer: c.prefer }); openCTSettings(); msg("This device no longer uses the shared login. Sign in or use it again any time."); renderMacro(); };
 }
@@ -7076,6 +7087,7 @@ function openCTSettings() {
     const old = ctCfg() || {}, tok = $("ctToken").value.trim();
     const cfg = { ...old, clientId: $("ctId").value.trim(), clientSecret: $("ctSecret").value.trim(), accessToken: tok, refreshToken: $("ctRefresh").value.trim(), prefer: $("ctPrefer").checked };
     if (tok !== old.accessToken) cfg.expAt = Date.now() + (CT_TOKEN_DAYS - 2) * 864e5;           // a freshly pasted token: assume about 30 days left
+    if (cfg.refreshToken) { cfg.keeper = false; ctSaveCfg(cfg); }                                // pasted its own refresh token: not borrowing any more
     if ($("ctAcct")) cfg.accountId = $("ctAcct").value;
     $("ctSave").disabled = true; $("ctMsg").textContent = "Connecting to cTrader…";
     try {
@@ -7087,7 +7099,7 @@ function openCTSettings() {
     $("ctSave").disabled = false; renderMacro();
   };
   if ($("ctForget")) $("ctForget").onclick = () => {
-    ctClose(); ctSaveCfg(null); CT.state = "off"; CT.acct = null; CT.accounts = []; CT.err = null;
+    ctClose(); ctSaveCfg(null); kpSave(null); CT.state = "off"; CT.acct = null; CT.accounts = []; CT.err = null;
     MACRO.rows = MACRO.rows.filter(r => !r.ct); MACRO.by = Object.fromEntries(MACRO.rows.map(r => [r.symbol, r]));
     $("dlg").close(); renderMacro(); navBadges(); macroScan(true);          // bring back the exchange's gold, oil and indices
   };
@@ -8542,7 +8554,7 @@ async function chMxLists() {                           // MEXC's stock perps for
   const p = $("chPick"); if (p && !p.hidden) chQuotesFetch(chCatList(chPickCat).slice(0, 24));
 }
 let chPickFor = null;                                        // set when the picker chooses for something else (compare), not the chart's symbol
-function chPickDo(s) { const f = chPickFor; chPickClose(); if (f) f(s); else chSetSym(s, true); }
+function chPickDo(s, exact) { const f = chPickFor; chPickClose(); if (f) f(s); else chSetSym(s, exact); }
 function chPickOpen(cat, onPick) {
   const p = $("chPick"); if (!p) return;
   if (!p.hidden && chPickCat === cat && !onPick === !chPickFor) { chPickClose(); return; } chPickFor = onPick || null;
@@ -8627,7 +8639,7 @@ function chPickRender(focus) {
   p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(pkMarkets(chPickCat, chPickSrc).slice(0, 24).map(m => m.syms[0])); });
   $("pkSrcB").onclick = e => { e.stopPropagation(); chPickView = "src"; p.dataset.srcq = ""; chPickRender(true); };
   p.querySelectorAll("[data-more]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpenK = chPickOpenK === b.dataset.more ? null : b.dataset.more; chPickRender(); });
-  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]") || e.target.closest("[data-more]")) return; e.stopPropagation(); chPickDo(r.dataset.ps); });
+  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]") || e.target.closest("[data-more]")) return; e.stopPropagation(); chPickDo(r.dataset.ps, r.classList.contains("pksub") || chPickSrc !== "all"); });
   p.querySelectorAll("[data-star]").forEach(b => b.onclick = e => { e.stopPropagation(); const x = b.dataset.star; CHW = CHW.includes(x) ? CHW.filter(y => y !== x) : [...CHW, x]; if (chIsTF(x)) TRADFI_SYMS.add(x); chSaveWL(); chWLRender(); chPickRender(); });
   const a = p.querySelector("[data-go2]"); if (a) a.onclick = e => { e.preventDefault(); chPickClose(); goPage("macro"); };
   const inp = $("chPickQ");
@@ -8636,7 +8648,7 @@ function chPickRender(focus) {
     const rows = p.querySelectorAll(".pkrow");
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); chPickSel = Math.max(0, Math.min(rows.length - 1, chPickSel + (e.key === "ArrowDown" ? 1 : -1)));
       rows.forEach(r => r.classList.toggle("sel", +r.dataset.ix === chPickSel)); const r = rows[chPickSel]; if (r) r.scrollIntoView({ block: "nearest" }); }
-    else if (e.key === "Enter") { const r = rows[chPickSel]; if (r) chPickDo(r.dataset.ps); }
+    else if (e.key === "Enter") { const r = rows[chPickSel]; if (r) chPickDo(r.dataset.ps, chPickSrc !== "all"); }
     else if (e.key === "Escape") { e.stopPropagation(); chPickClose(); }
   };
   if (focus || had) { inp.focus(); if (caret != null) inp.setSelectionRange(caret, caret); }
@@ -8656,7 +8668,7 @@ async function chDlgStart(host, sym, tf) {
   chMenuClose(); chColorClose(); chPickClose();
   host.innerHTML = ""; host.appendChild(el); el.classList.add("chdlg");
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
-  sym = ctEquiv(sym) || sym; CH.sym = sym; CH.max = 0;
+  sym = ctEquiv(sym) || sym; CH.sym = sym; CH.symExact = false; CH.max = 0;
   const P = CHP[0]; P.tf = CH.tfs[0] = CH_TFS.includes(CH.dlgTf) ? CH.dlgTf : tf; P.sym = null;
   const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf;
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
@@ -8673,7 +8685,7 @@ function chDlgEnd(nextSym) {
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor"); chSelBar();
   CH.dlgTf = CH.tfs[0]; CH.tfs[0] = pv.tf0; CHP[0].tf = pv.tf0; CHP[0].sym = null;
   const sel = CHP[0].pane.querySelector(".chtf"); if (sel) sel.value = pv.tf0;
-  CH.sym = nextSym || pv.sym; CH.max = pv.max; chSave();
+  CH.sym = nextSym || pv.sym; CH.symExact = nextSym ? false : !!pv.symExact; CH.max = pv.max; chSave();
   el.classList.remove("chdlg");
   const [par, nx] = CHDLG.home || []; if (par) par.insertBefore(el, nx && nx.parentNode === par ? nx : null);
   chOn = page === "charts";
@@ -8737,7 +8749,7 @@ async function ovcHost(mode) {
   if (page !== OVC_PAGE[mode] || CHDLG.on || OVC.on === mode) return;
   if (OVC.on) ovcPark();
   chBuild(); const el = $("chPage");
-  OVC.prev = { sym: CH.sym, tfs: CH.tfs.slice(), layout: CH.layout, max: CH.max }; OVC.home = [el.parentNode, el.nextSibling]; OVC.on = mode;
+  OVC.prev = { sym: CH.sym, symExact: !!CH.symExact, tfs: CH.tfs.slice(), layout: CH.layout, max: CH.max }; OVC.home = [el.parentNode, el.nextSibling]; OVC.on = mode;
   chModalClose(); chMenuClose(); chColorClose(); chPickClose();
   host.innerHTML = ""; host.appendChild(el); el.classList.add("chovh", "chov-" + mode);
   const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
@@ -8760,7 +8772,7 @@ function ovcPark() {                               // hand the chart back to the
   el.classList.remove("chovh", "chov-c", "chov-x");
   CHP.forEach(P => { if (P.psym) P.sym = null; P.psym = null; P.manTf = null; P.sessKey = null; });
   OVC.on = null; ovcMarkAct();
-  CH.sym = pv.sym; CH.layout = pv.layout; CH.max = pv.max;
+  CH.sym = pv.sym; CH.symExact = !!pv.symExact; CH.layout = pv.layout; CH.max = pv.max;
   pv.tfs.forEach((tf, i) => { const P = CHP[i]; CH.tfs[i] = tf; if (P && P.tf !== tf) { P.tf = tf; P.sym = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; } });
   chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor"); chSelBar();
   const [par, nx] = OVC.home || []; if (par) par.insertBefore(el, nx && nx.parentNode === par ? nx : null);
@@ -8862,7 +8874,7 @@ document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
   CHDLG.escBusy = CHDLG.on && !!(chDraft || chMeasure || chSel || chTool !== "cursor" || $("chModBg") || $("chMenu") || $("chColPop") || ($("chPick") && !$("chPick").hidden));
   if (CHDLG.escBusy) e.preventDefault(); }, true);       // a handled Esc never reaches the dialog (the chart's own handlers still see it)
 $("dlg").addEventListener("cancel", e => { if (CHDLG.escBusy) { e.preventDefault(); CHDLG.escBusy = false; } });
-window.openInCharts = sym => { if (OVC.on) ovcPark(); if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
+window.openInCharts = sym => { if (OVC.on) ovcPark(); if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; CH.symExact = false; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
 
 /* ---- chart type: candles, hollow candles, Heikin Ashi, bars, line, area, baseline (toolbar, like TradingView) ---- */
 const CH_TYPES = [

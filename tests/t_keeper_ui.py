@@ -56,6 +56,57 @@ async def main():
         st["fail503"] = False
         await B.evaluate("() => openCTSettings()"); await asyncio.sleep(0.2); await B.click("#kpLeave"); await asyncio.sleep(0.3)
         print("8) B stops borrowing:", await B.evaluate("() => JSON.stringify({ kp: localStorage.getItem('finder-keeper'), tok: (ctCfg() || {}).accessToken || null, keeper: !!(ctCfg() || {}).keeper })"))
-        print("errors:", (ea + eb)[:4] or "none")
+        # ---- review fixes: each check below must hold
+        F = []
+        def check(name, ok, detail=""):
+            print(("   ok " if ok else "   FAIL ") + name + (" · " + str(detail) if detail else ""))
+            if not ok: F.append(name)
+        C, ec = await device(b, st, {"finder-ctrader": json.dumps({"clientId": "cid", "clientSecret": "sec", "accessToken": "tok", "refreshToken": "ref", "expAt": 4102444800000, "scope": "trading"})})
+        await wait(C, "() => CT.state === 'ready'")
+        # 1) Share while a connect is under way must not bring the refresh token back
+        await C.evaluate("() => { ctClose(); CT.state = 'closed'; window.__p = ctConnect().catch(() => {}); }")
+        await C.evaluate("async () => { await ctKeeperSeed('correct horse 42', 'http://localhost:8765'); await window.__p; await new Promise(r => setTimeout(r, 500)); }")
+        cfg = await C.evaluate("() => ctCfg()")
+        check("share during connect keeps borrowing", cfg.get("keeper") is True and cfg.get("refreshToken") == "", {"keeper": cfg.get("keeper"), "refresh": cfg.get("refreshToken")})
+        # 6) a 2147 reports the token that socket used, not whatever another window saved since
+        await wait(C, "() => CT.state === 'ready'")
+        used = await C.evaluate("() => CT.tok || null"); await C.evaluate("() => { const c = ctCfg(); c.accessToken = 'saved-by-another-window'; ctSaveCfg(c); CT.ws.onmessage({ data: JSON.stringify({ payloadType: 2147, payload: {} }) }); }")
+        await asyncio.sleep(1.5)
+        check("2147 reports the socket's own token", used is not None and st["bads"] and st["bads"][-1] == used[-8:], {"used": used, "bads": st["bads"][-2:]})
+        await wait(C, "() => CT.state === 'ready'")
+        # 2) a fresh sign-in on a borrowing device stops borrowing and offers Share
+        await C.evaluate("() => openCTSettings()"); await asyncio.sleep(0.2)
+        await C.evaluate("() => { document.querySelector('.ctmanual').open = true; }"); await C.fill("#ctToken", "tok"); await C.fill("#ctRefresh", "ref"); await C.click("#ctSave")
+        await wait(C, "() => CT.state === 'ready' && !ctCfg().keeper"); await asyncio.sleep(1)
+        cfg = await C.evaluate("() => ctCfg()"); await C.evaluate("() => openCTSettings()"); await asyncio.sleep(0.2)
+        check("fresh sign-in stops borrowing", not cfg.get("keeper") and cfg.get("refreshToken") == "ref", {"keeper": cfg.get("keeper"), "refresh": cfg.get("refreshToken")})
+        check("…and offers Share", await C.evaluate("() => !!document.getElementById('kpShare')"))
+        check("sign-in helper clears borrowing", await C.evaluate("() => { const x = ctFreshLogin({ keeper: true, refreshToken: '' }, { accessToken: 'a', refreshToken: 'r', expAt: 1 }); return x.keeper === false && x.refreshToken === 'r'; }"))
+        await C.evaluate("() => $('dlg').close()")
+        # 4) the passphrase changed on Vercel: drop the stored one, no retry loop
+        await C.evaluate("() => ctKeeperJoin('correct horse 42', 'http://localhost:8765')")
+        st["pass"] = "a new passphrase 99"; g0 = st["gets"]
+        await C.evaluate("() => { ctClose(); CT.state = 'closed'; const c = ctCfg(); c.accessToken = 'dead-token'; ctSaveCfg(c); ctScheduleReconnect(true); }"); await asyncio.sleep(4)
+        g1 = st["gets"]; await asyncio.sleep(3)
+        check("changed passphrase is forgotten", await C.evaluate("() => KP().pass === ''"), await C.evaluate("() => CT.err"))
+        check("…and not retried", st["gets"] == g1 and g1 - g0 <= 1, {"gets after": g1 - g0, "later": st["gets"] - g1})
+        check("…with a clear message", await C.evaluate("() => /passphrase changed/i.test(CT.err || '')"), await C.evaluate("() => CT.err"))
+        st["pass"] = "correct horse 42"
+        # 10) an address that answers 200 with something else must not wipe the login
+        await C.evaluate("() => kpSave({ pass: 'correct horse 42', url: 'http://localhost:8765' })"); st["junk"] = True
+        before = await C.evaluate("() => ctCfg().accessToken"); err = await C.evaluate("async () => { try { await ctKeeperPull(); return 'no error'; } catch (e) { return e.message; } }")
+        check("junk answer leaves the login alone", await C.evaluate("() => ctCfg().accessToken") == before and err != "no error", err)
+        st["junk"] = False
+        check("address without https:// gets it", await C.evaluate("() => kpUrl({ url: 'alt-scanner-three.vercel.app' }) === 'https://alt-scanner-three.vercel.app/api/ct-keeper' && kpUrl({ url: 'localhost:8787' }) === 'http://localhost:8787/api/ct-keeper'"))
+        # 11) keeper error text is shown as text, never run
+        st["err403"] = "<img src=x onerror=window.__x=1>Nope"
+        await C.evaluate("() => { kpSave(null); const c = ctCfg(); c.keeper = false; ctSaveCfg(c); openCTSettings(); }"); await asyncio.sleep(0.2)
+        await C.fill("#kpUrl", "http://localhost:8765"); await C.fill("#kpPass", "wrong passphrase!"); await C.click("#kpJoin"); await asyncio.sleep(0.8)
+        check("keeper error is escaped", await C.evaluate("() => window.__x === undefined && document.getElementById('ctMsg').innerText.includes('<img')"), await C.evaluate("() => document.getElementById('ctMsg').innerText"))
+        st["err403"] = None
+        # 13) Disconnect and forget also forgets the passphrase
+        await C.evaluate("() => { kpSave({ pass: 'correct horse 42', url: 'http://localhost:8765' }); openCTSettings(); }"); await asyncio.sleep(0.2); await C.click("#ctForget"); await asyncio.sleep(0.3)
+        check("forget clears the passphrase", await C.evaluate("() => localStorage.getItem('finder-keeper') === null"))
+        print("errors:", F + (ea + eb + ec)[:4] or "none")
         await b.close()
 asyncio.run(main())

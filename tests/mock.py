@@ -444,7 +444,7 @@ async def setup_fund(ctx):
 
 # ---------------- fake shared-login keeper (/api/ct-keeper) ----------------
 def keeper_state():
-    return {"pass": "correct horse 42", "login": None, "gets": 0, "seeds": 0, "bads": [], "serve_stale": False, "fail503": False}
+    return {"pass": "correct horse 42", "login": None, "gets": 0, "seeds": 0, "bads": [], "serve_stale": False, "fail503": False, "junk": False, "err403": None}
 async def route_keeper(ctx, st):
     async def handle(route):
         r = route.request
@@ -452,7 +452,8 @@ async def route_keeper(ctx, st):
         if r.method != "POST": return await route.fulfill(status=405, body="")
         p = json.loads(r.post_data or "{}"); send = lambda code, obj: route.fulfill(status=code, content_type="application/json", body=json.dumps(obj))
         if st["fail503"]: return await send(503, {"error": "The shared login isn't set up yet: add the Upstash Redis store to this Vercel project and set FINDER_PASS."})
-        if p.get("pass") != st["pass"]: return await send(403, {"error": "That passphrase didn't work."})
+        if st["junk"]: return await route.fulfill(status=200, content_type="text/html", body="<html>not the keeper</html>")
+        if p.get("pass") != st["pass"]: return await send(403, {"error": st["err403"] or "That passphrase didn't work."})
         if p.get("action") == "seed":
             st["seeds"] += 1; st["login"] = {k: p.get(k) for k in ("clientId", "clientSecret", "accessToken", "refreshToken", "expAt", "scope")}; return await send(200, {"ok": True})
         if p.get("action") == "get":

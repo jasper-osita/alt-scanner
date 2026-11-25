@@ -1051,6 +1051,10 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .csnav{display:flex;align-items:center;justify-content:space-between;gap:6px}.cstitle{font:700 16px var(--display);color:var(--strong)}
 .csnote{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mute)}.csnote textarea{resize:vertical;border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--text);padding:7px;font:inherit}
 .csrow{display:flex;gap:5px;flex-wrap:wrap}.csall{font-size:12px}
+.rpctl{display:flex;align-items:center;gap:5px;padding:2px 6px;border:1px solid var(--accent, #2962ff);border-radius:8px}.rpctl[hidden]{display:none}
+.rpctl select{height:28px;background:var(--pill);color:var(--text);border:1px solid var(--pill-b);border-radius:6px;font:12px var(--display);padding:0 4px}
+@media (max-width:1800px){#chAlertBtn span,#chRpBtn span,.chsetbtn span{display:none}}.rpt{font-size:12px;color:var(--mute);min-width:120px}
+#chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
 .chmod.chmal{width:min(560px,96vw)}.chab select{max-width:300px}.chab #chaV{width:130px;margin-left:6px}.chab textarea{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
 .chaRow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line)}.chaRow.off{opacity:.6}.chaTxt{flex:1;min-width:0;font-size:13px}.chaTxt small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
@@ -8205,6 +8209,8 @@ function chBuild() {
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <button class="chindbtn" id="chIndBtn" title="Indicators (/)" aria-label="Indicators">${chIco("fx", 17)} Indicators</button>
       <button class="chindbtn" id="chAlertBtn" title="Create alert (Alt+A)" aria-label="Create alert">${chIco("M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0", 17)}<span>Alert</span></button>
+      <button class="chindbtn" id="chRpBtn" aria-pressed="false" title="Bar replay: hide the candles after a point and play them back">${chIco("M11 5L4 10.5 11 16zM18 5l-7 5.5 7 5.5z", 17)}<span>Replay</span></button>
+      <div class="rpctl" id="rpCtl" hidden role="group" aria-label="Bar replay"><button class="btn sm" id="rpPick" title="Pick a new start candle">Select bar</button><button class="btn sm" id="rpPlay" title="Play / pause (Shift+↓)" aria-label="Play">▶</button><button class="btn sm" id="rpFwd" title="Forward one bar (Shift+→)" aria-label="Forward one bar">⏭</button><select id="rpSpd" aria-label="Replay speed"><option value="1">1 bar/s</option><option value="3">3 bars/s</option><option value="10">10 bars/s</option></select><span class="rpt" id="rpT"></span><button class="btn sm" id="rpExit" title="Back to live candles">✕ Exit</button></div>
       <button class="chindbtn" id="chQtBtn" aria-pressed="false" title="Quick trade: buy or sell at market from the chart, with stop and target lines">${chIco("M4 12h10M10 6l6 6-6 6M19 5v14", 17)}<span>Quick trade</span></button>
       <button class="chindbtn chsetbtn" id="chSetBtn" title="Chart settings and templates" aria-label="Chart settings">${chIco("gear", 17)}<span>Settings</span></button>
       <div class="chund"><button id="chUndoB" title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 17)}</button><button id="chRedoB" title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo">${chIco("M13 6l4 4-4 4M17 10H8a4 4 0 0 0 0 8h2", 17)}</button></div>
@@ -8226,6 +8232,8 @@ function chBuild() {
   chToolbarBind();
   $("chIndBtn").onclick = () => chIndDialog(); $("chSetBtn").onclick = () => chChartSettings();
   $("chAlertBtn").onclick = () => chaDialog(chActP());
+  $("chRpBtn").onclick = () => RP.on ? rpExit() : rpEnter(); $("rpPick").onclick = () => rpPickMode(true); $("rpPlay").onclick = () => rpPlay(!RP.play);
+  $("rpFwd").onclick = () => rpForward(); $("rpExit").onclick = () => rpExit(); $("rpSpd").onchange = () => { RP.speed = +$("rpSpd").value; if (RP.play) { rpPlay(false); rpPlay(true); } };
   chTypeBtn(); $("chTypeBtn").onclick = e => { e.stopPropagation(); chTypeMenu($("chTypeBtn")); };
   $("chUndoB").onclick = () => chUndoDo(); $("chRedoB").onclick = () => chRedoDo();
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
@@ -8739,7 +8747,7 @@ async function chLoad(P) {
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f])); P.v.push(fb.v || 0); }
     if (!P.t.length) throw new Error("no candles");
     P.sym = sym; P.alSig = null; P.noOlder = false; P.older = false; chIndSync(P); chSetData(P); chFit(P); chCtSub(sym);
-    P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader();
+    P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader(); if (RP.on) rpLoaded(P);
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
 }
 /* ---- older history: scrolling back past the first loaded candle fetches the 500 before it, like TradingView ---- */
@@ -8762,6 +8770,7 @@ async function chOlderBars(sym, tf, endMs, limit) {           // candles that cl
   return K((await getJSON(`${base}?${qs({ symbol: sym, interval: tf, endTime: endMs - 1, limit })}`, 1)).map(k => [+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]]));
 }
 async function chLoadOlder(P) {
+  if (P.rp) return;
   if (P.older || P.noOlder || !P.t.length || P.t.length >= CH_MAXBARS || P.sym !== chPS(P)) return;
   const tok = P.tok, sym = P.sym, tf = P.tf; P.older = true;
   try {
@@ -8784,6 +8793,7 @@ function chSetData(P) {
   chIndData(P); chIndLegendVals(P, null); chApplyCS(P); chLevelLines(P);
 }
 function chBar(P, bar) {                                     // live update of the forming candle
+  if (P.rp && !RP.push) return;                                // bar replay owns this pane
   if (!P.chart || !P.t.length || bar.t < P.t.at(-1)) return;
   const n = P.t.length;
   P.v = P.v || [];
@@ -9021,6 +9031,7 @@ function chKey(e) {
   if (e.key === "Escape" && !chDraft && !chMeasure && !chSel && chTool === "cursor" && document.body.classList.contains("chfocus")) { chFocus(false); return; }
   if (e.altKey && !e.metaKey && !e.ctrlKey) { const m = CH_KEYS.find(([c, sh]) => c === e.code && sh === e.shiftKey); if (m) { e.preventDefault(); chPickTool(m[2]); return; } }
   if (e.key === "/" && !e.metaKey && !e.ctrlKey && !OVC.on) { e.preventDefault(); chIndDialog(); return; }
+  if (RP.on && e.shiftKey && !e.metaKey && !e.ctrlKey && (e.key === "ArrowRight" || e.key === "ArrowDown")) { e.preventDefault(); if (e.key === "ArrowRight") rpForward(); else rpPlay(!RP.play); return; }
   if (e.altKey && e.code === "KeyA" && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); chaDialog(chActP()); return; }
   if (e.key === "Escape") { if (chDraft && (chDraft.type === "path" || chDraft.type === "poly") && chDraft.pts.length > 2) { chDraft.pts.pop(); chFinish(); } else { chDraft = null; chMeasure = null; chSel = null; chSetTool("cursor"); chSelBar(); } }
   else if (e.key === "Enter" && chDraft && (chDraft.type === "path" || chDraft.type === "poly")) { chDraft.pts.pop(); chFinish(); }
@@ -9508,6 +9519,93 @@ async function chQuotesFetch(list) {
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
+
+/* ===================== Bar replay: pick a candle, the rest disappears, then step or play it back (every visible timeframe in step) =====================
+   P.rpFull keeps the real candles; the pane shows rpCut(P, RP.t). Higher timeframes build their forming candle from the finest pane. */
+const RP = { on: false, pick: false, t: 0, play: null, speed: 1, push: false };
+const rpIv = () => Math.min(...chVis().map(P => CH_IV[P.tf] || 36e5));
+const rpFinest = () => chVis().filter(P => P.rpFull).sort((a, b) => CH_IV[a.tf] - CH_IV[b.tf])[0] || null;
+function rpTake(P) { P.rpFull = { t: P.t.slice(), o: P.o.slice(), h: P.h.slice(), l: P.l.slice(), c: P.c.slice(), v: (P.v || []).slice() }; P.rp = true; }
+function rpCut(P, T, F) {
+  const A = P.rpFull, iv = CH_IV[P.tf] || 36e5, n = chIdx(A, T - iv) + 1, o = {};
+  ["t", "o", "h", "l", "c", "v"].forEach(k => o[k] = A[k].slice(0, n));
+  if (F && F !== P && F.rpFull && n < A.t.length && A.t[n] < T) {         // the higher timeframe's candle that's still forming at T
+    const B = F.rpFull, ivF = CH_IV[F.tf]; let j = chIdx(B, A.t[n] - 1) + 1, b = null;
+    for (; j < B.t.length && B.t[j] + ivF <= T; j++) { if (!b) b = { o: B.o[j], h: B.h[j], l: B.l[j], c: B.c[j], v: 0 }; b.h = Math.max(b.h, B.h[j]); b.l = Math.min(b.l, B.l[j]); b.c = B.c[j]; b.v += B.v[j] || 0; }
+    if (b) { o.t.push(A.t[n]); o.o.push(b.o); o.h.push(b.h); o.l.push(b.l); o.c.push(b.c); o.v.push(b.v); }
+  }
+  return o;
+}
+function rpShow(P, C) {
+  ["t", "o", "h", "l", "c", "v"].forEach(k => P[k] = C[k]); P.ha = null;
+  chSetData(P); try { P.chart.timeScale().scrollToRealTime(); } catch (e) {} chLegend(P, null); chDirty = true;
+}
+function rpAdvance(P, C) {                                      // usually one more candle (or a fuller forming one): update in place, like live
+  const n = P.t.length;
+  if (!n || C.t.length < n || C.t[n - 2] !== P.t[n - 2]) { rpShow(P, C); return; }
+  RP.push = true;
+  try { for (let j = n - 1; j < C.t.length; j++) if (j >= n || C.c[j] !== P.c[j] || C.h[j] !== P.h[j] || C.l[j] !== P.l[j]) chBar(P, { t: C.t[j], o: C.o[j], h: C.h[j], l: C.l[j], c: C.c[j], v: C.v[j] }); }
+  finally { RP.push = false; }
+}
+function rpLabel() {
+  const el = $("rpT"); if (!el) return; el.textContent = RP.pick ? "Click a candle to start from" : RP.t ? fmtPHT(new Date(RP.t + PHT_MS)) : "";
+  const b = $("rpPlay"); if (b) { b.textContent = RP.play ? "⏸" : "▶"; b.setAttribute("aria-label", RP.play ? "Pause" : "Play"); }
+}
+function rpUi() {
+  const c = $("rpCtl"), b = $("chRpBtn"); if (c) c.hidden = !RP.on; if (b) { b.classList.toggle("on", RP.on); b.setAttribute("aria-pressed", RP.on); }
+  ["rpPlay", "rpFwd"].forEach(id => { const x = $(id); if (x) x.disabled = !RP.t || RP.pick; }); $("rpPick") && $("rpPick").classList.toggle("on", RP.pick);
+  document.body.classList.toggle("rpon", RP.on); rpLabel();
+}
+function rpEnter() {
+  if (OVC.on) return; RP.on = true; RP.t = 0; chVis().forEach(P => { if (P.t.length && !P.rp) rpTake(P); });
+  rpPickMode(true); chToast("Bar replay: click the candle to start from. Orders are blocked until you leave replay.");
+}
+function rpPickMode(on) {
+  RP.pick = on; if (on) rpPlay(false);
+  CHP.forEach(P => { if (!P.wrap) return; if (!P.rpH) { P.rpH = e => rpPickDown(P, e); P.rpM = e => rpShade(P, e); P.wrap.addEventListener("pointerdown", P.rpH, true); P.wrap.addEventListener("pointermove", P.rpM); P.wrap.addEventListener("pointerleave", () => rpShade(P, null)); }
+    P.wrap.classList.toggle("rppick", on); if (!on) rpShade(P, null); });
+  rpUi();
+}
+function rpShade(P, e) {                                         // while picking: a line at the cursor, the future shaded
+  let d = P.wrap.querySelector(".rpshade"); if (!RP.pick || !e || !P.chart) { if (d) d.hidden = true; return; }
+  const r = P.cv.getBoundingClientRect(), x = e.clientX - r.left, w = chPlotW(P); if (x < 0 || x > w) { if (d) d.hidden = true; return; }
+  if (!d) { d = document.createElement("div"); d.className = "rpshade"; P.wrap.appendChild(d); }
+  d.hidden = false; d.style.left = x + "px"; d.style.width = Math.max(0, w - x) + "px"; d.style.height = chPlotH(P) + "px";
+}
+function rpPickDown(P, e) {
+  if (!RP.pick || !P.chart || !P.t.length || e.button > 0) return; const r = P.cv.getBoundingClientRect(), x = e.clientX - r.left;
+  if (x < 0 || x > chPlotW(P) || e.clientY - r.top > chPlotH(P)) return;
+  e.stopPropagation(); e.preventDefault(); const lg = chXLg(P, x); if (lg == null) return;
+  const i = Math.max(0, Math.min(P.t.length - 1, Math.round(lg))); rpStart(P.t[i] + (CH_IV[P.tf] || 36e5));
+}
+async function rpEnsure(P, T) {                                  // enough history before the start: about 300 candles
+  const iv = CH_IV[P.tf] || 36e5; let k = 0;
+  while (P.rpFull && P.rpFull.t[0] > T - 300 * iv && P.rpFull.t.length < CH_MAXBARS && k++ < 8) {
+    let o; try { o = await chOlderBars(P.sym, P.tf, P.rpFull.t[0], 1000); } catch (e) { break; }
+    const keep = o.t.map((t, i) => i).filter(i => o.t[i] < P.rpFull.t[0]); if (!keep.length) break;
+    ["t", "o", "h", "l", "c"].forEach(f => P.rpFull[f] = keep.map(i => o[f][i]).concat(P.rpFull[f])); P.rpFull.v = keep.map(i => +o.qv[i] || 0).concat(P.rpFull.v);
+  }
+}
+async function rpStart(T) {
+  RP.t = T; rpPickMode(false); const V = chVis().filter(P => P.rpFull);
+  if (V.some(P => P.rpFull.t[0] > T - 300 * (CH_IV[P.tf] || 36e5))) { rpLabel(); $("rpT").textContent = "Loading history…"; await Promise.all(V.map(P => rpEnsure(P, T))); }
+  const F = rpFinest(); V.forEach(P => rpShow(P, rpCut(P, RP.t, F))); rpUi();
+}
+function rpForward() {
+  if (!RP.on || !RP.t || RP.pick) return; const V = chVis().filter(P => P.rpFull), F = rpFinest();
+  const end = Math.max(...V.map(P => P.rpFull.t.at(-1) + (CH_IV[P.tf] || 36e5)));
+  if (RP.t >= end) { rpPlay(false); chToast("Replay caught up with the present. Exit to go back to live candles."); return; }
+  RP.t += rpIv(); V.forEach(P => rpAdvance(P, rpCut(P, RP.t, F))); rpLabel();
+}
+function rpPlay(on) { clearInterval(RP.play); RP.play = null; if (on && RP.on && RP.t && !RP.pick) RP.play = setInterval(rpForward, 1000 / (RP.speed || 1)); rpLabel(); }
+function rpLoaded(P) {                                           // a pane (re)loaded during replay (timeframe changed): cut it to the replay time
+  rpTake(P); if (!RP.t) return; rpEnsure(P, RP.t).then(() => { if (P.rp) rpShow(P, rpCut(P, RP.t, rpFinest())); });
+}
+function rpExit() {
+  rpPlay(false); RP.on = false; RP.pick = false; RP.t = 0;
+  CHP.forEach(P => { if (P.wrap) P.wrap.classList.remove("rppick"); rpShade(P, null); if (P.rp) { P.rp = false; P.rpFull = null; if (P.chart && chVis().includes(P)) chLoad(P); } });
+  rpUi();
+}
 
 /* ===================== Chart alerts: price, a drawn line or an indicator, like TradingView's "Create alert" =====================
    CHA = [{ id, sym, tf, L, op, R, trig, msg, on, created, fired, n, bar }]; a side is { k: "price" } | { k: "val", v } | { k: "ind", type, p, plot, name } | { k: "draw", id, type, pts }.
@@ -10806,6 +10904,7 @@ function cttOnExec(p) {
 }
 const cttRound = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
 async function cttPlace(o) {                   // o: { x, side, type, lots, price, sl, tp }
+  if (typeof RP !== "undefined" && RP.on) throw new Error("leave bar replay before placing orders");
   const spec = await cttSpec(o.x), vol = Math.floor(Math.round(o.lots * spec.lotSize) / spec.step) * spec.step;
   if (!(vol >= spec.min)) throw new Error(`size is below the minimum (${spec.min / spec.lotSize} lots)`);
   const p = { ctidTraderAccountId: CTT.acct.ctidTraderAccountId, symbolId: o.x.symbolId, orderType: o.type === "market" ? 1 : o.type === "limit" ? 2 : 3,
@@ -10849,6 +10948,7 @@ async function mxtRefresh() {
   if (page === "trade") trRenderBook();
 }
 async function mxtPlace(o) {                   // o: { sym, side, type, contracts, price, sl, tp, lev, openType }
+  if (typeof RP !== "undefined" && RP.on) throw new Error("leave bar replay before placing orders");
   const p = { symbol: mxF(o.sym), price: o.price, vol: o.contracts, side: o.side === "buy" ? 1 : 3, type: o.type === "limit" ? 1 : 5, openType: o.openType || 1, leverage: o.lev || 10, externalOid: "finder" + Date.now() };
   if (o.sl) p.stopLossPrice = o.sl; if (o.tp) p.takeProfitPrice = o.tp;
   const d = await mxtReq("POST", "/api/v1/private/order/create", p);
@@ -11349,6 +11449,7 @@ function qtUpdate() {                            // the numbers in the box: pric
   if (QT.err) w = QT.err; set("qtWarn", w);
 }
 async function qtPlace(side) {
+  if (typeof RP !== "undefined" && RP.on) { chToast("Bar replay is on: leave it to trade."); return; }
   const sym = CH.sym, v = trVenue(sym), L = qtLevels(sym, side); QT.err = "";
   if (!L) { QT.err = "No live price yet."; qtUpdate(); return; }
   const size = qtSize(sym, L), live = v === "ct" ? CTT.live : true, ask = live ? QT.cfLive : QT.cfDemo;

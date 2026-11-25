@@ -132,9 +132,11 @@ async def route_all(route):
     elif "alternative.me" in url: body = fng(url)
     else: return await route.abort()
     await route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"access-control-allow-origin": "*"})
-async def setup(ctx):
+async def setup(ctx, start="overview"):
     for pat in ["**/*binance*/**", "**/api.coingecko.com/**", "**/api.alternative.me/**"]: await ctx.route(pat, route_all)
     await ctx.route("**/s3-symbol-logo.tradingview.com/**", lambda r: r.abort())
+    # The app opens on Charts; most tests were written for Overview, so a plain address starts there unless the test asks (start=None)
+    if start: await ctx.add_init_script("if (location.pathname === '/' && !location.hash) history.replaceState(null, '', '#%s');" % start)
 # static server with the app's production headers (from vercel.json)
 APP = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 def serve(port=8765):

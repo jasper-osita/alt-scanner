@@ -6,7 +6,7 @@ print = functools.partial(print, flush=True)
 async def main():
     serve()
     async with async_playwright() as pw:
-        b = await pw.chromium.launch(); ctx = await b.new_context(viewport={"width": 1440, "height": 900}); await setup(ctx)
+        b = await pw.chromium.launch(); ctx = await b.new_context(viewport={"width": 1440, "height": 900}); await setup(ctx, start=None)
         pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         q = lambda js: pg.evaluate(js)

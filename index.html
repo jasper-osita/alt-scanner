@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.25.1255">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.25.1630">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -1059,6 +1059,19 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 #chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
 .chmod.chmal{width:min(560px,96vw)}
 .chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}
+.pkbg{position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.45)}
+.chpick.pk{position:fixed;z-index:150;top:9vh;left:calc(50% - min(330px, 47vw));width:min(660px,94vw);max-height:78vh;padding:10px;gap:8px}
+.chpick.pk .chplist{max-height:min(560px,58vh)}.pkq{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:2px 6px 8px}.pkq input{flex:1;border:0;background:transparent;color:var(--text);font:15px var(--font);outline:none}
+.pkbar{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}.pkbar .chptabs{border:0;padding:0}.pksrcb{background:var(--pill);border:1px solid var(--pill-b);border-radius:999px;color:var(--text);font:12px var(--display);padding:4px 10px;cursor:pointer}
+.chprow.pkrow{grid-template-columns:20px 30px minmax(0,1fr) auto 64px minmax(70px,auto) 46px}.pkico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px}.pkico .logo{width:24px;height:24px}
+.pkfx{position:relative}.pkfx i{font-style:normal;font-size:15px;position:absolute;line-height:1}.pkfx i:first-child{left:0;top:0}.pkfx i:last-child{right:0;bottom:0}
+.pktag{font-style:normal;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;background:var(--pill);border-radius:4px;padding:1px 4px;margin-left:4px;color:var(--mute)}
+.pksrc{font-size:11.5px;color:var(--mute);text-align:right;white-space:nowrap}.pkmore{background:var(--pill);border:1px solid var(--pill-b);border-radius:6px;color:var(--text);font:11px var(--display);padding:2px 5px;cursor:pointer}.pkmore.on{border-color:var(--accent)}
+.pksubs{margin:0 0 4px 58px;border-left:2px solid var(--line)}.pksub{display:grid;grid-template-columns:minmax(110px,auto) minmax(0,1fr) auto 64px;gap:8px;align-items:center;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12.5px}.pksub:hover{background:var(--hover)}.pksub .pksrc{text-align:left;color:var(--text)}
+.pksrch{display:flex;align-items:center;gap:8px}.pksrch h4{margin:0;font-size:14px}.pkback{background:none;border:0;color:var(--text);font-size:20px;cursor:pointer;padding:0 6px}
+#pkSrcQ{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:8px;padding:7px 10px;font:13px var(--font)}.pksrcs{display:grid;grid-template-columns:1fr 1fr;gap:4px;overflow:auto}
+.pksrcs button{display:flex;align-items:center;gap:8px;background:none;border:1px solid transparent;border-radius:8px;color:var(--text);padding:7px 8px;cursor:pointer;text-align:left;font:13px var(--font)}.pksrcs button:hover{background:var(--hover)}.pksrcs button.on{border-color:var(--accent)}.pksrcs small{margin-left:auto}
+@media (max-width:760px){.chpick.pk{left:8px!important;right:8px!important;width:auto!important;top:56px!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;max-height:none!important}.chprow.pkrow{grid-template-columns:20px 28px minmax(0,1fr) 60px 46px}.chprow.pkrow .v:nth-of-type(2),.chprow.pkrow .pksrc{display:none}.pksrcs{grid-template-columns:1fr}}
 .ctshare{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;display:grid;gap:8px}.ctshare h4{margin:0;font-size:13.5px}
 .chmod.chmps{width:min(860px,96vw);height:min(720px,92vh)}.pseb{display:flex;flex-direction:column;gap:8px}.pseb textarea{flex:1;min-height:300px;width:100%;box-sizing:border-box;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:4;white-space:pre}
 .pserr{font-size:12.5px;min-height:18px}.pserr.ok{color:var(--up, #22ab94)}.pserr.bad{color:var(--dn, #f23645)}.pshelp summary{cursor:pointer;font-size:12.5px;color:var(--accent, #2962ff)}.pshelp p{margin:6px 0;line-height:1.5}.pshelp code{font-size:11.5px}.systeps{padding-left:18px;line-height:1.5}#syBox input[type=password]{width:260px}
@@ -4607,7 +4620,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.25.1255";
+const APP_VERSION = "2026.11.25.1630";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -8479,24 +8492,24 @@ async function chPageShown(on) {
   chOn = on;
   if (!on) { if (document.body.classList.contains("chfocus")) chFocus(false); if (typeof liveSync === "function") liveSync(); return; }
   try { await ensureLWC(); } catch (e) { return; }
-  { const eq = ctEquiv(CH.sym); if (eq) CH.sym = eq; }
+  { const eq = CH.symExact ? null : ctEquiv(CH.sym); if (eq) CH.sym = eq; }          // a source picked by hand stays
   chBuild(); chIndicators(); chApplyLayout(); chHeader(); chWLRender(); chQuotesFetch();
-  if (ctPrefer() && CT.state !== "ready" && !CT.connecting) ctConnect().then(() => { if (!chOn) return; const eq = ctEquiv(CH.sym); if (eq) chSetSym(eq); else chWLRender(); }).catch(() => {});
+  if (ctPrefer() && CT.state !== "ready" && !CT.connecting) ctConnect().then(() => { if (!chOn) return; const eq = CH.symExact ? null : ctEquiv(CH.sym); if (eq) chSetSym(eq); else chWLRender(); }).catch(() => {});
 }
-function chSetSym(sym) {
-  if (!sym) return; sym = ctEquiv(sym) || sym;
+function chSetSym(sym, exact) {                            // exact: picked from a specific source in the picker, so don't swap in the broker's version
+  if (!sym) return; if (!exact) sym = ctEquiv(sym) || sym;
   const why = chSourceOK(sym); if (why) { toast(why); return; }
   if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
   if (CHM && CHM.tw && CHM.list[0].sym !== sym) CHM = null;
-  CH.sym = sym; CH.recent = [sym, ...(CH.recent || []).filter(x => x !== sym)].slice(0, 12); chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
+  CH.sym = sym; CH.symExact = !!exact; CH.recent = [sym, ...(CH.recent || []).filter(x => x !== sym)].slice(0, 12); chSave(); chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
   (OVC.on === "x" ? [CHP[OVC.act]] : chVis()).forEach(P => { if (OVC.on === "x") P.psym = sym; chLoad(P); }); chHeader(); chWLRender(); chSelBar();
   if (OVC.on) ovcRemember(sym);
   if (typeof liveSync === "function") liveSync();
 }
 /* ---- market picklists by category ---- */
-const CH_CATS = [["all", "All"], ["crypto", "Crypto"], ["metals", "Metals & Energy"], ["indices", "Indices"], ["fx", "Forex & CFDs"], ["stocks", "Stocks"], ["recent", "Recent"]];
+const CH_CATS = [["all", "All"], ["crypto", "Crypto"], ["fx", "Forex"], ["indices", "Indices"], ["metals", "Metals & energy"], ["stocks", "Stocks"], ["recent", "Recent"]];
 const chMexc = () => EXCHANGE === "mexc" || $("exF").value === "mexc";
-let chPickCat = "all", chPickQ = "", chPickSel = 0;
+let chPickCat = "all", chPickQ = "", chPickSel = 0, chPickSrc = "all", chPickView = "list", chPickOpenK = null;
 const CH_POP_CRYPTO = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT"];
 function chCatOf(s) {
   if (isMX(s)) return { "Forex & CFDs": "fx", "Indices": "indices", "Stocks": "stocks" }[mxGroup(s)] || "metals";
@@ -8529,38 +8542,98 @@ async function chMxLists() {                           // MEXC's stock perps for
   const p = $("chPick"); if (p && !p.hidden) chQuotesFetch(chCatList(chPickCat).slice(0, 24));
 }
 let chPickFor = null;                                        // set when the picker chooses for something else (compare), not the chart's symbol
-function chPickDo(s) { const f = chPickFor; chPickClose(); if (f) f(s); else chSetSym(s); }
+function chPickDo(s) { const f = chPickFor; chPickClose(); if (f) f(s); else chSetSym(s, true); }
 function chPickOpen(cat, onPick) {
   const p = $("chPick"); if (!p) return;
   if (!p.hidden && chPickCat === cat && !onPick === !chPickFor) { chPickClose(); return; } chPickFor = onPick || null;
-  chPickCat = cat; chPickQ = ""; chPickSel = 0; p.hidden = false; $("chSymBtn").setAttribute("aria-expanded", "true");
+  chPickCat = cat; chPickQ = ""; chPickSel = 0; chPickView = "list"; chPickOpenK = null; p.hidden = false; p.classList.add("pk"); $("chSymBtn").setAttribute("aria-expanded", "true");
+  if (!$("chPickBg")) { const bg = document.createElement("div"); bg.id = "chPickBg"; bg.className = "pkbg"; document.body.appendChild(bg); }
   chPickRender(true);
-  chQuotesFetch(chCatList(cat).slice(0, 24));
+  chQuotesFetch(pkMarkets(cat, chPickSrc).slice(0, 24).map(m => m.syms[0]));
   if (chMexc() && (cat === "stocks" || cat === "all") && (!MX_STOCK_ORDER.length || Date.now() - MX_DETAIL.at > 10 * 60e3)) chMxLists();
 }
-function chPickClose() { chPickFor = null; const p = $("chPick"); if (p) p.hidden = true; const b = $("chSymBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
+function chPickClose() { chPickFor = null; const p = $("chPick"); if (p) p.hidden = true; const bg = $("chPickBg"); if (bg) bg.remove(); const b = $("chSymBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
+/* ---- the market picker, TradingView style: one row per market, its other sources under "+N", a sources filter ---- */
+const PK_CCY = { USD: ["🇺🇸", "US dollar"], EUR: ["🇪🇺", "Euro"], GBP: ["🇬🇧", "British pound"], JPY: ["🇯🇵", "Japanese yen"], CHF: ["🇨🇭", "Swiss franc"], CAD: ["🇨🇦", "Canadian dollar"],
+  AUD: ["🇦🇺", "Australian dollar"], NZD: ["🇳🇿", "New Zealand dollar"], TRY: ["🇹🇷", "Turkish lira"], BRL: ["🇧🇷", "Brazilian real"] };
+const pkSrcOf = sym => sym.startsWith("CT:") ? "ct" : isMX(sym) ? "mexc" : chIsTF(sym) ? "binance" : (EXCHANGE === "bybit" ? "bybit" : EXCHANGE === "mexc" ? "mexc" : "binance");
+const pkSrcName = k => k === "ct" ? `${CT.broker || "Pepperstone"} (cTrader)` : { binance: "Binance", bybit: "Bybit", mexc: "MEXC" }[k] || k;
+function pkType(sym) {
+  if (sym.startsWith("CT:")) { const g = (MACRO.by[sym] || chCtInfo(sym) || {}).group; return { Forex: "Forex CFD", Metals: "Metal CFD", Energy: "Energy CFD", Indices: "Index CFD" }[g] || "CFD"; }
+  if (isMX(sym)) return mxGroup(sym) === "Stocks" ? "Stock perp" : "Perpetual";
+  return chIsTF(sym) || MODE !== "spot" ? "Perpetual" : "Spot";
+}
+const pkKey = sym => chName(sym).toLowerCase().replace(/[^a-z0-9]/g, "");
+const pkPair = name => { const m = /^([A-Z]{3})\/([A-Z]{3})$/.exec(name); return m && PK_CCY[m[1]] && PK_CCY[m[2]] ? [m[1], m[2]] : null; };
+function pkIcon(sym) {
+  const nm = chName(sym), pr = pkPair(nm), cat = chCatOf(sym);
+  if (pr) return `<span class="pkico pkfx" aria-hidden="true"><i>${PK_CCY[pr[0]][0]}</i><i>${PK_CCY[pr[1]][0]}</i></span>`;
+  if (cat === "crypto") return `<span class="pkico" aria-hidden="true">${logoHTML({ macro: false, base: chBase(sym).replace(/^1000+/, "") })}</span>`;
+  const g = chGroup(sym), col = MACRO_COL[g === "Metals & Energy" ? "Metals" : g === "US Indices" || g === "Indices" ? "US Indices" : g] || "#4a5361";
+  return `<span class="pkico" aria-hidden="true"><span class="logo fb" style="background:${col}">${chEsc(nm[0] || "?")}</span></span>`;
+}
+const pkTick = sym => sym.startsWith("CT:") ? sym.slice(3) : isMX(sym) ? coin(sym) : sym;
+function pkDesc(sym) { const nm = chName(sym), pr = pkPair(nm); return pr ? `${PK_CCY[pr[0]][1]} / ${PK_CCY[pr[1]][1]}` : chCatOf(sym) === "crypto" ? `${nm} / ${sym.endsWith("USDC") ? "USD Coin" : "Tether"}` : nm; }
+function pkMarkets(cat, src = "all") {                       // [{ key, name, desc, type, cat, syms }] with syms[0] the preferred source
+  const cand = [], add = x => { if (x && !cand.includes(x)) cand.push(x); };
+  const ct = CT.state === "ready" ? ctList().map(o => { CT_SYMS.add("CT:" + o.x.symbolName); return "CT:" + o.x.symbolName; }) : [];
+  const tf = EXCHANGE !== "bybit" ? Object.keys(MACRO_INFO).map(b => b + "USDT") : [], mx = Object.keys(MX_INFO).map(k => "MX:" + k);
+  if (cat === "recent") [CH.sym, ...(CH.recent || [])].forEach(add);
+  else {
+    if (cat === "all" || cat === "crypto") { (data ? data.all.filter(r => !r.macro).sort((a, b) => b.vol24h - a.vol24h).map(r => r.symbol) : CH_POP_CRYPTO).forEach(add); CHW.filter(x => chCatOf(x) === "crypto").forEach(add); }
+    ["fx", "indices", "metals"].forEach(c => { if (cat === "all" || cat === c) [...ct, ...tf, ...mx].filter(x => chCatOf(x) === c).forEach(add); });
+    if (cat === "all" || cat === "stocks") { MX_STOCK_ORDER.forEach(add); mx.filter(x => chCatOf(x) === "stocks").forEach(add); }
+  }
+  const pref = x => (x.startsWith("CT:") && ctPrefer() ? 0 : pkSrcOf(x) === (EXCHANGE === "bybit" ? "bybit" : EXCHANGE === "mexc" ? "mexc" : "binance") ? 1 : 2);
+  const groups = new Map();
+  cand.filter(x => src === "all" || pkSrcOf(x) === src).forEach(x => { const k = pkKey(x) || x; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); });
+  return [...groups.entries()].map(([key, syms]) => { syms.sort((a, b) => pref(a) - pref(b)); return { key, name: chName(syms[0]), desc: pkDesc(syms[0]), type: pkType(syms[0]), cat: chCatOf(syms[0]), syms }; });
+}
 function chPickRender(focus) {
   const p = $("chPick"); if (!p || p.hidden) return;
-  const had = document.activeElement && document.activeElement.id === "chPickQ", caret = had ? document.activeElement.selectionStart : null, scr = p.querySelector(".chplist") ? p.querySelector(".chplist").scrollTop : 0;
+  const had = document.activeElement && (document.activeElement.id === "chPickQ" || document.activeElement.id === "pkSrcQ"), caret = had ? document.activeElement.selectionStart : null, scr = p.querySelector(".chplist") ? p.querySelector(".chplist").scrollTop : 0;
+  const head = chPickFor ? `<div class="chpfor">Compare: pick a market to overlay on the chart</div>` : "";
+  if (chPickView === "src") {                                   // the sources page
+    const q = (p.dataset.srcq || "").toLowerCase(), all = pkMarkets(chPickCat === "recent" ? "all" : chPickCat), cnt = {};
+    all.forEach(m => m.syms.forEach(x => cnt[pkSrcOf(x)] = (cnt[pkSrcOf(x)] || 0) + 1));
+    const keys = ["all", ...["ct", "binance", "bybit", "mexc"].filter(k => cnt[k])].filter(k => !q || pkSrcName(k).toLowerCase().includes(q) || k === "all");
+    p.innerHTML = head + `<div class="pksrch"><button class="pkback" id="pkBack" aria-label="Back">‹</button><h4>Sources</h4></div>
+      <input id="pkSrcQ" type="search" placeholder="Search" autocomplete="off" aria-label="Search sources" value="${chEsc(p.dataset.srcq || "")}">
+      <div class="pksrcs">${keys.map(k => `<button data-src="${k}" class="${chPickSrc === k ? "on" : ""}"><span class="logo fb">${k === "all" ? "◎" : chEsc(pkSrcName(k)[0])}</span><span>${k === "all" ? "All sources" : chEsc(pkSrcName(k))}</span>${k === "all" ? "" : `<small class="mute">${cnt[k]} markets</small>`}</button>`).join("")}</div>`;
+    $("pkBack").onclick = e => { e.stopPropagation(); chPickView = "list"; chPickRender(true); };
+    p.querySelectorAll("[data-src]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickSrc = b.dataset.src; chPickView = "list"; chPickSel = 0; chPickRender(true); });
+    const si = $("pkSrcQ"); si.oninput = () => { p.dataset.srcq = si.value; const pos = si.selectionStart; chPickRender(); const n = $("pkSrcQ"); n.focus(); n.setSelectionRange(pos, pos); };
+    si.onkeydown = e => { if (e.key === "Escape") { e.stopPropagation(); chPickView = "list"; chPickRender(true); } };
+    if (focus || had) si.focus(); return;
+  }
   const q = chPickQ.trim().toLowerCase();
-  const list = chCatList(chPickCat).filter(s => !q || chName(s).toLowerCase().includes(q) || s.toLowerCase().includes(q)).slice(0, 150);
+  const rank = m => { if (!q) return 0; const t = m.syms.map(x => pkTick(x).toLowerCase()), n = m.name.toLowerCase();     // like TradingView: the ticker first, then the name, then the description
+    return t.includes(q) || n === q ? 1 : t.some(x => x.startsWith(q)) ? 2 : n.startsWith(q) ? 3 : t.some(x => x.includes(q)) || m.syms.some(x => x.toLowerCase().includes(q)) ? 4 : n.includes(q) ? 5 : m.desc.toLowerCase().includes(q) ? 6 : 0; };
+  const list = pkMarkets(chPickCat, chPickSrc).map((m, i) => ({ m, r: rank(m), i })).filter(x => !q || x.r).sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.m).slice(0, 150);
   chPickSel = Math.max(0, Math.min(chPickSel, list.length - 1));
-  const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex and broker CFDs come from cTrader. Connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page, then they show here, or switch the exchange to MEXC for its forex perpetuals.</div>` : "";
-  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">${chMexc() ? "Loading MEXC's stock perpetuals…" : "Stock perpetuals (Apple, Nvidia, Tesla and 400+ more) come from MEXC: switch the exchange to MEXC."}</div>` : "";
-  const byNote = (chPickCat === "metals" || chPickCat === "indices") && EXCHANGE === "bybit" && !list.length ? `<div class="meta chpnote">Gold, oil and index perps come from Binance: switch the exchange to Binance (or connect cTrader for your broker's prices).</div>` : "";
-  p.innerHTML = (chPickFor ? `<div class="chpfor">Compare: pick a market to overlay on the chart</div>` : "") + `<div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
-    <input id="chPickQ" type="search" placeholder="Search ${CH_CATS.find(c => c[0] === chPickCat)[1].toLowerCase()}…" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets">
-    <div class="chplist" role="listbox">${list.map((s, i) => { const qd = chQuote(s), c = qd && qd.chg;
-      return `<div class="chprow ${i === chPickSel ? "sel" : ""} ${s === CH.sym ? "cur" : ""}" role="option" data-ps="${s}" data-ix="${i}"><button class="st ${CHW.includes(s) ? "on" : ""}" data-star="${s}" title="${CHW.includes(s) ? "Remove from" : "Add to"} the chart watchlist" aria-label="Watchlist">${CHW.includes(s) ? "★" : "☆"}</button>
-        <span class="n"><b>${chName(s)}</b><small>${s.startsWith("CT:") || isMX(s) ? s.slice(3) : s} · ${chSrc(s)}</small></span><span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span></div>`; }).join("") || (fxNote || stNote || byNote || '<div class="meta chpnote">Nothing here yet.</div>')}</div>`;
-  p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(chCatList(chPickCat).slice(0, 24)); });
-  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]")) return; chPickDo(r.dataset.ps); });
-  p.querySelectorAll("[data-star]").forEach(b => b.onclick = e => { e.stopPropagation(); const s = b.dataset.star; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (chIsTF(s)) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chPickRender(); });
+  const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex comes from cTrader (connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page) or MEXC's forex perpetuals.</div>` : "";
+  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">Loading MEXC's stock perpetuals…</div>` : "";
+  const px = x => { const qd = chQuote(x), c = qd && qd.chg; return `<span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>`; };
+  p.innerHTML = head + `<div class="pkq"><span aria-hidden="true">${chIco("M9 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM13.5 13.5l4.5 4.5", 16)}</span><input id="chPickQ" type="search" placeholder="Symbol or name" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets"></div>
+    <div class="pkbar"><div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
+      <button class="pksrcb" id="pkSrcB" aria-haspopup="true">${chPickSrc === "all" ? "All sources" : chEsc(pkSrcName(chPickSrc))} ▾</button></div>
+    <div class="chplist" role="listbox">${list.map((m, i) => { const x = m.syms[0], more = m.syms.length - 1, open = chPickOpenK === m.key;
+      return `<div class="chprow pkrow ${i === chPickSel ? "sel" : ""} ${m.syms.includes(CH.sym) ? "cur" : ""}" role="option" data-pk="${chEsc(m.key)}" data-ps="${x}" data-ix="${i}">
+        <button class="st ${CHW.includes(x) ? "on" : ""}" data-star="${x}" title="${CHW.includes(x) ? "Remove from" : "Add to"} the chart watchlist" aria-label="Watchlist">${CHW.includes(x) ? "★" : "☆"}</button>${pkIcon(x)}
+        <span class="n"><b>${chEsc(pkTick(x))}</b><small>${chEsc(m.desc)} <i class="pktag">${chEsc(m.type)}</i></small></span>${px(x)}
+        <span class="pksrc">${chEsc(pkSrcName(pkSrcOf(x)))}</span>${more ? `<button class="pkmore ${open ? "on" : ""}" data-more="${chEsc(m.key)}" aria-expanded="${open}" title="Other sources">+${more} ▾</button>` : `<span></span>`}</div>
+        ${more ? `<div class="pksubs" data-subs="${chEsc(m.key)}" ${open ? "" : "hidden"}>${m.syms.slice(1).map(y => `<div class="pksub" data-ps="${y}" role="option"><span class="pksrc">${chEsc(pkSrcName(pkSrcOf(y)))}</span><span class="mute">${chEsc(pkTick(y))} · ${chEsc(pkType(y))}</span>${px(y)}</div>`).join("")}</div>` : ""}`; }).join("")
+      || (fxNote || stNote || `<div class="meta chpnote">No market matches “${chEsc(chPickQ)}”.</div>`)}</div>`;
+  p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(pkMarkets(chPickCat, chPickSrc).slice(0, 24).map(m => m.syms[0])); });
+  $("pkSrcB").onclick = e => { e.stopPropagation(); chPickView = "src"; p.dataset.srcq = ""; chPickRender(true); };
+  p.querySelectorAll("[data-more]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpenK = chPickOpenK === b.dataset.more ? null : b.dataset.more; chPickRender(); });
+  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]") || e.target.closest("[data-more]")) return; e.stopPropagation(); chPickDo(r.dataset.ps); });
+  p.querySelectorAll("[data-star]").forEach(b => b.onclick = e => { e.stopPropagation(); const x = b.dataset.star; CHW = CHW.includes(x) ? CHW.filter(y => y !== x) : [...CHW, x]; if (chIsTF(x)) TRADFI_SYMS.add(x); chSaveWL(); chWLRender(); chPickRender(); });
   const a = p.querySelector("[data-go2]"); if (a) a.onclick = e => { e.preventDefault(); chPickClose(); goPage("macro"); };
   const inp = $("chPickQ");
   inp.oninput = () => { chPickQ = inp.value; chPickSel = 0; const pos = inp.selectionStart; chPickRender(); const n = $("chPickQ"); n.focus(); n.setSelectionRange(pos, pos); };
   inp.onkeydown = e => {
-    const rows = p.querySelectorAll("[data-ps]");
+    const rows = p.querySelectorAll(".pkrow");
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); chPickSel = Math.max(0, Math.min(rows.length - 1, chPickSel + (e.key === "ArrowDown" ? 1 : -1)));
       rows.forEach(r => r.classList.toggle("sel", +r.dataset.ix === chPickSel)); const r = rows[chPickSel]; if (r) r.scrollIntoView({ block: "nearest" }); }
     else if (e.key === "Enter") { const r = rows[chPickSel]; if (r) chPickDo(r.dataset.ps); }

@@ -45,6 +45,9 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   chart alerts `CHA` (`chaDialog`, `chaQuick`, `chaEval` every 3 s, `chaCandles`, list `chaList`); bar replay `RP` (`rpEnter`, `rpCut`, `rpForward`; blocks `cttPlace`/`mxtPlace`/`qtPlace`);
   compare `CH.cmp` (`chCmpSync`, percent scale); right panel tabs `CH.side` (object tree `chSideRender`, data window `chDataWin`); snapshot `chSnap`;
   sync via private GitHub gist `SYNC_PARTS`/`syNow` (token in `finder-sync`, Settings → Sync); scripts `PS` (Pine-like, no eval: `psLex`/`psParse`/`psCompile`/`psRun`, editor `psEditor`, registered as `IND["ps_<id>"]`).
+- Market picker (TradingView style, `#chPick` as a centred dialog): `pkMarkets(cat, src)` groups each market's sources (key = `chName`), preferred first;
+  `pkSrcOf`/`pkSrcName`/`pkType`/`pkIcon`; sources page `chPickView = "src"`; a source picked by hand sticks (`chSetSym(sym, true)` → `CH.symExact`). Test `t_picker`.
+  Tests start on Overview unless `setup(ctx, start=None)` (the app itself opens on Charts).
 - Markets switch on the boards (`MK`, `boardRows`, `mkDay`/`mkSwing`, `mkMix`, `rowOf`; test `t_mkts`): crypto plus `MACRO.rows` (forex, indices, metals & energy) through the same detectors.
   `data.day`/`data.swing`/`aotsList()` stay coin-only for history, streams and exports; the boards call the mixed versions.
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.

@@ -1051,6 +1051,8 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .csnav{display:flex;align-items:center;justify-content:space-between;gap:6px}.cstitle{font:700 16px var(--display);color:var(--strong)}
 .csnote{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mute)}.csnote textarea{resize:vertical;border:1px solid var(--pill-b);border-radius:8px;background:var(--pill);color:var(--text);padding:7px;font:inherit}
 .csrow{display:flex;gap:5px;flex-wrap:wrap}.csall{font-size:12px}
+.chmod.chmal{width:min(560px,96vw)}.chab select{max-width:300px}.chab #chaV{width:130px;margin-left:6px}.chab textarea{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+.chaRow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line)}.chaRow.off{opacity:.6}.chaTxt{flex:1;min-width:0;font-size:13px}.chaTxt small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
 @media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
 /* the Charts engine on the overview pages: Bitcoin, or the dollar and Nasdaq 100 side by side */
@@ -6334,6 +6336,7 @@ function ncGo(id) {                                  // open the market behind a
   if (ncOpen()) ncShow(false);
   ncDropToast(id);
   if (n.action === "ctrader") { goPage("macro"); openCTSettings(); return; }
+  if (n.action === "chart" && n.sym && typeof openInCharts === "function") { openInCharts(n.sym); return; }
   if (n.action === "brief") { goPage("fund"); if (typeof fbOpen === "function") setTimeout(() => fbOpen(n.mk), 60); return; }      // a headline or a release read: that market's brief
   if (!n.sym) return;
   if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
@@ -6989,6 +6992,7 @@ let CH = { sym: "BTCUSDT", tfs: ["4h", "1h", "15m", "5m"], layout: "4g", ma: tru
 if (typeof CH.layout === "number" || !CH_LAYOUTS[CH.layout]) CH.layout = { 1: "1", 2: "2c", 4: "4g" }[CH.layout] || "4g";
 CH.sizes = CH.sizes || {};
 let CHD = chLoadJSON(CHD_KEY, {});                          // symbol → drawings, stored in time (ms) and price so every timeframe can draw them
+var CHA = chLoadJSON("finder-chart-alerts", []);                // alerts made on the chart (price, a drawn line, an indicator): see chaDialog
 let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSDT", "XAGUSDT", "CLUSDT", "QQQUSDT", "SPYUSDT"];
 const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: chLoadJSON("finder-ovch", {}) };   // the overview pages borrowing this chart (see ovcHost)
 const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
@@ -7095,7 +7099,8 @@ function chLevelLines(P) {                                   // previous day clo
   if (S.hiLo) { const r = P.chart.timeScale().getVisibleLogicalRange(); const a = Math.max(0, Math.floor(r ? r.from : 0)), b = Math.min(n - 1, Math.ceil(r ? r.to : n - 1));
     for (let i = a; i <= b; i++) { if (hi == null || P.h[i] > hi) hi = P.h[i]; if (lo == null || P.l[i] < lo) lo = P.l[i]; } }
   put("plHi", S.hiLo, hi, S.hiLoC, "High", 1); put("plLo", S.hiLo, lo, S.hiLoC, "Low", 1);
-  const al = S.alertLines && typeof WL !== "undefined" ? WL.alerts.filter(a => a.sym === chPS(P) && !a.fired) : [], sig = al.map(a => a.price + a.dir).join(",") + S.alertC;
+  const al = S.alertLines && typeof WL !== "undefined" ? WL.alerts.filter(a => a.sym === chPS(P) && !a.fired).map(a => ({ price: a.price, dir: a.dir })) : [], sig0 = S.alertLines ? chaLines(chPS(P)) : [];
+  al.push(...sig0); const sig = al.map(a => a.price + a.dir).join(",") + S.alertC;
   if (P.alSig !== sig || (P.alLines || []).length !== al.length) {
     (P.alLines || []).forEach(L => { try { P.cs.removePriceLine(L); } catch (e) {} });
     P.alLines = al.map(a => P.cs.createPriceLine({ price: a.price, color: S.alertC, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: `🔔 ${a.dir}` })); P.alSig = sig;
@@ -8199,6 +8204,7 @@ function chBuild() {
       <button class="chindbtn chtypebtn" id="chTypeBtn" aria-haspopup="true" title="Chart type" aria-label="Chart type"></button>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <button class="chindbtn" id="chIndBtn" title="Indicators (/)" aria-label="Indicators">${chIco("fx", 17)} Indicators</button>
+      <button class="chindbtn" id="chAlertBtn" title="Create alert (Alt+A)" aria-label="Create alert">${chIco("M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0", 17)}<span>Alert</span></button>
       <button class="chindbtn" id="chQtBtn" aria-pressed="false" title="Quick trade: buy or sell at market from the chart, with stop and target lines">${chIco("M4 12h10M10 6l6 6-6 6M19 5v14", 17)}<span>Quick trade</span></button>
       <button class="chindbtn chsetbtn" id="chSetBtn" title="Chart settings and templates" aria-label="Chart settings">${chIco("gear", 17)}<span>Settings</span></button>
       <div class="chund"><button id="chUndoB" title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 17)}</button><button id="chRedoB" title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo">${chIco("M13 6l4 4-4 4M17 10H8a4 4 0 0 0 0 8h2", 17)}</button></div>
@@ -8219,6 +8225,7 @@ function chBuild() {
     </div>`;
   chToolbarBind();
   $("chIndBtn").onclick = () => chIndDialog(); $("chSetBtn").onclick = () => chChartSettings();
+  $("chAlertBtn").onclick = () => chaDialog(chActP());
   chTypeBtn(); $("chTypeBtn").onclick = e => { e.stopPropagation(); chTypeMenu($("chTypeBtn")); };
   $("chUndoB").onclick = () => chUndoDo(); $("chRedoB").onclick = () => chRedoDo();
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
@@ -9014,6 +9021,7 @@ function chKey(e) {
   if (e.key === "Escape" && !chDraft && !chMeasure && !chSel && chTool === "cursor" && document.body.classList.contains("chfocus")) { chFocus(false); return; }
   if (e.altKey && !e.metaKey && !e.ctrlKey) { const m = CH_KEYS.find(([c, sh]) => c === e.code && sh === e.shiftKey); if (m) { e.preventDefault(); chPickTool(m[2]); return; } }
   if (e.key === "/" && !e.metaKey && !e.ctrlKey && !OVC.on) { e.preventDefault(); chIndDialog(); return; }
+  if (e.altKey && e.code === "KeyA" && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); chaDialog(chActP()); return; }
   if (e.key === "Escape") { if (chDraft && (chDraft.type === "path" || chDraft.type === "poly") && chDraft.pts.length > 2) { chDraft.pts.pop(); chFinish(); } else { chDraft = null; chMeasure = null; chSel = null; chSetTool("cursor"); chSelBar(); } }
   else if (e.key === "Enter" && chDraft && (chDraft.type === "path" || chDraft.type === "poly")) { chDraft.pts.pop(); chFinish(); }
   else if ((e.key === "Delete" || e.key === "Backspace") && chSel) { e.preventDefault(); chDelete(); }
@@ -9169,8 +9177,10 @@ function chBindPane(P) {
   w.addEventListener("contextmenu", e => {
     const m = local(e); if (m.x > chPlotW(P) || m.y > chPlotH(P) || chHidden) return; const hit = chHitTest(P, m.x, m.y);
     if (!hit) { e.preventDefault(); const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; chDlgLayer().appendChild(a);
-      chMenu(a, [{ l: "Settings…", k: "set", ico: chIco("gear", 16) }, { l: "Indicators…", k: "ind", ico: chIco("fx", 16) }, { l: "Reset chart view", k: "fit", ico: chIco("M5 10.5a5.5 5.5 0 1 0 1.6-3.9M5 4v3h3", 16) }],
-        { onPick: k => k === "set" ? chChartSettings() : k === "ind" ? chIndDialog() : chFit(P) }); setTimeout(() => a.remove(), 0); return; }
+      const px = P.cs.coordinateToPrice(m.y), bell = chIco("M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0", 16);
+      chMenu(a, [...(px != null && P.t.length ? [{ l: `Add alert at ${chPxFmt(P)(px)}`, k: "alq", ico: bell }, { l: "Add alert…", k: "al", sc: "Alt A" }, { sep: 1 }] : []),
+        { l: "Settings…", k: "set", ico: chIco("gear", 16) }, { l: "Indicators…", k: "ind", ico: chIco("fx", 16) }, { l: "Reset chart view", k: "fit", ico: chIco("M5 10.5a5.5 5.5 0 1 0 1.6-3.9M5 4v3h3", 16) }],
+        { onPick: k => k === "alq" ? chaQuick(P, px) : k === "al" ? chaDialog(P, { v: px }) : k === "set" ? chChartSettings() : k === "ind" ? chIndDialog() : chFit(P) }); setTimeout(() => a.remove(), 0); return; }
     e.preventDefault(); chSel = hit.id; chSelPane = P.i; chSelBar(); const d = chSelD(); if (!d) return;
     const a = document.createElement("span"); a.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`; chDlgLayer().appendChild(a);
     chMenu(a, chMoreItems(d), { onPick: k => chMoreDo(k, d) }); setTimeout(() => a.remove(), 0);
@@ -9316,13 +9326,14 @@ function chFloatPos() {
   el.style.left = Math.max(4, r.left - pr.left + r.width / 2 - el.offsetWidth / 2) + "px"; el.style.top = (r.top - pr.top + 6) + "px";
 }
 function chMoreItems(d) {
-  return [...(chHas(d, "pos") ? [{ k: "trade", l: "Place order…", ico: chIco("M4 14l4-4 3 3 6-6", 16) }, { sep: 1 }] : []), { k: "set", l: "Settings…", ico: chIco("gear", 16) }, { k: "clone", l: "Clone", sc: "⌘ drag", ico: chIco("M7 7h10v10H7zM4 14V4h10", 16) }, { k: "copy", l: "Copy", sc: "⌘C", ico: chIco("M7 7h10v10H7zM4 14V4h10", 16) },
+  return [...(CHA_DRAW.includes(d.type) ? [{ k: "alert", l: "Add alert on this line…", ico: chIco("M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0", 16) }, { sep: 1 }] : []), ...(chHas(d, "pos") ? [{ k: "trade", l: "Place order…", ico: chIco("M4 14l4-4 3 3 6-6", 16) }, { sep: 1 }] : []), { k: "set", l: "Settings…", ico: chIco("gear", 16) }, { k: "clone", l: "Clone", sc: "⌘ drag", ico: chIco("M7 7h10v10H7zM4 14V4h10", 16) }, { k: "copy", l: "Copy", sc: "⌘C", ico: chIco("M7 7h10v10H7zM4 14V4h10", 16) },
     { sep: 1 }, { k: "front", l: "Bring to front", ico: chIco("M4 12l6.5 4 6.5-4M10.5 4l6.5 4-6.5 4L4 8z", 16) }, { k: "back", l: "Send to back", ico: chIco("M4 9l6.5-4L17 9M10.5 17L4 13l6.5-4 6.5 4z", 16) },
     { sep: 1 }, { k: "lk", l: d.lk ? "Unlock" : "Lock", ico: chIco(d.lk ? "unlock" : "lock", 16) }, { k: "def", l: "Save style as default", ico: chIco("star", 16) }, { k: "reset", l: "Reset style", ico: chIco("M5 9a6 6 0 1 1 1 5M5 4v5h5", 16) },
     { sep: 1 }, { k: "rm", l: "Remove", sc: "Del", ico: chIco("trash", 16) }];
 }
 function chMoreDo(k, d) {
-  if (k === "trade") { if (typeof trFromPos === "function") trFromPos(d); }
+  if (k === "alert") chaDialog(CHP[chSelPane] && chVis().includes(CHP[chSelPane]) ? CHP[chSelPane] : chActP(), { draw: d });
+  else if (k === "trade") { if (typeof trFromPos === "function") trFromPos(d); }
   else if (k === "set") chDrawSettings(d);
   else if (k === "clone") chPaste(d);
   else if (k === "copy") { chClip = JSON.parse(JSON.stringify(d)); toast("Drawing copied. Paste with ⌘V / Ctrl+V."); }
@@ -9497,6 +9508,154 @@ async function chQuotesFetch(list) {
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
+
+/* ===================== Chart alerts: price, a drawn line or an indicator, like TradingView's "Create alert" =====================
+   CHA = [{ id, sym, tf, L, op, R, trig, msg, on, created, fired, n, bar }]; a side is { k: "price" } | { k: "val", v } | { k: "ind", type, p, plot, name } | { k: "draw", id, type, pts }.
+   Checked every few seconds against the chart's own candles (or fetched ones when the market isn't on screen); fires through notify → bell, phone, Telegram. */
+const CHA_OPS = [["cross", "Crossing"], ["up", "Crossing up"], ["down", "Crossing down"], ["gt", "Greater than"], ["lt", "Less than"]];
+const CHA_TRIG = [["once", "Only once"], ["bar", "Once per bar"], ["close", "Once per bar close"]];
+const CHA_DRAW = ["trend", "ray", "extl", "info", "hline", "hray"];
+const CHA_ST = {}, CHA_K = {};                                   // live crossing state (memory only) and fetched candles
+const chaSave = () => chSaveJSON("finder-chart-alerts", CHA);
+function chActP() { const V = chVis(); return V.slice().sort((a, b) => (b.userAt || 0) - (a.userAt || 0))[0] || V[0]; }
+function chaLines(sym) { return (CHA || []).filter(a => a.on && a.sym === sym && a.L.k === "price" && a.R.k === "val").map(a => ({ price: +a.R.v, dir: { cross: "", up: "↑", down: "↓", gt: ">", lt: "<" }[a.op] || "" })); }
+function chaSrcName(x, sym) {
+  if (!x) return "?"; if (x.k === "price") return "Price"; if (x.k === "val") return chFmt(+x.v, +x.v);
+  if (x.k === "ind") return `${x.name}${x.pl ? " " + x.pl : ""}`; if (x.k === "draw") return `your ${((CH_T[x.type] || {}).name || "line").toLowerCase()}`; return "?";
+}
+const chaOpName = op => (CHA_OPS.find(o => o[0] === op) || CHA_OPS[0])[1];
+const chaDesc = a => `${chaSrcName(a.L, a.sym)} ${chaOpName(a.op).toLowerCase()} ${chaSrcName(a.R, a.sym)}`;
+function chaPos(K, t) {                                          // a time as a (fractional) candle index, so lines follow the candles like on the chart
+  const n = K.t.length, iv = CH_IV[K.tf] || 36e5; if (t >= K.t[n - 1]) return n - 1 + (t - K.t[n - 1]) / iv; if (t <= K.t[0]) return (t - K.t[0]) / iv;
+  const j = chIdx(K, t); return j + (t - K.t[j]) / Math.max(1, K.t[j + 1] - K.t[j]);
+}
+function chaLineAt(d, K, i) {
+  if (!d || !d.pts || !d.pts.length) return null; const p0 = d.pts[0];
+  if (d.type === "hline" || d.type === "hray" || d.pts.length < 2) return p0.p;
+  const a = chaPos(K, p0.t), b = chaPos(K, d.pts[1].t); if (Math.abs(b - a) < 1e-9) return null;
+  return p0.p + (d.pts[1].p - p0.p) * (i - a) / (b - a);                // trend lines count as extended to the right, so a break fires
+}
+function chaSeries(a, x, K) {
+  if (x.k === "price") return i => K.c[i];
+  if (x.k === "val") return () => +x.v;
+  if (x.k === "ind") { const V = chIndCalc(K, { type: x.type, p: x.p }), arr = V[x.plot]; return i => arr ? arr[i] : null; }
+  if (x.k === "draw") { const d = ((CHD[a.sym] || []).find(z => z.id === x.id)) || x; return i => chaLineAt(d, K, i); }
+  return () => null;
+}
+function chaEval(a, K, now) {                                    // → true when it fired
+  const n = K.t.length; if (n < 3) return false;
+  const iv = CH_IV[K.tf] || 36e5, Lf = chaSeries(a, a.L, K), Rf = chaSeries(a, a.R, K);
+  let i, l, r, lp, rp;
+  if (a.trig === "close") {
+    i = K.t[n - 1] + iv <= now ? n - 1 : n - 2; if (i < 1) return false;
+    if (a.bar == null) { a.bar = K.t[i]; chaSave(); return false; }      // wait for the next close after it was made
+    if (a.bar >= K.t[i]) return false; l = Lf(i); r = Rf(i); lp = Lf(i - 1); rp = Rf(i - 1);
+    if ([l, r, lp, rp].some(v => v == null || !isFinite(v))) return false;
+  } else {
+    i = n - 1; l = Lf(i); r = Rf(i); if ([l, r].some(v => v == null || !isFinite(v))) return false;
+    const st = CHA_ST[a.id]; CHA_ST[a.id] = { l, r }; if (!st) return false;
+    lp = st.l; rp = st.r; if (a.trig === "bar" && a.bar === K.t[i]) return false;
+  }
+  const hit = a.op === "gt" ? l > r : a.op === "lt" ? l < r : a.op === "up" ? lp <= rp && l > r : a.op === "down" ? lp >= rp && l < r : (lp <= rp && l > r) || (lp >= rp && l < r);
+  if (a.trig === "close") a.bar = K.t[i];
+  if (!hit) { if (a.trig === "close") chaSave(); return false; }
+  a.fired = now; a.n = (a.n || 0) + 1; if (a.trig === "once") a.on = false; else a.bar = K.t[i];
+  const px = K.c[n - 1], f = v => chFmt(v, px), desc = chaDesc(a);
+  notify(`${chName(a.sym)} ${CH_TFL[a.tf]}: ${desc}`, a.msg || `${desc} on ${chName(a.sym)} ${CH_TFL[a.tf]}. Price is ${f(px)}.`,
+    { sym: a.sym, kind: "Price", icon: "🔔", tone: "blue", action: "chart", title: `${chName(a.sym)}: ${desc}` });
+  return true;
+}
+async function chaCandles(sym, tf) {
+  const P = chOn ? chVis().find(Q => Q.sym === sym && chPS(Q) === sym && Q.tf === tf && Q.t.length && !Q.rp) : null; if (P) return P;
+  const key = sym + "|" + tf, c = CHA_K[key], now = Date.now();
+  if (!c || now - c.at > (CH_IV[tf] <= 300e3 ? 10e3 : 20e3)) {
+    if (chSourceOK(sym)) return null;
+    if (sym.startsWith("CT:") && !CT_SYMS.has(sym)) { if (CT.state !== "ready" || !CT.symbols[ctNorm(sym.slice(3))]) return null; CT_SYMS.add(sym); }
+    if (chKind(sym) === "tradfi") TRADFI_SYMS.add(sym);
+    const k = await klines(sym, tf, 300); let fb = null; try { fb = await formingBar(sym, tf); } catch (e) {}
+    const K = { sym, tf, t: k.t.slice(), o: k.o.slice(), h: k.h.slice(), l: k.l.slice(), c: k.c.slice(), v: (k.qv || []).map(Number) };
+    if (fb && (!K.t.length || fb.t > K.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => K[f].push(fb[f])); K.v.push(fb.v || 0); }
+    CHA_K[key] = { at: now, K };
+  }
+  const K = CHA_K[key].K, r = typeof bySym !== "undefined" && bySym[sym], n = K.c.length;      // the scan's live price is fresher than the last fetch
+  if (r && r.price && data && !data.cached && n) { K.c[n - 1] = r.price; K.h[n - 1] = Math.max(K.h[n - 1], r.price); K.l[n - 1] = Math.min(K.l[n - 1], r.price); }
+  return K;
+}
+let chaBusy = false;
+async function chaCheck() {
+  const act = (CHA || []).filter(a => a.on); if (!act.length || chaBusy) return; chaBusy = true;
+  try {
+    const now = Date.now(), groups = {}; let fired = false; act.forEach(a => (groups[a.sym + "|" + a.tf] = groups[a.sym + "|" + a.tf] || []).push(a));
+    for (const key of Object.keys(groups)) { const [sym, tf] = key.split("|"); let K = null; try { K = await chaCandles(sym, tf); } catch (e) {} if (!K) continue;
+      groups[key].forEach(a => { try { if (chaEval(a, K, now)) fired = true; } catch (e) {} }); }
+    if (fired) { chaSave(); chaListRender(); if (chOn) chVis().forEach(P => { P.alSig = null; chLevelLines(P); }); }
+  } finally { chaBusy = false; }
+}
+setInterval(chaCheck, 3000);
+function chaAdd(a) { a = { id: chUid(), created: Date.now(), on: true, n: 0, fired: 0, bar: null, msg: "", ...a }; CHA.push(a); chaSave(); if (chOn) chVis().forEach(P => { P.alSig = null; chLevelLines(P); }); chaCheck(); return a; }
+function chaQuick(P, px) {                                        // right-click → "Add alert at …": price crossing that level, once
+  if (!P || px == null) return; const sym = chPS(P), lv = +chPxFmt(P)(px).replace(/,/g, "");
+  const a = chaAdd({ sym, tf: P.tf, L: { k: "price" }, op: "cross", R: { k: "val", v: isFinite(lv) ? lv : px }, trig: "once" });
+  chToast(`Alert set: <b>${chEsc(chName(sym))}</b> ${chEsc(chaDesc(a).toLowerCase())}. <a href="#" id="chaToastList">Your alerts</a>`); const l = $("chaToastList"); if (l) l.onclick = e => { e.preventDefault(); chaList(); };
+}
+function chaIndOpts(P) {                                          // the indicator lines on this chart you can alert on
+  const out = []; chIndActive(P).forEach(I => { const D = IND[I.type]; if (!D.calc) return;
+    (D.plots || []).filter(pl => !pl.canvas).forEach(pl => out.push({ v: `ind:${I.id}:${pl.k}`, l: `${indTitle(I)} · ${pl.l}`, src: { k: "ind", type: I.type, p: { ...indDefaults(I.type), ...I.p }, plot: pl.k, name: indTitle(I), pl: (D.plots.length > 1 ? pl.l : "") } })); });
+  return out;
+}
+function chaDialog(P, pre = {}) {
+  if (!P || !P.t.length) { chToast("Load a chart first."); return; }
+  const sym = chPS(P), tf = P.tf, inds = chaIndOpts(P), d = pre.draw && CHA_DRAW.includes(pre.draw.type) ? pre.draw : null, last = P.c.at(-1), f = chPxFmt(P);
+  const o = (v, l, on) => `<option value="${chEsc(v)}" ${on ? "selected" : ""}>${chEsc(l)}</option>`;
+  const lOpts = o("price", "Price", !pre.ind) + inds.map(x => o(x.v, x.l, pre.ind === x.v)).join("");
+  const rOpts = (d ? o("draw", `Your ${CH_T[d.type].name.toLowerCase()}`, true) : "") + o("val", "Value", !d) + inds.map(x => o(x.v, x.l)).join("");
+  const box = chModal(`<div class="chmh"><h3>Create alert on ${chEsc(chName(sym))} · ${CH_TFL[tf]}</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div>
+    <div class="chmb chab">
+      <div class="chsgh">Condition</div>
+      <div class="chsr"><label for="chaL">When</label><span class="ctl"><select id="chaL">${lOpts}</select></span></div>
+      <div class="chsr"><label for="chaOp">is</label><span class="ctl"><select id="chaOp">${CHA_OPS.map(([k, l]) => o(k, l, k === (pre.op || "cross"))).join("")}</select></span></div>
+      <div class="chsr"><label for="chaR">than / with</label><span class="ctl"><select id="chaR">${rOpts}</select> <input type="number" id="chaV" step="any" value="${+(+(pre.v ?? last)).toPrecision(8)}" aria-label="Value"></span></div>
+      <div class="chsgh">Trigger</div>
+      <div class="chsr"><label for="chaT">How often</label><span class="ctl"><select id="chaT">${CHA_TRIG.map(([k, l]) => o(k, l, k === "once")).join("")}</select></span></div>
+      <p class="meta" id="chaTHint"></p>
+      <div class="chsgh">Message</div>
+      <textarea id="chaMsg" rows="2" placeholder="Optional. Leave it empty and the alert says what happened."></textarea>
+      <p class="meta">Price now ${f(last)}. Alerts are checked while The Finder is open (this tab or the Mac app) and arrive in the bell, as phone notifications and on Telegram if it's set up.</p>
+    </div>
+    <div class="chmf"><button class="btn sm" id="chaMgr">Your alerts (${CHA.length})</button><span style="flex:1"></span><button class="btn" id="chaCancel">Cancel</button><button class="btn primary" id="chaOk">Create</button></div>`, "chmal");
+  const sync = () => { const r = $("chaR").value; $("chaV").hidden = r !== "val";
+    $("chaTHint").textContent = { once: "Fires the first time the condition is met, then stops.", bar: "Fires at most once per candle while the condition is met, as it happens.", close: "Waits for each candle to close, then fires if the condition held at the close." }[$("chaT").value]; };
+  $("chaR").onchange = sync; $("chaT").onchange = sync; sync();
+  box.querySelector("[data-close]").onclick = chModalClose; $("chaCancel").onclick = chModalClose; $("chaMgr").onclick = () => chaList();
+  const pick = v => v === "price" ? { k: "price" } : v === "val" ? { k: "val", v: +$("chaV").value } : v === "draw" ? { k: "draw", id: d.id, type: d.type, pts: JSON.parse(JSON.stringify(d.pts)) } : (inds.find(x => x.v === v) || {}).src;
+  $("chaOk").onclick = () => {
+    const L = pick($("chaL").value), R = pick($("chaR").value);
+    if (!L || !R) return; if (R.k === "val" && !isFinite(R.v)) { $("chaV").focus(); return; }
+    if (JSON.stringify(L) === JSON.stringify(R)) { chToast("Pick two different things to compare."); return; }
+    const a = chaAdd({ sym, tf, L, op: $("chaOp").value, R, trig: $("chaT").value, msg: $("chaMsg").value.trim() });
+    chModalClose(); chToast(`Alert created: <b>${chEsc(chName(sym))} ${CH_TFL[tf]}</b> ${chEsc(chaDesc(a).toLowerCase())}.`);
+  };
+  setTimeout(() => $("chaL") && $("chaL").focus(), 30);
+}
+function chaRows() {
+  const trig = k => (CHA_TRIG.find(t => t[0] === k) || CHA_TRIG[0])[1];
+  return !CHA.length ? `<div class="empty">No chart alerts yet. Right-click a chart or use the Alert button to make one.</div>` : CHA.slice().reverse().map(a => `<div class="chaRow ${a.on ? "" : "off"}" data-aid="${a.id}">
+      <div class="chaTxt"><b>${chEsc(chName(a.sym))} · ${CH_TFL[a.tf]}</b> ${chEsc(chaDesc(a))}${a.msg ? `<small>“${chEsc(a.msg)}”</small>` : ""}
+        <small>${a.on ? "Active" : "Stopped"} · ${trig(a.trig)}${a.fired ? ` · last fired ${fmtPHT(new Date(a.fired + PHT_MS)).replace(/^\w+, /, "")}${a.n > 1 ? ` (${a.n}×)` : ""}` : ""}</small></div>
+      <button class="btn sm" data-ca="tog">${a.on ? "Stop" : "Restart"}</button><button class="btn sm" data-ca="go" title="Open the chart">Chart</button><button class="chx" data-ca="rm" aria-label="Delete alert">${chIco("trash", 15)}</button></div>`).join("");
+}
+function chaList() {
+  const box = chModal(`<div class="chmh"><h3>Chart alerts</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div><div class="chmb" id="chaListB">${chaRows()}</div>
+    <div class="chmf"><span class="meta">Price alerts made from a coin's Alerts &amp; Notes tab are on the Watchlist page.</span><span style="flex:1"></span><button class="btn" data-close2>Close</button></div>`, "chmal");
+  box.querySelector("[data-close]").onclick = chModalClose; box.querySelector("[data-close2]").onclick = chModalClose; chaListBind();
+}
+function chaListBind() {
+  const B = $("chaListB"); if (!B) return;
+  B.querySelectorAll("[data-aid]").forEach(row => row.querySelectorAll("[data-ca]").forEach(b => b.onclick = () => { const a = CHA.find(x => x.id === row.dataset.aid); if (!a) return;
+    if (b.dataset.ca === "rm") CHA = CHA.filter(x => x !== a); else if (b.dataset.ca === "tog") { a.on = !a.on; a.bar = null; delete CHA_ST[a.id]; } else { chModalClose(); openInCharts(a.sym); return; }
+    chaSave(); chaListRender(); if (chOn) chVis().forEach(P => { P.alSig = null; chLevelLines(P); }); }));
+}
+function chaListRender() { const B = $("chaListB"); if (B) { B.innerHTML = chaRows(); chaListBind(); } }
 </script>
 
 <script id="extras">/* ===================== NBB Watch · Economic calendar · Phone alerts (Telegram) · keep-awake ===================== */

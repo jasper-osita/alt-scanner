@@ -3,3 +3,4 @@
 __pycache__
 .watch-state.json
 tests/out/
+node_modules/

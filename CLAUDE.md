@@ -23,7 +23,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   `scSave` stores each fresh one; during a scan `klines` keeps closed candles and fetches only new ones (`klinesNet` is the real fetch, `klFlush` saves).
 - cTrader: `ctKlines(sym, tf, limit, keepForming, toMs)`, `ctAccountInfo`, `ctSpec`, `ctLots`, `CT_PERIOD/CT_MS/CT_SPAN`, `ctPrefer`, `ctEquiv`.
   Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct, or via `/api/ct-token`: server.py on the Mac, `api/ct-token.js` on Vercel), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
-  Shared login: `api/ct-keeper.js` (Upstash Redis + env `FINDER_PASS`) holds and renews the one login; devices borrow it (`ctCfg().keeper`, no local refresh token): `ctKeeperSeed`/`ctKeeperJoin`/`ctKeeperPull(bad)`, dialog `ctShareHTML`; passphrase in `finder-keeper`. Tests `t_keeper`, `t_keeper_ui`.
+  Shared login: `api/ct-keeper.js` (private Vercel Blob store `the-finder-keeper`, or Upstash Redis if connected; env `FINDER_PASS`; `GET /api/ct-keeper?check=1` = set-up check) holds and renews the one login; devices borrow it (`ctCfg().keeper`, no local refresh token): `ctKeeperSeed`/`ctKeeperJoin`/`ctKeeperPull(bad)`, dialog `ctShareHTML`; passphrase in `finder-keeper`. Tests `t_keeper`, `t_keeper_ui`.
 - Charts: `CHP` panes, `chLoad`, `chSetData`, `chLoadOlder` (history on scroll, max 5000), `chPaint`, `chIndPaint`, `IND` registry,
   `chIndBuild/Layout/Sync`, dialog mode `CHDLG`/`chDlgStart`, settings `CS_DEF`/`chCS()`.
   Overview main charts borrow the same engine: `OVC`, `ovcHost`/`ovcPark` (Bitcoin on Overview; dollar + Nasdaq 100 side by side on the

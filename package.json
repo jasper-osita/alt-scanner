@@ -1,0 +1,8 @@
+{
+  "name": "the-finder",
+  "private": true,
+  "description": "Static PWA plus a few Vercel functions; the only dependency is the Blob SDK the shared cTrader login (api/ct-keeper.js) keeps its data in.",
+  "dependencies": {
+    "@vercel/blob": "^2.9.0"
+  }
+}

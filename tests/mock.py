@@ -434,3 +434,28 @@ async def route_fund(route):
     return await route.fulfill(status=404, body="")
 async def setup_fund(ctx):
     for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**"]: await ctx.route(pat, route_fund)
+
+# ---------------- fake shared-login keeper (/api/ct-keeper) ----------------
+def keeper_state():
+    return {"pass": "correct horse 42", "login": None, "gets": 0, "seeds": 0, "bads": [], "serve_stale": False, "fail503": False}
+async def route_keeper(ctx, st):
+    async def handle(route):
+        r = route.request
+        if r.method == "OPTIONS": return await route.fulfill(status=204, body="")
+        if r.method != "POST": return await route.fulfill(status=405, body="")
+        p = json.loads(r.post_data or "{}"); send = lambda code, obj: route.fulfill(status=code, content_type="application/json", body=json.dumps(obj))
+        if st["fail503"]: return await send(503, {"error": "The shared login isn't set up yet: add the Upstash Redis store to this Vercel project and set FINDER_PASS."})
+        if p.get("pass") != st["pass"]: return await send(403, {"error": "That passphrase didn't work."})
+        if p.get("action") == "seed":
+            st["seeds"] += 1; st["login"] = {k: p.get(k) for k in ("clientId", "clientSecret", "accessToken", "refreshToken", "expAt", "scope")}; return await send(200, {"ok": True})
+        if p.get("action") == "get":
+            st["gets"] += 1
+            if not st["login"]: return await send(404, {"error": "Nothing is shared yet."})
+            if p.get("bad"):
+                st["bads"].append(p["bad"]); st["serve_stale"] = False; st["login"]["accessToken"] = "tok-renewed"
+            L = dict(st["login"]); L.pop("refreshToken", None)
+            if st["serve_stale"]: L["accessToken"] = "stale"
+            return await send(200, L)
+        if p.get("action") == "forget": st["login"] = None; return await send(200, {"ok": True})
+        return await send(400, {"error": "Unknown action."})
+    await ctx.route("**/api/ct-keeper", handle)

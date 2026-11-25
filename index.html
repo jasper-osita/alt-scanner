@@ -1059,6 +1059,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 #chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
 .chmod.chmal{width:min(560px,96vw)}
 .chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}
+.ctshare{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;display:grid;gap:8px}.ctshare h4{margin:0;font-size:13.5px}
 .chmod.chmps{width:min(860px,96vw);height:min(720px,92vh)}.pseb{display:flex;flex-direction:column;gap:8px}.pseb textarea{flex:1;min-height:300px;width:100%;box-sizing:border-box;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:4;white-space:pre}
 .pserr{font-size:12.5px;min-height:18px}.pserr.ok{color:var(--up, #22ab94)}.pserr.bad{color:var(--dn, #f23645)}.pshelp summary{cursor:pointer;font-size:12.5px;color:var(--accent, #2962ff)}.pshelp p{margin:6px 0;line-height:1.5}.pshelp code{font-size:11.5px}.systeps{padding-left:18px;line-height:1.5}#syBox input[type=password]{width:260px}
 .chstabs{display:flex;gap:2px}.chstabs button{background:none;border:0;border-radius:6px;color:var(--mute);font:600 12.5px var(--display);padding:4px 7px;cursor:pointer}.chstabs button.on{color:var(--strong, var(--text));background:var(--pill)}
@@ -2488,6 +2489,8 @@ function ctBind(ws) {
     let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
     CT.lastMsgAt = Date.now();
     if (m.payloadType === 2131) { if (CT.onSpot) CT.onSpot(m.payload || {}); return; }
+    if (m.payloadType === 2147 && (ctCfg() || {}).keeper) {                                       // the borrowed login was replaced: fetch the current one, then reconnect
+      const tok = (ctCfg() || {}).accessToken; ctClose(); CT.state = "closed"; ctKeeperPull(tok).catch(() => {}).finally(() => ctScheduleReconnect(true)); return; }
     if (m.payloadType === 2148 || (m.payloadType === 2147 && (ctCfg() || {}).refreshToken)) {      // cTrader dropped the session: reconnect (renewing the token if needed)
       ctClose(); CT.state = "closed"; ctScheduleReconnect(true); if (typeof renderMacro === "function") renderMacro(); return; }
     if (m.payloadType === 2147) {
@@ -2517,6 +2520,7 @@ function ctReq(type, payload, timeout = 20000) {
 async function ctConnect(cfg = ctCfg()) {
   if (CT.connecting) return CT.connecting;
   CT.connecting = (async () => {
+    if (cfg && cfg.keeper && (!cfg.accessToken || !cfg.expAt || cfg.expAt - Date.now() < 864e5)) { try { cfg = await ctKeeperPull(); } catch (e) {} }    // borrowed login near its end: the keeper has the renewed one
     if (!cfg || !cfg.clientId || !cfg.clientSecret || !cfg.accessToken) throw new Error("enter your Client ID and Secret, then click Sign in with cTrader");
     ctClose(); CT.state = "connecting"; CT.err = null;
     let live = cfg.live !== false;
@@ -2527,7 +2531,8 @@ async function ctConnect(cfg = ctCfg()) {
         if (cfg.refreshToken && cfg.expAt && cfg.expAt - Date.now() < CT_RENEW_MS) cfg = await ctRenew(cfg);          // renew before it runs out
         let accts;
         try { accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || []; }
-        catch (e) { if (!cfg.refreshToken || !/token/i.test(e.message)) throw e; cfg = await ctRenew(cfg); accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || []; }
+        catch (e) { if (!/token/i.test(e.message) || !(cfg.keeper || cfg.refreshToken)) throw e;
+          cfg = cfg.keeper ? await ctKeeperPull(cfg.accessToken) : await ctRenew(cfg); accts = (await ctReq(2149, { accessToken: cfg.accessToken })).ctidTraderAccount || []; }
         if (!accts.length) throw new Error("this access token has no cTrader accounts attached");
         CT.accounts = accts;
         const a = accts.find(x => String(x.ctidTraderAccountId) === String(cfg.accountId)) || accts.find(x => !!x.isLive === live) || accts[0];
@@ -2554,6 +2559,30 @@ async function ctRenew(cfg) {                                // needs the app-au
   const next = { ...cfg, accessToken: r.accessToken, refreshToken: r.refreshToken || cfg.refreshToken, expAt: Date.now() + (+r.expiresIn || CT_TOKEN_DAYS * 86400) * 1000 };
   ctSaveCfg(next); return next;
 }
+/* ---- the shared login: one keeper on the website renews it (api/ct-keeper.js); a device that borrows it never renews, so none signs another out ---- */
+const KP_KEY = "finder-keeper", KP_SITE = "https://alt-scanner-three.vercel.app";
+const KP = () => { try { return { pass: "", url: "", ...(JSON.parse(localStorage.getItem(KP_KEY) || "null") || {}) }; } catch (e) { return { pass: "", url: "" }; } };
+const kpSave = k => { try { if (k) localStorage.setItem(KP_KEY, JSON.stringify(k)); else localStorage.removeItem(KP_KEY); } catch (e) {} };
+const kpUrl = (k = KP()) => (k.url || (typeof location !== "undefined" ? location.origin : "")).replace(/\/+$/, "") + "/api/ct-keeper";
+async function ctKeeper(action, extra = {}, k = KP()) {
+  let r; try { r = await fetch(kpUrl(k), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, pass: k.pass, ...extra }) }); }
+  catch (e) { throw new Error(`Couldn't reach the shared login${k.url ? " on " + k.url : ""}.`); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || `The shared login answered ${r.status}.`), { status: r.status });
+  return j;
+}
+async function ctKeeperPull(bad, k = KP()) {                     // borrow the current login (bad = a token cTrader just rejected, so the keeper renews)
+  const j = await ctKeeper("get", bad ? { bad: String(bad).slice(-8) } : {}, k), old = ctCfg() || {};
+  const next = { ...old, clientId: j.clientId, clientSecret: j.clientSecret, accessToken: j.accessToken, expAt: j.expAt, scope: j.scope || old.scope, keeper: true, refreshToken: "" };
+  ctSaveCfg(next); CT.kpAt = Date.now(); return next;
+}
+async function ctKeeperSeed(pass, url) {                          // hand this device's fresh sign-in to the keeper; from now on this device borrows too
+  const c = ctCfg(); if (!c || !c.accessToken || !c.refreshToken) throw new Error("Sign in with cTrader on this device first.");
+  const k = { pass, url: url || "" };
+  await ctKeeper("seed", { clientId: c.clientId, clientSecret: c.clientSecret, accessToken: c.accessToken, refreshToken: c.refreshToken, expAt: c.expAt || 0, scope: c.scope || "" }, k);
+  kpSave(k); ctSaveCfg({ ...c, keeper: true, refreshToken: "" }); CT.kpAt = Date.now();
+}
+async function ctKeeperJoin(pass, url) { const k = { pass, url: url || "" }, cfg = await ctKeeperPull("", k); kpSave(k); return cfg; }
 const CT_STOP = /rejected the Client|invalid or expired|revoked|enter your|renew/i;   // errors a retry can't fix
 function ctScheduleReconnect(now) {
   if (!ctConfigured() || CT.retryT || CT.connecting) return;
@@ -2576,6 +2605,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   window.addEventListener("online", () => { if (CT.state !== "ready") ctScheduleReconnect(true); });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && ctConfigured() && CT.state !== "ready" && CT.state !== "connecting" && CT.state !== "error") ctScheduleReconnect(true); });
   setInterval(() => { const c = ctCfg(); if (CT.state === "ready" && c && c.refreshToken && c.expAt && c.expAt - Date.now() < CT_RENEW_MS) ctRenew(c).catch(() => {}); }, 3600e3);
+  setInterval(() => { const c = ctCfg(); if (!c || !c.keeper || Date.now() - (CT.kpAt || 0) < 6 * 3600e3) return;            // borrowing: pick up the keeper's renewals
+    ctKeeperPull().then(n => { if (n.accessToken !== c.accessToken && CT.state === "ready") { ctClose(); CT.state = "closed"; ctScheduleReconnect(true); } }).catch(() => {}); }, 15 * 60e3);
 }
 let ctNextAt = 0;
 async function ctThrottle() { const now = Date.now(), at = Math.max(now, ctNextAt); ctNextAt = at + 230; if (at > now) await sleep(at - now); }   // history limit: 5 requests/s
@@ -6968,6 +6999,29 @@ async function ctOAuthReturn() {                // runs on load: finish a sign-i
     if (typeof goPage === "function") goPage("macro"); if (typeof macroScan === "function") macroScan(true);
   } catch (e) { CT.state = "error"; CT.err = "sign-in didn't finish: " + e.message; say("cTrader sign-in didn't finish: " + e.message, true); if (typeof renderMacro === "function") renderMacro(); }
 }
+function ctShareHTML(c) {                                         // "Use it on all your devices": share this login, borrow the shared one, or stop
+  const k = KP(), esc = v => String(v || "").replace(/[&<>"]/g, x => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x])), mac = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  const addr = mac ? `<label>Website address<input id="kpUrl" autocomplete="off" spellcheck="false" value="${esc(k.url || KP_SITE)}"></label>` : "";
+  const pass = `<label>Passphrase<input id="kpPass" type="password" autocomplete="off" placeholder="The FINDER_PASS you set in Vercel"></label>`;
+  if (c.keeper) return `<div class="ctshare"><h4>Use it on all your devices</h4><p class="meta">This device borrows the shared login from ${esc((k.url || location.origin).replace(/^https?:\/\//, ""))}. Only the website renews it, so your other devices stay signed in.</p>
+    <div class="ctacts"><button class="btn" id="kpLeave">Stop using the shared login</button></div></div>`;
+  return `<div class="ctshare"><h4>Use it on all your devices</h4>
+    <p class="meta">${c.refreshToken ? "Signed in here? Share it so your phone, the Mac app and the website all use this login without signing in again." : "Signed in and shared on another device? Enter the passphrase to use that login here."}</p>
+    ${pass}${addr}<div class="ctacts">${c.refreshToken ? `<button class="btn primary" id="kpShare">Share this login with your other devices</button>` : ""}<button class="btn ${c.refreshToken ? "" : "primary"}" id="kpJoin">Use the shared login</button></div></div>`;
+}
+function ctShareBind() {
+  const msg = h => { $("ctMsg").innerHTML = h; }, val = () => ({ pass: ($("kpPass") || {}).value || "", url: ($("kpUrl") ? $("kpUrl").value.trim().replace(/\/+$/, "") : "") });
+  const check = v => { if (v.pass.length < 12) { msg('<span class="dn">The passphrase is the FINDER_PASS you set in Vercel (12 or more characters).</span>'); return false; } return true; };
+  const after = async (ok, b) => { msg(`<span class="up">${ok}</span>`); try { await ctConnect(); macroScan(true); } catch (e) { msg(`<span class="dn">Couldn't connect: ${e.message}</span>`); } if (b) b.disabled = false; renderMacro(); };
+  if ($("kpShare")) $("kpShare").onclick = async () => { const v = val(); if (!check(v)) return; $("kpShare").disabled = true; msg("Sharing…");
+    try { await ctKeeperSeed(v.pass, v.url); await after("Shared. Your other devices can now press “Use the shared login” with the same passphrase.", $("kpShare")); }
+    catch (e) { msg(`<span class="dn">${e.message}</span>`); $("kpShare").disabled = false; } };
+  if ($("kpJoin")) $("kpJoin").onclick = async () => { const v = val(); if (!check(v)) return; $("kpJoin").disabled = true; msg("Getting the shared login…");
+    try { await ctKeeperJoin(v.pass, v.url); ctClose(); CT.state = "closed"; await after("Using the shared login. Connecting to cTrader…", $("kpJoin")); }
+    catch (e) { msg(`<span class="dn">${e.message}</span>`); $("kpJoin").disabled = false; } };
+  if ($("kpLeave")) $("kpLeave").onclick = () => { const c = ctCfg() || {}; kpSave(null); ctClose(); CT.state = "closed";
+    ctSaveCfg({ clientId: c.clientId, clientSecret: c.clientSecret, prefer: c.prefer }); openCTSettings(); msg("This device no longer uses the shared login. Sign in or use it again any time."); renderMacro(); };
+}
 function openCTSettings() {
   killChart();
   const c = ctCfg() || {}, esc = v => String(v || "").replace(/"/g, "&quot;");
@@ -6992,11 +7046,12 @@ function openCTSettings() {
       ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.map(x => x[0])].filter(n => !got.some(o => o.name === n));
         return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => o.group !== "Forex").map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => o.group === "Forex") ? `, plus ${got.filter(o => o.group === "Forex").length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
       <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
-      <p class="meta">Saved in this browser only and sent only to cTrader. Each address keeps its own copy (the Mac app at localhost and the Vercel site), and renewing on one can sign the other out, so connect cTrader in just one of them. The token gives read access to prices and your account list; the app never places orders.</p>
+      ${ctShareHTML(c)}
+      <p class="meta">Saved in this browser and sent only to cTrader (and to your own website when you share it). Without sharing, each address keeps its own copy and renewing on one signs the others out. The token gives read access to prices and your account list; the app never places orders.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
       <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
     </div>`;
-  $("dlgClose").onclick = () => $("dlg").close();
+  $("dlgClose").onclick = () => $("dlg").close(); ctShareBind();
   $("ctCopyRedir").onclick = () => { try { navigator.clipboard.writeText(ctRedirectUri()); $("ctCopyRedir").textContent = "Copied"; } catch (e) {} };
   $("ctSignIn").onclick = () => {
     const id = $("ctId").value.trim(), sec = $("ctSecret").value.trim();
@@ -11353,7 +11408,7 @@ const cttMayTrade = () => ctConfigured() && CTT.scopeOk !== false && (ctCfg() ||
 async function cttConnect() {
   if (CTT.connecting) return CTT.connecting;
   CTT.connecting = (async () => {
-    const c = ctCfg(), tc = trCfg();
+    let c = ctCfg(); const tc = trCfg();
     if (!c || !c.clientId || !c.clientSecret || !c.accessToken) throw new Error("connect cTrader first (Connect cTrader → Sign in)");
     CTT.state = "connecting"; CTT.err = null;
     try {
@@ -11361,7 +11416,8 @@ async function cttConnect() {
       for (let i = 0; i < 2; i++) {
         await cttOpen(live);
         await cttReq(2100, { clientId: c.clientId, clientSecret: c.clientSecret });
-        const r = await cttReq(2149, { accessToken: c.accessToken });
+        let r; try { r = await cttReq(2149, { accessToken: c.accessToken }); }
+        catch (e) { if (!c.keeper || !/token/i.test(e.message)) throw e; c = await ctKeeperPull(c.accessToken); r = await cttReq(2149, { accessToken: c.accessToken }); }
         if (!cttTradeScope(r.permissionScope)) { CTT.scopeOk = false; throw new Error("your cTrader sign-in only allows reading prices. Click “Sign in with trading access”"); }
         CTT.scopeOk = true; CTT.accounts = r.ctidTraderAccount || [];
         const allowed = CTT.accounts.filter(a => tc.live ? true : !a.isLive);

@@ -1056,7 +1056,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 @media (max-width:1800px){#chAlertBtn span,#chRpBtn span,.chsetbtn span{display:none}}.rpt{font-size:12px;color:var(--mute);min-width:120px}
 #chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
 .chmod.chmal{width:min(560px,96vw)}
-.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}
+.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}.systeps{padding-left:18px;line-height:1.5}#syBox input[type=password]{width:260px}
 .chstabs{display:flex;gap:2px}.chstabs button{background:none;border:0;border-radius:6px;color:var(--mute);font:600 12.5px var(--display);padding:4px 7px;cursor:pointer}.chstabs button.on{color:var(--strong, var(--text));background:var(--pill)}
 .chot{padding:4px 8px 10px}.chotg{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);padding:10px 2px 4px}.chotnone{padding:2px 4px}
 .chotr{display:flex;align-items:center;gap:2px;padding:4px;border-radius:6px;font-size:12.5px}.chotr:hover,.chotr.sel{background:var(--pill)}.chotr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:5px}.chotr .n.off{opacity:.45}
@@ -7122,7 +7122,7 @@ function chApplyCSAll(reData) {
 }
 setInterval(() => { if (chOn) chVis().forEach(P => { if (P.chart && P.t.length) chLevelLines(P); }); }, 4000);   // alerts added or fired elsewhere
 const CS_TABS = [["sym", "Symbol", "M5 4v13M5 7h3v6H5M13 3v15M13 6h3v8h-3"], ["sl", "Status line", "M3 6h15M3 10.5h10M3 15h12"], ["sc", "Scales and lines", "M4 4v13h13M8 13l3-4 3 2 3-5"],
-  ["cv", "Canvas", "M4 16l1-4 8-8 3 3-8 8zM12 5l3 3"], ["al", "Alerts", "M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0"], ["ev", "Events", "M4 5h13v12H4zM4 9h13M8 3v3M13 3v3"], ["tr", "Trading", "M4 15l4-5 3 3 5-7M13 6h3v3"]];
+  ["cv", "Canvas", "M4 16l1-4 8-8 3 3-8 8zM12 5l3 3"], ["al", "Alerts", "M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0"], ["ev", "Events", "M4 5h13v12H4zM4 9h13M8 3v3M13 3v3"], ["tr", "Trading", "M4 15l4-5 3 3 5-7M13 6h3v3"], ["sy", "Sync", "M6.5 15.5h8a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 5.3 9.6 3 3 0 0 0 6.5 15.5z"]];
 function chChartSettings(tab) {
   const snap = JSON.stringify({ cs: CH.cs || {}, ind: CH.ind || [] }); CH.cs = { ...(CH.cs || {}) }; let cur = tab || CH.csTab || "sym";
   const box = chModal(`<div class="chmh"><h3>Settings</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div>
@@ -7159,7 +7159,8 @@ function chChartSettings(tab) {
       <div class="chsgh">Scales</div>${row("Text", sw("textC") + sel("fontSize", [10, 11, 12, 13, 14].map(n => [n, n])))}${row("Lines", sw("scaleC"))}
       <div class="chsgh">Margins</div>${row("Top", num("mTop", 0, 40, "%"))}${row("Bottom", num("mBot", 0, 40, "%"))}${row("Right", num("rightBars", 0, 60, "bars"))}`;
     else if (cur === "al") h = `<div class="chsgh">Chart line visibility</div>${chk("alertLines", "Alert lines (your price alerts on this market)", sw("alertC"))}
-      <p class="meta">Add price alerts from a coin's Alerts &amp; Notes tab or the Watchlist page.</p>`;
+      <p class="meta">Right-click a chart or use the Alert button (Alt+A) to add an alert on a price, a drawn line or an indicator. Price alerts from a coin's Alerts &amp; Notes tab show here too.</p>`;
+    else if (cur === "sy") h = syncHTML();
     else if (cur === "tr") h = `<div class="chsgh">Your trades on the chart</div>${chk("trLines", "Positions and pending orders as lines")}${chk("trX", "× on the line to close or cancel")}${chk("trDrag", "Drag a line to move the price, stop loss or take profit")}
       ${row("Buy position", sw("trBuyC"))}${row("Sell position", sw("trSellC"))}${row("Pending order", sw("trPendC"))}${row("Stop loss", sw("trSLC"))}${row("Take profit", sw("trTPC"))}
       <p class="meta">Drag a position's own line to add a stop loss or take profit. Changes go to your broker when you let go.</p>
@@ -7167,7 +7168,7 @@ function chChartSettings(tab) {
       <p class="meta">The arrows, the line from entry to exit and the result tag. Open trades follow their P&amp;L so far.</p>
       <div class="chsgh">Trade watch</div>${chk("trWatch", "Positions, orders and history under the charts")}<p class="meta">Pick its columns with “Columns” on the panel. Click a row to see that trade on the chart.</p>`;
     else h = `<div class="chsgh">Events</div>${chk("sessBreaks", "Session breaks (start of each day)", sw("sbC"))}<p class="meta">Day boundaries follow the timezone on the Symbol tab. The Asia, London and NY session boxes are an indicator: add or edit them from Indicators.</p>`;
-    B.innerHTML = h;
+    B.innerHTML = h; if (cur === "sy") syncBind(B, render);
     B.querySelectorAll("[data-ck]").forEach(el => el.onchange = () => set({ [el.dataset.ck]: el.checked }, !!el.dataset.rd));
     B.querySelectorAll("[data-sel]").forEach(el => el.onchange = () => { const k = el.dataset.sel; let v = el.value; if (k === "h12") v = v === "true"; else if (["xhStyle", "fontSize"].includes(k)) v = +v; else if (k === "prec" && v !== "auto") v = +v;
       if (k === "tz") CH_OFF.clear(); set({ [k]: v }, !!el.dataset.rd || k === "tz"); if (k === "bgType") render(); });
@@ -9538,6 +9539,86 @@ async function chQuotesFetch(list) {
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
+
+/* ===================== Sync across devices: a private GitHub gist holds your drawings, watchlists, alerts, indicators and chart style =====================
+   The token stays in this browser (localStorage "finder-sync"), like the Telegram token. Each part carries the time it last changed; the newer copy wins.
+   Layout, timeframes and the open symbol stay per device (a phone wants one chart, the Mac four). */
+const SYNC_FILE = "finder-sync.json", SYNC_DESC = "The Finder sync (charts, drawings, watchlists, alerts)";
+const SYNC_CH = ["ind", "cs", "csTpl", "cmp", "ctype", "toolFav", "toolDef", "indFav", "legMin", "icon"];
+const SYNC_PARTS = {
+  chart: { l: "Indicators, chart style, templates", get: () => Object.fromEntries(SYNC_CH.filter(k => CH[k] !== undefined).map(k => [k, CH[k]])),
+    set: v => { const ty = CH.ctype; Object.assign(CH, v); chSave(); if (chBuilt) { chIndChanged(); chApplyCSAll(true); if (CH.ctype !== ty) { CHP.forEach(P => { if (P.chart) { chMainSeries(P); if (P.t.length) chSetData(P); } }); chTypeBtn(); } chVis().forEach(chCmpSync); } } },
+  draw: { l: "Drawings", get: () => CHD, set: v => { CHD = v || {}; chSaveDraw(); chDirty = true; } },
+  wl: { l: "Chart watchlist", get: () => CHW, set: v => { CHW = Array.isArray(v) ? v : CHW; chSaveWL(); if (chOn) chWLRender(); } },
+  alerts: { l: "Chart alerts", get: () => CHA, set: v => { CHA = Array.isArray(v) ? v : CHA; chaSave(); chaListRender(); if (chOn) chVis().forEach(P => { P.alSig = null; chLevelLines(P); }); } },
+  watch: { l: "Watchlist and price alerts", get: () => ({ coins: WL.coins, alerts: WL.alerts }), set: v => { WL.coins = (v && v.coins) || {}; WL.alerts = (v && v.alerts) || []; wlSave(); if (typeof startPricePoll === "function") startPricePoll(); } },
+  scripts: { l: "Your scripts", get: () => (typeof PS !== "undefined" ? PS.list : []), set: v => { if (typeof PS !== "undefined" && Array.isArray(v)) { PS.list = v; psSave(); if (chBuilt) chIndChanged(); } } },
+};
+const SY = () => ({ token: "", gist: "", at: {}, h: {}, last: 0, err: "", ...(chLoadJSON("finder-sync", {}) || {}) });
+const sySave = o => chSaveJSON("finder-sync", { ...SY(), ...o });
+const syHash = v => { const t = JSON.stringify(v ?? null); let h = 5381; for (let i = 0; i < t.length; i++) h = (h * 33 + t.charCodeAt(i)) | 0; return t.length + ":" + h; };
+async function syApi(path, opt = {}) {
+  const r = await fetch("https://api.github.com" + path, { ...opt, headers: { Authorization: "Bearer " + SY().token, Accept: "application/vnd.github+json", "Content-Type": "application/json" } });
+  if (r.status === 401) throw new Error("GitHub didn't accept the token (check it has the gist permission)");
+  if (!r.ok) throw new Error(`GitHub said ${r.status}`); return r.json();
+}
+function syMark() {                                               // note which parts changed here since the last look
+  const c = SY(), at = { ...c.at }, h = { ...c.h }; let ch = false;
+  Object.entries(SYNC_PARTS).forEach(([k, P]) => { let v; try { v = P.get(); } catch (e) { return; } const x = syHash(v); if (h[k] !== x) { h[k] = x; at[k] = Date.now(); ch = true; } });
+  if (ch) sySave({ at, h }); return ch;
+}
+let syBusy = false, syTimer = 0;
+function syUnion(k, L, R) {
+  const byId = (a, b) => [...(b || []), ...(a || []).filter(x => !(b || []).some(y => y && x && y.id === x.id))];
+  if (k === "draw") { const o = { ...(R || {}) }; Object.entries(L || {}).forEach(([s, list]) => o[s] = byId(list, o[s])); return o; }
+  if (k === "wl") return [...new Set([...(R || []), ...(L || [])])];
+  if (k === "alerts" || k === "scripts") return byId(L, R);
+  if (k === "watch") return { coins: { ...((L || {}).coins || {}), ...((R || {}).coins || {}) }, alerts: byId((L || {}).alerts, (R || {}).alerts) };
+  return R;
+}
+async function syNow(why) {                                      // pull, take what's newer there, push what's newer here
+  const c = SY(); if (!c.token || syBusy) return; syBusy = true;
+  try {
+    syMark(); let gist = c.gist, remote = { v: 1, parts: {} };
+    if (!gist) {                                                  // find the gist from another device, else make one
+      for (let pg = 1; pg <= 5 && !gist; pg++) { const L = await syApi(`/gists?per_page=100&page=${pg}`); const g = L.find(x => x.description === SYNC_DESC && x.files && x.files[SYNC_FILE]); if (g) gist = g.id; if (L.length < 100) break; }
+      if (!gist) gist = (await syApi("/gists", { method: "POST", body: JSON.stringify({ description: SYNC_DESC, public: false, files: { [SYNC_FILE]: { content: JSON.stringify(remote) } } }) })).id;
+      sySave({ gist });
+    }
+    const g = await syApi("/gists/" + gist), f = g.files && g.files[SYNC_FILE];
+    if (f) { let txt = f.content; if (f.truncated && f.raw_url) txt = await (await fetch(f.raw_url)).text(); try { remote = JSON.parse(txt) || remote; } catch (e) {} } remote.parts = remote.parts || {};
+    const loc = SY(), at = { ...loc.at }, h = { ...loc.h }, first = !loc.last; let push = false, pulled = [];
+    Object.entries(SYNC_PARTS).forEach(([k, P]) => { const R = remote.parts[k], la = at[k] || 0;
+      if (R && first) {                                         // a device joining: keep both sides (the gist's copy plus anything only here)
+        try { P.set(syUnion(k, P.get(), R.v)); pulled.push(P.l.toLowerCase()); } catch (e) {} at[k] = Date.now(); try { h[k] = syHash(P.get()); remote.parts[k] = { at: at[k], v: P.get() }; push = true; } catch (e) {} }
+      else if (R && R.at > la) { try { P.set(R.v); pulled.push(P.l.toLowerCase()); } catch (e) {} at[k] = R.at; try { h[k] = syHash(P.get()); } catch (e) {} }
+      else if (!R || la > R.at) { try { remote.parts[k] = { at: la || Date.now(), v: P.get() }; at[k] = remote.parts[k].at; push = true; } catch (e) {} } });
+    if (push) { remote.at = Date.now(); await syApi("/gists/" + gist, { method: "PATCH", body: JSON.stringify({ files: { [SYNC_FILE]: { content: JSON.stringify(remote) } } }) }); }
+    sySave({ at, h, last: Date.now(), err: "" }); if (pulled.length && why !== "quiet") chToast(`Synced from your other device: ${chEsc(pulled.join(", "))}.`);
+  } catch (e) { sySave({ err: e.message }); if (why === "manual") chToast(`Sync failed: ${chEsc(e.message)}.`); }
+  finally { syBusy = false; const B = $("syBox"); if (B && B._render) B._render(); }
+}
+setInterval(() => { if (!SY().token) return; if (syMark()) { clearTimeout(syTimer); syTimer = setTimeout(() => syNow("quiet"), 4000); } }, 3000);     // push a few seconds after a change
+setInterval(() => { if (SY().token && document.visibilityState === "visible") syNow(); }, 60000);                                           // and look for the other device's changes
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && SY().token) syNow(); });
+setTimeout(() => { if (SY().token) syNow(); }, 1500);
+function syncHTML() {
+  const c = SY();
+  return `<div id="syBox"><div class="chsgh">Sync across devices</div>
+    <p class="meta">Keep your drawings, watchlists, alerts, indicators, scripts and chart style the same on the Mac, the phone and the website. They're saved in a private GitHub gist on your account. Layout and timeframes stay per device.</p>
+    ${c.token ? `<div class="chsr"><label>Status</label><span class="ctl">${c.err ? `<span class="dn">${chEsc(c.err)}</span>` : c.last ? `Synced ${chEsc(fmtPHT(new Date(c.last + PHT_MS)))}` : "Not synced yet"}</span></div>
+      <div class="chsr"><label>What's synced</label><span class="ctl meta">${Object.values(SYNC_PARTS).map(P => P.l).join(" · ")}</span></div>
+      <div class="csrow"><button class="btn primary sm" id="sySync">Sync now</button><button class="btn sm" id="syOff">Disconnect this device</button></div>`
+    : `<ol class="meta systeps"><li>On GitHub: Settings → Developer settings → Personal access tokens → Fine-grained token, with <b>Gists: read and write</b> only (or a classic token with the <b>gist</b> scope).</li><li>Paste it below on each device you use.</li></ol>
+      <div class="chsr"><label for="syTok">GitHub token</label><span class="ctl"><input type="password" id="syTok" autocomplete="off" placeholder="github_pat_…" aria-label="GitHub token"></span></div>
+      <div class="csrow"><button class="btn primary sm" id="syOn">Connect</button></div><p class="meta">The token stays in this browser only.</p>`}</div>`;
+}
+function syncBind(B, rerender) {
+  const box = B.querySelector("#syBox"); if (!box) return; box._render = rerender;
+  const on = $("syOn"), tok = $("syTok"); if (on) on.onclick = async () => { const t = tok.value.trim(); if (!t) { tok.focus(); return; } sySave({ token: t, gist: "", at: {}, h: {}, last: 0, err: "" }); on.disabled = true; on.textContent = "Connecting…"; await syNow("manual"); rerender(); };
+  if ($("sySync")) $("sySync").onclick = async () => { $("sySync").disabled = true; await syNow("manual"); rerender(); };
+  if ($("syOff")) $("syOff").onclick = () => { try { localStorage.removeItem("finder-sync"); } catch (e) {} rerender(); };
+}
 
 /* ===================== Right panel tabs: Watchlist · Object tree · Data window (CH.side) ===================== */
 const chSideTabs = () => `<span class="chstabs" role="tablist">${[["wl", "Watchlist"], ["obj", "Objects"], ["data", "Data"]].map(([k, l]) => `<button role="tab" data-side="${k}" class="${(CH.side || "wl") === k ? "on" : ""}" aria-selected="${(CH.side || "wl") === k}">${l}</button>`).join("")}</span>`;

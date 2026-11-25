@@ -40,6 +40,12 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   levels from 1H candles `fbLevels`/`fbLvCalc` (US indices: 15m `fbUsLv`, overnight range, 4 PM close, open gap, first 15 min), `fbFedExp`, `fbStrength`, `fbEvents` (+ `fbEarn`), `fbNews`;
   sudden moves `fbSample` (every 2 s, live prices, alert via `ncAdd` for your NBB Watch markets); release read `rxTick` (market reaction 2 and 10 min after a high-impact release, history `finder-react`);
   headline alerts on any page `naCheck` (core `NEWS_TAGS`/`newsBig`, MACRO tag; alerts carry `action: "brief"`). Cloud watcher sends headlines too (`.github/workflows/cloud-watch.yml`). Test: `t_brief`.
+- TradingView extras on Charts (end of `<script id="charts">`; test `t_tvx`, `t_sync`): chart types `CH_TYPES`/`chMainSeries`/`chSerPt` (Heikin Ashi `chHA`);
+  chart alerts `CHA` (`chaDialog`, `chaQuick`, `chaEval` every 3 s, `chaCandles`, list `chaList`); bar replay `RP` (`rpEnter`, `rpCut`, `rpForward`; blocks `cttPlace`/`mxtPlace`/`qtPlace`);
+  compare `CH.cmp` (`chCmpSync`, percent scale); right panel tabs `CH.side` (object tree `chSideRender`, data window `chDataWin`); snapshot `chSnap`;
+  sync via private GitHub gist `SYNC_PARTS`/`syNow` (token in `finder-sync`, Settings → Sync); scripts `PS` (Pine-like, no eval: `psLex`/`psParse`/`psCompile`/`psRun`, editor `psEditor`, registered as `IND["ps_<id>"]`).
+- Markets switch on the boards (`MK`, `boardRows`, `mkDay`/`mkSwing`, `mkMix`, `rowOf`; test `t_mkts`): crypto plus `MACRO.rows` (forex, indices, metals & energy) through the same detectors.
+  `data.day`/`data.swing`/`aotsList()` stay coin-only for history, streams and exports; the boards call the mixed versions.
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow

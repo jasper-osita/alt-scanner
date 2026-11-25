@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.12.1949">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.25.1203">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -52,6 +52,8 @@ h1{margin:14px 0 4px;font-size:24px;font-weight:600;color:var(--strong);letter-s
 
 /* pills */
 .pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 6px}
+.mktbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 10px}.mktl{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.mktseg{display:inline-flex;flex-wrap:wrap;max-width:100%;background:var(--pill);border:1px solid var(--pill-b);border-radius:9px;padding:2px;gap:2px}.mktseg button{background:none;border:0;border-radius:7px;color:var(--mute);font:600 12.5px var(--display);padding:5px 11px;cursor:pointer}.mktseg button.on{background:var(--panel);color:var(--strong, var(--text));box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .pill{display:flex;align-items:center;gap:6px;background:var(--pill);border:1px solid var(--pill-b);border-radius:8px;padding:0 4px 0 12px;height:34px;color:var(--text)}
 .pill span{color:var(--mute);font-size:13px}
 .pill select{background:transparent;border:0;color:var(--text);padding:6px 4px;cursor:pointer;font-size:14px}
@@ -1133,6 +1135,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
     <span class="sep"></span>
     <input id="search" class="search" type="search" placeholder="Search coins" aria-label="Search coin">
   </div>
+  <div class="mktbar" data-page="momentum day swing aots sessions screener" role="group" aria-label="Markets on the boards"><span class="mktl">Markets</span><span class="mktseg" id="mktSeg"></span><span class="meta" id="mktNote" aria-live="polite"></span></div>
 
   <section class="chpage" id="chPage" data-page="charts"></section>
 
@@ -2835,7 +2838,7 @@ function commonFlags(r, dir, btc, ext) {
   if (r.funding !== null && dir === "Short" && r.funding > FUNDING_EXTREME) f.push("Fuel: crowded longs");
   if (r.funding !== null && dir === "Long" && r.funding < -FUNDING_EXTREME) f.push("Fuel: crowded shorts");
   if (Math.abs(ext) > 3) f.push("Stretched from the 20");
-  if ((btc.regime === "Risk-off" && dir === "Long") || (btc.regime === "Risk-on" && dir === "Short")) f.push("Against BTC");
+  if (!r.macro && btc && ((btc.regime === "Risk-off" && dir === "Long") || (btc.regime === "Risk-on" && dir === "Short"))) f.push("Against BTC");
   if (r.trending) f.push("Trending");
   return f;
 }
@@ -3128,7 +3131,7 @@ function bindRows(root) {
 const SECTOR_CAP = 2;
 function capSectors(list, symOf = x => x.symbol, cap = SECTOR_CAP) {     // keep at most `cap` coins per narrative so 5 picks aren't one trade
   const seen = {};
-  return list.filter(x => { const sec = (bySym[symOf(x)] || {}).sector; if (!sec) return true; seen[sec] = (seen[sec] || 0) + 1; return seen[sec] <= cap; });
+  return list.filter(x => { const sec = (rowOf(symOf(x)) || {}).sector; if (!sec) return true; seen[sec] = (seen[sec] || 0) + 1; return seen[sec] <= cap; });
 }
 function computeBoards() {
   const hw = hideWicky();
@@ -3146,7 +3149,7 @@ function drvTag(sym) {
   return `<span class="tag ${cls}" title="${d.lines.join(" ").replace(/"/g, "'")}">${d.tag || d.head}</span>`;
 }
 function rowHTML(i, sym, dir, score, line, tags, trade) {
-  const r = bySym[sym];
+  const r = rowOf(sym);
   return `<div class="row ${trade ? "trade" : ""}" data-s="${sym}" tabindex="0" role="button">
     <span class="rk">${i + 1}</span>
     <div><div class="nm">${instHTML(r)}${biasTag(dir)}${ratingHTML(r.rating)}</div><div class="ln">${line}</div></div>
@@ -3154,37 +3157,37 @@ function rowHTML(i, sym, dir, score, line, tags, trade) {
     <div class="tags">${drvTag(sym)}${tags}</div></div>`;
 }
 function renderDay() {
-  const el = $("dayBoard");
-  if (!data.day.length) { el.innerHTML = `<div class="empty">${dirSel() === "Short" && !data.canShort ? "Spot can't be shorted. Switch Market to Futures for short setups." : activeFilters().length && FS.boards ? "No day-trade candidate passes your filters." : "No coin has clean 1H structure with enough volume right now. Standing aside is a valid plan."}</div>`; return; }
-  el.innerHTML = data.day.map((p, i) => { const r = bySym[p.symbol];
-    const line = `1H ${r.s1h.state} · RVOL now ${r.rvolNow != null ? r.rvolNow.toFixed(2) + "×" : "—"} · RS ${fmtRS(r.rs24)} vs BTC · ATR ${r.atrPct.toFixed(1)}%${r.maxLev ? ` · ≤${r.maxLev}×` : ""}${r.sector ? " · " + r.sector : ""}`;
+  const el = $("dayBoard"), list = mkOn() ? mkDay() : data.day;
+  if (!list.length) { el.innerHTML = `<div class="empty">${dirSel() === "Short" && !data.canShort ? "Spot can't be shorted. Switch Market to Futures for short setups." : activeFilters().length && FS.boards ? "No day-trade candidate passes your filters." : "No coin has clean 1H structure with enough volume right now. Standing aside is a valid plan."}</div>`; return; }
+  el.innerHTML = list.map((p, i) => { const r = rowOf(p.symbol);
+    const line = `1H ${r.s1h.state} · RVOL now ${r.rvolNow != null ? r.rvolNow.toFixed(2) + "×" : "—"} · ${r.macro ? chEsc(r.group) : `RS ${fmtRS(r.rs24)} vs BTC`} · ATR ${r.atrPct.toFixed(1)}%${r.maxLev ? ` · ≤${r.maxLev}×` : ""}${r.sector ? " · " + r.sector : ""}`;
     const tags = (p.status === "TRADEABLE" ? `<span class="tag trade">Tradeable</span>` : `<span class="tag">Watch only</span>`) + flagTags(p.flags);
     return rowHTML(i, p.symbol, p.dir, p.score, line, tags, p.status === "TRADEABLE"); }).join("");
   bindRows(el);
 }
 function renderSwing() {
-  const el = $("swingBoard");
-  if (!data.swing.length) { el.innerHTML = `<div class="empty">${dirSel() === "Short" && !data.canShort ? "Spot can't be shorted. Switch Market to Futures for short setups." : activeFilters().length && FS.boards ? "No swing candidate passes your filters." : "No coin has 4H and Daily aligned the same way right now."}</div>`; return; }
-  el.innerHTML = data.swing.map((p, i) => { const r = bySym[p.symbol];
-    return rowHTML(i, p.symbol, p.dir, p.score, `4H ${r.s4h.state} · D ${r.s1d.state} · RS 7d ${fmtRS(r.rs7)} vs BTC · RVOL ${r.rvol.toFixed(2)}×${r.sector ? " · " + r.sector : ""}`, flagTags(p.flags), false); }).join("");
+  const el = $("swingBoard"), list = mkOn() ? mkSwing() : data.swing;
+  if (!list.length) { el.innerHTML = `<div class="empty">${dirSel() === "Short" && !data.canShort ? "Spot can't be shorted. Switch Market to Futures for short setups." : activeFilters().length && FS.boards ? "No swing candidate passes your filters." : "No coin has 4H and Daily aligned the same way right now."}</div>`; return; }
+  el.innerHTML = list.map((p, i) => { const r = rowOf(p.symbol);
+    return rowHTML(i, p.symbol, p.dir, p.score, `4H ${r.s4h.state} · D ${r.s1d.state} · ${r.macro ? chEsc(r.group) : `RS 7d ${fmtRS(r.rs7)} vs BTC`} · RVOL ${r.rvol.toFixed(2)}×${r.sector ? " · " + r.sector : ""}`, flagTags(p.flags), false); }).join("");
   bindRows(el);
 }
-function aotsList() {
+function aotsList(mixed) {                           // mixed: the board's view across markets (other callers keep to the coins)
   const tf = $("aotsTf").value, hw = hideWicky(), out = [];
-  data.all.forEach(r => {
-    if (r.vol24h < AOTS_MIN_VOL || (hw && r.wicky) || !passBoards(r)) return;
-    const opts = [r.aots4h, r.aots1h].filter(a => a && (!tf || a.tf === tf) && dirOK(a.dir) && (a.dir === "Long" || data.canShort));
+  (mixed && mkOn() ? boardRows() : data.all).forEach(r => {
+    if (!volOK(r, AOTS_MIN_VOL) || (hw && r.wicky) || !passBoards(r)) return;
+    const opts = [r.aots4h, r.aots1h].filter(a => a && (!tf || a.tf === tf) && dirOK(a.dir) && (a.dir === "Long" || shortOK(r)));
     if (!opts.length) return;
     const a = opts.sort((x, y) => y.score - x.score)[0], extra = commonFlags(r, a.dir, data.btc, 0);
     out.push({ symbol: r.symbol, a, flags: [...a.flags, ...extra.filter(f => !a.flags.includes(f))] });
   });
   return capSectors(out.sort((x, y) => y.a.score - x.a.score));
 }
-function preList() {
+function preList(mixed) {
   const tf = $("aotsTf").value, hw = hideWicky(), out = [];
-  data.all.forEach(r => {
-    if (r.vol24h < AOTS_MIN_VOL || (hw && r.wicky) || !passBoards(r)) return;
-    const opts = [r.pre4h, r.pre1h].filter(a => a && (!tf || a.tf === tf) && dirOK(a.dir) && (a.dir === "Long" || data.canShort));
+  (mixed && mkOn() ? boardRows() : data.all).forEach(r => {
+    if (!volOK(r, AOTS_MIN_VOL) || (hw && r.wicky) || !passBoards(r)) return;
+    const opts = [r.pre4h, r.pre1h].filter(a => a && (!tf || a.tf === tf) && dirOK(a.dir) && (a.dir === "Long" || shortOK(r)));
     if (!opts.length) return;
     const a = opts.sort((x, y) => (y.stage === "Reclaiming") - (x.stage === "Reclaiming") || y.score - x.score)[0];
     out.push({ symbol: r.symbol, a, flags: a.flags });
@@ -3193,7 +3196,7 @@ function preList() {
 }
 const preLine = a => `${a.tf} ${a.stage} · ${a.dist} ATR (${a.distPct}%) to the break at ${fmtPrice(a.trig)} · MAs ${a.spread} ATR apart${a.stage === "Coiling" ? ` · ATR at ${Math.round(a.squeeze * 100)}% of normal` : ` · ${a.bars} ${a.bars === 1 ? "close" : "closes"} back ${a.dir === "Long" ? "over" : "under"} the 20 and 50`}`;
 function renderPre() {
-  const el = $("preBoard"); if (!el) return; const list = preList().slice(0, 5);
+  const el = $("preBoard"); if (!el) return; const list = mkMix(preList(true), 5, e => rowOf(e.symbol));
   if (!list.length) { el.innerHTML = `<div class="empty">Nothing reclaiming or coiling right now.</div>`; return; }
   el.innerHTML = list.map((e, i) => rowHTML(i, e.symbol, e.a.dir, e.a.score, preLine(e.a),
     (e.a.stage === "Reclaiming" ? `<span class="tag trade">Reclaiming</span>` : `<span class="tag">Coiling</span>`) + flagTags(e.flags), false)).join("");
@@ -3216,7 +3219,7 @@ function aotsPromotions() {                          // a coin that was on deck 
   try { localStorage.setItem(PRE_SEEN, JSON.stringify(st)); } catch (e) {}
 }
 function renderAots() {
-  const el = $("aotsBoard"), list = aotsList().slice(0, 5);
+  const el = $("aotsBoard"), list = mkMix(aotsList(true), 5, e => rowOf(e.symbol));
   if (!list.length) { el.innerHTML = `<div class="empty">${dirSel() === "Short" && !data.canShort ? "Spot can't be shorted. Switch Market to Futures for short setups." : activeFilters().length && FS.boards ? "No AOTS break passes your filters." : "No fresh AOTS break right now. Re-scan after the next 4H close."}</div>`; return; }
   el.innerHTML = list.map((e, i) => rowHTML(i, e.symbol, e.a.dir, e.a.score,
     `${e.a.tf} ${e.a.stage} · ${e.a.bars} ${e.a.bars === 1 ? "candle" : "candles"} in · MAs ${e.a.spread} ATR apart · vol ${e.a.vr}×`,
@@ -3423,6 +3426,61 @@ function passFilters(r) {
   return FS.match === "all" ? fs.every(f => testFilter(r, f)) : fs.some(f => testFilter(r, f));
 }
 const passBoards = r => !FS.boards || passFilters(r);
+/* ---- Markets on the boards: crypto from the scan, plus forex, indices and metals & energy (the same detectors, from cTrader or the exchange's TradFi perps) ---- */
+const MK_OPTS = [["all", "All"], ["crypto", "Crypto"], ["fx", "Forex"], ["idx", "Indices"], ["metals", "Metals & energy"]];
+const MK = { sel: (() => { try { const v = localStorage.getItem("finder-markets"); return MK_OPTS.some(o => o[0] === v) ? v : "crypto"; } catch (e) { return "crypto"; } })() };
+const mkCls = r => !r.macro ? "crypto" : /Forex/.test(r.group || "") ? "fx" : /Indices/.test(r.group || "") ? "idx" : "metals";
+const mkOn = () => MK.sel !== "crypto";
+const mktOK = r => MK.sel === "all" || mkCls(r) === MK.sel;
+const rowOf = sym => bySym[sym] || (typeof MACRO !== "undefined" && MACRO.by ? MACRO.by[sym] : null);
+const volOK = (r, min) => r.macro || r.vol24h >= min;                            // broker and TradFi markets aren't judged by crypto volume
+const shortOK = r => r.macro || data.canShort;                                   // CFDs and perps can always be shorted
+function boardRows() {                                                          // what the boards pick from
+  const cr = MK.sel === "all" || MK.sel === "crypto" ? (data ? data.all : []) : [];
+  const mc = mkOn() && typeof MACRO !== "undefined" ? (MACRO.rows || []).filter(r => r.name !== "Volatility (VIX)" && mktOK(r)) : [];
+  return [...cr, ...mc];
+}
+function mkMix(list, n, rowFn = x => x) {                                       // "All": each market's best makes the cut, the rest by score (list is best-first)
+  if (MK.sel !== "all") return list.slice(0, n);
+  const pick = new Set(), seen = new Set();
+  list.forEach((x, i) => { const r = rowFn(x), c = r ? mkCls(r) : "crypto"; if (!seen.has(c) && pick.size < n) { seen.add(c); pick.add(i); } });
+  list.forEach((x, i) => { if (pick.size < n) pick.add(i); });
+  return list.filter((x, i) => pick.has(i));
+}
+function mkDay() {                                                              // the day board across markets
+  const hw = hideWicky(), cr = MK.sel === "all" ? data.dayPool.map(s => bySym[s]).filter(r => r && dirOK(r.s1h.dir) && !(hw && r.wicky) && passBoards(r) && (data.market !== "futures" || r.maxLev >= 5)) : [];
+  const mc = boardRows().filter(r => r.macro && FULL.includes(r.s1h.state) && dirOK(r.s1h.dir) && !(hw && r.wicky) && passBoards(r));
+  return mkMix(capSectors([...cr, ...mc].sort((a, b) => b.dayScore - a.dayScore)), 5)
+    .map((r, i) => ({ symbol: r.symbol, dir: r.s1h.dir, score: r.dayScore, status: i < 3 ? "TRADEABLE" : "watch only", flags: commonFlags(r, r.s1h.dir, data.btc, r.s1h.ext) }));
+}
+function mkSwing() {
+  const hw = hideWicky();
+  return mkMix(capSectors(boardRows().filter(r => r.swingDir && dirOK(r.swingDir) && volOK(r, SWING_MIN_VOL) && (shortOK(r) || r.swingDir === "Long") && !(hw && r.wicky) && passBoards(r))
+    .sort((a, b) => b.swingScore - a.swingScore)), 5)
+    .map(r => { const f = commonFlags(r, r.swingDir, data.btc, r.s4h.ext); if (r.swingDir === "Long" && r.spotVol >= SPOT_MIN_VOL) f.push("Spot OK"); return { symbol: r.symbol, dir: r.swingDir, score: r.swingScore, flags: f }; });
+}
+async function mkPrep() {                                                       // the session models (ORB, AMD) on the best forex / index / metal day candidates, like the coins get
+  if (typeof MACRO === "undefined") return;
+  const c = (MACRO.rows || []).filter(r => FULL.includes(r.s1h.state)).sort((a, b) => b.dayScore - a.dayScore).slice(0, 8).filter(r => !r.mkSess);
+  await pool(c, 3, async r => { r.mkSess = true; try { const k15 = await klines(r.symbol, "15m", 100); r.models = r.models || []; r.models.push(...sessionModels(k15, r)); } catch (e) {} }, () => {});
+}
+function mkNote() {
+  const el = $("mktNote"); if (!el) return; if (!mkOn()) { el.textContent = ""; return; }
+  const n = boardRows().filter(r => r.macro).length;
+  el.textContent = MACRO.running && !n ? "Loading forex, indices and metals…" : MACRO.err && !n ? `Couldn't load them: ${MACRO.err}.`
+    : !n ? (MK.sel === "fx" ? "No forex yet: connect cTrader on the All Instruments page, or switch the exchange to MEXC for its forex perpetuals." : "None loaded yet.")
+    : `${n} ${MK.sel === "fx" ? "forex pairs" : MK.sel === "idx" ? "indices" : MK.sel === "metals" ? "metals & energy markets" : "forex, index and metal markets"} with the coins' rules${MACRO.at ? ` · read ${phtClock(MACRO.at)}` : ""}${MACRO.running ? " · refreshing…" : ""}`;
+}
+function mkRender() {
+  const seg = $("mktSeg"); if (seg) seg.innerHTML = MK_OPTS.map(([k, l]) => `<button data-mk="${k}" class="${MK.sel === k ? "on" : ""}" aria-pressed="${MK.sel === k}">${l}</button>`).join("");
+  seg && seg.querySelectorAll("[data-mk]").forEach(b => b.onclick = () => mkSet(b.dataset.mk)); mkNote();
+}
+function mkSet(k) {
+  MK.sel = k; try { localStorage.setItem("finder-markets", k); } catch (e) {} mkRender();
+  if (mkOn() && typeof macroScan === "function") macroScan().then(() => mkAfterMacro()).catch(() => {});
+  if (data) { renderBoards(); renderTable(); }
+}
+function mkAfterMacro() { mkNote(); if (!mkOn() || !data) return; mkPrep().then(() => { renderBoards(); if (page === "screener") renderTable(); mkNote(); }); }
 function describe(f) {
   const M = x => x.toUpperCase();
   switch (f.kind) {
@@ -4479,11 +4537,11 @@ function sessionScore(r, def, med) {
   if (r.rs24 != null && Math.abs(r.rs24) >= 2 && ((dir === "Long" && r.rs24 > 0) || (dir === "Short" && r.rs24 < 0))) why.push(`${dir === "Long" ? "stronger" : "weaker"} than BTC (${fmtRS(r.rs24)})`);
   return { s: r1(s), rel, rng, why, best };
 }
-function sessionPicks() {
+function sessionPicks(mixed) {
   if (!data) return {};
   const dayMin = DAY_MIN_VOL[data.mode], hw = hideWicky();
-  const pool = data.all.filter(r => FULL.includes(r.s1h.state) && dirOK(r.s1h.dir) && (r.vol24h >= dayMin || (r.trending && r.vol24h >= AOTS_MIN_VOL))
-    && !(hw && r.wicky) && passBoards(r) && !(data.market === "futures" && r.maxLev != null && r.maxLev < 5) && (data.canShort || r.s1h.dir === "Long"));
+  const pool = (mixed && mkOn() ? boardRows() : data.all).filter(r => FULL.includes(r.s1h.state) && dirOK(r.s1h.dir) && (volOK(r, dayMin) || (r.trending && r.vol24h >= AOTS_MIN_VOL))
+    && !(hw && r.wicky) && passBoards(r) && !(data.market === "futures" && r.maxLev != null && r.maxLev < 5) && (shortOK(r) || r.s1h.dir === "Long") && r.sessionRanges);
   const med = {}; SESSION_DEFS.forEach(d => med[d.key] = median(pool.map(r => r.sessionRanges[d.key])));
   const scored = pool.map(r => { const per = {}; SESSION_DEFS.forEach(d => { const x = sessionScore(r, d, med[d.key]); if (x) per[d.key] = x; }); return { r, per }; });
   const out = {}; SESSION_DEFS.forEach(d => out[d.key] = []);
@@ -4491,13 +4549,13 @@ function sessionPicks() {
     const bestKey = Object.keys(per).sort((a, b) => per[b].s - per[a].s)[0];
     if (bestKey) out[bestKey].push({ r, ...per[bestKey] });
   });
-  SESSION_DEFS.forEach(d => { out[d.key] = capSectors(out[d.key].sort((a, b) => b.s - a.s), x => x.r.symbol).slice(0, 3); });
+  SESSION_DEFS.forEach(d => { const L = capSectors(out[d.key].sort((a, b) => b.s - a.s), x => x.r.symbol); out[d.key] = mixed ? mkMix(L, 3, x => x.r) : L.slice(0, 3); });
   return out;
 }
 function renderSessions() {
   const el = $("sessionPicks"); if (!el) return;
   if (!data) { el.innerHTML = `<div class="empty">Run a scan to see session picks.</div>`; return; }
-  const picks = sessionPicks(); data.sessionPicks = picks;
+  const picks = sessionPicks(true); data.sessionPicks = mkOn() ? sessionPicks() : picks;
   const defs = SESSION_DEFS.map(d => ({ d, st: sessionStatus(d) }));
   const nextKey = defs.slice().sort((a, b) => a.st.order - b.st.order)[0].d.key;
   el.innerHTML = defs.map(({ d, st }) => `
@@ -4518,7 +4576,7 @@ function renderSessions() {
 
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.12.1949";
+const APP_VERSION = "2026.11.25.1203";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -5886,12 +5944,12 @@ function renderRotation() {
 const MOMO_ALERT_KEY = "altscan-momo-alert", MOMO_SEEN_KEY = "altscan-momo-seen";
 const momoAlertOn = () => { try { return localStorage.getItem(MOMO_ALERT_KEY) !== "off"; } catch (e) { return true; } };
 const MOMO_STAGE = { momentum: "🔥 In momentum", awaiting: "⏳ Awaiting momentum", breakout: "🚀 Breaking out" };
-function momoRows() {
+function momoRows(mixed) {
   const out = { momentum: [], awaiting: [], breakout: [] }, fresh = [];
   if (!data) return { ...out, fresh };
   const hw = hideWicky();
-  data.all.forEach(r => {
-    const m = r.momo; if (!m || !dirOK(m.dir) || (hw && r.wicky) || r.vol24h < 10e6 || !passBoards(r) || (!data.canShort && m.dir === "Short")) return;
+  (mixed && mkOn() ? boardRows() : data.all).forEach(r => {
+    const m = r.momo; if (!m || !dirOK(m.dir) || (hw && r.wicky) || !volOK(r, 10e6) || !passBoards(r) || (!shortOK(r) && m.dir === "Short")) return;
     const rsi = r.rsi && r.rsi.h1, x = rsi == null ? 50 : m.dir === "Long" ? rsi : 100 - rsi;     // RSI read in the trade's direction
     const s = m.stage === "momentum" ? (r.mom ? r.mom.score : 0) + (m.h4ok ? 10 : 0) - (m.stretched ? 15 : 0)
       : m.stage === "awaiting" ? 80 - Math.abs(65 - x) * 3 + (m.h4ok ? 10 : 0) - (m.tappedAgo || 0)
@@ -5899,7 +5957,7 @@ function momoRows() {
     out[m.stage].push({ r, m, s: r1(s) });
     if (m.stage === "breakout" && m.broke && m.ago <= 2 && !m.stretched) fresh.push({ r, m });
   });
-  Object.keys(out).forEach(k => out[k] = capSectors(out[k].sort((a, b) => b.s - a.s), x => x.r.symbol).slice(0, 6));
+  Object.keys(out).forEach(k => { const L = capSectors(out[k].sort((a, b) => b.s - a.s), x => x.r.symbol); out[k] = mixed ? mkMix(L, 6, x => x.r) : L.slice(0, 6); });
   return { ...out, fresh };
 }
 function momoLine(r, m) {
@@ -5931,7 +5989,7 @@ function momoAlerts(fresh) {
 function renderMomentum() {
   const el = $("momoBoard"); if (!el) return;
   if (!data) { el.innerHTML = `<div class="empty">Run a scan to see the momentum board.</div>`; return; }
-  const R = momoRows(); data.momoBoard = [...R.momentum, ...R.awaiting, ...R.breakout].map(x => x.r.symbol);
+  const R = momoRows(true); data.momoBoard = [...R.momentum, ...R.awaiting, ...R.breakout].map(x => x.r.symbol).filter(x => bySym[x]);
   const col = (k, title, sub) => `<div class="sess"><div class="sesshead"><h3>${title}</h3></div><div class="sessstat">${sub}</div>
     ${R[k].length ? R[k].map(momoRowHTML).join("") : `<div class="empty">Nothing here right now.</div>`}</div>`;
   el.innerHTML = col("momentum", "🔥 In Momentum", "RSI 70+ on 1H (30 or below for shorts), price beyond all three MAs.")
@@ -5946,7 +6004,7 @@ const C = {
   inst:   { t: "Instrument", l: true, v: r => r.symbol, h: r => instHTML(r) },
   price:  { t: "Price", v: r => r.price, h: r => `<span class="lp" data-sym="${r.symbol}">${fmtPrice(r.price)}</span><span class="unit">${r.quote}</span>` },
   chg:    { t: "Chg %<br>24h", v: r => r.chg24h, h: r => `<span class="lc" data-sym="${r.symbol}">${pctCell(r.chg24h)}</span>` },
-  vol:    { t: "Vol in USD<br>24h", v: r => r.vol24h, h: r => `${fmtVol(r.vol24h)}<span class="unit">USD</span>` },
+  vol:    { t: "Vol in USD<br>24h", v: r => r.vol24h, h: r => r.ct ? '<span class="mute" title="Broker prices come without traded volume">—</span>' : `${fmtVol(r.vol24h)}<span class="unit">USD</span>` },
   day:    { t: "Day Score", v: r => r.dayScore, h: r => `<b>${r.dayScore}</b>` },
   swing:  { t: "Swing Score", v: r => r.swingScore, h: r => `<b>${r.swingScore}</b>` },
   s1h:    { t: "1H", l: true, v: r => r.s1h.pts, h: r => chip(r.s1h) },
@@ -6027,14 +6085,16 @@ function renderTable() {
     const k = th.dataset.k; sortDir = key === k ? -sortDir : (k === "inst" || k === "sess" ? 1 : -1); sortKey = k; renderTable(); });
   if (!data) return;
   const q = $("search").value.trim().toUpperCase(), rf = $("rateF").value;
-  let rows = data.all.filter(r => (!T.f || T.f(r)) && (!q || r.symbol.includes(q)) && rateMatch(r, rf) && passFilters(r) && (dirSel() === "Both" || coinPlay(r).dir === dirSel()));
-  const val = C[key].v;
-  rows.sort((a, b) => { const x = val(a), y = val(b); return (x > y ? 1 : x < y ? -1 : 0) * sortDir; });
+  const safe = f => r => { try { return f(r); } catch (e) { return null; } }, pool0 = mkOn() ? boardRows() : data.all;
+  let rows = pool0.filter(r => safe(T.f || (() => true))(r) && (!q || r.symbol.toUpperCase().includes(q) || (r.name || "").toUpperCase().includes(q)) && safe(x => rateMatch(x, rf))(r) && safe(passFilters)(r) && (dirSel() === "Both" || safe(x => coinPlay(x).dir)(r) === dirSel()));
+  const val = safe(C[key].v);
+  rows.sort((a, b) => { const x = val(a) ?? -Infinity, y = val(b) ?? -Infinity; return (x > y ? 1 : x < y ? -1 : 0) * sortDir; });
   const af = activeFilters();                       // a filter on: say so here, with Edit and Clear (the panel lives under Screener → Filters & Templates)
-  $("count").innerHTML = `${rows.length} of ${data.all.length} coins${af.length ? ` · <span class="ffnote">Filtered: ${String(FS.template || af.map(describe).join(FS.match === "all" ? " and " : " or ")).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]))} <button class="ffb" data-ff="edit">Edit</button><button class="ffb" data-ff="clear">Clear</button></span>` : ""}`;
+  $("count").innerHTML = `${rows.length} of ${pool0.length} ${MK.sel === "crypto" ? "coins" : "markets"}${af.length ? ` · <span class="ffnote">Filtered: ${String(FS.template || af.map(describe).join(FS.match === "all" ? " and " : " or ")).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]))} <button class="ffb" data-ff="edit">Edit</button><button class="ffb" data-ff="clear">Clear</button></span>` : ""}`;
   $("count").querySelectorAll("[data-ff]").forEach(b => b.onclick = () => { if (b.dataset.ff === "clear") { FS.filters = []; FS.template = ""; filtersChanged(true); } else togglePanel(true); });
-  if (!rows.length) { $("tbody").innerHTML = `<tr><td class="l mute" colspan="${T.cols.length}">No coins match these filters.</td></tr>`; return; }
-  $("tbody").innerHTML = rows.map(r => `<tr data-s="${r.symbol}">${T.cols.map(k => `<td class="${C[k].l ? "l" : ""}">${C[k].h(r)}</td>`).join("")}</tr>`).join("");
+  if (!rows.length) { $("tbody").innerHTML = `<tr><td class="l mute" colspan="${T.cols.length}">${mkOn() && !pool0.length ? chEsc($("mktNote") ? $("mktNote").textContent : "Nothing loaded yet.") : "No coins match these filters."}</td></tr>`; return; }
+  const cell = (k, r) => { try { return C[k].h(r); } catch (e) { return '<span class="mute">—</span>'; } };
+  $("tbody").innerHTML = rows.map(r => `<tr data-s="${r.symbol}">${T.cols.map(k => `<td class="${C[k].l ? "l" : ""}">${cell(k, r)}</td>`).join("")}</tr>`).join("");
   $("tbody").querySelectorAll("tr[data-s]").forEach(tr => tr.onclick = () => openDetail(tr.dataset.s));
   bindStars($("tbody"));
 }
@@ -6630,7 +6690,7 @@ async function macroScan(force) {
     MACRO.rows = rows; MACRO.by = Object.fromEntries(rows.map(r => [r.symbol, r])); MACRO.at = Date.now();
     ctSubscribe(rows.filter(r => r.ct)); macroAlerts(rows); if (LIVE.kind === "mexc") liveSync();
   } catch (e) { MACRO.err = e.message || String(e); }
-  MACRO.running = false; renderMacro(); navBadges();
+  MACRO.running = false; renderMacro(); navBadges(); mkAfterMacro();
   if (MACRO.again || MACRO.src !== macroSrc()) { MACRO.again = false; if (MACRO.src !== macroSrc()) macroScan(true); }
 }
 $("macroRun").onclick = () => macroScan(true);
@@ -6661,6 +6721,7 @@ function mktHour([name, what, tz, fn], now) {
 const durTxt = ms => { const m = Math.max(1, Math.round(ms / 60e3)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mm = m % 60;
   return d ? `${d}d ${h}h` : h ? `${h}h ${mm}m` : `${mm}m`; };
 const phtClock = t => { const p = fmtPHT(new Date(t + PHT_MS)).split(", "); return p[1] || p[0]; };
+mkRender(); if (mkOn()) setTimeout(() => macroScan().catch(() => {}), 500);      // the boards' Markets switch (forex, indices, metals load with the coins)
 function renderXHours() {
   const el = document.querySelector("#xHours .xhours"); if (!el) return;
   const now = Date.now(), wd = new Date(now + PHT_MS).getUTCDay();

@@ -7077,8 +7077,7 @@ function chApplyCS(P) {
       rightPriceScale: { borderColor: S.scaleC || line, mode: +S.scMode || 0, invertScale: !!S.scInv }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
       localization: { locale: "en-US", timeFormatter: chTimeFmt, priceFormatter: chPxFmt(P) },
       watermark: { visible: S.wm !== "off" && !!chPS(P), text: S.wm === "symtf" ? `${chName(chPS(P))}, ${CH_TFL[P.tf]}` : chName(chPS(P)), color: S.wmC, fontSize: 52, horzAlign: "center", vertAlign: "center" } });
-    P.cs.applyOptions({ upColor: S.body ? S.upC : "rgba(0,0,0,0)", downColor: S.body ? S.dnC : "rgba(0,0,0,0)", borderVisible: S.border, borderUpColor: S.upB, borderDownColor: S.dnB,
-      wickVisible: S.wick, wickUpColor: S.upW, wickDownColor: S.dnW, lastValueVisible: S.lastLbl, priceLineVisible: S.lastLine });
+    P.cs.applyOptions(chTypeOpts(P, S));
   } catch (e) {}
   const ph = P.pane && P.pane.querySelector(".chph"); if (ph) ph.classList.toggle("slbg", !!S.slBg);
 }
@@ -8197,6 +8196,7 @@ function chBuild() {
         <div class="chcats" role="group" aria-label="Markets">${CH_CATS.filter(c => c[0] !== "all").map(([k, l]) => `<button data-cat="${k}">${l} <i>▾</i></button>`).join("")}</div>
         <div class="chpick" id="chPick" hidden></div>
       </div>
+      <button class="chindbtn chtypebtn" id="chTypeBtn" aria-haspopup="true" title="Chart type" aria-label="Chart type"></button>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <button class="chindbtn" id="chIndBtn" title="Indicators (/)" aria-label="Indicators">${chIco("fx", 17)} Indicators</button>
       <button class="chindbtn" id="chQtBtn" aria-pressed="false" title="Quick trade: buy or sell at market from the chart, with stop and target lines">${chIco("M4 12h10M10 6l6 6-6 6M19 5v14", 17)}<span>Quick trade</span></button>
@@ -8219,6 +8219,7 @@ function chBuild() {
     </div>`;
   chToolbarBind();
   $("chIndBtn").onclick = () => chIndDialog(); $("chSetBtn").onclick = () => chChartSettings();
+  chTypeBtn(); $("chTypeBtn").onclick = e => { e.stopPropagation(); chTypeMenu($("chTypeBtn")); };
   $("chUndoB").onclick = () => chUndoDo(); $("chRedoB").onclick = () => chRedoDo();
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
   el.querySelectorAll("[data-cat]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpen(b.dataset.cat); });
@@ -8636,6 +8637,59 @@ document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
 $("dlg").addEventListener("cancel", e => { if (CHDLG.escBusy) { e.preventDefault(); CHDLG.escBusy = false; } });
 window.openInCharts = sym => { if (OVC.on) ovcPark(); if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
 
+/* ---- chart type: candles, hollow candles, Heikin Ashi, bars, line, area, baseline (toolbar, like TradingView) ---- */
+const CH_TYPES = [
+  ["candles", "Candles", "M6 3v15M4 6h4v9H4zM15 3v15M13 7h4v6h-4z"], ["hollow", "Hollow candles", "M6 3v15M4.5 6h3v9h-3zM15 3v15M13 7h4v6h-4z"],
+  ["ha", "Heikin Ashi", "M6 3v15M4 7h4v8H4zM15 3v14M13 5h4v7h-4z"], ["bars", "Bars", "M6 3v15M3 6h3M6 14h3M15 3v15M12 8h3M15 12h3"],
+  ["line", "Line", "M3 15l5-6 4 3 6-8"], ["area", "Area", "M3 15l5-6 4 3 6-8V18H3z"], ["base", "Baseline", "M3 10.5h15M3 14l4-7 4 6 3-4 4 2"],
+];
+const chType = () => CH_TYPES.some(t => t[0] === CH.ctype) ? CH.ctype : "candles";
+const chIsLineType = ty => ty === "line" || ty === "area" || ty === "base";
+function chMainSeries(P) {                                   // (re)creates the main series for the chart type; price lines hung on the old one are rebuilt by their owners
+  const ty = chType(); if (P.cs && P.csType === ty) return;
+  if (P.cs) { ["plPD", "plHi", "plLo", "_babid", "_baask"].forEach(k => P[k] = null); P.alLines = []; P.alSig = null; try { P.chart.removeSeries(P.cs); } catch (e) {} }
+  P.csType = ty;
+  P.cs = ty === "bars" ? P.chart.addBarSeries({ thinBars: false }) : ty === "line" ? P.chart.addLineSeries({ lineWidth: 2 }) : ty === "area" ? P.chart.addAreaSeries({ lineWidth: 2 })
+    : ty === "base" ? P.chart.addBaselineSeries({ lineWidth: 2 }) : P.chart.addCandlestickSeries({ upColor: "#22ab94", downColor: "#f23645", borderVisible: false, wickUpColor: "#22ab94", wickDownColor: "#f23645" });
+}
+function chHA(P, from) {                                     // Heikin Ashi candles from the real ones (from = first index to recompute)
+  const n = P.t.length; if (!P.ha || from <= 0 || P.ha.c.length < from) { P.ha = { o: [], h: [], l: [], c: [] }; from = 0; } const a = P.ha;
+  for (let i = from; i < n; i++) { const c = (P.o[i] + P.h[i] + P.l[i] + P.c[i]) / 4, o = i ? (a.o[i - 1] + a.c[i - 1]) / 2 : (P.o[i] + P.c[i]) / 2;
+    a.o[i] = o; a.c[i] = c; a.h[i] = Math.max(P.h[i], o, c); a.l[i] = Math.min(P.l[i], o, c); }
+  ["o", "h", "l", "c"].forEach(k => a[k].length = n);
+}
+function chBaseLevel(P) {                                    // baseline chart: the middle of the recent range, like TradingView's 50% base level
+  const n = P.c.length, a = Math.max(0, n - 150); let hi = -Infinity, lo = Infinity; for (let i = a; i < n; i++) { hi = Math.max(hi, P.h[i]); lo = Math.min(lo, P.l[i]); }
+  P.baseV = isFinite(hi) ? (hi + lo) / 2 : P.c.at(-1);
+}
+function chSerPt(P, i, S) {                                     // one data point of the main series
+  const ty = P.csType || "candles", time = Math.floor(P.t[i] / 1000);
+  if (chIsLineType(ty)) return { time, value: P.c[i] };
+  const A = ty === "ha" && P.ha ? P.ha : P, o = A.o[i], c = A.c[i], b = { time, open: o, high: A.h[i], low: A.l[i], close: c };
+  if (ty === "hollow") { const up = i ? c >= A.c[i - 1] : c >= o, col = up ? S.upC : S.dnC; return Object.assign(b, { color: c > o ? "rgba(0,0,0,0)" : col, borderColor: col, wickColor: col }); }
+  if (S.prevClose && i) { const up = c >= A.c[i - 1]; return Object.assign(b, ty === "bars" ? { color: up ? S.upC : S.dnC } : chBarCol(S, up)); }
+  return b;
+}
+function chTypeOpts(P, S) {
+  const ty = P.csType || "candles", lc = S.lineC || "#2962ff", o = { lastValueVisible: S.lastLbl, priceLineVisible: S.lastLine };
+  if (ty === "bars") return { ...o, upColor: S.upC, downColor: S.dnC, openVisible: true };
+  if (ty === "line") return { ...o, color: lc, lineWidth: 2 };
+  if (ty === "area") return { ...o, lineColor: lc, topColor: chHexA(lc, 0.28), bottomColor: chHexA(lc, 0.02), lineWidth: 2 };
+  if (ty === "base") return { ...o, baseValue: { type: "price", price: P.baseV ?? (P.c.at(-1) || 0) }, topLineColor: S.upC, bottomLineColor: S.dnC, lineWidth: 2,
+    topFillColor1: chHexA(S.upC, 0.28), topFillColor2: chHexA(S.upC, 0.04), bottomFillColor1: chHexA(S.dnC, 0.04), bottomFillColor2: chHexA(S.dnC, 0.28) };
+  if (ty === "hollow") return { ...o, upColor: "rgba(0,0,0,0)", downColor: S.dnC, borderVisible: true, borderUpColor: S.upC, borderDownColor: S.dnC, wickVisible: true, wickUpColor: S.upC, wickDownColor: S.dnC };
+  return { ...o, upColor: S.body ? S.upC : "rgba(0,0,0,0)", downColor: S.body ? S.dnC : "rgba(0,0,0,0)", borderVisible: S.border, borderUpColor: S.upB, borderDownColor: S.dnB,
+    wickVisible: S.wick, wickUpColor: S.upW, wickDownColor: S.dnW };
+}
+function chTypeBtn() { const b = $("chTypeBtn"), t = CH_TYPES.find(x => x[0] === chType()); if (b) { b.innerHTML = chIco(t[2], 17); b.title = `Chart type: ${t[1]}`; } }
+function chTypeMenu(btn) { chMenu(btn, CH_TYPES.map(([k, l, ico]) => ({ l, k, ico: chIco(ico, 16), on: k === chType() })), { onPick: chSetType }); }
+function chSetType(k) {
+  if (!CH_TYPES.some(t => t[0] === k)) return; CH.ctype = k; chSave(); chTypeBtn();
+  CHP.forEach(P => { if (!P.chart) return; const r = P.t.length ? P.chart.timeScale().getVisibleLogicalRange() : null; chMainSeries(P); chApplyCS(P);
+    if (P.t.length && P.sym === chPS(P)) { chSetData(P); if (r) { P.progUntil = Date.now() + 400; P.chart.timeScale().setVisibleLogicalRange(r); } } chLegend(P, null); });
+  chDirty = true;
+}
+
 /* ---- a pane: data, MAs, RSI ---- */
 function chMakeChart(P) {
   const line = cssVar("--line");
@@ -8644,7 +8698,7 @@ function chMakeChart(P) {
     grid: { vertLines: { color: line }, horzLines: { color: line } }, rightPriceScale: { borderColor: line },
     timeScale: { borderColor: line, timeVisible: true, secondsVisible: false, rightOffset: 8, tickMarkFormatter: chTick },
     crosshair: { mode: 0 }, localization: { locale: "en-US", timeFormatter: phtTime, priceFormatter: v => chFmt(v, P.c.at(-1)) } });
-  P.cs = P.chart.addCandlestickSeries({ upColor: "#22ab94", downColor: "#f23645", borderVisible: false, wickUpColor: "#22ab94", wickDownColor: "#f23645" });
+  P.cs = null; chMainSeries(P);
   P.ix = {}; P.iv = {};
   P.chart.subscribeCrosshairMove(prm => chOnCross(P, prm));
   P.chart.timeScale().subscribeVisibleLogicalRangeChange(() => chOnRange(P));
@@ -8718,8 +8772,8 @@ async function chLoadOlder(P) {
 const chMaFn = () => (typeof data !== "undefined" && data && data.ma === "sma") ? sma : ema;
 function chRsiSig(r) { const out = new Array(r.length).fill(null); let s = 0, q = []; for (let i = 0; i < r.length; i++) { if (r[i] == null) continue; q.push(r[i]); s += r[i]; if (q.length > 14) s -= q.shift(); if (q.length === 14) out[i] = s / 14; } return out; }
 function chSetData(P) {
-  const ts = P.t.map(t => Math.floor(t / 1000)), S = chCS();
-  P.cs.setData(ts.map((t, i) => { const b = { time: t, open: P.o[i], high: P.h[i], low: P.l[i], close: P.c[i] }; return S.prevClose && i ? Object.assign(b, chBarCol(S, P.c[i] >= P.c[i - 1])) : b; }));
+  const S = chCS(); if (P.csType === "ha") chHA(P, 0); if (P.csType === "base") chBaseLevel(P);
+  P.cs.setData(P.t.map((t, i) => chSerPt(P, i, S)));
   chIndData(P); chIndLegendVals(P, null); chApplyCS(P); chLevelLines(P);
 }
 function chBar(P, bar) {                                     // live update of the forming candle
@@ -8729,9 +8783,8 @@ function chBar(P, bar) {                                     // live update of t
   if (bar.t === P.t[n - 1]) { P.o[n - 1] = bar.o; P.h[n - 1] = bar.h; P.l[n - 1] = bar.l; P.c[n - 1] = bar.c; if (bar.v != null) P.v[n - 1] = bar.v; }
   else { P.t.push(bar.t); P.o.push(bar.o); P.h.push(bar.h); P.l.push(bar.l); P.c.push(bar.c); P.v.push(bar.v || 0); }
   const t = Math.floor(bar.t / 1000);
-  { const S = chCS(), b = { time: t, open: bar.o, high: bar.h, low: bar.l, close: bar.c }, m = P.c.length;
-    if (S.prevClose && m > 1) Object.assign(b, chBarCol(S, P.c[m - 1] >= P.c[m - 2]));
-    try { P.cs.update(b); } catch (e) {} if (S.hiLo || (S.prevDay && P.t.length !== P.lvN)) { P.lvN = P.t.length; chLevelLines(P); } }
+  { const S = chCS(), m = P.c.length; if (P.csType === "ha") chHA(P, Math.max(0, m - 2)); void t;
+    try { P.cs.update(chSerPt(P, m - 1, S)); } catch (e) {} if (S.hiLo || (S.prevDay && P.t.length !== P.lvN)) { P.lvN = P.t.length; chLevelLines(P); } }
   chIndLive(P);
   if (!P.hover) chLegend(P, null); else chIndLegendVals(P, null);
   chDirty = true;
@@ -8764,7 +8817,8 @@ function chLegend(P, prm) {
   const el = $("chLeg" + P.i); if (!el || !P.t.length) return;
   let i = P.t.length - 1;
   if (prm && prm.time != null) { const t = prm.time * 1000; i = chIdx(P, t); if (i < 0) i = P.t.length - 1; }
-  const o = P.o[i], h = P.h[i], l = P.l[i], c = P.c[i], ch = o ? (c - o) / o * 100 : 0, f = chPxFmt(P), S = chCS(), fd = chFeed(chPS(P)), up = S.prevClose && i ? c >= P.c[i - 1] : c >= o;
+  const A = P.csType === "ha" && P.ha && P.ha.c.length === P.t.length ? P.ha : P;
+  const o = A.o[i], h = A.h[i], l = A.l[i], c = A.c[i], ch = o ? (c - o) / o * 100 : 0, f = chPxFmt(P), S = chCS(), fd = chFeed(chPS(P)), up = S.prevClose && i ? c >= A.c[i - 1] : c >= o;
   chIndLegendVals(P, prm && prm.time != null ? i : null);
   el.innerHTML = `${S.slTitle ? `<b>${chName(chPS(P))}</b> · ${CH_TFL[P.tf]}` : ""}${S.slSrc && fd.s ? ` · <span class="chfeed" title="${chEsc(fd.l)}">${chEsc(fd.s)}</span>` : ""}`
     + (S.slOHLC ? ` <span class="mute">O</span> ${f(o)} <span class="mute">H</span> ${f(h)} <span class="mute">L</span> ${f(l)} <span class="mute">C</span> <span class="${up ? "up" : "dn"}">${f(c)}</span>` : "")

@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const require = createRequire(import.meta.url), here = path.dirname(fileURLToPath(import.meta.url)), modPath = path.join(here, "..", "api", "ct-keeper.js");
 const load = () => { delete require.cache[require.resolve(modPath)]; return require(modPath); };   // a fresh copy = another function instance
 
-let DB = new Map(), TOK = { calls: 0, fail: false, n: 0 };
+let DB = new Map(), TOK = { calls: 0, fail: false, n: 0, hang: false, during: null }, RFAIL = { login: 0 };
 const REDIS = "https://fake-redis.example";
 globalThis.fetch = async (url, opts = {}) => {
   const json = (status, body) => ({ ok: status < 400, status, json: async () => body, text: async () => JSON.stringify(body) });
@@ -14,15 +14,19 @@ globalThis.fetch = async (url, opts = {}) => {
     const [cmd, k, v, ...rest] = JSON.parse(opts.body), now = Date.now();
     const live = key => { const e = DB.get(key); if (e && e.exp && e.exp < now) { DB.delete(key); return null; } return e || null; };
     if (cmd === "GET") { const e = live(k); return json(200, { result: e ? e.v : null }); }
+    if (cmd === "SET" && k === "ct:login" && RFAIL.login > 0) { RFAIL.login--; return json(500, { error: "flaky" }); }
     if (cmd === "SET") { const nx = rest.includes("NX"), ex = rest.indexOf("EX"); if (nx && live(k)) return json(200, { result: null });
       DB.set(k, { v, exp: ex >= 0 ? now + +rest[ex + 1] * 1000 : 0 }); return json(200, { result: "OK" }); }
     if (cmd === "DEL") { DB.delete(k); return json(200, { result: 1 }); }
     if (cmd === "INCR") { const e = live(k), n = (e ? +e.v : 0) + 1; DB.set(k, { v: String(n), exp: e ? e.exp : 0 }); return json(200, { result: n }); }
+    if (cmd === "DECR") { const e = live(k), n = (e ? +e.v : 0) - 1; DB.set(k, { v: String(n), exp: e ? e.exp : 0 }); return json(200, { result: n }); }
+    if (cmd === "EVAL") { const [, , key, id] = JSON.parse(opts.body).slice(1); const e = live(key); if (e && e.v === id) { DB.delete(key); return json(200, { result: 1 }); } return json(200, { result: 0 }); }
     if (cmd === "EXPIRE") { const e = live(k); if (e) e.exp = now + +v * 1000; return json(200, { result: e ? 1 : 0 }); }
     return json(400, { error: "unknown command " + cmd });
   }
   if (url.startsWith("https://openapi.ctrader.com/apps/token")) {
-    TOK.calls++; const q = new URL(url).searchParams; await new Promise(r => setTimeout(r, 150));
+    TOK.calls++; const q = new URL(url).searchParams; if (TOK.during) TOK.during();
+    await new Promise((r, j) => { const t = setTimeout(r, TOK.hang ? 3000 : 150); if (opts.signal) opts.signal.addEventListener("abort", () => { clearTimeout(t); j(new Error("aborted")); }); });
     if (TOK.fail || q.get("grant_type") !== "refresh_token" || q.get("client_secret") !== "sec") return json(400, { errorCode: "ACCESS_DENIED", description: "bad" });
     TOK.n++; return json(200, { accessToken: "tok-new-" + TOK.n, refreshToken: "ref-new-" + TOK.n, expiresIn: 2628000, tokenType: "bearer" });
   }
@@ -37,7 +41,7 @@ async function call(mod, body, { method = "POST", origin = "", ip = "1.1.1.1" } 
 const PASS = "correct horse 42", seed = (extra = {}) => ({ action: "seed", pass: PASS, clientId: "cid", clientSecret: "sec", accessToken: "tok-1", refreshToken: "ref-1", expAt: Date.now() + 20 * 864e5, scope: "trading", ...extra });
 const env = (o) => { ["KV_REST_API_URL", "KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN", "FINDER_PASS"].forEach(k => delete process.env[k]); Object.assign(process.env, o); };
 const full = () => env({ KV_REST_API_URL: REDIS, KV_REST_API_TOKEN: "redis-token", FINDER_PASS: PASS });
-const reset = () => { DB = new Map(); TOK = { calls: 0, fail: false, n: 0 }; };
+const reset = () => { DB = new Map(); TOK = { calls: 0, fail: false, n: 0, hang: false, during: null }; RFAIL = { login: 0 }; delete process.env.KEEPER_FETCH_MS; };
 const cases = [];
 const t = (name, fn) => cases.push([name, fn]);
 const expect = (c, why) => { if (!c) throw new Error(why); };
@@ -90,7 +94,7 @@ t("bad token", async () => {
 });
 t("renew failed", async () => {
   full(); const m = load(); await call(m, seed({ expAt: Date.now() + 864e5 })); TOK.fail = true;
-  const r = await call(m, { action: "get", pass: PASS }), st = JSON.parse(DB.get("ct:login").v);
+  const r = await call(m, { action: "get", pass: PASS, bad: "tok-1" }), st = JSON.parse(DB.get("ct:login").v);
   expect(r.status === 502 && st.refreshToken === "ref-1" && st.accessToken === "tok-1", `→ ${r.status} ${r.raw} stored ${st.refreshToken}`);
 });
 t("cors", async () => {
@@ -103,6 +107,55 @@ t("cors", async () => {
 t("forget", async () => {
   full(); const m = load(); await call(m, seed()); let r = await call(m, { action: "forget", pass: PASS }); expect(r.status === 200, `forget → ${r.status}`);
   r = await call(m, { action: "get", pass: PASS }); expect(r.status === 404, `after forget → ${r.status}`);
+});
+t("parallel wrong guesses", async () => {
+  full(); const m = load(); await call(m, seed());
+  const rs = await Promise.all(Array.from({ length: 40 }, (_, i) => call(m, { action: "get", pass: "wrong guess " + i }, { ip: "5.5.5.5" })));
+  const n403 = rs.filter(r => r.status === 403).length; expect(n403 <= 10 && rs.every(r => r.status === 403 || r.status === 429), `403s ${n403} of 40`);
+});
+t("ipv6 /64 shares a bucket", async () => {
+  full(); const m = load(); await call(m, seed());
+  for (let i = 1; i <= 10; i++) await call(m, { action: "get", pass: "nope nope nope" }, { ip: `2001:db8:1:2:${i.toString(16)}::1` });
+  const r = await call(m, { action: "get", pass: PASS }, { ip: "2001:db8:1:2:ff::9" }); expect(r.status === 429, `11th in the /64 → ${r.status}`);
+});
+t("global ceiling", async () => {
+  full(); const m = load(); await call(m, seed());
+  for (let i = 0; i < 100; i++) await call(m, { action: "get", pass: "nope nope nope" }, { ip: `10.0.${i >> 8}.${i & 255}` });
+  const r = await call(m, { action: "get", pass: "nope nope nope" }, { ip: "10.9.9.9" }); expect(r.status === 429, `after 100 wrong from many → ${r.status}`);
+});
+t("counter always expires", async () => {
+  full(); const m = load(); await call(m, seed()); await call(m, { action: "get", pass: "nope nope nope" }, { ip: "8.8.4.4" });
+  const e = [...DB.entries()].find(([k]) => k.includes("8.8.4.4")); expect(e && e[1].exp > Date.now(), `fail counter ttl ${e && e[1].exp}`);
+});
+t("right passphrase not counted", async () => {
+  full(); const m = load(); await call(m, seed());
+  for (let i = 0; i < 15; i++) { const r = await call(m, { action: "get", pass: PASS }, { ip: "4.4.4.4" }); expect(r.status === 200, `right #${i + 1} → ${r.status}`); }
+});
+t("fetch timeout", async () => {
+  full(); process.env.KEEPER_FETCH_MS = "300"; const m = load(); await call(m, seed()); TOK.hang = true; const t0 = Date.now();
+  const r = await call(m, { action: "get", pass: PASS, bad: "tok-1" }); expect(r.status === 502 && Date.now() - t0 < 2000, `→ ${r.status} in ${Date.now() - t0} ms`);
+});
+t("lock is only released by its owner", async () => {
+  full(); const m = load(); await call(m, seed({ expAt: Date.now() + 864e5 }));
+  TOK.during = () => DB.set("ct:lock", { v: "someone-else", exp: Date.now() + 30000 });
+  await call(m, { action: "get", pass: PASS }); const l = DB.get("ct:lock"); expect(l && l.v === "someone-else", `lock after renew: ${l && l.v}`);
+});
+t("new pair saved despite a flaky store", async () => {
+  full(); const m = load(); await call(m, seed({ expAt: Date.now() + 864e5 })); RFAIL.login = 1;
+  const r = await call(m, { action: "get", pass: PASS }), st = JSON.parse(DB.get("ct:login").v);
+  expect(r.body.accessToken === "tok-new-1" && st.accessToken === "tok-new-1", `→ ${r.raw} stored ${st.accessToken}`);
+});
+t("bad right after a renewal is ignored", async () => {
+  full(); const m = load(); await call(m, seed());
+  await call(m, { action: "get", pass: PASS, bad: "tok-1" }); const r = await call(m, { action: "get", pass: PASS, bad: "tok-new-1".slice(-8) });
+  expect(TOK.calls === 1 && r.body.accessToken === "tok-new-1", `calls ${TOK.calls}`);
+});
+t("proactive renewal failing keeps serving a valid login", async () => {
+  full(); const m = load(); await call(m, seed({ expAt: Date.now() + 2 * 864e5 })); TOK.fail = true;
+  const r = await call(m, { action: "get", pass: PASS }); expect(r.status === 200 && r.body.accessToken === "tok-1", `→ ${r.status} ${r.raw}`);
+});
+t("127.0.0.1 Mac app allowed", async () => {
+  full(); const r = await call(load(), {}, { method: "OPTIONS", origin: "http://127.0.0.1:8787" }); expect(r.status === 204, `→ ${r.status}`);
 });
 t("method", async () => { full(); const r = await call(load(), null, { method: "GET" }); expect(r.status === 405, `GET → ${r.status}`); });
 

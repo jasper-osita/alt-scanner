@@ -112,5 +112,10 @@
       "source": "/proxy/rss/financialjuice",
       "destination": "https://www.financialjuice.com/feed.ashx?xy=rss"
     }
-  ]
+  ],
+  "functions": {
+    "api/ct-keeper.js": {
+      "maxDuration": 60
+    }
+  }
 }

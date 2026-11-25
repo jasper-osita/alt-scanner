@@ -151,7 +151,12 @@ def serve(port=8765):
         def guess_type(s, p): return "application/manifest+json" if p.endswith(".webmanifest") else super().guess_type(p)
         def log_message(s, *a): pass
     socketserver.TCPServer.allow_reuse_address = True
-    srv = socketserver.ThreadingTCPServer(("localhost", port), Hd); threading.Thread(target=srv.serve_forever, daemon=True).start(); return srv
+    class Srv(socketserver.ThreadingTCPServer):
+        def handle_error(s, request, addr):              # the browser hanging up mid-download is not a test failure
+            import sys as _s
+            if isinstance(_s.exc_info()[1], (BrokenPipeError, ConnectionResetError)): return
+            super().handle_error(request, addr)
+    srv = Srv(("localhost", port), Hd); threading.Thread(target=srv.serve_forever, daemon=True).start(); return srv
 async def ready(pg, secs=150):
     for _ in range(secs * 2):
         if await pg.evaluate("() => !document.getElementById('runBtn').disabled && document.getElementById('copyBtn').disabled === false"): return True

@@ -1,5 +1,6 @@
 """TradingView-style chart extras: chart types, chart alerts, bar replay, compare, object tree, data window, snapshot, scripts."""
-import asyncio, sys, os
+import asyncio, sys, os, functools
+print = functools.partial(print, flush=True)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from mock import *
 from playwright.async_api import async_playwright
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "finder")
@@ -107,6 +108,29 @@ async def main():
         print("   removed ETH:", await q("() => CH.cmp.map(x => x.sym).join(',') + ' | panes ' + CHP.map(P => Object.keys(P.cmp).join('+')).join(' ')"))
         await q("() => chCmpRemove('SOLUSDT')"); await asyncio.sleep(0.5)
         print("   none left, scale back:", await q("() => CHP.map(P => Object.keys(P.cmp).length + ':' + P.chart.priceScale('right').options().mode).join(' ')"))
+        # ---- object tree, data window, snapshot
+        await q("() => { const P = CHP[1]; CHD[CH.sym] = [{ id: 'tl1', type: 'trend', pts: [{ t: P.t.at(-40), p: P.l.at(-40) }, { t: P.t.at(-5), p: P.h.at(-5) }], s: {} }, { id: 'tx1', type: 'text', pts: [{ t: P.t.at(-20), p: P.c.at(-20) }], s: { txt: 'OB retest' } }]; chSaveDraw(); chDirty = true; }")
+        await pg.click('#chWL [data-side="obj"]'); await asyncio.sleep(0.3)
+        print("5) objects:", await q("() => [...document.querySelectorAll('#chOT .chotg')].map(g => g.innerText.replace(/\s+/g, ' ')).join(' | ') + ' || ' + [...document.querySelectorAll('#chOT .chotr .n')].slice(0, 6).map(n => n.innerText.trim()).join(' / ')"))
+        did = await q("() => CHD[CH.sym][0].id")
+        await pg.hover(f'#chOT [data-od="{did}"]'); await pg.click(f'#chOT [data-od="{did}"] [data-ot="deye"]'); await asyncio.sleep(0.2)
+        print("   hide one:", await q(f"() => CHD[CH.sym].find(d => d.id === '{did}').hid + ' | painted hits ' + CHP.some(P => P.hits.some(h => h.id === '{did}'))"))
+        await pg.click(f'#chOT [data-od="{did}"] [data-ot="dlk"]'); await asyncio.sleep(0.1)
+        print("   lock:", await q(f"() => CHD[CH.sym].find(d => d.id === '{did}').lk"))
+        await pg.click(f'#chOT [data-od="{did}"] .n'); await asyncio.sleep(0.1)
+        print("   select from tree:", await q(f"() => chSel === '{did}'"))
+        n0 = await q("() => CHD[CH.sym].length"); await pg.click(f'#chOT [data-od="{did}"] [data-ot="drm"]'); await asyncio.sleep(0.1)
+        print("   remove:", n0, "→", await q("() => CHD[CH.sym].length"))
+        await pg.click('#chWL [data-side="data"]'); await asyncio.sleep(0.3)
+        box = await pg.locator("#chCv1").bounding_box(); await pg.mouse.move(box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.4); await asyncio.sleep(0.3)
+        print("   data window:", await q("() => document.getElementById('chDW').innerText.replace(/\s+/g, ' ').slice(0, 260)"))
+        print("   follows the crosshair:", await q("() => { const P = CHP[1], i = chIdx(P, P.mouse ? chTimeAt(P, Math.round(chXLg(P, P.mouse.x))) : 0); return document.getElementById('chDW').innerText.includes(chPxFmt(P)(P.c[i])); }"))
+        await pg.screenshot(path=f"{OUT}/tvx_data.png")
+        await pg.click('#chWL [data-side="wl"]'); await asyncio.sleep(0.3)
+        print("   back to watchlist:", await q("() => document.querySelectorAll('#chWL .chwr').length > 0"))
+        print("   snapshot:", await q("async () => { const b = await chSnap('dl'); window.__snap = b ? await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }) : ''; return b ? b.type + ' ' + Math.round(b.size / 1024) + ' KB' : 'none'; }"))
+        import base64; open(f"{OUT}/tvx_snapshot.png", "wb").write(base64.b64decode((await q("() => __snap")).split(",")[1]))
+        await pg.click("#chSnapBtn"); print("   snapshot menu:", await q("() => [...document.querySelectorAll('#chMenu [data-mk]')].map(b => b.innerText.trim()).join(', ')")); await q("() => chMenuClose()")
         print("CSP:", csp[:3] or "none", "| errors:", errs[:5] or "none")
         await b.close()
 asyncio.run(main())

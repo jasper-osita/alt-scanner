@@ -1056,7 +1056,12 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 @media (max-width:1800px){#chAlertBtn span,#chRpBtn span,.chsetbtn span{display:none}}.rpt{font-size:12px;color:var(--mute);min-width:120px}
 #chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
 .chmod.chmal{width:min(560px,96vw)}
-.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}.chab select{max-width:300px}.chab #chaV{width:130px;margin-left:6px}.chab textarea{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}
+.chstabs{display:flex;gap:2px}.chstabs button{background:none;border:0;border-radius:6px;color:var(--mute);font:600 12.5px var(--display);padding:4px 7px;cursor:pointer}.chstabs button.on{color:var(--strong, var(--text));background:var(--pill)}
+.chot{padding:4px 8px 10px}.chotg{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);padding:10px 2px 4px}.chotnone{padding:2px 4px}
+.chotr{display:flex;align-items:center;gap:2px;padding:4px;border-radius:6px;font-size:12.5px}.chotr:hover,.chotr.sel{background:var(--pill)}.chotr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:5px}.chotr .n.off{opacity:.45}
+.chotr button{background:none;border:0;color:var(--mute);cursor:pointer;padding:3px;border-radius:5px;display:inline-flex}.chotr button:hover{color:var(--text);background:var(--line)}.chotr button.on{color:var(--gold, #e8b04a)}.chotf{padding:10px 2px}
+.chdw{padding:6px 10px 12px;font-size:12.5px}.chdwh{font-weight:600;color:var(--strong, var(--text));padding:6px 0 4px}.chdwh.sub{font-weight:500;color:var(--mute);font-size:11.5px;padding-top:10px}.chdwr{display:flex;justify-content:space-between;gap:8px;padding:2px 0}.chdwr span{color:var(--mute)}.chdwr b{font-weight:500;font-variant-numeric:tabular-nums}.chab select{max-width:300px}.chab #chaV{width:130px;margin-left:6px}.chab textarea{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
 .chaRow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line)}.chaRow.off{opacity:.6}.chaTxt{flex:1;min-width:0;font-size:13px}.chaTxt small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
 @media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
@@ -8218,6 +8223,7 @@ function chBuild() {
       <button class="chindbtn" id="chAlertBtn" title="Create alert (Alt+A)" aria-label="Create alert">${chIco("M10.5 3.5a5 5 0 0 1 5 5v3l1.5 2.5h-13L5.5 11.5v-3a5 5 0 0 1 5-5zM8.5 17a2 2 0 0 0 4 0", 17)}<span>Alert</span></button>
       <button class="chindbtn" id="chRpBtn" aria-pressed="false" title="Bar replay: hide the candles after a point and play them back">${chIco("M11 5L4 10.5 11 16zM18 5l-7 5.5 7 5.5z", 17)}<span>Replay</span></button>
       <div class="rpctl" id="rpCtl" hidden role="group" aria-label="Bar replay"><button class="btn sm" id="rpPick" title="Pick a new start candle">Select bar</button><button class="btn sm" id="rpPlay" title="Play / pause (Shift+↓)" aria-label="Play">▶</button><button class="btn sm" id="rpFwd" title="Forward one bar (Shift+→)" aria-label="Forward one bar">⏭</button><select id="rpSpd" aria-label="Replay speed"><option value="1">1 bar/s</option><option value="3">3 bars/s</option><option value="10">10 bars/s</option></select><span class="rpt" id="rpT"></span><button class="btn sm" id="rpExit" title="Back to live candles">✕ Exit</button></div>
+      <button class="chindbtn" id="chSnapBtn" aria-haspopup="true" title="Take a snapshot of the charts" aria-label="Snapshot">${chIco("M4 7h3l1.5-2h4L14 7h3v9H4zM10.5 14a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z", 17)}</button>
       <button class="chindbtn" id="chQtBtn" aria-pressed="false" title="Quick trade: buy or sell at market from the chart, with stop and target lines">${chIco("M4 12h10M10 6l6 6-6 6M19 5v14", 17)}<span>Quick trade</span></button>
       <button class="chindbtn chsetbtn" id="chSetBtn" title="Chart settings and templates" aria-label="Chart settings">${chIco("gear", 17)}<span>Settings</span></button>
       <div class="chund"><button id="chUndoB" title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo">${chIco("M8 6L4 10l4 4M4 10h9a4 4 0 0 1 0 8h-2", 17)}</button><button id="chRedoB" title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo">${chIco("M13 6l4 4-4 4M17 10H8a4 4 0 0 0 0 8h2", 17)}</button></div>
@@ -8239,6 +8245,7 @@ function chBuild() {
   chToolbarBind();
   $("chIndBtn").onclick = () => chIndDialog(); $("chSetBtn").onclick = () => chChartSettings();
   $("chAlertBtn").onclick = () => chaDialog(chActP());
+  $("chSnapBtn").onclick = e => { e.stopPropagation(); chMenu($("chSnapBtn"), [{ l: "Download image", k: "dl", ico: chIco("M10.5 3v10M6 9l4.5 4.5L15 9M4 17h13", 16) }, { l: "Copy image", k: "cp", ico: chIco("M7 7h10v10H7zM4 14V4h10", 16) }], { onPick: k => chSnap(k) }); };
   $("chCmpBtn").onclick = e => { e.stopPropagation(); chPickOpen("all", chCmpAdd); };
   $("chRpBtn").onclick = () => RP.on ? rpExit() : rpEnter(); $("rpPick").onclick = () => rpPickMode(true); $("rpPlay").onclick = () => rpPlay(!RP.play);
   $("rpFwd").onclick = () => rpForward(); $("rpExit").onclick = () => rpExit(); $("rpSpd").onchange = () => { RP.speed = +$("rpSpd").value; if (RP.play) { rpPlay(false); rpPlay(true); } };
@@ -8855,6 +8862,7 @@ function chLegend(P, prm) {
 function chIdx(P, t) { const T = P.t; let lo = 0, hi = T.length - 1, a = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (T[m] <= t) { a = m; lo = m + 1; } else hi = m - 1; } return a; }
 function chOnCross(P, prm) {
   P.hover = !!(prm && prm.time != null); chLegend(P, P.hover ? prm : null);
+  if (CH.side === "data" && CH.wl) chDataWin(P, P.hover ? chIdx(P, prm.time * 1000) : null);
   P.mouse = prm && prm.point ? prm.point : null;
   if (chSyncing) return;
   chSyncing = true;
@@ -9271,7 +9279,7 @@ function chPaintBody(P, g) {
   const Hm = P.oscL && P.oscL.length ? P.oscL[0].top * H - 2 : H, nAx = axis.length;   // drawings stay in the price area, off the indicator panes
   g.save(); g.beginPath(); g.rect(0, 0, W, Hm); g.clip();
   P.hits = [];
-  const all = chHidden ? [] : chList(chPS(P)).filter(d => CH_T[d.type] && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
+  const all = chHidden ? [] : chList(chPS(P)).filter(d => CH_T[d.type] && !d.hid && !(d.s && d.s.vis && !d.s.vis.includes(P.tf)));
   if (chDraft && chDraft.pane === P.i && CH_T[chDraft.type] && CH_T[chDraft.type].paint) all.push({ ...chDraft, id: "draft", draft: true, s: chDraft.type === "icon" ? { icon: CH.icon } : undefined });
   for (const d of all) { try {
     const T = CH_T[d.type]; if (!T.paint || !Array.isArray(d.pts) || !d.pts.length) continue;
@@ -9484,7 +9492,8 @@ function chWLRender() {
     return `<div class="chwr ${x.sym === CH.sym ? "on" : ""}" data-s="${x.sym}" role="button" tabindex="0"><span class="n">${chName(x.sym)}</span><span class="v">${chFmt(p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${abs == null ? "" : (abs >= 0 ? "+" : "") + chFmt(abs, p)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "—" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>${x.user ? `<button class="x" data-rm="${x.orig || x.sym}" aria-label="Remove ${chName(x.sym)}">×</button>` : ""}</div>`; };
   document.querySelector(".chbody").classList.toggle("nowl", !CH.wl);
   if (!CH.wl) { el.innerHTML = `<button class="chwlopen" id="chWLOpen" title="Show the watchlist" aria-label="Show the watchlist">‹ <span>Watchlist</span></button>`; $("chWLOpen").onclick = () => { CH.wl = true; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); }; return; }
-  let html = `<div class="chwh"><b>Watchlist</b><span><button class="btn sm" id="chWLAddB">${chWLAdd ? "Done" : "+ Add"}</button> <button class="btn sm" id="chWLHide" title="Hide the watchlist" aria-label="Hide the watchlist">›</button></span></div>`;
+  if (CH.side === "obj" || CH.side === "data") { chSideRender(el); return; }
+  let html = `<div class="chwh">${chSideTabs()}<span><button class="btn sm" id="chWLAddB">${chWLAdd ? "Done" : "+ Add"}</button> <button class="btn sm" id="chWLHide" title="Hide the watchlist" aria-label="Hide the watchlist">›</button></span></div>`;
   if (chWLAdd) {
     const q = chWLQ.trim().toLowerCase(), pool = [];
     (data ? data.all : []).slice().sort((a, b) => b.vol24h - a.vol24h).forEach(r => pool.push(r.symbol));
@@ -9500,7 +9509,7 @@ function chWLRender() {
   el.innerHTML = html;
   el.querySelectorAll("[data-s]").forEach(r => { r.onclick = e => { if (e.target.closest("[data-rm]")) return; chSetSym(r.dataset.s); }; r.onkeydown = e => { if (e.key === "Enter") chSetSym(r.dataset.s); }; });
   el.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { CHW = CHW.filter(s => s !== b.dataset.rm); chSaveWL(); chWLRender(); });
-  $("chWLHide").onclick = () => { CH.wl = false; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); };
+  $("chWLHide").onclick = () => { CH.wl = false; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); }; chSideBind(el);
   $("chWLAddB").onclick = () => { chWLAdd = !chWLAdd; chWLQ = ""; chWLRender(); if (chWLAdd && $("chWLQ")) $("chWLQ").focus(); };
   if ($("chWLQ")) $("chWLQ").oninput = () => { chWLQ = $("chWLQ").value; const pos = $("chWLQ").selectionStart; chWLRender(); const n = $("chWLQ"); n.focus(); n.setSelectionRange(pos, pos); };
   el.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const s = b.dataset.add; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (MACRO_INFO[chBase(s)] && !s.startsWith("CT:")) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chQuotesFetch(); });
@@ -9529,6 +9538,70 @@ async function chQuotesFetch(list) {
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
+
+/* ===================== Right panel tabs: Watchlist · Object tree · Data window (CH.side) ===================== */
+const chSideTabs = () => `<span class="chstabs" role="tablist">${[["wl", "Watchlist"], ["obj", "Objects"], ["data", "Data"]].map(([k, l]) => `<button role="tab" data-side="${k}" class="${(CH.side || "wl") === k ? "on" : ""}" aria-selected="${(CH.side || "wl") === k}">${l}</button>`).join("")}</span>`;
+function chSideBind(el) {
+  el.querySelectorAll("[data-side]").forEach(b => b.onclick = () => { CH.side = b.dataset.side; chSave(); el.dataset.sig = ""; chWLRender(); });
+  const h = el.querySelector("#chSideHide"); if (h) h.onclick = () => { CH.wl = false; chSave(); chWLRender(); requestAnimationFrame(chResizeAll); };
+}
+function chSideRender(el) {
+  if (CH.side === "data") { if (!el.querySelector("#chDW")) { el.innerHTML = `<div class="chwh">${chSideTabs()}<span><button class="btn sm" id="chSideHide" title="Hide the panel" aria-label="Hide the panel">›</button></span></div><div id="chDW" class="chdw"></div>`; chSideBind(el); el.dataset.sig = ""; }
+    if (!chVis().some(P => P.hover)) chDataWin(chActP(), null); return; }
+  const sym = CH.sym, D = chList(sym), al = (CHA || []).filter(a => a.sym === sym), cmp = chCmpList();
+  const sig = JSON.stringify([sym, (CH.ind || []).map(I => [I.id, I.hide, indTitle(I)]), D.map(d => [d.id, d.type, d.hid, d.lk, d.s && d.s.txt]), al.map(a => [a.id, a.on]), cmp, chSel]);
+  if (el.dataset.sig === sig && el.querySelector("#chOT")) return; el.dataset.sig = sig;
+  const btn = (k, ico, lbl, on) => `<button data-ot="${k}" class="${on ? "on" : ""}" title="${lbl}" aria-label="${lbl}">${chIco(ico, 15)}</button>`;
+  const sec = (t, n, rows) => `<div class="chotg">${t} <span class="mute">${n}</span></div>${rows || `<div class="meta chotnone">None</div>`}`;
+  el.innerHTML = `<div class="chwh">${chSideTabs()}<span><button class="btn sm" id="chSideHide" title="Hide the panel" aria-label="Hide the panel">›</button></span></div><div id="chOT" class="chot">
+    ${sec("Indicators", (CH.ind || []).length, (CH.ind || []).filter(I => IND[I.type]).map(I => `<div class="chotr" data-oi="${I.id}"><span class="n ${I.hide ? "off" : ""}">${chEsc(indTitle(I))}</span>${btn("ieye", I.hide ? "eyeoff" : "eye", I.hide ? "Show" : "Hide")}${btn("iset", "gear", "Settings")}${btn("irm", "trash", "Remove")}</div>`).join(""))}
+    ${cmp.length ? sec("Compared", cmp.length, cmp.map(x => `<div class="chotr" data-oc="${chEsc(x.sym)}"><span class="n" style="color:${x.c}">${chEsc(chName(x.sym))}</span>${btn("crm", "trash", "Remove")}</div>`).join("")) : ""}
+    ${sec(`Drawings on ${chEsc(chName(sym))}`, D.length, D.slice().reverse().map(d => `<div class="chotr ${d.id === chSel ? "sel" : ""}" data-od="${d.id}" role="button" tabindex="0"><span class="n ${d.hid ? "off" : ""}">${chIco((CH_T[d.type] || {}).ico || "", 14)} ${chEsc((CH_T[d.type] || {}).name || d.type)}${d.s && d.s.txt ? ` <span class="mute">“${chEsc(String(d.s.txt).slice(0, 24))}”</span>` : ""}</span>${btn("deye", d.hid ? "eyeoff" : "eye", d.hid ? "Show" : "Hide")}${btn("dlk", d.lk ? "lock" : "unlock", d.lk ? "Unlock" : "Lock", d.lk)}${btn("drm", "trash", "Remove")}</div>`).join(""))}
+    ${sec(`Alerts on ${chEsc(chName(sym))}`, al.length, al.map(a => `<div class="chotr" data-oa="${a.id}"><span class="n ${a.on ? "" : "off"}">🔔 ${CH_TFL[a.tf]} ${chEsc(chaDesc(a))}</span>${btn("atog", a.on ? "eye" : "eyeoff", a.on ? "Stop" : "Restart")}${btn("arm", "trash", "Delete")}</div>`).join(""))}
+    ${D.length ? `<div class="chotf"><button class="btn sm" data-ot="dall">${D.some(d => !d.hid) ? "Hide" : "Show"} all drawings</button></div>` : ""}</div>`;
+  chSideBind(el);
+  el.querySelectorAll("#chOT [data-ot]").forEach(b => b.onclick = e => { e.stopPropagation(); const r = b.closest(".chotr"), k = b.dataset.ot;
+    if (k[0] === "i") { const I = (CH.ind || []).find(x => x.id === r.dataset.oi); if (!I) return; if (k === "ieye") { I.hide = !I.hide; chIndChanged(); } else if (k === "iset") chIndSettings(I); else { CH.ind = CH.ind.filter(x => x !== I); chIndChanged(); } }
+    else if (k === "crm") chCmpRemove(r.dataset.oc);
+    else if (k[0] === "d" && k !== "dall") { const d = chList().find(x => x.id === r.dataset.od); if (!d) return; chPush(); if (k === "deye") d.hid = !d.hid; else if (k === "dlk") d.lk = !d.lk; else { CHD[CH.sym] = chList().filter(x => x !== d); if (chSel === d.id) chSel = null; } chCommit(); }
+    else if (k === "dall") { chPush(); const show = !D.some(d => !d.hid); D.forEach(d => d.hid = !show); chCommit(); }
+    else if (k[0] === "a") { const a = CHA.find(x => x.id === r.dataset.oa); if (!a) return; if (k === "atog") { a.on = !a.on; a.bar = null; delete CHA_ST[a.id]; } else CHA = CHA.filter(x => x !== a); chaSave(); chVis().forEach(P => { P.alSig = null; chLevelLines(P); }); }
+    el.dataset.sig = ""; chWLRender(); chDirty = true; });
+  el.querySelectorAll("#chOT [data-od]").forEach(r => r.onclick = () => { chSel = r.dataset.od; if (typeof chSelBar === "function") chSelBar(); chDirty = true; el.dataset.sig = ""; chWLRender(); });
+}
+function chDataWin(P, idx) {                                       // TradingView's data window: every value at the crosshair (or the last candle)
+  const el = $("chDW"); if (!el || !P || !P.t || !P.t.length) return;
+  const i = idx == null || idx < 0 ? P.t.length - 1 : idx, f = chPxFmt(P), A = P.csType === "ha" && P.ha && P.ha.c.length === P.t.length ? P.ha : P, ms = P.t[i], d = new Date(ms + chTzOff(ms)), S = chCS();
+  const row = (l, v, c) => `<div class="chdwr"><span>${l}</span><b ${c ? `style="color:${c}"` : ""}>${v}</b></div>`, chg = A.o[i] ? (A.c[i] - A.o[i]) / A.o[i] * 100 : 0;
+  let h = `<div class="chdwh">${chEsc(chName(chPS(P)))} · ${CH_TFL[P.tf]}${P.rp ? " · replay" : ""}</div>${row("Date", `${S.dow ? CS_WD[d.getUTCDay()] + " " : ""}${chDateTxt(d, S.dateFmt)}`)}${row("Time", chHM(d, S.h12))}
+    ${row("Open", f(A.o[i]))}${row("High", f(A.h[i]))}${row("Low", f(A.l[i]))}${row("Close", f(A.c[i]))}${row("Change", `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%`, chg >= 0 ? S.upC : S.dnC)}${P.v && P.v[i] != null ? row("Volume", chIndNum(+P.v[i])) : ""}`;
+  chIndActive(P).forEach(I => { const V = (P.iv || {})[I.id], D = IND[I.type], x = P.ix && P.ix[I.id]; if (!V || !x) return;
+    const L = (D.plots || []).filter(pl => V[pl.k] && V[pl.k][i] != null && isFinite(V[pl.k][i])); if (!L.length) return;
+    h += `<div class="chdwh sub">${chEsc(indTitle(I))}</div>` + L.map(pl => row(chEsc(pl.l), D.pane || D.scale ? chIndNum(V[pl.k][i]) : f(V[pl.k][i]), (x.st.plots[pl.k] || {}).c)).join(""); });
+  const cm = Object.entries(P.cmp || {}); if (cm.length) h += `<div class="chdwh sub">Compared</div>` + cm.map(([sy, x]) => { const v = x.K ? chCmpAt(x.K, ms, P.tf) : null; return row(chEsc(chName(sy)), v == null ? "—" : chFmt(v, v), x.c); }).join("");
+  el.innerHTML = h;
+}
+
+/* ===================== Snapshot: the visible charts with their drawings, as a PNG to download or copy ===================== */
+async function chSnap(mode) {
+  const grid = $("chGrid"); if (!grid) return; const g0 = grid.getBoundingClientRect(), dpr = Math.max(1, window.devicePixelRatio || 1), foot = 26;
+  const cv = document.createElement("canvas"); cv.width = Math.round(g0.width * dpr); cv.height = Math.round((g0.height + foot) * dpr); const g = cv.getContext("2d"); g.scale(dpr, dpr);
+  const bg = chCS().bg || cssVar("--panel") || "#131722", txt = cssVar("--text") || "#d1d4dc", mute = cssVar("--mute") || "#787b86", font = chFont();
+  g.fillStyle = cssVar("--bg") || "#0e1116"; g.fillRect(0, 0, g0.width, g0.height + foot);
+  chVis().forEach(P => { if (!P.chart) return; const pr = P.pane.getBoundingClientRect(), r = P.cv.getBoundingClientRect(), hd = P.pane.querySelector(".chph").getBoundingClientRect();
+    g.fillStyle = bg; g.fillRect(pr.left - g0.left, pr.top - g0.top, pr.width, pr.height);
+    try { g.drawImage(P.chart.takeScreenshot(), r.left - g0.left, r.top - g0.top, r.width, r.height); } catch (e) {}
+    try { g.drawImage(P.ov, r.left - g0.left, r.top - g0.top, r.width, r.height); } catch (e) {}
+    const leg = P.wrap.querySelector(".chind"); g.font = `600 12px ${font}`; g.fillStyle = txt; g.textBaseline = "middle";
+    g.fillText(($("chLeg" + P.i) || {}).innerText || `${chName(chPS(P))} · ${CH_TFL[P.tf]}`, hd.left - g0.left + 8, hd.top - g0.top + hd.height / 2, pr.width - 16);
+    if (leg) { g.font = `11px ${font}`; [...leg.querySelectorAll(".chil:not(.osc) .chir")].slice(0, 6).forEach((row, j) => { g.fillStyle = mute; g.fillText(row.innerText.replace(/\s+/g, " ").trim(), r.left - g0.left + 8, r.top - g0.top + 12 + j * 16, r.width - 90); }); } });
+  g.font = `11px ${font}`; g.fillStyle = mute; g.textBaseline = "middle"; g.fillText(`The Finder · ${fmtPHT(new Date(Date.now() + PHT_MS))}`, 8, g0.height + foot / 2);
+  const blob = await new Promise(res => cv.toBlob(res, "image/png")); if (!blob) { chToast("Couldn't make the image."); return null; }
+  const name = `${chName(CH.sym).replace(/[^\w.-]+/g, "_")}_${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.png`;
+  if (mode === "cp" && navigator.clipboard && window.ClipboardItem) { try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); chToast("Chart image copied. Paste it anywhere."); return blob; } catch (e) {} }
+  const a = document.createElement("a"), u = URL.createObjectURL(blob); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  chToast(mode === "cp" ? "Copying isn't allowed here, so the image was downloaded instead." : `Saved <b>${chEsc(name)}</b>.`); return blob;
+}
 
 /* ===================== Compare: other markets overlaid in percent, like TradingView's "Compare symbol" (CH.cmp = [{ sym, c }]) ===================== */
 const CMP_COL = ["#ff9800", "#00bcd4", "#e91e63", "#8bc34a"];

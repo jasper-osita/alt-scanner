@@ -121,8 +121,9 @@ module.exports = async (req, res) => {
   const send = (code, obj) => { res.statusCode = code; res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); };
   const S = storeFor(), pass = process.env.FINDER_PASS || "";
   if (req.method === "GET" && /[?&]check=1\b/.test(req.url || "")) {     // set-up check: nothing secret in it
-    let login = null; try { login = S ? !!(await S.getLogin()) : null; } catch (e) { login = "store didn't answer"; }
-    return send(200, { store: S ? S.kind : null, passphrase: pass.length >= 12, shared: login });
+    let login = null, write = null; try { login = S ? !!(await S.getLogin()) : null; } catch (e) { login = "store didn't answer"; }
+    if (S) { try { write = Number.isFinite(await S.count("setup-check")); } catch (e) { write = false; } }     // one harmless counter write proves the store accepts writes
+    return send(200, { store: S ? S.kind : null, passphrase: pass.length >= 12, shared: login, writes: write });
   }
   if (req.method === "OPTIONS") { res.statusCode = okOrigin ? 204 : 403; return res.end(); }
   if (req.method !== "POST") { res.statusCode = 405; return res.end(); }

@@ -180,7 +180,7 @@ t("method", async () => { full(); const r = await call(load(), null, { method: "
 t("set-up check says nothing secret", async () => {
   full(); const m = load(); await call(m, seed()); const req = { method: "GET", url: "/api/ct-keeper?check=1", headers: { host: "x" } };
   const res = { statusCode: 200, headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(b) { this.body = b; } }; await m(req, res); const j = JSON.parse(res.body);
-  expect(res.statusCode === 200 && j.store === BACKEND && j.passphrase === true && j.shared === true && !/tok-1|sec|ref-1|correct horse/.test(res.body), res.body);
+  expect(res.statusCode === 200 && j.store === BACKEND && j.passphrase === true && j.shared === true && j.writes === true && !/tok-1|sec|ref-1|correct horse/.test(res.body), res.body);
 });
 
 globalThis.__KEEPER_BLOB__ = fakeBlob;

@@ -1056,7 +1056,9 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 @media (max-width:1800px){#chAlertBtn span,#chRpBtn span,.chsetbtn span{display:none}}.rpt{font-size:12px;color:var(--mute);min-width:120px}
 #chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
 .chmod.chmal{width:min(560px,96vw)}
-.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}.systeps{padding-left:18px;line-height:1.5}#syBox input[type=password]{width:260px}
+.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}
+.chmod.chmps{width:min(860px,96vw);height:min(720px,92vh)}.pseb{display:flex;flex-direction:column;gap:8px}.pseb textarea{flex:1;min-height:300px;width:100%;box-sizing:border-box;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:4;white-space:pre}
+.pserr{font-size:12.5px;min-height:18px}.pserr.ok{color:var(--up, #22ab94)}.pserr.bad{color:var(--dn, #f23645)}.pshelp summary{cursor:pointer;font-size:12.5px;color:var(--accent, #2962ff)}.pshelp p{margin:6px 0;line-height:1.5}.pshelp code{font-size:11.5px}.systeps{padding-left:18px;line-height:1.5}#syBox input[type=password]{width:260px}
 .chstabs{display:flex;gap:2px}.chstabs button{background:none;border:0;border-radius:6px;color:var(--mute);font:600 12.5px var(--display);padding:4px 7px;cursor:pointer}.chstabs button.on{color:var(--strong, var(--text));background:var(--pill)}
 .chot{padding:4px 8px 10px}.chotg{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);padding:10px 2px 4px}.chotnone{padding:2px 4px}
 .chotr{display:flex;align-items:center;gap:2px;padding:4px;border-radius:6px;font-size:12.5px}.chotr:hover,.chotr.sel{background:var(--pill)}.chotr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:5px}.chotr .n.off{opacity:.45}
@@ -7282,7 +7284,9 @@ function chIndDlgRender() {
   const nav = $("chIndNav"), list = $("chIndList"); if (!nav || !list) return;
   const fav = CH.indFav || [], q = chIndQ.trim().toLowerCase(), cnt = (CH.ind || []).length;
   nav.innerHTML = `<div class="chinh">Personal</div>${[["all", "All indicators"], ["fav", "Favorites"], ["on", `On chart${cnt ? ` (${cnt})` : ""}`]].map(([k, l]) => `<button data-cat="${k}" class="${chIndCat === k && !q ? "on" : ""}">${k === "fav" ? chIco("star", 15) : k === "on" ? chIco("eye", 15) : chIco("fx", 15)} ${l}</button>`).join("")}
-    <div class="chinh">Built-in</div>${IND_CATS.slice(2).map(([k, l]) => `<button data-cat="${k}" class="${chIndCat === k && !q ? "on" : ""}">${l}</button>`).join("")}`;
+    <div class="chinh">Built-in</div>${IND_CATS.slice(2).map(([k, l]) => `<button data-cat="${k}" class="${chIndCat === k && !q ? "on" : ""}">${l}</button>`).join("")}
+    <div class="chinh">Your scripts</div><button data-cat="Your scripts" class="${chIndCat === "Your scripts" && !q ? "on" : ""}">${chIco("M7 6l-4 4.5L7 15M14 6l4 4.5-4 4.5", 15)} Scripts (${PS.list.length})</button><button id="psNewB">${chIco("M10.5 4v13M4 10.5h13", 15)} New script</button>`;
+  $("psNewB").onclick = () => psEditor(null);
   nav.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { chIndCat = b.dataset.cat; chIndQ = ""; $("chIndQ").value = ""; chIndDlgRender(); });
   if (chIndCat === "on" && !q) {
     list.innerHTML = cnt ? `<div class="chilh"><span>On this chart</span><span></span></div>` + CH.ind.map(I => `<div class="chirow on" data-iid="${I.id}"><span class="nm">${chEsc(indTitle(I))}<small>${chEsc(IND[I.type].name)}${I.vis ? " · " + I.vis.map(t => CH_TFL[t]).join(" ") : ""}</small></span>
@@ -7296,7 +7300,8 @@ function chIndDlgRender() {
     .sort((a, b) => q || chIndCat === "all" ? a[1].name.localeCompare(b[1].name) : 0);
   list.innerHTML = `<div class="chilh"><span>Name</span><span>Type</span></div>` + (items.map(([k, D]) => { const n = (CH.ind || []).filter(I => I.type === k).length;
     return `<div class="chirow" data-add="${k}" tabindex="0" role="button"><button class="chistar ${fav.includes(k) ? "on" : ""}" data-fav="${k}" title="${fav.includes(k) ? "Remove from favorites" : "Add to favorites"}" aria-label="Favorite">${chIco("star", 15, fav.includes(k) ? 'fill="currentColor"' : "")}</button>
-      <span class="nm">${chEsc(D.name)}${n ? `<b class="chicnt">${n} on chart</b>` : ""}<small>${chEsc(D.desc)}</small></span><span class="ty">${D.pane ? "Pane" : "Overlay"} · ${chEsc(D.cat)}</span></div>`; }).join("") || `<div class="meta chiempty">No indicator matches “${chEsc(chIndQ)}”.</div>`);
+      <span class="nm">${chEsc(D.name)}${n ? `<b class="chicnt">${n} on chart</b>` : ""}<small>${chEsc(D.desc)}</small></span><span class="ty">${D.ps ? `<button class="btn sm" data-psed="${D.ps}" title="Edit the script">Edit</button> ` : ""}${D.pane ? "Pane" : "Overlay"} · ${chEsc(D.cat)}</span></div>`; }).join("") || (chIndCat === "Your scripts" && !q ? `<div class="meta chiempty">No scripts yet. “New script” opens the editor with an example to start from.</div>` : `<div class="meta chiempty">No indicator matches “${chEsc(chIndQ)}”.</div>`));
+  list.querySelectorAll("[data-psed]").forEach(b => b.onclick = e => { e.stopPropagation(); psEditor(b.dataset.psed); });
   list.querySelectorAll("[data-fav]").forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.fav; CH.indFav = fav.includes(k) ? fav.filter(x => x !== k) : [...fav, k]; chSave(); chIndDlgRender(); });
   list.querySelectorAll("[data-add]").forEach(r => { const add = () => { const I = indNew(r.dataset.add); CH.ind = [...(CH.ind || []), I]; chIndChanged(); chIndDlgRender(); chToast(`Added <b>${chEsc(IND[I.type].name)}</b>. Its settings are on the ⚙ next to its name on the chart.`); };
     r.onclick = add; r.onkeydown = e => { if (e.key === "Enter") add(); }; });
@@ -9552,7 +9557,7 @@ const SYNC_PARTS = {
   wl: { l: "Chart watchlist", get: () => CHW, set: v => { CHW = Array.isArray(v) ? v : CHW; chSaveWL(); if (chOn) chWLRender(); } },
   alerts: { l: "Chart alerts", get: () => CHA, set: v => { CHA = Array.isArray(v) ? v : CHA; chaSave(); chaListRender(); if (chOn) chVis().forEach(P => { P.alSig = null; chLevelLines(P); }); } },
   watch: { l: "Watchlist and price alerts", get: () => ({ coins: WL.coins, alerts: WL.alerts }), set: v => { WL.coins = (v && v.coins) || {}; WL.alerts = (v && v.alerts) || []; wlSave(); if (typeof startPricePoll === "function") startPricePoll(); } },
-  scripts: { l: "Your scripts", get: () => (typeof PS !== "undefined" ? PS.list : []), set: v => { if (typeof PS !== "undefined" && Array.isArray(v)) { PS.list = v; psSave(); if (chBuilt) chIndChanged(); } } },
+  scripts: { l: "Your scripts", get: () => (typeof PS !== "undefined" ? PS.list : []), set: v => { if (typeof psSetList === "function" && Array.isArray(v)) psSetList(v); } },
 };
 const SY = () => ({ token: "", gist: "", at: {}, h: {}, last: 0, err: "", ...(chLoadJSON("finder-sync", {}) || {}) });
 const sySave = o => chSaveJSON("finder-sync", { ...SY(), ...o });
@@ -9618,6 +9623,254 @@ function syncBind(B, rerender) {
   const on = $("syOn"), tok = $("syTok"); if (on) on.onclick = async () => { const t = tok.value.trim(); if (!t) { tok.focus(); return; } sySave({ token: t, gist: "", at: {}, h: {}, last: 0, err: "" }); on.disabled = true; on.textContent = "Connecting…"; await syNow("manual"); rerender(); };
   if ($("sySync")) $("sySync").onclick = async () => { $("sySync").disabled = true; await syNow("manual"); rerender(); };
   if ($("syOff")) $("syOff").onclick = () => { try { localStorage.removeItem("finder-sync"); } catch (e) {} rerender(); };
+}
+
+/* ===================== Your scripts: a small Pine-like language, run in the browser without eval (the page's security policy forbids it) =====================
+   A script is a list of lines; every value is a number or a whole series (one value per candle), so math works on all candles at once.
+   indicator(), input.*(), plot(), hline() and alertcondition() turn into a normal indicator: settings, legend, data window and chart alerts all work. */
+var PS = { list: chLoadJSON("finder-scripts", []) };
+const psSave = () => chSaveJSON("finder-scripts", PS.list);
+const PS_COLORS = { red: "#f23645", green: "#089981", blue: "#2962ff", orange: "#ff9800", purple: "#9c27b0", yellow: "#ffeb3b", white: "#ffffff", black: "#000000", gray: "#787b86", silver: "#b2b5be",
+  teal: "#00897b", aqua: "#00bcd4", lime: "#00e676", maroon: "#880e4f", navy: "#311b92", olive: "#808000", fuchsia: "#e040fb" };
+const PS_PAL = ["#2962ff", "#ff9800", "#e91e63", "#00bcd4", "#8bc34a", "#9c27b0"];
+const PS_EXAMPLE = `//@version=5
+indicator("EMA cross", overlay=true)
+fastLen = input.int(9, "Fast length")
+slowLen = input.int(21, "Slow length")
+fast = ta.ema(close, fastLen)
+slow = ta.ema(close, slowLen)
+plot(fast, "Fast", color=color.orange)
+plot(slow, "Slow", color=color.blue)
+alertcondition(ta.crossover(fast, slow), "Cross up", "Fast EMA crossed above the slow one")
+alertcondition(ta.crossunder(fast, slow), "Cross down", "Fast EMA crossed below the slow one")`;
+class PsErr extends Error { constructor(msg, line) { super(msg); this.line = line; } }
+function psLex(src) {
+  const T = [], n = src.length; let i = 0, line = 1;
+  const re = { num: /^(\d+\.?\d*(?:e[+-]?\d+)?|\.\d+(?:e[+-]?\d+)?)/i, id: /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*/, col: /^#[0-9a-f]{6}(?:[0-9a-f]{2})?/i };
+  while (i < n) {
+    const c = src[i], rest = () => src.slice(i, i + 200);
+    if (c === "\n") { T.push({ t: "nl", line }); line++; i++; continue; }
+    if (c === " " || c === "\t" || c === "\r") { i++; continue; }
+    if (c === "/" && src[i + 1] === "/") { while (i < n && src[i] !== "\n") i++; continue; }
+    let m;
+    if ((m = re.col.exec(rest())) && c === "#") { T.push({ t: "col", v: m[0], line }); i += m[0].length; continue; }
+    if (/[0-9.]/.test(c) && (m = re.num.exec(rest()))) { T.push({ t: "num", v: parseFloat(m[0]), line }); i += m[0].length; continue; }
+    if (c === '"' || c === "'") { let j = i + 1, v = ""; while (j < n && src[j] !== c && src[j] !== "\n") { if (src[j] === "\\" && j + 1 < n) { j++; v += src[j] === "n" ? "\n" : src[j]; } else v += src[j]; j++; }
+      if (src[j] !== c) throw new PsErr("a text in quotes isn't closed", line); T.push({ t: "str", v, line }); i = j + 1; continue; }
+    if ((m = re.id.exec(rest()))) { T.push({ t: "id", v: m[0], line }); i += m[0].length; continue; }
+    const two = src.slice(i, i + 2);
+    if ([":=", "==", "!=", ">=", "<=", "=>"].includes(two)) { T.push({ t: "op", v: two, line }); i += 2; continue; }
+    if ("+-*/%<>=?:()[],".includes(c)) { T.push({ t: "op", v: c, line }); i++; continue; }
+    throw new PsErr(`unexpected “${c}”`, line);
+  }
+  T.push({ t: "nl", line }); T.push({ t: "eof", line }); return T;
+}
+function psParse(src) {
+  const T = psLex(src), stmts = []; let i = 0, depth = 0;
+  const pk = (o = 0) => T[i + o], isOp = (v, o = 0) => pk(o).t === "op" && pk(o).v === v, isId = (v, o = 0) => pk(o).t === "id" && pk(o).v === v;
+  const next = () => { const t = T[i++]; if (t.t === "op" && "([".includes(t.v)) depth++; if (t.t === "op" && ")]".includes(t.v)) depth--; return t; };
+  const skipNl = () => { while (pk().t === "nl" && (depth > 0 || (i > 0 && T[i - 1].t === "op" && !")]".includes(T[i - 1].v)) || (pk(1).t === "op" && ["+", "-", "*", "/", "and", "or", "?", ":"].includes(pk(1).v) && false))) i++; };
+  const want = v => { skipNl(); const t = next(); if (!(t.t === "op" && t.v === v)) throw new PsErr(`expected “${v}”`, t.line); return t; };
+  const BIN = [["or"], ["and"], ["==", "!="], ["<", ">", "<=", ">="], ["+", "-"], ["*", "/", "%"]];
+  const binOf = t => t.t === "op" ? t.v : t.t === "id" && (t.v === "and" || t.v === "or") ? t.v : null;
+  function expr() { return tern(); }
+  function tern() { const c = bin(0); skipNl(); if (isOp("?")) { const line = next().line; const a = tern(); want(":"); const b = tern(); return { k: "tern", c, a, b, line }; } return c; }
+  function bin(lv) {
+    if (lv >= BIN.length) return unary();
+    let a = bin(lv + 1);
+    for (;;) { skipNl(); const t = pk(), op = binOf(t); if (!op || !BIN[lv].includes(op)) return a; next(); skipNl(); const b = bin(lv + 1); a = { k: "bin", op, a, b, line: t.line }; }
+  }
+  function unary() { skipNl(); const t = pk(); if (isOp("-") || isOp("+")) { next(); return { k: "un", op: t.v, a: unary(), line: t.line }; } if (isId("not")) { next(); return { k: "un", op: "not", a: unary(), line: t.line }; } return postfix(); }
+  function postfix() {
+    let a = primary();
+    for (;;) {
+      if (isOp("(")) { const line = next().line, args = [], kw = {}; skipNl();
+        if (!isOp(")")) for (;;) { skipNl(); if (pk().t === "id" && isOp("=", 1)) { const k = next().v; next(); kw[k] = expr(); } else args.push(expr()); skipNl(); if (isOp(",")) { next(); continue; } break; }
+        want(")"); if (a.k !== "id") throw new PsErr("only named functions can be called", line); a = { k: "call", f: a.n, args, kw, line }; continue; }
+      if (isOp("[")) { const line = next().line; const ix = expr(); want("]"); a = { k: "idx", a, i: ix, line }; continue; }
+      return a;
+    }
+  }
+  function primary() {
+    skipNl(); const t = next();
+    if (t.t === "num") return { k: "num", v: t.v, line: t.line };
+    if (t.t === "str") return { k: "str", v: t.v, line: t.line };
+    if (t.t === "col") return { k: "col", v: t.v, line: t.line };
+    if (t.t === "id") return { k: "id", n: t.v, line: t.line };
+    if (t.t === "op" && t.v === "(") { const e = expr(); want(")"); return e; }
+    if (t.t === "op" && t.v === "[") { const items = []; skipNl(); if (!isOp("]")) for (;;) { items.push(expr()); skipNl(); if (isOp(",")) { next(); continue; } break; } want("]"); return { k: "arr", items, line: t.line }; }
+    throw new PsErr(t.t === "nl" || t.t === "eof" ? "the line ends too early" : `unexpected “${t.v}”`, t.line);
+  }
+  while (pk().t !== "eof") {
+    if (pk().t === "nl") { i++; continue; }
+    const t0 = pk(), line = t0.line;
+    if (t0.t === "id" && ["if", "for", "while", "switch"].includes(t0.v)) throw new PsErr(`“${t0.v}” blocks aren't supported: use cond ? a : b`, line);
+    if (t0.t === "id" && /^(strategy|plotshape|plotchar|plotcandle|fill|bgcolor|barcolor|label\.|line\.|box\.|table\.|request\.)/.test(t0.v) && isOp("(", 1)) throw new PsErr(`${t0.v}() isn't supported here (indicator, plot, hline and alertcondition are)`, line);
+    if (t0.t === "id" && ["var", "varip", "float", "int", "bool", "color", "string", "series", "simple"].includes(t0.v) && pk(1).t === "id") { i++; continue; }      // type and var keywords: ignored
+    let st;
+    if (isOp("[")) { const save = i; next(); const names = []; let ok = true;
+      while (pk().t === "id") { names.push(next().v); if (isOp(",")) next(); else break; }
+      if (isOp("]") && isOp("=", 1)) { next(); next(); st = { k: "tup", names, e: expr(), line }; } else { i = save; depth = 0; ok = false; } if (!ok) st = { k: "expr", e: expr(), line }; }
+    else if (t0.t === "id" && (isOp("=", 1) || isOp(":=", 1))) { next(); next(); st = { k: "set", n: t0.v, e: expr(), line }; }
+    else st = { k: "expr", e: expr(), line };
+    const end = pk(); if (end.t !== "nl" && end.t !== "eof") throw new PsErr(`unexpected “${end.v}” (one statement per line)`, end.line);
+    stmts.push(st);
+  }
+  return stmts;
+}
+const psLit = (e, what, line) => { if (!e) return undefined; if (e.k === "num" || e.k === "str") return e.v; if (e.k === "un" && e.op === "-" && e.a.k === "num") return -e.a.v;
+  if (e.k === "id" && (e.n === "true" || e.n === "false")) return e.n === "true"; if (e.k === "col") return e.v; if (e.k === "id" && e.n.startsWith("color.") && PS_COLORS[e.n.slice(6)]) return PS_COLORS[e.n.slice(6)];
+  if (e.k === "call" && e.f === "color.new") return psLit(e.args[0]); throw new PsErr(`${what} must be written out as a value`, line); };
+function psCompile(src) {                                        // → { prog, meta } (the static picture: inputs, plots, levels, alert conditions)
+  const prog = psParse(src), meta = { name: "My script", short: "", overlay: true, inputs: [], plots: [], levels: [], conds: [] };
+  const arg = (c, i, k) => c.kw[k] !== undefined ? c.kw[k] : c.args[i];
+  const walk = e => { if (!e || typeof e !== "object") return;
+    if (e.k === "call" && (e.f === "input" || e.f.startsWith("input."))) {
+      const ty = e.f.slice(6), d0 = arg(e, 0, "defval"), title = psLit(arg(e, 1, "title"), "An input's title", e.line);
+      let x;
+      if (ty === "source" || (d0 && d0.k === "id" && IND_SRC.includes(d0.n))) x = { t: "src", d: d0 && d0.k === "id" && IND_SRC.includes(d0.n) ? d0.n : "close" };
+      else { const d = psLit(d0, "An input's default", e.line);
+        x = ty === "bool" || typeof d === "boolean" ? { t: "bool", d: !!d } : ty === "string" || typeof d === "string" ? (e.kw.options && e.kw.options.k === "arr" ? { t: "sel", d, o: e.kw.options.items.map(z => psLit(z, "An option", e.line)) } : { t: "text", d })
+          : ty === "int" || (ty === "" && Number.isInteger(d)) ? { t: "int", d: Math.round(d ?? 0) } : { t: "num", d: d ?? 0, step: 0.1 }; }
+      const mn = arg(e, 2, "minval"), mx = arg(e, 3, "maxval"), sp = e.kw.step;
+      if (x.t === "int" || x.t === "num") { if (mn) x.min = psLit(mn, "minval", e.line); if (mx) x.max = psLit(mx, "maxval", e.line); if (sp) x.step = psLit(sp, "step", e.line); }
+      e.ix = meta.inputs.length; meta.inputs.push({ k: "i" + e.ix, l: title || `Input ${e.ix + 1}`, ...x }); }
+    Object.values(e).forEach(v => Array.isArray(v) ? v.forEach(walk) : v && typeof v === "object" && v.k ? walk(v) : v && typeof v === "object" && !v.k ? Object.values(v).forEach(walk) : 0); };
+  prog.forEach(st => { walk(st.e); const c = st.e; if (st.k !== "expr" || !c || c.k !== "call") return;
+    if (c.f === "indicator" || c.f === "study") { meta.name = psLit(arg(c, 0, "title"), "The title", c.line) || meta.name; meta.short = psLit(arg(c, 1, "shorttitle"), "The short title", c.line) || ""; const ov = arg(c, 2, "overlay"); if (ov) meta.overlay = !!psLit(ov, "overlay", c.line); }
+    else if (c.f === "plot") { const j = meta.plots.length, sty = arg(c, 4, "style"), st2 = sty && sty.k === "id" ? sty.n : "";
+      c.pk = "p" + j; meta.plots.push({ k: c.pk, l: psLit(arg(c, 1, "title"), "A plot's title", c.line) || `Plot ${j + 1}`, c: arg(c, 2, "color") ? psLit(arg(c, 2, "color"), "A plot's color", c.line) : PS_PAL[j % PS_PAL.length],
+        w: arg(c, 3, "linewidth") ? psLit(arg(c, 3, "linewidth"), "linewidth", c.line) : 2, ...(/histogram|columns|area/.test(st2) ? { kind: "hist" } : /circles|cross/.test(st2) ? { kind: "dots" } : {}) }); }
+    else if (c.f === "hline") { const v = psLit(arg(c, 0, "price"), "hline's price", c.line); if (typeof v !== "number") throw new PsErr("hline needs a number", c.line); meta.levels.push({ v, l: psLit(arg(c, 1, "title"), "hline's title", c.line) || String(v) }); }
+    else if (c.f === "alertcondition") { const j = meta.conds.length; c.ck = "a" + j; meta.conds.push({ k: c.ck, l: psLit(arg(c, 1, "title"), "The condition's title", c.line) || `Condition ${j + 1}` }); } });
+  if (!meta.plots.length && !meta.conds.length) throw new PsErr("add at least one plot() or alertcondition()", prog.length ? prog.at(-1).line : 1);
+  return { prog, meta };
+}
+const psIsS = v => Array.isArray(v);
+const psNum = v => v === true ? 1 : v === false ? 0 : v;
+const psSc = (v, what, line) => { if (psIsS(v)) { for (let i = v.length - 1; i >= 0; i--) if (v[i] != null) return v[i]; return null; } if (typeof v === "number") return v; throw new PsErr(`${what} must be a number`, line); };
+function psMap(n, a, b, f) {                                     // element-wise with na (null) passing through
+  a = psNum(a); b = psNum(b);
+  if (!psIsS(a) && !psIsS(b)) return a == null || b == null ? null : f(a, b);
+  const o = new Array(n); for (let i = 0; i < n; i++) { const x = psIsS(a) ? a[i] : a, y = psIsS(b) ? b[i] : b; o[i] = x == null || y == null ? null : f(x, y); } return o;
+}
+const psS = (v, n) => psIsS(v) ? v : new Array(n).fill(psNum(v) ?? null);
+function psRun(C, P, p) {
+  const n = P.c.length, env = new Map(), out = {}, src = k => TA.src(P, k), vol = (P.v || []).map(x => +x || 0);
+  const B = { open: () => P.o, high: () => P.h, low: () => P.l, close: () => P.c, volume: () => vol, hl2: () => src("hl2"), hlc3: () => src("hlc3"), ohlc4: () => src("ohlc4"), hlcc4: () => src("hlcc4"),
+    time: () => P.t.slice(), bar_index: () => P.t.map((_, i) => i), na: () => null, true: () => 1, false: () => 0, "ta.tr": () => TA.tr(P.h, P.l, P.c), last_bar_index: () => n - 1 };
+  const truthy = x => x != null && x !== 0 && x !== false;
+  const cross = (a, b, dir) => { a = psS(a, n); b = psS(b, n); return a.map((x, i) => { if (!i || x == null || b[i] == null || a[i - 1] == null || b[i - 1] == null) return 0; const up = a[i - 1] <= b[i - 1] && x > b[i], dn = a[i - 1] >= b[i - 1] && x < b[i]; return (dir > 0 ? up : dir < 0 ? dn : up || dn) ? 1 : 0; }); };
+  const F = {
+    "ta.sma": (a, l) => TA.sma(psS(a, n), l), "ta.ema": (a, l) => TA.ema(psS(a, n), l), "ta.wma": (a, l) => TA.wma(psS(a, n), l), "ta.rma": (a, l) => TA.rma(psS(a, n), l), "ta.hma": (a, l) => TA.hma(psS(a, n), l),
+    "ta.vwma": (a, l) => TA.vwma(psS(a, n), vol, l), "ta.dema": (a, l) => TA.dema(psS(a, n), l), "ta.tema": (a, l) => TA.tema(psS(a, n), l), "ta.rsi": (a, l) => TA.rsi(psS(a, n), l),
+    "ta.atr": l => TA.atr(P.h, P.l, P.c, l), "ta.tr": () => TA.tr(P.h, P.l, P.c), "ta.stdev": (a, l) => TA.stdev(psS(a, n), l),
+    "ta.highest": (a, l) => l === undefined ? TA.hi(P.h, a) : TA.hi(psS(a, n), l), "ta.lowest": (a, l) => l === undefined ? TA.lo(P.l, a) : TA.lo(psS(a, n), l),
+    "ta.change": (a, l = 1) => { a = psS(a, n); return a.map((x, i) => i >= l && x != null && a[i - l] != null ? x - a[i - l] : null); },
+    "ta.mom": (a, l) => F["ta.change"](a, l), "ta.roc": (a, l) => { a = psS(a, n); return a.map((x, i) => i >= l && x != null && a[i - l] ? (x - a[i - l]) / a[i - l] * 100 : null); },
+    "ta.crossover": (a, b) => cross(a, b, 1), "ta.crossunder": (a, b) => cross(a, b, -1), "ta.cross": (a, b) => cross(a, b, 0),
+    "ta.macd": (a, f, sl, sg) => { a = psS(a, n); const m = psMap(n, TA.ema(a, f), TA.ema(a, sl), (x, y) => x - y), s = TA.ema(m, sg); return { tuple: [m, s, psMap(n, m, s, (x, y) => x - y)] }; },
+    "ta.bb": (a, l, k) => { a = psS(a, n); const m = TA.sma(a, l), d = TA.stdev(a, l); return { tuple: [m, psMap(n, m, d, (x, y) => x + k * y), psMap(n, m, d, (x, y) => x - k * y)] }; },
+    "ta.stoch": (a, h, lo, l) => TA.stoch(psS(a, n), psS(h, n), psS(lo, n), l),
+    "ta.cci": (a, l) => { a = psS(a, n); const m = TA.sma(a, l); return a.map((x, i) => { if (m[i] == null) return null; let d = 0; for (let j = 0; j < l; j++) d += Math.abs(a[i - j] - m[i]); d /= l; return d ? (x - m[i]) / (0.015 * d) : 0; }); },
+    "ta.cum": a => { a = psS(a, n); let s = 0; return a.map(x => (s += x || 0)); },
+    "ta.barssince": c => { c = psS(c, n); let last = null; return c.map((x, i) => { if (truthy(x)) last = i; return last == null ? null : i - last; }); },
+    "ta.valuewhen": (c, a, occ = 0) => { c = psS(c, n); a = psS(a, n); const hits = []; return c.map((x, i) => { if (truthy(x)) hits.push(a[i]); return hits.length > occ ? hits[hits.length - 1 - occ] : null; }); },
+    "math.abs": a => psMap(n, a, 0, x => Math.abs(x)), "math.sqrt": a => psMap(n, a, 0, x => Math.sqrt(x)), "math.log": a => psMap(n, a, 0, x => Math.log(x)), "math.log10": a => psMap(n, a, 0, x => Math.log10(x)),
+    "math.exp": a => psMap(n, a, 0, x => Math.exp(x)), "math.sign": a => psMap(n, a, 0, x => Math.sign(x)), "math.floor": a => psMap(n, a, 0, x => Math.floor(x)), "math.ceil": a => psMap(n, a, 0, x => Math.ceil(x)),
+    "math.round": (a, d = 0) => psMap(n, a, 0, x => Math.round(x * 10 ** d) / 10 ** d), "math.pow": (a, b) => psMap(n, a, b, (x, y) => x ** y),
+    "math.max": (...a) => a.reduce((x, y) => psMap(n, x, y, Math.max)), "math.min": (...a) => a.reduce((x, y) => psMap(n, x, y, Math.min)), "math.avg": (...a) => psMap(n, a.reduce((x, y) => psMap(n, x, y, (u, v) => u + v)), a.length, (x, y) => x / y),
+    nz: (a, r = 0) => psIsS(a) ? a.map(x => x == null ? r : x) : a == null ? r : a, na: a => psIsS(a) ? a.map(x => x == null ? 1 : 0) : a == null ? 1 : 0,
+    fixnan: a => { let l = null; return psS(a, n).map(x => x == null ? l : (l = x)); },
+    "color.new": (c) => c, "color.rgb": (r, g, b) => "#" + [r, g, b].map(x => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0")).join(""),
+  };
+  const LEN = new Set(["ta.sma", "ta.ema", "ta.wma", "ta.rma", "ta.hma", "ta.vwma", "ta.dema", "ta.tema", "ta.rsi", "ta.stdev", "ta.mom", "ta.roc", "ta.cci", "ta.stoch"]);
+  function ev(e) {
+    switch (e.k) {
+      case "num": case "str": case "col": return e.v;
+      case "arr": return e.items.map(ev);
+      case "id": { if (env.has(e.n)) return env.get(e.n); if (B[e.n]) return B[e.n](); if (e.n.startsWith("color.") && PS_COLORS[e.n.slice(6)]) return PS_COLORS[e.n.slice(6)];
+        if (/^(plot|hline|shape|location|size|display|extend)\./.test(e.n)) return e.n; throw new PsErr(`“${e.n}” isn't defined`, e.line); }
+      case "un": { const a = ev(e.a); return e.op === "-" ? psMap(n, a, 0, x => -x) : e.op === "+" ? a : psIsS(a) ? a.map(x => truthy(x) ? 0 : 1) : truthy(a) ? 0 : 1; }
+      case "bin": { const a = ev(e.a), b = ev(e.b), o = e.op;
+        if (o === "and" || o === "or") { if (!psIsS(a) && !psIsS(b)) return (o === "and" ? truthy(a) && truthy(b) : truthy(a) || truthy(b)) ? 1 : 0;
+          const A = psS(a, n), Bs = psS(b, n); return A.map((x, i) => (o === "and" ? truthy(x) && truthy(Bs[i]) : truthy(x) || truthy(Bs[i])) ? 1 : 0); }
+        if (["==", "!=", "<", ">", "<=", ">="].includes(o)) { const f = { "==": (x, y) => x === y, "!=": (x, y) => x !== y, "<": (x, y) => x < y, ">": (x, y) => x > y, "<=": (x, y) => x <= y, ">=": (x, y) => x >= y }[o];
+          const r = psMap(n, a, b, (x, y) => f(x, y) ? 1 : 0); return psIsS(r) ? r.map(x => x ?? 0) : r ?? 0; }
+        if (typeof a === "string" || typeof b === "string") { if (o === "+") return String(a) + String(b); throw new PsErr("math on text", e.line); }
+        return psMap(n, a, b, { "+": (x, y) => x + y, "-": (x, y) => x - y, "*": (x, y) => x * y, "/": (x, y) => y === 0 ? null : x / y, "%": (x, y) => y === 0 ? null : x % y }[o]); }
+      case "tern": { const c = ev(e.c), a = ev(e.a), b = ev(e.b); if (!psIsS(c) && !psIsS(a) && !psIsS(b)) return truthy(c) ? a : b;
+        const C2 = psS(c, n); return C2.map((x, i) => truthy(x) ? (psIsS(a) ? a[i] : psNum(a)) : (psIsS(b) ? b[i] : psNum(b))); }
+      case "idx": { const a = ev(e.a), k = Math.round(psSc(ev(e.i), "The [ ] offset", e.line) || 0); if (!psIsS(a)) return a; if (k < 0) throw new PsErr("the [ ] offset can't look into the future", e.line); return a.map((_, i) => i - k >= 0 ? a[i - k] : null); }
+      case "call": {
+        if (e.ix != null) { const x = C.meta.inputs[e.ix], v = p[x.k] ?? x.d; return x.t === "src" ? src(v) : x.t === "bool" ? (v ? 1 : 0) : v; }
+        if (e.f === "indicator" || e.f === "study" || e.f === "hline") return null;
+        if (e.f === "plot") { out[e.pk] = psS(ev(e.args[0] || e.kw.series), n).map(x => x == null || !isFinite(x) ? null : x); return null; }
+        if (e.f === "alertcondition") { out[e.ck] = psS(ev(e.args[0] || e.kw.condition), n).map(x => truthy(x) ? 1 : 0); return null; }
+        const fn = F[e.f]; if (!fn) throw new PsErr(`${e.f}() isn't available${e.f.startsWith("ta.") || e.f.startsWith("math.") ? "" : " (see “What you can use”)"}`, e.line);
+        let args = e.args.map(ev); const kwv = Object.fromEntries(Object.entries(e.kw).map(([k, v]) => [k, ev(v)]));
+        if (e.f === "nz" && kwv.replacement !== undefined) args[1] = kwv.replacement;
+        if (kwv.length !== undefined) args[LEN.has(e.f) ? 1 : 0] = kwv.length; if (kwv.source !== undefined) args[0] = kwv.source;
+        if (LEN.has(e.f)) { const j = e.f === "ta.stoch" ? 3 : 1, L = Math.round(psSc(args[j], "A length", e.line)); if (!(L >= 1)) throw new PsErr("a length must be 1 or more", e.line); args[j] = L; }
+        if (["ta.atr", "ta.highest", "ta.lowest", "ta.change"].includes(e.f)) args = args.map((v, j) => (e.f === "ta.atr" || (args.length === 1 && j === 0) || j === 1) && !psIsS(v) ? Math.max(1, Math.round(v)) : v);
+        if (["ta.macd"].includes(e.f)) args = args.map((v, j) => j ? Math.max(1, Math.round(psSc(v, "A length", e.line))) : v);
+        if (e.f === "ta.bb") args = [args[0], Math.max(1, Math.round(psSc(args[1], "A length", e.line))), psSc(args[2], "The multiplier", e.line)];
+        return fn(...args);
+      }
+    }
+    throw new PsErr("can't read this", e.line);
+  }
+  for (const st of C.prog) {
+    if (st.k === "set") env.set(st.n, ev(st.e));
+    else if (st.k === "tup") { const v = ev(st.e); if (!v || !v.tuple) throw new PsErr("only ta.macd and ta.bb give several values", st.line); st.names.forEach((nm, j) => env.set(nm, v.tuple[j])); }
+    else { const v = ev(st.e); if (v && v.tuple) throw new PsErr("give the values names: [a, b, c] = …", st.line); }
+  }
+  return out;
+}
+function psDesc(sc) {                                            // the script as an indicator in IND
+  const C = psCompile(sc.src), M = C.meta, nm = M.name, sh = M.short || nm;
+  return { C, D: { name: nm, short: sh, cat: "Your scripts", desc: "Your script" + (M.conds.length ? ` · ${M.conds.length} alert condition${M.conds.length > 1 ? "s" : ""}` : ""), ps: sc.id, pane: !M.overlay,
+    inputs: M.inputs, plots: [...M.plots, ...M.conds.map(c => ({ k: c.k, l: "⚑ " + c.l, c: "#9598a1", hide: true, cond: true }))], ...(M.levels.length ? { levels: M.levels } : {}),
+    title: p => `${sh}${M.inputs.filter(x => x.t === "int" || x.t === "num" || x.t === "src").map(x => " " + (p[x.k] ?? x.d)).join("")}`,
+    calc: (P, p) => psRun(C, P, p) } };
+}
+function psRegister(sc) { const k = "ps_" + sc.id; try { IND[k] = psDesc(sc).D; sc.err = ""; } catch (e) { delete IND[k]; sc.err = (e.line ? `Line ${e.line}: ` : "") + e.message; } return k; }
+function psRegisterAll() { Object.keys(IND).filter(k => k.startsWith("ps_")).forEach(k => delete IND[k]); PS.list.forEach(psRegister); }
+psRegisterAll();
+function psRebuild(id) {                                         // a script changed: its indicators on the chart redraw from scratch
+  const k = "ps_" + id; CHP.forEach(P => { if (!P.chart) return; (CH.ind || []).filter(I => I.type === k).forEach(I => chIndDrop(P, I.id)); });
+  if (!IND[k]) CH.ind = (CH.ind || []).filter(I => I.type !== k || PS.list.some(x => x.id === id)); if (chBuilt) chIndChanged(); else chSave();
+}
+function psSetList(v) { PS.list = v; psSave(); psRegisterAll(); CHP.forEach(P => P.chart && (CH.ind || []).filter(I => I.type.startsWith("ps_")).forEach(I => chIndDrop(P, I.id))); if (chBuilt) chIndChanged(); }
+function psTry(src) {                                            // compile and run once on the chart's candles: the first error, with its line
+  try { const sc = { id: "try", src }, x = psDesc(sc), P = chActP(); if (P && P.t.length) { const K = { t: P.t, o: P.o, h: P.h, l: P.l, c: P.c, v: P.v, tf: P.tf, sym: P.sym }; psRun(x.C, K, Object.fromEntries(x.D.inputs.map(z => [z.k, z.d]))); } return { ok: true, D: x.D }; }
+  catch (e) { return { ok: false, err: (e.line ? `Line ${e.line}: ` : "") + e.message, line: e.line }; }
+}
+function psEditor(id) {
+  const sc = PS.list.find(x => x.id === id) || null;
+  const box = chModal(`<div class="chmh"><h3>${sc ? "Edit script" : "New script"}</h3><button class="chx" data-close aria-label="Close">${chIco("x", 16)}</button></div>
+    <div class="chmb pseb"><textarea id="psSrc" spellcheck="false" autocomplete="off" aria-label="Script">${chEsc(sc ? sc.src : PS_EXAMPLE)}</textarea>
+      <div class="pserr" id="psErr" role="status"></div>
+      <details class="pshelp"><summary>What you can use</summary><div class="meta">
+        <p><b>Every line</b> is one statement: <code>name = value</code>, <code>[m, s, h] = ta.macd(close, 12, 26, 9)</code> or a call. Math works on whole series at once: <code>close - open</code>, <code>close &gt; ta.sma(close, 50)</code>, <code>x[1]</code> is the previous candle's value, <code>cond ? a : b</code> picks per candle. Use <code>and</code>, <code>or</code>, <code>not</code>.</p>
+        <p><b>Values:</b> open, high, low, close, volume, hl2, hlc3, ohlc4, time, bar_index, na, true, false, color.red … color.new(c, t), #RRGGBB.</p>
+        <p><b>ta.</b>sma ema wma rma hma vwma dema tema rsi atr tr stdev highest lowest change mom roc crossover crossunder cross macd bb stoch cci cum barssince valuewhen · <b>math.</b>abs max min avg round sqrt pow log log10 exp sign floor ceil · nz na fixnan.</p>
+        <p><b>Output:</b> indicator(title, shorttitle, overlay=true/false) · input.int / input.float / input.bool / input.source / input.string(…, options=[…]) become the settings · plot(series, title, color, linewidth, style=plot.style_histogram or plot.style_circles) · hline(price, title) · alertcondition(cond, title, message) shows up in Create alert.</p>
+        <p class="mute">Not supported yet: if / for blocks, var memory between candles, strategies, plotshape, labels, request.security.</p></div></details></div>
+    <div class="chmf">${sc ? `<button class="btn sm" id="psDel">Delete</button>` : ""}<span style="flex:1"></span><button class="btn" id="psCancel">Cancel</button><button class="btn" id="psSave">Save</button><button class="btn primary" id="psAdd">Save and add to chart</button></div>`, "chmps");
+  const ta = $("psSrc"), err = $("psErr");
+  ta.addEventListener("keydown", e => { if (e.key === "Tab") { e.preventDefault(); const a = ta.selectionStart; ta.setRangeText("    ", a, ta.selectionEnd, "end"); } e.stopPropagation(); });
+  const check = () => { const r = psTry(ta.value); err.textContent = r.ok ? `✓ ${r.D.name}: ${r.D.plots.filter(x => !x.cond).length} line${r.D.plots.filter(x => !x.cond).length === 1 ? "" : "s"}, ${r.D.inputs.length} setting${r.D.inputs.length === 1 ? "" : "s"}${r.D.plots.some(x => x.cond) ? `, ${r.D.plots.filter(x => x.cond).length} alert condition(s)` : ""} · ${r.D.pane ? "own pane" : "on the price chart"}` : r.err; err.className = "pserr " + (r.ok ? "ok" : "bad"); return r; };
+  let t = 0; ta.oninput = () => { clearTimeout(t); t = setTimeout(check, 400); }; check();
+  const save = add => { const r = check(); if (!r.ok) { ta.focus(); return; }
+    let x = sc; if (x) { x.src = ta.value; x.updated = Date.now(); } else { x = { id: chUid(), src: ta.value, created: Date.now(), updated: Date.now() }; PS.list.push(x); }
+    psSave(); const k = psRegister(x); psRebuild(x.id);
+    if (add) { CH.ind = [...(CH.ind || []), indNew(k)]; chIndChanged(); }
+    chModalClose(); chToast(`${add ? "Added" : "Saved"} <b>${chEsc(IND[k].name)}</b>.${add ? " Its settings are on the ⚙ next to its name." : " Find it under Indicators → Scripts."}`); };
+  $("psSave").onclick = () => save(false); $("psAdd").onclick = () => save(true);
+  box.querySelector("[data-close]").onclick = chModalClose; $("psCancel").onclick = chModalClose;
+  if ($("psDel")) $("psDel").onclick = () => { if (!confirm("Delete this script? It's removed from your charts too.")) return; PS.list = PS.list.filter(x => x !== sc); psSave(); delete IND["ps_" + sc.id]; psRebuild(sc.id); chModalClose(); };
+  setTimeout(() => ta.focus(), 30);
 }
 
 /* ===================== Right panel tabs: Watchlist · Object tree · Data window (CH.side) ===================== */
@@ -9815,7 +10068,7 @@ function chaSrcName(x, sym) {
   if (x.k === "ind") return `${x.name}${x.pl ? " " + x.pl : ""}`; if (x.k === "draw") return `your ${((CH_T[x.type] || {}).name || "line").toLowerCase()}`; return "?";
 }
 const chaOpName = op => (CHA_OPS.find(o => o[0] === op) || CHA_OPS[0])[1];
-const chaDesc = a => `${chaSrcName(a.L, a.sym)} ${chaOpName(a.op).toLowerCase()} ${chaSrcName(a.R, a.sym)}`;
+const chaDesc = a => a.L && a.L.cond ? `${a.L.name}: ${a.L.pl}` : `${chaSrcName(a.L, a.sym)} ${chaOpName(a.op).toLowerCase()} ${chaSrcName(a.R, a.sym)}`;
 function chaPos(K, t) {                                          // a time as a (fractional) candle index, so lines follow the candles like on the chart
   const n = K.t.length, iv = CH_IV[K.tf] || 36e5; if (t >= K.t[n - 1]) return n - 1 + (t - K.t[n - 1]) / iv; if (t <= K.t[0]) return (t - K.t[0]) / iv;
   const j = chIdx(K, t); return j + (t - K.t[j]) / Math.max(1, K.t[j + 1] - K.t[j]);
@@ -9891,7 +10144,7 @@ function chaQuick(P, px) {                                        // right-click
 }
 function chaIndOpts(P) {                                          // the indicator lines on this chart you can alert on
   const out = []; chIndActive(P).forEach(I => { const D = IND[I.type]; if (!D.calc) return;
-    (D.plots || []).filter(pl => !pl.canvas).forEach(pl => out.push({ v: `ind:${I.id}:${pl.k}`, l: `${indTitle(I)} · ${pl.l}`, src: { k: "ind", type: I.type, p: { ...indDefaults(I.type), ...I.p }, plot: pl.k, name: indTitle(I), pl: (D.plots.length > 1 ? pl.l : "") } })); });
+    (D.plots || []).filter(pl => !pl.canvas).forEach(pl => out.push({ v: `ind:${I.id}:${pl.k}`, l: `${indTitle(I)} · ${pl.l}`, src: { k: "ind", type: I.type, p: { ...indDefaults(I.type), ...I.p }, plot: pl.k, name: indTitle(I), pl: (D.plots.length > 1 ? pl.l.replace(/^⚑ /, "") : ""), ...(pl.cond ? { cond: true } : {}) } })); });
   return out;
 }
 function chaDialog(P, pre = {}) {
@@ -9917,6 +10170,7 @@ function chaDialog(P, pre = {}) {
   const sync = () => { const r = $("chaR").value; $("chaV").hidden = r !== "val";
     $("chaTHint").textContent = { once: "Fires the first time the condition is met, then stops.", bar: "Fires at most once per candle while the condition is met, as it happens.", close: "Waits for each candle to close, then fires if the condition held at the close." }[$("chaT").value]; };
   $("chaR").onchange = sync; $("chaT").onchange = sync; sync();
+  $("chaL").onchange = () => { const x = inds.find(z => z.v === $("chaL").value); if (x && x.src.cond) { $("chaOp").value = "up"; $("chaR").value = "val"; $("chaV").value = 0.5; sync(); } };     // a script's alert condition: fires when it turns true
   box.querySelector("[data-close]").onclick = chModalClose; $("chaCancel").onclick = chModalClose; $("chaMgr").onclick = () => chaList();
   const pick = v => v === "price" ? { k: "price" } : v === "val" ? { k: "val", v: +$("chaV").value } : v === "draw" ? { k: "draw", id: d.id, type: d.type, pts: JSON.parse(JSON.stringify(d.pts)) } : (inds.find(x => x.v === v) || {}).src;
   $("chaOk").onclick = () => {

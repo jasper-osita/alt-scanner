@@ -1055,7 +1055,8 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .rpctl select{height:28px;background:var(--pill);color:var(--text);border:1px solid var(--pill-b);border-radius:6px;font:12px var(--display);padding:0 4px}
 @media (max-width:1800px){#chAlertBtn span,#chRpBtn span,.chsetbtn span{display:none}}.rpt{font-size:12px;color:var(--mute);min-width:120px}
 #chRpBtn.on{color:var(--gold, #e8b04a)}.chwrap.rppick{cursor:col-resize}.rpshade{position:absolute;top:0;pointer-events:none;border-left:1px dashed #2962ff;background:rgba(41,98,255,.10);z-index:3}
-.chmod.chmal{width:min(560px,96vw)}.chab select{max-width:300px}.chab #chaV{width:130px;margin-left:6px}.chab textarea{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+.chmod.chmal{width:min(560px,96vw)}
+.chpfor{padding:8px 10px 2px;font-size:12px;color:var(--accent, #2962ff)}.chab select{max-width:300px}.chab #chaV{width:130px;margin-left:6px}.chab textarea{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
 .chaRow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line)}.chaRow.off{opacity:.6}.chaTxt{flex:1;min-width:0;font-size:13px}.chaTxt small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}
 .chdlg .qtbox,.chdlg #chQtBtn{display:none!important}
 @media (max-width:760px){.qtbox{left:8px;top:52px;max-width:calc(100% - 16px)}}
@@ -7082,7 +7083,7 @@ function chApplyCS(P) {
       layout: { background: bg, textColor: S.textC || mute, fontSize: +S.fontSize || 11 },
       grid: { vertLines: { visible: S.vGrid, color: S.vGridC || line }, horzLines: { visible: S.hGrid, color: S.hGridC || line } },
       crosshair: { vertLine: xh, horzLine: xh },
-      rightPriceScale: { borderColor: S.scaleC || line, mode: +S.scMode || 0, invertScale: !!S.scInv }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
+      rightPriceScale: { borderColor: S.scaleC || line, mode: P.cmp && Object.keys(P.cmp).length && !(+S.scMode >= 2) ? 2 : +S.scMode || 0, invertScale: !!S.scInv }, timeScale: { borderColor: S.scaleC || line, rightOffset: Math.max(0, +S.rightBars || 0), tickMarkFormatter: chTick },
       localization: { locale: "en-US", timeFormatter: chTimeFmt, priceFormatter: chPxFmt(P) },
       watermark: { visible: S.wm !== "off" && !!chPS(P), text: S.wm === "symtf" ? `${chName(chPS(P))}, ${CH_TFL[P.tf]}` : chName(chPS(P)), color: S.wmC, fontSize: 52, horzAlign: "center", vertAlign: "center" } });
     P.cs.applyOptions(chTypeOpts(P, S));
@@ -7754,7 +7755,9 @@ function chIndLegendBuild(P) {
     <span class="chia"><button data-ia="eye" title="${I.hide ? "Show" : "Hide"}" aria-label="${I.hide ? "Show" : "Hide"}">${chIco(I.hide ? "eyeoff" : "eye", 15)}</button><button data-ia="set" title="Settings" aria-label="Settings">${chIco("gear", 15)}</button><button data-ia="rm" title="Remove" aria-label="Remove">${chIco("x", 14)}</button></span></div>`;
   const main = rows.filter(I => !IND[I.type].pane || !(P.oscL || []).some(o => o.id === I.id));
   const tgl = main.length > 2 ? `<button class="chilt" data-ia="leg" title="${CH.legMin ? "Show" : "Hide"} the indicator legend" aria-label="Toggle legend">${chIco(CH.legMin ? "M6 8l4.5 4.5L15 8" : "M6 13l4.5-4.5L15 13", 14)}${CH.legMin ? ` ${main.length} indicators` : ""}</button>` : "";
-  box.innerHTML = `<div class="chil${CH.legMin && tgl ? " min" : ""}">${main.map(row).join("")}${tgl}</div>` + (P.oscL || []).map(o => { const I = rows.find(x => x.id === o.id); return I ? `<div class="chil osc" data-osc="${o.id}">${row(I)}</div>` : ""; }).join("");
+  const cmp = Object.entries(P.cmp || {}).map(([sy, x]) => `<div class="chir chcmpr"><span class="nm" style="color:${x.c}">${chEsc(chName(sy))}</span><span class="vv" data-cvv="${chEsc(sy)}"></span>
+    <span class="chia"><button data-cmprm="${chEsc(sy)}" title="Remove from the chart" aria-label="Remove ${chEsc(chName(sy))}">${chIco("trash", 15)}</button></span></div>`).join("");
+  box.innerHTML = `<div class="chil${CH.legMin && tgl ? " min" : ""}">${cmp}${main.map(row).join("")}${tgl}</div>` + (P.oscL || []).map(o => { const I = rows.find(x => x.id === o.id); return I ? `<div class="chil osc" data-osc="${o.id}">${row(I)}</div>` : ""; }).join("");
   chIndLegendPos(P); chIndLegendVals(P, null);
 }
 function chIndLegendPos(P) {
@@ -7764,6 +7767,8 @@ function chIndLegendPos(P) {
 function chIndLegendVals(P, idx) {
   const box = P.wrap.querySelector(".chind"); if (!box || !P.t || !P.t.length) return;
   const i = idx == null ? P.t.length - 1 : idx, ref = P.c.at(-1);
+  Object.entries(P.cmp || {}).forEach(([sy, x]) => { const el = box.querySelector(`[data-cvv="${CSS.escape(sy)}"]`); if (!el || !x.K) return; const v = chCmpAt(x.K, P.t[i], P.tf), v0 = x.K.c.at(-1);
+    el.innerHTML = v == null ? "" : `<i style="color:${x.c}">${chFmt(v, v0)}</i>`; });
   chIndActive(P).forEach(I => { const el = box.querySelector(`[data-vv="${I.id}"]`), V = (P.iv || {})[I.id], x = P.ix && P.ix[I.id]; if (!el) return; if (!V || !x) { el.innerHTML = ""; return; }
     const D = IND[I.type];
     el.innerHTML = (D.plots || []).filter(pl => x.st.plots[pl.k].on && V[pl.k] && V[pl.k][i] != null && isFinite(V[pl.k][i]) && (x.ser[pl.k] || pl.canvas))
@@ -7774,6 +7779,7 @@ const chIndNum = v => { const a = Math.abs(v); return a >= 1e9 ? (v / 1e9).toFix
 function chIndLegendBind(box) {
   box.addEventListener("pointerdown", e => e.stopPropagation(), true);
   box.addEventListener("click", e => {
+    const cr = e.target.closest("[data-cmprm]"); if (cr) { e.stopPropagation(); chCmpRemove(cr.dataset.cmprm); return; }
     const b = e.target.closest("[data-ia]"), r = e.target.closest("[data-iid]");
     if (b && b.dataset.ia === "leg") { e.stopPropagation(); CH.legMin = !CH.legMin; chSave(); CHP.forEach(Q => { if (Q.chart) chIndLegendBuild(Q); }); return; }
     if (!r) return; const I = (CH.ind || []).find(x => x.id === r.dataset.iid); if (!I) return;
@@ -8205,6 +8211,7 @@ function chBuild() {
         <div class="chcats" role="group" aria-label="Markets">${CH_CATS.filter(c => c[0] !== "all").map(([k, l]) => `<button data-cat="${k}">${l} <i>▾</i></button>`).join("")}</div>
         <div class="chpick" id="chPick" hidden></div>
       </div>
+      <button class="chindbtn" id="chCmpBtn" title="Compare or add symbol" aria-label="Compare or add symbol">${chIco("M10.5 4v13M4 10.5h13", 17)}</button>
       <button class="chindbtn chtypebtn" id="chTypeBtn" aria-haspopup="true" title="Chart type" aria-label="Chart type"></button>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
       <button class="chindbtn" id="chIndBtn" title="Indicators (/)" aria-label="Indicators">${chIco("fx", 17)} Indicators</button>
@@ -8232,13 +8239,14 @@ function chBuild() {
   chToolbarBind();
   $("chIndBtn").onclick = () => chIndDialog(); $("chSetBtn").onclick = () => chChartSettings();
   $("chAlertBtn").onclick = () => chaDialog(chActP());
+  $("chCmpBtn").onclick = e => { e.stopPropagation(); chPickOpen("all", chCmpAdd); };
   $("chRpBtn").onclick = () => RP.on ? rpExit() : rpEnter(); $("rpPick").onclick = () => rpPickMode(true); $("rpPlay").onclick = () => rpPlay(!RP.play);
   $("rpFwd").onclick = () => rpForward(); $("rpExit").onclick = () => rpExit(); $("rpSpd").onchange = () => { RP.speed = +$("rpSpd").value; if (RP.play) { rpPlay(false); rpPlay(true); } };
   chTypeBtn(); $("chTypeBtn").onclick = e => { e.stopPropagation(); chTypeMenu($("chTypeBtn")); };
   $("chUndoB").onclick = () => chUndoDo(); $("chRedoB").onclick = () => chRedoDo();
   $("chSymBtn").onclick = e => { e.stopPropagation(); chPickOpen("all"); };
   el.querySelectorAll("[data-cat]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpen(b.dataset.cat); });
-  document.addEventListener("click", e => { const p = $("chPick"); if (p && !p.hidden && !e.target.closest(".chpickw")) chPickClose(); });
+  document.addEventListener("click", e => { const p = $("chPick"); if (p && !p.hidden && !e.target.closest(".chpickw") && !e.target.closest("#chCmpBtn")) chPickClose(); });
   if (window.ResizeObserver) new ResizeObserver(() => chToolsFit()).observe($("chTools"));
   $("chAcctBtn").onclick = e => { e.stopPropagation(); const p = $("chAcctPop"), open = p.hidden; p.hidden = !open; $("chAcctBtn").setAttribute("aria-expanded", open); if (open && typeof trAcctPop === "function") trAcctPop(); };
   document.addEventListener("click", e => { const p = $("chAcctPop"); if (p && !p.hidden && !e.target.closest(".chacctw")) { p.hidden = true; $("chAcctBtn").setAttribute("aria-expanded", "false"); } });
@@ -8391,15 +8399,17 @@ async function chMxLists() {                           // MEXC's stock perps for
   if (!chMexc()) return; try { MX_STOCK_ORDER = await mxStockList(); } catch (e) {} chPickRender();
   const p = $("chPick"); if (p && !p.hidden) chQuotesFetch(chCatList(chPickCat).slice(0, 24));
 }
-function chPickOpen(cat) {
+let chPickFor = null;                                        // set when the picker chooses for something else (compare), not the chart's symbol
+function chPickDo(s) { const f = chPickFor; chPickClose(); if (f) f(s); else chSetSym(s); }
+function chPickOpen(cat, onPick) {
   const p = $("chPick"); if (!p) return;
-  if (!p.hidden && chPickCat === cat) { chPickClose(); return; }
+  if (!p.hidden && chPickCat === cat && !onPick === !chPickFor) { chPickClose(); return; } chPickFor = onPick || null;
   chPickCat = cat; chPickQ = ""; chPickSel = 0; p.hidden = false; $("chSymBtn").setAttribute("aria-expanded", "true");
   chPickRender(true);
   chQuotesFetch(chCatList(cat).slice(0, 24));
   if (chMexc() && (cat === "stocks" || cat === "all") && (!MX_STOCK_ORDER.length || Date.now() - MX_DETAIL.at > 10 * 60e3)) chMxLists();
 }
-function chPickClose() { const p = $("chPick"); if (p) p.hidden = true; const b = $("chSymBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
+function chPickClose() { chPickFor = null; const p = $("chPick"); if (p) p.hidden = true; const b = $("chSymBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
 function chPickRender(focus) {
   const p = $("chPick"); if (!p || p.hidden) return;
   const had = document.activeElement && document.activeElement.id === "chPickQ", caret = had ? document.activeElement.selectionStart : null, scr = p.querySelector(".chplist") ? p.querySelector(".chplist").scrollTop : 0;
@@ -8409,13 +8419,13 @@ function chPickRender(focus) {
   const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex and broker CFDs come from cTrader. Connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page, then they show here, or switch the exchange to MEXC for its forex perpetuals.</div>` : "";
   const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">${chMexc() ? "Loading MEXC's stock perpetuals…" : "Stock perpetuals (Apple, Nvidia, Tesla and 400+ more) come from MEXC: switch the exchange to MEXC."}</div>` : "";
   const byNote = (chPickCat === "metals" || chPickCat === "indices") && EXCHANGE === "bybit" && !list.length ? `<div class="meta chpnote">Gold, oil and index perps come from Binance: switch the exchange to Binance (or connect cTrader for your broker's prices).</div>` : "";
-  p.innerHTML = `<div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
+  p.innerHTML = (chPickFor ? `<div class="chpfor">Compare: pick a market to overlay on the chart</div>` : "") + `<div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
     <input id="chPickQ" type="search" placeholder="Search ${CH_CATS.find(c => c[0] === chPickCat)[1].toLowerCase()}…" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets">
     <div class="chplist" role="listbox">${list.map((s, i) => { const qd = chQuote(s), c = qd && qd.chg;
       return `<div class="chprow ${i === chPickSel ? "sel" : ""} ${s === CH.sym ? "cur" : ""}" role="option" data-ps="${s}" data-ix="${i}"><button class="st ${CHW.includes(s) ? "on" : ""}" data-star="${s}" title="${CHW.includes(s) ? "Remove from" : "Add to"} the chart watchlist" aria-label="Watchlist">${CHW.includes(s) ? "★" : "☆"}</button>
         <span class="n"><b>${chName(s)}</b><small>${s.startsWith("CT:") || isMX(s) ? s.slice(3) : s} · ${chSrc(s)}</small></span><span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span></div>`; }).join("") || (fxNote || stNote || byNote || '<div class="meta chpnote">Nothing here yet.</div>')}</div>`;
   p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(chCatList(chPickCat).slice(0, 24)); });
-  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]")) return; chPickClose(); chSetSym(r.dataset.ps); });
+  p.querySelectorAll("[data-ps]").forEach(r => r.onclick = e => { if (e.target.closest("[data-star]")) return; chPickDo(r.dataset.ps); });
   p.querySelectorAll("[data-star]").forEach(b => b.onclick = e => { e.stopPropagation(); const s = b.dataset.star; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (chIsTF(s)) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chPickRender(); });
   const a = p.querySelector("[data-go2]"); if (a) a.onclick = e => { e.preventDefault(); chPickClose(); goPage("macro"); };
   const inp = $("chPickQ");
@@ -8424,7 +8434,7 @@ function chPickRender(focus) {
     const rows = p.querySelectorAll("[data-ps]");
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); chPickSel = Math.max(0, Math.min(rows.length - 1, chPickSel + (e.key === "ArrowDown" ? 1 : -1)));
       rows.forEach(r => r.classList.toggle("sel", +r.dataset.ix === chPickSel)); const r = rows[chPickSel]; if (r) r.scrollIntoView({ block: "nearest" }); }
-    else if (e.key === "Enter") { const r = rows[chPickSel]; if (r) { chPickClose(); chSetSym(r.dataset.ps); } }
+    else if (e.key === "Enter") { const r = rows[chPickSel]; if (r) chPickDo(r.dataset.ps); }
     else if (e.key === "Escape") { e.stopPropagation(); chPickClose(); }
   };
   if (focus || had) { inp.focus(); if (caret != null) inp.setSelectionRange(caret, caret); }
@@ -8747,7 +8757,7 @@ async function chLoad(P) {
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f])); P.v.push(fb.v || 0); }
     if (!P.t.length) throw new Error("no candles");
     P.sym = sym; P.alSig = null; P.noOlder = false; P.older = false; chIndSync(P); chSetData(P); chFit(P); chCtSub(sym);
-    P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader(); if (RP.on) rpLoaded(P);
+    P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader(); if (RP.on) rpLoaded(P); chCmpSync(P);
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
 }
 /* ---- older history: scrolling back past the first loaded candle fetches the 500 before it, like TradingView ---- */
@@ -9520,6 +9530,35 @@ async function chQuotesFetch(list) {
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
 
+/* ===================== Compare: other markets overlaid in percent, like TradingView's "Compare symbol" (CH.cmp = [{ sym, c }]) ===================== */
+const CMP_COL = ["#ff9800", "#00bcd4", "#e91e63", "#8bc34a"];
+const chCmpList = () => OVC.on ? [] : (CH.cmp || []).filter(x => x && x.sym);
+function chCmpAt(K, t, tf) { const j = chIdx(K, t); return j >= 0 && t - K.t[j] < 3 * (CH_IV[tf] || 36e5) ? K.c[j] : null; }    // its close at that time (last one before, for markets with gaps)
+function chCmpTail(P) {                                          // redraw the overlays against the pane's candles (also cuts them at the replay time)
+  Object.values(P.cmp || {}).forEach(x => { if (!x.K) return; const pts = [];
+    P.t.forEach(t => { const v = chCmpAt(x.K, t, P.tf); if (v != null) pts.push({ time: Math.floor(t / 1000), value: v }); }); try { x.ser.setData(pts); } catch (e) {} });
+}
+async function chCmpSync(P) {
+  if (!P || !P.chart) return; P.cmp = P.cmp || {};
+  const want = chCmpList().filter(x => x.sym !== chPS(P)), keys = want.map(x => x.sym), had = Object.keys(P.cmp).length;
+  Object.keys(P.cmp).forEach(s => { if (!keys.includes(s)) { try { P.chart.removeSeries(P.cmp[s].ser); } catch (e) {} delete P.cmp[s]; } });
+  for (const x of want) {
+    let K = null; try { K = await chaCandles(x.sym, P.tf); } catch (e) {}
+    if (!P.chart || !chCmpList().some(y => y.sym === x.sym)) continue;
+    let o = P.cmp[x.sym]; if (!o) o = P.cmp[x.sym] = { ser: P.chart.addLineSeries({ priceScaleId: "right", lineWidth: 2, priceLineVisible: false, crosshairMarkerVisible: false, title: chName(x.sym) }) };
+    o.c = x.c; o.ser.applyOptions({ color: x.c }); if (K) o.K = { t: K.t.slice(), c: K.c.slice() };
+  }
+  chCmpTail(P); if (had !== Object.keys(P.cmp).length) chApplyCS(P); chIndLegendBuild(P);
+}
+function chCmpAdd(sym) {
+  const L = chCmpList(); if (sym === CH.sym) { chToast("That's the chart's own market."); return; } if (L.some(x => x.sym === sym)) { chToast(`${chEsc(chName(sym))} is already on the chart.`); return; }
+  if (L.length >= 4) { chToast("Up to 4 markets can be compared. Remove one first (× next to its name)."); return; }
+  CH.cmp = [...L, { sym, c: CMP_COL.find(c => !L.some(x => x.c === c)) || CMP_COL[0] }]; chSave(); if (chIsTF(sym)) TRADFI_SYMS.add(sym);
+  chVis().forEach(chCmpSync); chToast(`Comparing with <b>${chEsc(chName(sym))}</b>. The price scale shows percent while markets are compared.`);
+}
+function chCmpRemove(sym) { CH.cmp = chCmpList().filter(x => x.sym !== sym); chSave(); CHP.forEach(P => { if (P.chart) chCmpSync(P); }); }
+setInterval(() => { if (chOn && document.visibilityState === "visible" && chCmpList().length && !RP.on) chVis().forEach(chCmpSync); }, 15000);
+
 /* ===================== Bar replay: pick a candle, the rest disappears, then step or play it back (every visible timeframe in step) =====================
    P.rpFull keeps the real candles; the pane shows rpCut(P, RP.t). Higher timeframes build their forming candle from the finest pane. */
 const RP = { on: false, pick: false, t: 0, play: null, speed: 1, push: false };
@@ -9538,14 +9577,14 @@ function rpCut(P, T, F) {
 }
 function rpShow(P, C) {
   ["t", "o", "h", "l", "c", "v"].forEach(k => P[k] = C[k]); P.ha = null;
-  chSetData(P); try { P.chart.timeScale().scrollToRealTime(); } catch (e) {} chLegend(P, null); chDirty = true;
+  chSetData(P); chCmpTail(P); try { P.chart.timeScale().scrollToRealTime(); } catch (e) {} chLegend(P, null); chDirty = true;
 }
 function rpAdvance(P, C) {                                      // usually one more candle (or a fuller forming one): update in place, like live
   const n = P.t.length;
   if (!n || C.t.length < n || C.t[n - 2] !== P.t[n - 2]) { rpShow(P, C); return; }
   RP.push = true;
   try { for (let j = n - 1; j < C.t.length; j++) if (j >= n || C.c[j] !== P.c[j] || C.h[j] !== P.h[j] || C.l[j] !== P.l[j]) chBar(P, { t: C.t[j], o: C.o[j], h: C.h[j], l: C.l[j], c: C.c[j], v: C.v[j] }); }
-  finally { RP.push = false; }
+  finally { RP.push = false; } chCmpTail(P);
 }
 function rpLabel() {
   const el = $("rpT"); if (!el) return; el.textContent = RP.pick ? "Click a candle to start from" : RP.t ? fmtPHT(new Date(RP.t + PHT_MS)) : "";

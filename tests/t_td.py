@@ -111,6 +111,23 @@ async def part4(q):
     r = await q("() => { const E = holEntries(hdKey(2025, 6, 1), hdKey(2026, 12, 31)); const K = tdFixture(7, { thin: Object.fromEntries(E.filter(e => e.mk === 'US').map(e => [e.key, 0.6])) }); const m = tdCalcMarket({ mk: 'NAS100', sym: 'CT:NAS100' }, K, null, E, hdKey(2026, 11, 26), Date.UTC(2026, 10, 26, 7, 42)); return JSON.stringify({ call: m.call, n: m.prof.n, err: m.err || null }); }")
     check("a full market on Thanksgiving: NAS100 Closed from candles + holidays", '"call":"closed"' in r and '"n":20' in r, r)
 
+async def part5(q):
+    print("5) the written summary")
+    S = "tdSay({ key: hdKey(2026, 11, 26), markets: [{ mk: 'Gold', call: 'untilLondon', fc: { ratio: 0.62, why: [{ centre: 'US', n: 3, half: false, factor: 0.62 }] } }, { mk: 'NAS100', call: 'closed', fc: { ratio: 0, why: [] } }], entries: holEntries(hdKey(2026, 11, 26), hdKey(2026, 11, 26)) })"
+    check("thin day verdict", await q(f"() => {S}.verdict === 'Thin day'"))
+    check("title names the day", "Thursday, Nov 26" in await q(f"() => {S}.title"))
+    check("New York line names Thanksgiving", "Thanksgiving" in await q(f"() => {S}.lines.find(l => l.k === 'New York').v"))
+    check("Asia and London lines say normal", await q(f"() => ['Asia', 'London'].every(k => {S}.lines.find(l => l.k === k).v.startsWith('Normal'))"))
+    check("past years quotes its count", "3" in await q(f"() => ({S}.lines.find(l => l.k === 'Past years') || {{}}).v || ''"))
+    check("for you points to London", "London" in await q(f"() => {S}.lines.find(l => l.k === 'For you').v"))
+    check("normal day", await q("() => tdSay({ key: hdKey(2026, 12, 2), markets: [{ mk: 'Gold', call: 'ok', fc: { ratio: 1, why: [] } }], entries: [] }).verdict === 'Normal day'"))
+    check("no past-years line without examples", await q("() => !tdSay({ key: hdKey(2026, 12, 2), markets: [{ mk: 'Gold', call: 'ok', fc: { ratio: 1, why: [] } }], entries: [] }).lines.some(l => l.k === 'Past years')"))
+    check("closed day", await q("() => tdSay({ key: hdKey(2026, 12, 25), markets: [{ mk: 'Gold', call: 'closed', fc: { ratio: 0, why: [] } }, { mk: 'NAS100', call: 'closed', fc: { ratio: 0, why: [] } }], entries: holEntries(hdKey(2026, 12, 25), hdKey(2026, 12, 25)) }).verdict === 'Closed day'"))
+    check("markets without data are left out of the verdict", await q("() => tdSay({ key: hdKey(2026, 12, 2), markets: [{ mk: 'Gold', call: 'ok', fc: { ratio: 1, why: [] } }, { mk: 'Silver', call: null, fc: null }], entries: [] }).verdict === 'Normal day'"))
+    w = await q("() => tdSayWeek(['Normal day', 'Normal day', 'Normal day', 'Thin day', 'Thin day'].map((v, i) => ({ key: hdKey(2026, 11, 23) + i, verdict: v })))")
+    check("the week in one sentence", w == "Normal Monday to Wednesday, thin Thursday and Friday.", w)
+    check("a normal week", "normal week" in await q("() => tdSayWeek([0, 1, 2, 3, 4].map(i => ({ key: hdKey(2026, 11, 30) + i, verdict: 'Normal day' })))"))
+
 async def main():
     serve()
     async with async_playwright() as pw:
@@ -126,6 +143,7 @@ async def main():
             errs += await part2b(ctx)
             await part3(q)
             await part4(q)
+            await part5(q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

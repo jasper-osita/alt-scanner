@@ -3246,6 +3246,37 @@ function tdLive(today, prof, bin) {                   // today so far against a 
   return { soFar: today.range, normalSoFar, ratio, hourRatio, state };
 }
 const tdRoom = (range, fcDay) => fcDay > 0 ? Math.min(1, Math.max(0, 1 - range / fcDay)) : 0;
+/* ---- the day in words ---- */
+const TD_WD = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], TD_MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const tdDayLbl = key => { const d = new Date(key * 864e5); return `${TD_WD[d.getUTCDay()]}, ${TD_MO[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const TD_SESS = [["Asia", "JP", ["JP", "HK", "KR", "AU"]], ["London", "UK", ["UK", "EU", "CH"]], ["New York", "US", ["US", "CA"]]];      // [session, its main centre, the centres in it]
+function tdSay({ key, markets, entries }) {          // { verdict, title, lines: [{ k, v }] }
+  const M = (markets || []).filter(m => m.call), E = (entries || []).filter(e => e.key === key);
+  const below = M.filter(m => m.call !== "ok").length;
+  const verdict = M.length && M.every(m => m.call === "closed") ? "Closed day" : below * 2 > M.length ? "Thin day" : "Normal day";
+  const sess = TD_SESS.map(([k, main, cs]) => { const es = E.filter(e => cs.includes(e.mk)), m = es.find(e => e.mk === main);
+    const st = m && !m.half ? "Closed." : m ? "Half day." : es.length ? "Thin." : "Normal.";
+    return { k, st, v: st + (es.length ? " " + es.map(holSay).join("; ") + "." : "") }; });
+  const ok = sess.filter(s => s.st === "Normal."), off = sess.filter(s => s.st !== "Normal.");
+  const best = ["London", "Asia", "New York"].find(k => ok.some(s => s.k === k));
+  const dl = tdDayLbl(key);
+  const title = verdict === "Closed day" ? `${dl}: markets are closed.` : verdict === "Thin day" ? `${dl}: a thin day${best && best !== "New York" ? ", trade it early" : ""}.` : `${dl}: a normal day.`;
+  const lines = sess.map(s => ({ k: s.k, v: s.v }));
+  const past = M.map(m => ({ m, w: ((m.fc && m.fc.why) || []).find(w => w.n >= 2) })).find(x => x.w);
+  if (past) lines.push({ k: "Past years", v: `On the last ${past.w.n} holidays like this, ${past.m.mk} moved about ${Math.round(past.w.factor * 100)}% of a normal day.` });
+  lines.push({ k: "For you", v: verdict === "Closed day" ? "Stay out today." : !off.length ? "A normal day: Asia, London and New York as usual."
+    : best ? `Take entries in ${best === "London" && ok.some(s => s.k === "Asia") ? "Asia or London" : best}, and don't count on ${off.map(s => s.k).join(" or ")} to extend a day hold.` : "Little to trade: keep size small or stay out." });
+  return { verdict, title, lines };
+}
+function tdSayWeek(days) {                            // "Normal Monday to Wednesday, thin Thursday and Friday."
+  const D = (days || []).filter(d => d && d.verdict); if (!D.length) return "";
+  if (D.every(d => d.verdict === "Normal day")) return "A normal week: no holidays in any market you follow.";
+  const word = v => v === "Closed day" ? "closed" : v === "Thin day" ? "thin" : "normal", runs = [];
+  D.forEach(d => { const w = word(d.verdict), r = runs.at(-1); if (r && r.w === w) r.k.push(d.key); else runs.push({ w, k: [d.key] }); });
+  const wd = k => TD_WD[new Date(k * 864e5).getUTCDay()];
+  const s = runs.map(r => `${r.w} ${r.k.length === 1 ? wd(r.k[0]) : r.k.length === 2 ? wd(r.k[0]) + " and " + wd(r.k[1]) : wd(r.k[0]) + " to " + wd(r.k.at(-1))}`).join(", ");
+  return s.charAt(0).toUpperCase() + s.slice(1) + ".";
+}
 function tdCalcMarket(m, K1h, K15, entries, key, now) {          // one market's day: profile, past holidays, forecast, call, live check
   const out = { ...m, prof: null, fx: null, fc: null, call: null, live: null, room: null, today: null, days: null, err: null };
   if (!K1h || !K1h.t || !K1h.t.length) { out.err = "No data yet"; return out; }

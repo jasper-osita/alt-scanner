@@ -1,0 +1,145 @@
+{
+  "_help": "Each sample's decision, read by hand from the statement. rate = new policy rate in % (upper bound of the Fed range, the ECB deposit rate). hawk/dove = dissents wanting a higher/lower rate than decided. _diffs: [previous, current, sentences added, sentences dropped], counted by hand.",
+  "fed/newsevents/pressreleases/monetary20261028a.htm": {
+    "ccy": "USD",
+    "move": "hold",
+    "rate": 4.0,
+    "hawk": 2,
+    "dove": 0,
+    "minSentences": 8
+  },
+  "fed/newsevents/pressreleases/monetary20260916a.htm": {
+    "ccy": "USD",
+    "move": "hike",
+    "rate": 4.0,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 8
+  },
+  "fed/newsevents/pressreleases/monetary20260729a.htm": {
+    "ccy": "USD",
+    "move": "hold",
+    "rate": 3.75,
+    "hawk": 3,
+    "dove": 0,
+    "minSentences": 6
+  },
+  "fed/newsevents/pressreleases/monetary20260617a.htm": {
+    "ccy": "USD",
+    "move": "hold",
+    "rate": 3.75,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 6
+  },
+  "ecb/press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html": {
+    "ccy": "EUR",
+    "move": "hold",
+    "rate": 2.5,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 10
+  },
+  "ecb/press/pr/date/2026/html/ecb.mp260910~314e508016.en.html": {
+    "ccy": "EUR",
+    "move": "hike",
+    "rate": 2.5,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 8
+  },
+  "ecb/press/pr/date/2026/html/ecb.mp260723~29f24d99bc.en.html": {
+    "ccy": "EUR",
+    "move": "hold",
+    "rate": 2.25,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 8
+  },
+  "boe/monetary-policy-summary-and-minutes/2026/november-2026": {
+    "ccy": "GBP",
+    "move": "hike",
+    "rate": 4.0,
+    "hawk": 1,
+    "dove": 0,
+    "minSentences": 10
+  },
+  "boe/monetary-policy-summary-and-minutes/2026/september-2026": {
+    "ccy": "GBP",
+    "move": "hold",
+    "rate": 3.75,
+    "hawk": 3,
+    "dove": 0,
+    "minSentences": 8
+  },
+  "boe/monetary-policy-summary-and-minutes/2026/july-2026": {
+    "ccy": "GBP",
+    "move": "hold",
+    "rate": 3.75,
+    "hawk": 3,
+    "dove": 0,
+    "minSentences": 8
+  },
+  "boc/2026/10/fad-press-release-2026-10-28/": {
+    "ccy": "CAD",
+    "move": "hike",
+    "rate": 2.5,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 20
+  },
+  "boc/2026/09/fad-press-release-2026-09-02/": {
+    "ccy": "CAD",
+    "move": "hold",
+    "rate": 2.25,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 15
+  },
+  "boc/2026/07/fad-press-release-2026-07-15/": {
+    "ccy": "CAD",
+    "move": "hold",
+    "rate": 2.25,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 15
+  },
+  "rba/media-releases/2026/mr-26-30.html": {
+    "ccy": "AUD",
+    "move": "hike",
+    "rate": 4.85,
+    "hawk": 0,
+    "dove": 3,
+    "minSentences": 20
+  },
+  "rba/media-releases/2026/mr-26-27.html": {
+    "ccy": "AUD",
+    "move": "hike",
+    "rate": 4.6,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 20
+  },
+  "rba/media-releases/2026/mr-26-19.html": {
+    "ccy": "AUD",
+    "move": "hold",
+    "rate": 4.35,
+    "hawk": 0,
+    "dove": 0,
+    "minSentences": 20
+  },
+  "_diffs": [
+    [
+      "fed/newsevents/pressreleases/monetary20260916a.htm",
+      "fed/newsevents/pressreleases/monetary20261028a.htm",
+      3,
+      3
+    ],
+    [
+      "fed/newsevents/pressreleases/monetary20260617a.htm",
+      "fed/newsevents/pressreleases/monetary20260729a.htm",
+      1,
+      1
+    ]
+  ]
+}

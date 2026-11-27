@@ -65,7 +65,7 @@ def hourly(base):
         qv = vb * (0.6 + rnd.random() * 0.8) * (3 if rnd.random() < 0.02 else 1)
         rows.append([t, o, hi, lo, p, qv])
     _cache[base] = rows; return rows
-STEP = {"1m": H // 60, "3m": H // 20, "5m": H // 12, "15m": H // 4, "30m": H // 2, "1h": H, "2h": 2 * H, "4h": 4 * H, "1d": 24 * H, "1w": 168 * H}
+STEP = {"1m": H // 60, "3m": H // 20, "5m": H // 12, "15m": H // 4, "30m": H // 2, "1h": H, "2h": 2 * H, "4h": 4 * H, "1d": 24 * H, "1w": 168 * H, "1M": 720 * H}   # 1M: 30-day buckets, close enough for a mock
 def candles(base, interval):
     hr = hourly(base)
     if interval == "1h": return hr
@@ -167,18 +167,19 @@ async def ready(pg, secs=150):
 # ---------------- mock cTrader Open API (JSON over WebSocket) ----------------
 CT_FX = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
          "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"]
-CT_LIST = CT_FX + ["XAUUSD", "XAGUSD", "US500", "NAS100", "US30", "SpotCrude", "GER40", "AAPL.US", "XPTUSD", "SpotBrent", "NatGas", "JPN225", "HK50", "UK100"]
+CT_LIST = CT_FX + ["XAUUSD", "XAGUSD", "US500", "NAS100", "US30", "SpotCrude", "GER40", "AAPL.US", "XPTUSD", "SpotBrent", "NatGas", "JPN225", "HK50", "UK100"] + ["USDCNH", "USDSEK", "USDMXN", "Corn", "Coffee.f"]     # other dollar pairs, grains and softs
 _DK = lambda y, m, d: (date(y, m, d) - date(1970, 1, 1)).days
 CT_HOL = {"NAS100": [{"holidayId": 1, "name": "Thanksgiving", "holidayDate": _DK(2026, 11, 26), "isRecurring": False, "scheduleTimeZone": "America/New_York"},
                      {"holidayId": 2, "name": "Day after Thanksgiving", "holidayDate": _DK(2026, 11, 27), "isRecurring": False, "startSecond": 46800, "endSecond": 86400, "scheduleTimeZone": "America/New_York"}],
           "UK100": [{"holidayId": 3, "name": "Boxing Day", "holidayDate": _DK(2026, 12, 28), "isRecurring": False, "scheduleTimeZone": "Europe/London"}],
           "XAUUSD": [{"holidayId": 4, "name": "Christmas", "holidayDate": _DK(2025, 12, 25), "isRecurring": True, "scheduleTimeZone": "UTC"}]}   # the broker's holiday list (ProtoOASymbol.holiday)
-CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w"}
+CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w", 14: "1M"}   # 14 = MN1 (seasonality)
 CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
 def CT_BASE(n): return CT_ASSET.get(n[:3], 9) if len(n) == 6 and n.isupper() else 9
 def CT_QUOTE(n): return CT_ASSET.get(n[3:6], 9) if len(n) == 6 and n.isupper() else (2 if n in ("GER40",) else 3 if n == "JPN225" else 5 if n == "UK100" else 1)
 CT_TRADE = {"pos": [], "ord": [], "log": [], "deals": []}
+CT_AUTH = {"access": set(), "refresh": set(), "n": 0}      # opts["rotate"]: like the real service, one live sign-in; each renewal ends the old pair
 def ct_handler(opts):
     """opts: {'secret': 'sec', 'token': 'tok', 'live': True} — what the fake server accepts."""
     def handler(ws):
@@ -192,8 +193,13 @@ def ct_handler(opts):
             if t == 51: return
             if t == 2100:
                 return reply(2101, {}) if p.get("clientSecret") == opts["secret"] else reply(2142, {"errorCode": "CH_CLIENT_AUTH_FAILURE", "description": "Client authentication failure"})
+            if t == 2173 and opts.get("rotate"):
+                if p.get("refreshToken") not in CT_AUTH["refresh"]: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid refresh token"})
+                CT_AUTH["n"] += 1; n = CT_AUTH["n"]; CT_AUTH["access"] = {f"tok-r{n}"}; CT_AUTH["refresh"] = {f"ref-r{n}"}
+                return reply(2174, {"accessToken": f"tok-r{n}", "refreshToken": f"ref-r{n}", "expiresIn": 2628000, "tokenType": "bearer"})
             if t == 2149:
-                if p.get("accessToken") not in (opts["token"], "tok-renewed"): return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
+                ok = p.get("accessToken") in (CT_AUTH["access"] if opts.get("rotate") else (opts["token"], "tok-renewed"))
+                if not ok: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
                 accts = [{"ctidTraderAccountId": 4242, "isLive": opts["live"], "traderLogin": 5150123, "brokerTitleShort": "Pepperstone"}]
                 if opts.get("demo2"): accts.append({"ctidTraderAccountId": 777, "isLive": False, "traderLogin": 900777, "brokerTitleShort": "Demo Broker"})
                 return reply(2150, {"accessToken": p["accessToken"], "permissionScope": opts.get("scope", "SCOPE_VIEW"), "ctidTraderAccount": accts})
@@ -355,7 +361,7 @@ def mx_ws_handler(ws):
             ws.send(json.dumps({"channel": "push.kline", "symbol": "BTC_USDT", "data": {"symbol": "BTC_USDT", "interval": iv, "t": t0 + step, "o": 77777.7, "h": 77800, "l": 77700, "c": 77750}}))
     ws.on_message(on)
 
-# ---------------- calendar feeds, Telegram, keep-awake ----------------
+# ---------------- calendar feeds, Telegram ----------------
 def ff_sample():
     import datetime as dt
     now = time.time(); base = int(now // 3600) * 3600
@@ -368,7 +374,7 @@ def ff_sample():
     return [{"title": t, "country": c, "date": iso((int(now // 60) * 60 + 600 if t == "Core CPI m/m" else base + off)), "impact": imp, "forecast": f, "previous": pv} for t, c, imp, off, f, pv in ev]
 EARN_ROWS = {"NFLX": ("Netflix, Inc.", "time-after-hours", 520e9, "$6.88"), "TSLA": ("Tesla, Inc.", "time-after-hours", 1.3e12, "$0.55"), "JPM": ("JPMorgan Chase & Co.", "time-pre-market", 820e9, "$5.10"),
              "ASML": ("ASML Holding N.V.", "time-pre-market", 682e9, "$12.47"), "PEP": ("PepsiCo, Inc.", "time-pre-market", 205e9, "$2.30"), "XYZ": ("Small Co", "time-not-supplied", 12e9, "$0.10")}
-TG_LOG = []; AWAKE_LOG = []; FF_HITS = {"n": 0}; EARN_HITS = []
+TG_LOG = []; FF_HITS = {"n": 0}; EARN_HITS = []
 async def route_extra(route):
     u = route.request.url; p = urlparse(u)
     if p.path == "/proxy/ff":
@@ -379,8 +385,6 @@ async def route_extra(route):
         wd = dt.date.fromisoformat(d).weekday(); keys = list(EARN_ROWS)
         rows = [{"symbol": k, "name": EARN_ROWS[k][0], "time": EARN_ROWS[k][1], "marketCap": "${:,.0f}".format(EARN_ROWS[k][2]), "epsForecast": EARN_ROWS[k][3], "noOfEsts": "5"} for k in keys if hash(k + d) % 3 == 0 or (k == "TSLA" and wd == 2)]
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"data": {"asOf": d, "rows": rows}}))
-    if p.path == "/api/awake":
-        AWAKE_LOG.append(p.query); return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"awakeUntil": int(time.time() * 1000) + 1200000, "running": True}))
     if "api.telegram.org" in u:
         if u.endswith("/getUpdates"): return await route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"ok": True, "result": [{"update_id": 1, "message": {"message_id": 1, "chat": {"id": 987654321, "first_name": "Jas", "type": "private"}, "text": "hi"}}]}))
         if u.endswith("/sendMessage"):
@@ -388,10 +392,10 @@ async def route_extra(route):
             TG_LOG.append(json.loads(route.request.post_data or "{}")); return await route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"ok": True, "result": {"message_id": len(TG_LOG)}}))
     return await route.fulfill(status=404, body="")
 async def setup_extra(ctx):
-    for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api/awake*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
+    for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
 
 # ---------------- fundamentals page: Treasury yield curves, CFTC positioning, FRED, news RSS ----------------
-FUND_HITS = []; FUND_SRV = {"key": False}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)
+FUND_HITS = []; FUND_SRV = {"key": False, "rates": True}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)
 def ust_csv(real, year):
     import datetime as dt
     hdr = ['Date', '"5 YR"', '"7 YR"', '"10 YR"', '"20 YR"', '"30 YR"'] if real else ['Date', '"1 Mo"', '"1.5 Month"', '"2 Mo"', '"3 Mo"', '"4 Mo"', '"6 Mo"', '"1 Yr"', '"2 Yr"', '"3 Yr"', '"5 Yr"', '"7 Yr"', '"10 Yr"', '"20 Yr"', '"30 Yr"']
@@ -404,7 +408,7 @@ def ust_csv(real, year):
     return "\n".join(out)
 def cot_json():
     import datetime as dt
-    codes = {"088691": (62, 3), "084691": (40, 1), "067651": (12, -6), "085692": (8, 2), "209742": (18, -4), "13874A": (-5, 1), "098662": (10, -2), "099741": (24, 2), "096742": (-8, -3), "097741": (-14, 5), "232741": (-20, 1), "090741": (-30, -2), "092741": (-25, 0), "133741": (-12, 4)}
+    codes = {"076651": (-14, 2), "112741": (-22, -1), "002602": (-9, -3), "083731": (35, 4), "088691": (62, 3), "084691": (40, 1), "067651": (12, -6), "085692": (8, 2), "209742": (18, -4), "13874A": (-5, 1), "098662": (10, -2), "099741": (24, 2), "096742": (-8, -3), "097741": (-14, 5), "232741": (-20, 1), "090741": (-30, -2), "092741": (-25, 0), "133741": (-12, 4)}
     rows, d = [], dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 1) % 7 + 3)
     for code, (net, chg) in codes.items():
         for w in range(52):
@@ -412,12 +416,31 @@ def cot_json():
             lo = int(oi * (0.4 + n / 200)); sh = int(oi * 0.4)
             rows.append({"cftc_contract_market_code": code, "report_date_as_yyyy_mm_dd": (d - dt.timedelta(weeks=w)).isoformat() + "T00:00:00.000", "open_interest_all": str(oi), "noncomm_positions_long_all": str(lo), "noncomm_positions_short_all": str(sh)})
     return rows
+def cot_funds_json(kind):                         # hedge funds: leveraged funds (+ asset managers) for financials, managed money for commodities
+    import datetime as dt
+    codes = {"099741": (18, 3, 22), "097741": (-25, -2, 10), "209742": (6, -1, 30)} if kind == "tff" else {"088691": (45, 2, None), "067651": (-5, -1, None)}
+    rows, d = [], dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 1) % 7 + 3)
+    for code, (net, chg, am) in codes.items():
+        for w in range(52):
+            n = net - chg * (1 if w else 0) - w * 0.3 * (1 if net > 0 else -1); oi = 400000; lo = int(oi * (0.3 + n / 200)); sh = int(oi * 0.3)
+            r = {"cftc_contract_market_code": code, "report_date_as_yyyy_mm_dd": (d - dt.timedelta(weeks=w)).isoformat() + "T00:00:00.000", "open_interest_all": str(oi)}
+            if kind == "tff": r.update({"lev_money_positions_long": str(lo), "lev_money_positions_short": str(sh), "asset_mgr_positions_long": str(int(oi * (0.2 + am / 200))), "asset_mgr_positions_short": str(int(oi * 0.2))})
+            else: r.update({"m_money_positions_long_all": str(lo), "m_money_positions_short_all": str(sh)})
+            rows.append(r)
+    return rows
 def fred_json(sid):
     import datetime as dt
-    vals = {"DFEDTARU": [(0, 3.75), (40, 4.0), (120, 4.25)], "ECBDFR": [(0, 2.0), (130, 2.25)], "CPIAUCSL": None, "UNRATE": [(0, 4.4)], "T10YIE": [(0, 2.31)], "BAMLH0A0HYM2": [(0, 3.12), (1, 3.18)], "VIXCLS": [(0, 16.4), (1, 17.2)]}
+    vals = {"DFEDTARU": [(0, 3.75), (40, 4.0), (120, 4.25)], "ECBDFR": [(0, 2.0), (130, 2.25)], "CPIAUCSL": None, "UNRATE": [(0, 4.4)], "T10YIE": [(0, 2.31)], "BAMLH0A0HYM2": [(0, 3.12), (1, 3.18)], "VIXCLS": [(0, 16.4), (1, 17.2)],
+            "GVZCLS": [(0, 31.5), (1, 29.8), (40, 22.0), (200, 17.0)], "OVXCLS": [(0, 34.0), (1, 35.1), (300, 40.0)], "DTWEXBGS": [(0, 121.4), (1, 121.1), (5, 120.2), (60, 123.0)],
+            "WALCL": [(0, 6612000), (21, 6590000)], "WTREGEN": [(0, 812000), (21, 905000)], "RRPONTSYD": [(0, 18.5), (25, 42.0)], "DFF": [(0, 3.62), (40, 3.87), (120, 4.12)]}
     obs, today = [], dt.date.today()
     if sid == "CPIAUCSL":
         for m in range(16): obs.append({"date": (today.replace(day=1) - dt.timedelta(days=31 * (m + 1))).replace(day=1).isoformat(), "value": f"{320 - m * 0.75:.3f}"})
+    elif sid == "PAYEMS":                          # payrolls in thousands: +150K a month
+        for m in range(16): obs.append({"date": (today.replace(day=1) - dt.timedelta(days=31 * (m + 1))).replace(day=1).isoformat(), "value": f"{159500 - m * 150}"})
+    elif sid == "ICSA":                            # weekly claims, dated the Saturday each week ends
+        sat = today - dt.timedelta(days=(today.weekday() - 5) % 7 or 7)
+        for w in range(10): obs.append({"date": (sat - dt.timedelta(weeks=w)).isoformat(), "value": f"{221000 + w * 3000}"})
     else:
         steps = vals.get(sid, [(0, 3.5), (150, 3.75)])
         monthly = sid.startswith("IRSTCI")
@@ -426,6 +449,38 @@ def fred_json(sid):
             v = [x for k, x in steps if i * (30 if monthly else 1) >= k][-1]
             obs.append({"date": day.isoformat(), "value": f"{v}"})
     return {"observations": obs}
+def bis_csv():                                    # SDMX-CSV the way BIS can label it: "CODE:Label" headers and "CODE: Label" values
+    import datetime as dt
+    steps = {"GB": [(0, 4.0), (60, 4.25)], "JP": [(0, 0.75), (100, 0.5)], "AU": [(0, 3.6)], "CA": [(0, 2.25), (300, 2.5)], "CH": [(0, 0.0)], "NZ": [(0, 2.5), (30, 3.0)]}
+    names = {"GB": "United Kingdom", "JP": "Japan", "AU": "Australia", "CA": "Canada", "CH": "Switzerland", "NZ": "New Zealand"}
+    out, today = ["DATAFLOW:Dataflow,FREQ:Frequency,REF_AREA:Reference area,TIME_PERIOD:Time period or range,OBS_VALUE:Observation Value"], dt.date.today() - dt.timedelta(days=3)
+    for a, st in steps.items():
+        for i in range(400, -1, -1):
+            v = [x for k, x in st if i >= k][-1]
+            out.append(f'BIS:WS_CBPOL(1.0): Central bank policy rates,D: Daily,"{a}: {names[a]}",{(today - dt.timedelta(days=i)).isoformat()},{v}')
+    return "\n".join(out)
+def ecb_csv():                                    # ECB csvdata: euro-area AAA curve, 2Y and 10Y, business days
+    import datetime as dt
+    out, d, i = ["KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF"], dt.date.today(), 0
+    while i < 50:
+        d -= dt.timedelta(days=1)
+        if d.weekday() >= 5: continue
+        for k, b in (("SR_2Y", 2.05 - i * 0.002), ("SR_10Y", 2.62 - i * 0.001)):
+            out.append(f"YC.B.U2.EUR.4F.G_N_A.SV_C_YM.{k},B,U2,EUR,4F,G_N_A,SV_C_YM,{k},{d.isoformat()},{b:.6f},A,F")
+        i += 1
+    return "\n".join(out)
+def jgb_csv(full):                               # Ministry of Finance: a title line, then Date,1Y,…,40Y; this month only unless full
+    import datetime as dt
+    out, d, i, today = ["Interest Rate", "Date,1Y,2Y,3Y,4Y,5Y,6Y,7Y,8Y,9Y,10Y,15Y,20Y,25Y,30Y,40Y"], dt.date.today(), 0, dt.date.today()
+    rows = []
+    while i < 160:
+        d -= dt.timedelta(days=1)
+        if d.weekday() >= 5: continue
+        if full or (d.year, d.month) == (today.year, today.month):
+            y2, y10 = 0.95 - i * 0.003, 1.75 - i * 0.005
+            rows.append(f"{d.year}/{d.month}/{d.day},0.7,{y2:.3f},1.0,1.1,1.2,1.3,1.4,1.5,1.6,{y10:.3f},2.2,2.6,2.9,3.1,3.3")
+        i += 1
+    return "\n".join(out + rows[::-1])
 def rss_xml(name):
     import email.utils
     now = time.time(); t = ["Fed's Waller says another cut is appropriate if jobs keep cooling", "Gold climbs as Treasury yields slip", "Nasdaq futures edge higher ahead of Netflix earnings",
@@ -438,15 +493,35 @@ async def route_fund(route):
         _, _, _, typ, year = p.path.split("/")
         return await route.fulfill(status=200, content_type="text/csv", body=ust_csv("real" in typ, year))
     if p.path == "/proxy/cot": return await route.fulfill(status=200, content_type="application/json", body=json.dumps(cot_json()))
+    if p.path in ("/proxy/cot-tff", "/proxy/cot-dis"):
+        if "$select" in p.query and not FUND_SRV.get("cotsel", True): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"code": "query.soql.no-such-column", "message": "No such column"}))
+        rows = cot_funds_json("tff" if p.path.endswith("tff") else "dis")
+        if "$select" not in p.query: rows = sorted(rows, key=lambda r: r["report_date_as_yyyy_mm_dd"], reverse=True)[:int(parse_qs(p.query).get("$limit", ["999"])[0])]   # all columns, newest rows only
+        return await route.fulfill(status=200, content_type="application/json", body=json.dumps(rows))
     if p.path.startswith("/proxy/fred/"):
         q = parse_qs(p.query)
         if not q.get("api_key", [""])[0] and not FUND_SRV["key"]: return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_message": "no api_key: add FRED_API_KEY in Vercel or paste a key in the app"}))
         if q.get("api_key", [""])[0].startswith("bad"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error_code": 400, "error_message": "Bad Request.  The value for variable api_key is not registered."}))
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps(fred_json(q.get("series_id", [""])[0])))
     if p.path.startswith("/proxy/rss/"): return await route.fulfill(status=200, content_type="application/xml", body=rss_xml(p.path.split("/")[-1]))
+    if p.path == "/proxy/eia":                     # EIA v2 seriesid: weekly stocks, last week a 3.1M-barrel crude draw and a 45 Bcf gas build
+        import datetime as dt
+        q = parse_qs(p.query); sid = q.get("series", [""])[0]
+        if not q.get("api_key", [""])[0] and not FUND_SRV.get("eiakey"): return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error": "no api_key: add EIA_API_KEY in Vercel or paste a key in the app"}))
+        base = {"PET.WCESTUS1.W": (421500, 424600, 430000), "PET.WGTSTUS1.W": (209800, 210900, 214000), "PET.WDISTUS1.W": (118200, 117500, 125000),
+                "PET.W_EPC0_SAX_YCUOK_MBBL.W": (22100, 22900, 33000), "NG.NW2_EPG0_SWO_R48_BCF.W": (3800, 3755, 3700)}.get(sid)
+        if not base: return await route.fulfill(status=400, content_type="application/json", body=json.dumps({"error": "series not allowed"}))
+        fri = dt.date.today() - dt.timedelta(days=(dt.date.today().weekday() - 4) % 7 or 7)
+        data = [{"period": (fri - dt.timedelta(weeks=w)).isoformat(), "value": base[0] if w == 0 else base[1] if w == 1 else base[2], "units": "MBBL"} for w in range(320)]
+        return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"response": {"data": data}}))
+    if p.path.startswith("/proxy/rates/"):
+        src = p.path.split("/")[-1]
+        if not FUND_SRV["rates"]: return await route.fulfill(status=502, content_type="text/csv", body="couldn't reach the source")
+        body = {"bis": bis_csv, "ecb": ecb_csv, "jgb": lambda: jgb_csv(False), "jgb-all": lambda: jgb_csv(True)}.get(src)
+        return await route.fulfill(status=200 if body else 400, content_type="text/csv", body=body() if body else "unknown source")
     return await route.fulfill(status=404, body="")
 async def setup_fund(ctx):
-    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**"]: await ctx.route(pat, route_fund)
+    for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**", "**/proxy/rates/**", "**/proxy/eia*"]: await ctx.route(pat, route_fund)
 
 # ---------------- fake shared-login keeper (/api/ct-keeper) ----------------
 def keeper_state():
@@ -473,3 +548,21 @@ async def route_keeper(ctx, st):
         if p.get("action") == "forget": st["login"] = None; return await send(200, {"ok": True})
         return await send(400, {"error": "Unknown action."})
     await ctx.route("**/api/ct-keeper", handle)
+
+# Central bank reads: real statements and decision lists saved under tests/cb/<bank>/<path on the bank's site> (a path ending in / is <path>index).
+# The app asks /proxy/cbpage?bank=<bank>&p=<path>. CB_SRV["swap"]["<bank>/<path>"] = another saved "<bank>/<path>" or raw text to serve instead;
+# CB_SRV["status"]["<bank>/<path>"] = HTTP status to force; CB_HITS lists every "<bank>/<path>" asked for.
+CB_DIR = os.path.join(APP, "tests", "cb"); CB_SRV = {"swap": {}, "status": {}}; CB_HITS = []
+async def route_cb(route):
+    u = urlparse(route.request.url); q = parse_qs(u.query); bank, p = q.get("bank", [""])[0], q.get("p", [""])[0]
+    if u.path != "/proxy/cbpage" or not re.match(r"^[a-z]+$", bank) or not p: return await route.fulfill(status=400, body='{"error":"not allowed"}')
+    key = bank + "/" + p; CB_HITS.append(key)
+    if key in CB_SRV["status"]: return await route.fulfill(status=CB_SRV["status"][key], body="")
+    sw = CB_SRV["swap"].get(key)
+    if sw is not None and ("\n" in sw or "<" in sw): return await route.fulfill(status=200, content_type="text/plain; charset=utf-8", body=sw)
+    rel = sw or key
+    f = os.path.join(CB_DIR, rel + ("index" if rel.endswith("/") else ""))
+    if not os.path.isfile(f): return await route.fulfill(status=404, body="")
+    with open(f, "rb") as fh: return await route.fulfill(status=200, content_type="text/plain; charset=utf-8", body=fh.read())
+async def setup_cb(ctx):
+    await ctx.route("**/proxy/cbpage**", route_cb)

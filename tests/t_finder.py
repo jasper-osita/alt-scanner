@@ -2,7 +2,7 @@ import asyncio, sys, json
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__))); from mock import *
 from playwright.async_api import async_playwright
 OUT = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "out", "finder")
-PAGES = ["overview", "playbook", "momentum", "day", "swing", "aots", "sessions", "screener", "watch", "bots", "scorecard", "backtest", "guide"]
+PAGES = ["overview", "playbook", "momentum", "day", "swing", "aots", "guide", "screener", "watch"]
 async def main():
     import os; os.makedirs(OUT, exist_ok=True)
     serve()
@@ -29,8 +29,6 @@ async def main():
         await pg.screenshot(path=f"{OUT}/filters.png")
         await pg.click("#fClose"); await asyncio.sleep(0.2)
         # click flows on their pages
-        await pg.click('.nav[data-go="backtest"]'); await asyncio.sleep(0.2); await pg.click("#btRun")
-        await pg.click('.nav[data-go="bots"]'); await asyncio.sleep(0.2); await pg.click("#botRun"); await asyncio.sleep(1)
         await pg.click('.nav[data-go="momentum"]'); await asyncio.sleep(0.3)
         r = await pg.query_selector("#momoBoard .row")
         if r: await r.click(); await asyncio.sleep(1.2); print("popup open:", await pg.evaluate("() => document.getElementById('dlg').open")); await pg.screenshot(path=f"{OUT}/popup.png"); await pg.keyboard.press("Escape")

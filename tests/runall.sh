@@ -1,6 +1,6 @@
 #!/bin/bash
 # Runs every browser test against mocked exchanges (no network needed). Needs: Python 3, `pip install playwright`, `playwright install chromium`.
-# Usage: bash tests/runall.sh            (all)      bash tests/runall.sh t_nw t_cs   (some)
+# Usage: bash tests/runall.sh            (all)      bash tests/runall.sh t_smoke t_cs   (some)
 cd "$(dirname "$0")" && mkdir -p out out/finder out/mob
 TESTS=("$@"); [ ${#TESTS[@]} -eq 0 ] && TESTS=($(ls t_*.py | sed 's/\.py$//'))
 fail=0

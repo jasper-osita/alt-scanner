@@ -2,7 +2,7 @@ import asyncio, sys
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__))); from mock import *
 from playwright.async_api import async_playwright
 OUT = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "out", "mob"); import os; os.makedirs(OUT, exist_ok=True)
-PAGES = sys.argv[1].split(",") if len(sys.argv) > 1 else ["overview", "playbook", "charts", "momentum", "day", "swing", "aots", "sessions", "macro", "screener", "watch", "bots", "scorecard", "backtest", "guide"]
+PAGES = sys.argv[1].split(",") if len(sys.argv) > 1 else ["overview", "playbook", "charts", "momentum", "day", "swing", "aots", "guide", "macro", "screener", "watch"]
 async def main():
     serve()
     async with async_playwright() as pw:

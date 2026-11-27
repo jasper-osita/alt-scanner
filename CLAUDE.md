@@ -60,7 +60,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   /`tdLive`/`tdRoom`/`tdCalcMarket`; words `tdSay`/`tdSayWeek`. Extras: `tdLoad(force, now)` (1H history ~2 years cached as `td|sym` in `finder-cache` → `kl`,
   15m today, calls kept in `finder-td-calls`), `tdRender` (Today / This week), `tdNote` (Overview session note) and `tdChip` (`#chDay` on Charts). Test `t_td`
   (pass the day to `tdLoad`: a frozen test clock stalls the rate limiter `spend`).
-- Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
+- Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`; Notification settings in the bell drawer (`ncSetView`/`ncRenderSet`, per kind on/banner/sound/pop-up via `ncPref`, `finder-nc-prefs`; Phone column = Telegram kinds through `ncPhoneHook`).
 
 ## Workflow
 - After changes: `TZ=Asia/Manila bash bump-version.sh` (updates version.json, index.html, sw.js).

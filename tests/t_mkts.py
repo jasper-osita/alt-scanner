@@ -42,7 +42,6 @@ async def main():
         await pg.click('#mktSeg [data-mk="fx"]'); await q("() => goPage('day')"); await asyncio.sleep(0.3)
         print("4) forex day rows:", await q("() => [...document.querySelectorAll('#dayBoard .row')].map(r => r.querySelector('.tick').textContent + ' · ' + r.querySelector('.ln').textContent.slice(0, 80)).join(' || ')"))
         print("   no 'Against BTC' on forex:", await q("() => ![...document.querySelectorAll('#dayBoard .tag')].some(t => t.textContent === 'Against BTC')"))
-        print("   session models on the best forex:", await q("() => MACRO.rows.filter(r => r.mkSess).length + ' checked'"))
         first = await q("() => { const r = document.querySelector('#dayBoard .row'); return r ? r.dataset.s : ''; }")
         if first:
             await pg.click(f'#dayBoard .row[data-s="{first}"]'); await asyncio.sleep(1.5)

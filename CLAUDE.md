@@ -5,7 +5,7 @@ Read this first. Keep answers and diffs tight; Jas architects, Claude executes.
 ## What it is
 Single-page screener PWA for Jas (Philippines, PHT = UTC+8). Crypto boards (Binance/Bybit/MEXC), forex/metals/indices from his
 Pepperstone cTrader account, a TradingView-style Charts engine, economic calendar, alerts.
-Trading scope: NBB setup; Gold M5 in London, NAS100 M1 at the US open; AOTS = price beyond 20/50/100 with them stacked.
+Trading scope: NBB setup, executed on 15m: entries in Asia and London, held for the day (no longer tied to one session); AOTS = price beyond 20/50/100 with them stacked.
 Sessions (PHT): Asia 8–12, London 12–18, London lunch 18–19:30, Pre-NY 19:30–21:30, NY AM 21:30–24, NY PM 0–4.
 These are New York based and written as in US summer time: from November to March (New York winter time) they all land 1 hour later in PHT.
 Never compare session times with plain PHT: use the session clock in core (`sessD`/`sessH`, New York + 12h; `sessLbl` shows today's PHT; `nyDst`/`ukDst`, `CLK_SHIFT`). Test: `t_dst`.
@@ -31,7 +31,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   Comparison indicators `cmp` (another market over the chart on its own scale, `ownScale`) and `ratio` (pane): `chCmpSym` (typed name → symbol), `chCmpData` (cache `CHCMP`), `chCmpLine`.
   Overview main charts borrow the same engine: `OVC`, `ovcHost`/`ovcPark` (Bitcoin on Overview; dollar + Nasdaq 100 side by side on the
   forex overview, each pane its own symbol via `P.psym`/`chPS(P)`; the Charts page's own state is restored on park).
-  Forex overview toggles: session timeframes `ovcSessTf`/`ovcSessApply` (NAS100 1m at the US open, Gold 5m in London), same timeframe `ovcTfPicked`.
+  Forex overview charts start on 15m and keep your own pick (`ovcSessApply`; `ovcMigrate` moved the old 1m/5m session picks to 15m once); same timeframe `ovcTfPicked`.
 - Day range used (core, also in Node): `adrOf` (14-day average high−low), `dayRange` (closed candles since the current daily candle opened) and `dayUsed` (+ live price);
   `r.day` on every scanned row, `dayTag` on forex/momentum rows, `nwDay` on NBB Watch cards, checklist and alerts. Currency strength window
   `XCS` (Session/24h/7d) in Money Flow: `xSessStart` (latest of Asia 8 AM, London 12 PM, New York 9:30 PM PHT), `xSessRet` from `r.opens` (15m opens, forex/metals/indices rows only).

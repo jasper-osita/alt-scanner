@@ -1271,7 +1271,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
   </section>
   <section class="card xchsec" data-page="macroov">
     <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2>
-      <div class="ovtgs" role="group" aria-label="Chart options"><button class="btn sm ovtg" id="ovcAuto" aria-pressed="true" title="Nasdaq 100 switches to 1m for the US open (9:30 PM to 12 AM) and Gold to 5m for London (12 to 6 PM) on weekdays, then back to your own pick">Session timeframes</button><button class="btn sm ovtg" id="ovcLink" aria-pressed="false" title="Change one chart's timeframe and the other follows">Same timeframe</button></div></div>
+      <div class="ovtgs" role="group" aria-label="Chart options"><button class="btn sm ovtg" id="ovcLink" aria-pressed="false" title="Change one chart's timeframe and the other follows">Same timeframe</button></div></div>
     <div class="ovchost x" id="ovChartX"><div class="empty">Loading the charts…</div></div>
     <div class="xmh ovsub"><h3>Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click one to show it in the chart you last clicked</span></h3>
       <div class="xseg" id="xchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
@@ -6395,7 +6395,12 @@ CH.sizes = CH.sizes || {};
 let CHD = chLoadJSON(CHD_KEY, {});                          // symbol → drawings, stored in time (ms) and price so every timeframe can draw them
 var CHA = chLoadJSON("finder-chart-alerts", []);                // alerts made on the chart (price, a drawn line, an indicator): see chaDialog
 let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSDT", "XAGUSDT", "CLUSDT", "QQQUSDT", "SPYUSDT"];
-const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: chLoadJSON("finder-ovch", {}) };   // the overview pages borrowing this chart (see ovcHost)
+function ovcMigrate(st) {                            // once: the old session switch (Nasdaq 1m at the US open, Gold 5m in London) left 1m/5m saved; you trade 15m all day now
+  const x = st && st.x; if (!x || x.m15) return st;
+  if (x.auto !== false && Array.isArray(x.tfs)) x.tfs = x.tfs.map(tf => tf === "1m" || tf === "5m" ? "15m" : tf);
+  delete x.auto; x.m15 = 1; return st;
+}
+const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: ovcMigrate(chLoadJSON("finder-ovch", {})) };   // the overview pages borrowing this chart (see ovcHost)
 const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
 const CHP = [];                                              // the four panes
 let CHM = null;                                              // a trade marked on the chart (clicked in the trade watch): { list: [trade], i: 0 }
@@ -7986,28 +7991,17 @@ function ovcSyms(mode) {                           // your last pick, else Bitco
   const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
   return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
 }
-function ovcSessTf(sym) {                         // the timeframe a session asks for (session clock, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
-  if (!sym) return null; const d = sessD(), wd = d.getUTCDay(), h = sessH();
-  if (wd < 1 || wd > 5) return null; const n = chName(sym);
-  if (/Nasdaq 100/.test(n) && h >= 21.5) return "1m";
-  if (/^Gold/.test(n) && h >= 12 && h < 18) return "5m";
-  return null;
-}
-function ovcSessApply(load) {                     // switch on entering or leaving a session window only, so your own pick inside the window stands
-  if (OVC.on !== "x") return; const o = OVC.st.x || {}, ps = [CHP[0], CHP[1]];
-  if ($("ovcAuto")) $("ovcAuto").title = `Nasdaq 100 switches to 1m for the US open (${sessLbl(21.5)} to ${sessLbl(24)}) and Gold to 5m for London (${sessLbl(12)} to ${sessLbl(18)}) on weekdays, then back to your own pick`;
-  let want = ps.map(P => o.auto !== false ? ovcSessTf(P.psym) : null);
-  if (o.link) { const w = want.find(Boolean) || null; want = want.map(() => w); }
-  ps.forEach((P, i) => { const key = (want[i] || "") + "|" + P.psym; if (P.sessKey === key) return; P.sessKey = key;
-    const tf = want[i] || P.manTf || P.tf; if (P.tf === tf) return;
+function ovcSessApply(load) {                     // the forex overview charts sit on your own pick (15m to start); with "Same timeframe" on, the other follows
+  if (OVC.on !== "x") return;
+  [CHP[0], CHP[1]].forEach((P, i) => { const tf = P.manTf || P.tf; if (P.tf === tf) return;
     P.tf = CH.tfs[i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; if (load) chLoad(P); });
 }
 function ovcTfPicked(P) {                          // your own timeframe pick; with "Same timeframe" on, the other chart follows
-  const inSess = !!(P.sessKey && P.sessKey.split("|")[0]); if (!inSess) P.manTf = P.tf;
-  if ((OVC.st.x || {}).link) [CHP[0], CHP[1]].forEach(Q => { if (Q === P || Q.tf === P.tf) return; Q.tf = CH.tfs[Q.i] = P.tf; if (!inSess) Q.manTf = P.tf;
+  P.manTf = P.tf;
+  if ((OVC.st.x || {}).link) [CHP[0], CHP[1]].forEach(Q => { if (Q === P || Q.tf === P.tf) return; Q.tf = CH.tfs[Q.i] = P.tf; Q.manTf = P.tf;
     const sel = Q.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; chLoad(Q); });
 }
-function ovcTgSync() { const o = OVC.st.x || {}; [["ovcAuto", o.auto !== false], ["ovcLink", !!o.link]].forEach(([id, on]) => { const b = $(id); if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); } }); }
+function ovcTgSync() { const o = OVC.st.x || {}; [["ovcLink", !!o.link]].forEach(([id, on]) => { const b = $(id); if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); } }); }
 function ovcMarkAct() { CHP.forEach(P => P.pane.classList.toggle("act", OVC.on === "x" && P.i === OVC.act)); }
 function ovcActivate(i) {
   OVC.act = i; CH.sym = CHP[i].psym; chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
@@ -8032,7 +8026,7 @@ async function ovcHost(mode) {
   const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
   CH.layout = mode === "c" ? "1" : "2c"; CH.max = null;
   syms.forEach((sym, i) => { const P = CHP[i]; P.psym = mode === "x" ? sym : null; P.sym = null;
-    P.tf = P.manTf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; P.sessKey = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+    P.tf = P.manTf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : mode === "x" ? "15m" : "1h"; P.sessKey = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
   ovcSessApply(false);
   OVC.act = mode === "x" ? Math.min(1, +(OVC.st.x && OVC.st.x.act) || 0) : 0; CH.sym = syms[OVC.act];
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
@@ -8100,7 +8094,6 @@ async function chStudyGo() {
   if (P.t.length && P.chart) { const a = chLogical(P, c.opened), b = chLogical(P, c.closed), pad = Math.max(25, (b - a) * 1.5); P.userAt = Date.now(); P.chart.timeScale().setVisibleLogicalRange({ from: a - pad, to: b + pad }); }
   chDirty = true;
 }
-if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
 if ($("ovcLink")) $("ovcLink").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.link = !o.link; chSaveJSON("finder-ovch", OVC.st); ovcTgSync();
   if (OVC.on === "x") { CHP.forEach(P => P.sessKey = null); ovcSessApply(true); if (o.link) ovcTfPicked(CHP[OVC.act]); } };
 ovcTgSync();

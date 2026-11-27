@@ -89,8 +89,24 @@
       "destination": "https://publicreporting.cftc.gov/resource/6dca-aqww.json"
     },
     {
+      "source": "/proxy/eia",
+      "destination": "/api/eia"
+    },
+    {
+      "source": "/proxy/cot-tff",
+      "destination": "https://publicreporting.cftc.gov/resource/gpe5-46if.json"
+    },
+    {
+      "source": "/proxy/cot-dis",
+      "destination": "https://publicreporting.cftc.gov/resource/72hh-3qpy.json"
+    },
+    {
       "source": "/proxy/fred/series/observations",
       "destination": "/api/fred"
+    },
+    {
+      "source": "/proxy/rates/:src",
+      "destination": "/api/rates?src=:src"
     },
     {
       "source": "/proxy/rss/fxstreet",

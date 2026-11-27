@@ -1,6 +1,7 @@
 """Mock market data for testing Alt Scanner offline: Binance futures + spot, CoinGecko, alternative.me.
 Every timeframe is aggregated from one hourly path per coin, so 15m/1H/4H/1D candles agree."""
 import json, math, random, time, hashlib, os, threading, http.server, socketserver, re
+from datetime import date
 from urllib.parse import urlparse, parse_qs
 H = 3600_000
 NOW = (int(time.time() * 1000) // H) * H            # top of the current hour; the last hourly candle is still forming
@@ -167,6 +168,11 @@ async def ready(pg, secs=150):
 CT_FX = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
          "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"]
 CT_LIST = CT_FX + ["XAUUSD", "XAGUSD", "US500", "NAS100", "US30", "SpotCrude", "GER40", "AAPL.US", "XPTUSD", "SpotBrent", "NatGas", "JPN225", "HK50", "UK100"]
+_DK = lambda y, m, d: (date(y, m, d) - date(1970, 1, 1)).days
+CT_HOL = {"NAS100": [{"holidayId": 1, "name": "Thanksgiving", "holidayDate": _DK(2026, 11, 26), "isRecurring": False, "scheduleTimeZone": "America/New_York"},
+                     {"holidayId": 2, "name": "Day after Thanksgiving", "holidayDate": _DK(2026, 11, 27), "isRecurring": False, "startSecond": 46800, "endSecond": 86400, "scheduleTimeZone": "America/New_York"}],
+          "UK100": [{"holidayId": 3, "name": "Boxing Day", "holidayDate": _DK(2026, 12, 28), "isRecurring": False, "scheduleTimeZone": "Europe/London"}],
+          "XAUUSD": [{"holidayId": 4, "name": "Christmas", "holidayDate": _DK(2025, 12, 25), "isRecurring": True, "scheduleTimeZone": "UTC"}]}   # the broker's holiday list (ProtoOASymbol.holiday)
 CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w"}
 CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
@@ -211,7 +217,7 @@ def ct_handler(opts):
                 for sid in p.get("symbolId", []):
                     n = CT_LIST[sid - 1]
                     out.append({"symbolId": sid, "digits": 2 if n.startswith("XAU") or not n.isupper() or n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 5,
-                                "lotSize": 10000 if n == "XAUUSD" else 100 if n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 10000000, "stepVolume": 100 if n in ("US500","NAS100","US30") else 1000, "minVolume": 100 if n in ("US500","NAS100","US30") else 1000, "pipPosition": 1 if n.startswith("XAU") else 2 if "JPY" in n else 4})
+                                "lotSize": 10000 if n == "XAUUSD" else 100 if n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 10000000, "stepVolume": 100 if n in ("US500","NAS100","US30") else 1000, "minVolume": 100 if n in ("US500","NAS100","US30") else 1000, "pipPosition": 1 if n.startswith("XAU") else 2 if "JPY" in n else 4, **({"holiday": CT_HOL[n]} if n in CT_HOL else {})})
                 return reply(2117, {"ctidTraderAccountId": 4242, "symbol": out})
             if t == 2127:
                 reply(2128, {})

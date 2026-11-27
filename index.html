@@ -2691,6 +2691,31 @@ async function ctSpec(sym) {
   return CT.specs[x.symbolId] = { lotSize: +(s.lotSize || 10000000), step: +(s.stepVolume || 1000), min: +(s.minVolume || 1000), max: +(s.maxVolume || 0), digits: s.digits,
     base: CT.assets[x.baseAssetId] || "", quote: CT.assets[x.quoteAssetId] || "" };
 }
+// the broker's own holiday list: cTrader sends it with each symbol's details. One symbol stands for each market (FX: every one listed).
+const HOL_SYMS = { US: ["NAS100", "US500", "US30"], UK: ["UK100"], EU: ["GER40", "EU50"], JP: ["JPN225", "JP225"], HK: ["HK50"], AU: ["AUS200"], CA: ["CA60", "CAN60"], CH: ["SWI20"], FX: ["XAUUSD", "EURUSD"] };
+function brokerHolidays(bySym, fromKey, toKey) {     // → holiday entries; holidayDate is a day number, recurring ones repeat every year
+  const out = [], y0 = hdYmd(fromKey)[0], y1 = hdYmd(toKey)[0];
+  Object.entries(bySym || {}).forEach(([mk, L]) => (L || []).forEach(h => {
+    const k0 = +h.holidayDate; if (!isFinite(k0)) return;
+    const half = (h.startSecond != null || h.endSecond != null) && !((+h.startSecond || 0) <= 0 && (h.endSecond == null || +h.endSecond >= 86400));
+    const keys = h.isRecurring ? tdRange(y0, y1).map(y => { const [, m, d] = hdYmd(k0); return hdKey(y, m, d); }) : [k0];
+    keys.filter(k => k >= fromKey && k <= toKey).forEach(key => out.push({ key, mk, n: h.name || "Holiday", half, src: "broker" }));
+  }));
+  return out;
+}
+async function ctHolidays(force) {                   // { at, bySym, count, markets }, kept for a day
+  let c = null; try { c = JSON.parse(localStorage.getItem("finder-hol") || "null"); } catch (e) {}
+  if (!force && c && c.bySym && Date.now() - c.at < 864e5) return c;
+  if (CT.state !== "ready") throw new Error("cTrader isn't connected");
+  const pick = {};
+  Object.entries(HOL_SYMS).forEach(([mk, names]) => { const have = names.map(n => CT.symbols[ctNorm(n)]).filter(Boolean); (mk === "FX" ? have : have.slice(0, 1)).forEach(x => pick[x.symbolId] = mk); });
+  const ids = Object.keys(pick).map(Number), bySym = {};
+  if (ids.length) ((await ctReq(2116, { ctidTraderAccountId: CT.acct.ctidTraderAccountId, symbolId: ids })).symbol || []).forEach(s => {
+    const mk = pick[s.symbolId]; if (mk && (s.holiday || []).length) bySym[mk] = (bySym[mk] || []).concat(s.holiday); });
+  c = { at: Date.now(), bySym, count: Object.values(bySym).reduce((a, L) => a + L.length, 0), markets: Object.keys(bySym).length };
+  try { localStorage.setItem("finder-hol", JSON.stringify(c)); } catch (e) {}
+  return c;
+}
 function ctPx(code) {                                      // a broker forex price we already have (for converting profit and loss)
   const r = MACRO.by["CT:" + code] || Object.values(MACRO.by).find(r => r.ct && ctNorm(coin(r.symbol)) === code); return r && r.price;
 }
@@ -3114,6 +3139,37 @@ function holRules(mk, y) {                            // [{ m, d, n, half }] on 
   const by = new Map();                                // one entry per date; a full close beats a half day
   out.filter(h => ![0, 6].includes(wd(h.m, h.d))).forEach(h => { const k = h.m * 100 + h.d, o = by.get(k); if (!o || (o.half && !h.half)) by.set(k, h); });
   return [...by.values()].sort((a, b) => a.m * 100 + a.d - (b.m * 100 + b.d));
+}
+/* ---- the trading day: 24 hourly bins on the session clock from session 8:00 (the Asia open), so it follows New York's daylight saving ---- */
+const tdKey = ms => Math.floor((sessD(ms).getTime() - 8 * 3600e3) / 864e5);           // hours before the Asia open belong to the day before
+const tdBin = ms => Math.floor(((((sessD(ms).getTime() - 8 * 3600e3) % 864e5) + 864e5) % 864e5) / 3600e3);
+function tdStart(key) {                               // the real time of session 8:00 on that trading day
+  const want = key * 864e5 + 8 * 3600e3; let t = want - PHT_MS + sessShift(want - PHT_MS) * 3600e3;
+  return want - PHT_MS + sessShift(t) * 3600e3;
+}
+const tdRange = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const TD_CENTRE_BINS = { US: tdRange(13, 19), CA: tdRange(13, 17), UK: tdRange(4, 10), EU: tdRange(4, 10), CH: tdRange(4, 10), JP: tdRange(0, 3), HK: tdRange(0, 3), KR: tdRange(0, 3), AU: tdRange(0, 3) };   // the hours a centre's closure thins
+const FF_HOL_MK = { USD: "US", GBP: "UK", EUR: "EU", JPY: "JP", AUD: "AU", CAD: "CA", CHF: "CH" };
+function nyYmd(ms) { const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value); return [+p.year, +p.month, +p.day]; }
+function ffHolidays(rows) {                           // Forex Factory's holiday rows (its feed is in New York time) → holiday entries
+  return (rows || []).filter(x => x.impact === "Holiday" && FF_HOL_MK[x.ccy]).map(x => ({ key: hdKey(...nyYmd(x.at)), mk: FF_HOL_MK[x.ccy], n: x.title, half: false, src: "ff" }));
+}
+function holEntries(fromKey, toKey, extra = []) {     // every market's holidays in a range: the rules plus other sources, one entry per day and market
+  const all = [], y0 = hdYmd(fromKey)[0], y1 = hdYmd(toKey)[0];
+  for (let y = y0; y <= y1; y++) HOL_MKTS.forEach(([mk]) => (holRules(mk, y) || []).forEach(h => all.push({ key: hdKey(y, h.m, h.d), mk, n: h.n, half: h.half, src: "rules" })));
+  const by = new Map(), order = HOL_MKTS.map(x => x[0]).concat("FX");
+  all.concat(extra || []).filter(e => e.key >= fromKey && e.key <= toKey).forEach(e => {
+    const k = e.key + "|" + e.mk, o = by.get(k);
+    if (!o) { by.set(k, { key: e.key, mk: e.mk, n: e.n, half: !!e.half, srcs: [e.src] }); return; }
+    if (o.half && !e.half) o.half = false;
+    if (e.n && !o.n.split(" / ").includes(e.n)) o.n += " / " + e.n;
+    if (!o.srcs.includes(e.src)) o.srcs.push(e.src);
+  });
+  return [...by.values()].sort((a, b) => a.key - b.key || order.indexOf(a.mk) - order.indexOf(b.mk));
+}
+function holSay(e) {                                  // "US Thanksgiving", "US half day (Day after Thanksgiving)"
+  const lbl = e.mk === "FX" ? "Your broker" : (HOL_MKTS.find(x => x[0] === e.mk) || [0, e.mk])[1];
+  return e.half ? `${lbl} half day (${e.n})` : `${lbl} ${e.n}`;
 }
 // Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
 const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO", "TSLA", "NFLX", "COST"];

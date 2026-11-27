@@ -3208,6 +3208,55 @@ function tdDow(days, skipKeys, weeks = 12) {          // a normal week: the medi
   return [1, 2, 3, 4, 5].map(w => tdMed(keys.filter(k => new Date(k * 864e5).getUTCDay() === w).map(k => days.get(k).range)));
 }
 const tdSeries = (days, count = 65) => [...days.entries()].slice(-count).map(([key, d]) => ({ key, range: d.range }));
+/* ---- the day's call: forecast from a normal day, holidays where they matter, a live check during the day ---- */
+const TD_CENTRES = { Gold: ["UK", "US"], Silver: ["UK", "US"], EURUSD: ["UK", "EU", "US"], GBPUSD: ["UK", "US"], USDJPY: ["JP", "US"], AUDUSD: ["AU", "US"], NZDUSD: ["AU", "US"],
+  USDCAD: ["CA", "US"], USDCHF: ["CH", "UK", "US"], EURJPY: ["EU", "JP", "UK"], GBPJPY: ["UK", "JP"], EURGBP: ["UK", "EU"], NAS100: ["US"], US500: ["US"], US30: ["US"], GER40: ["EU"], JP225: ["JP"], HK50: ["HK"], UK100: ["UK"] };
+const TD_OWN = { NAS100: "US", US500: "US", US30: "US", GER40: "EU", JP225: "JP", HK50: "HK", UK100: "UK" };          // indices: their own exchange shut = closed
+const TD_ALIAS = [[/^(XAU|GOLD)/, "Gold"], [/^(XAG|SILVER)/, "Silver"], [/^(NAS100|US100|USTEC|NDX|QQQ|NASDAQ)/, "NAS100"], [/^(US500|SPX|SPY|SP500|S&P500)/, "US500"],
+  [/^(US30|DJI|DIA|DOW)/, "US30"], [/^(GER40|DE40|GER30|DAX)/, "GER40"], [/^(JP225|JPN225|NI225|NIKKEI)/, "JP225"], [/^(HK50|HSI|HANGSENG)/, "HK50"], [/^(UK100|FTSE)/, "UK100"]];
+function tdMk(sym) {                                  // a market id from any symbol or name, or null (crypto and anything without a centre map)
+  const s = String(sym || "").toUpperCase().replace(/^[A-Z]{2}:/, "").replace(/[^A-Z0-9&]/g, "").replace(/USD[TC]$/, "USD");
+  const a = TD_ALIAS.find(([re]) => re.test(s)); if (a) return a[1];
+  const p = s.slice(0, 6); return /^(EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY){2}$/.test(p) && TD_CENTRES[p] ? p : null;
+}
+const tdSum = a => a.reduce((x, v) => x + (v || 0), 0);
+function tdForecast(mk, prof, fx, todayEntries) {     // { bins, day, ratio, closed, why: [{ centre, n, half, factor }] }
+  const C = TD_CENTRES[mk] || [], bins = prof.bins.map(v => v || 0), why = []; let closed = false;
+  (todayEntries || []).forEach(e => {
+    if (e.mk === "FX") { if (!e.half) closed = true; else bins.forEach((v, b) => bins[b] = v * 0.7); why.push({ centre: "FX", n: 0, half: e.half, factor: e.half ? 0.7 : 0 }); return; }   // the broker shut
+    if (TD_OWN[mk] === e.mk && !e.half) closed = true;
+    if (!C.includes(e.mk)) return;
+    const f = fx && fx[e.mk];
+    if (f && f.n >= 2) { bins.forEach((v, b) => bins[b] = v * (f.bins[b] ?? f.day ?? 1)); why.push({ centre: e.mk, n: f.n, half: e.half, factor: f.day }); }
+    else { const k = e.half ? 0.7 : 0.5; (TD_CENTRE_BINS[e.mk] || []).forEach(b => bins[b] *= k); why.push({ centre: e.mk, n: f ? f.n : 0, half: e.half, factor: k }); }
+  });
+  const base = tdSum(prof.bins), ratio = closed ? 0 : base ? tdSum(bins) / base : 1;
+  return { bins: closed ? bins.map(() => 0) : bins, day: (prof.day || 0) * ratio, ratio, closed, why };
+}
+function tdCall(fc, prof) {                           // closed · quiet (under 70% of a normal day) · untilLondon (Asia and London normal, New York thin) · ok
+  if (fc.closed) return "closed";
+  if (fc.ratio < 0.7) return "quiet";
+  const r = bs => { const p = tdSum(bs.map(b => prof.bins[b])); return p ? tdSum(bs.map(b => fc.bins[b])) / p : 1; };
+  return r(tdRange(0, 3)) >= 0.8 && r(TD_CENTRE_BINS.UK) >= 0.8 && r(TD_CENTRE_BINS.US) < 0.7 ? "untilLondon" : "ok";
+}
+function tdLive(today, prof, bin) {                   // today so far against a normal day at the same point
+  const tot = tdSum(prof.bins), normalSoFar = tot ? prof.day * tdSum(prof.bins.slice(0, bin + 1)) / tot : 0;
+  const ratio = normalSoFar ? today.range / normalSoFar : null, hourRatio = prof.bins[bin] ? (today.bins[bin] || 0) / prof.bins[bin] : null;
+  const state = hourRatio >= 2 ? "waking" : ratio == null ? "between" : ratio >= 0.8 ? "normal" : ratio < 0.6 ? "quiet" : "between";
+  return { soFar: today.range, normalSoFar, ratio, hourRatio, state };
+}
+const tdRoom = (range, fcDay) => fcDay > 0 ? Math.min(1, Math.max(0, 1 - range / fcDay)) : 0;
+function tdCalcMarket(m, K1h, K15, entries, key, now) {          // one market's day: profile, past holidays, forecast, call, live check
+  const out = { ...m, prof: null, fx: null, fc: null, call: null, live: null, room: null, today: null, days: null, err: null };
+  if (!K1h || !K1h.t || !K1h.t.length) { out.err = "No data yet"; return out; }
+  const days = tdDays(K1h), C = TD_CENTRES[m.mk] || [], E = entries || [];
+  out.days = days; out.prof = tdProfile(days, new Set(E.filter(e => C.includes(e.mk) || e.mk === "FX").map(e => e.key)), key, 20);
+  if (!out.prof.n || !out.prof.day) { out.err = "No data yet"; return out; }
+  out.fx = tdFx(days, E, C); out.fc = tdForecast(m.mk, out.prof, out.fx, E.filter(e => e.key === key)); out.call = tdCall(out.fc, out.prof);
+  const T = K15 && K15.t && K15.t.length ? tdDays(K15).get(key) : null;
+  if (T) { out.today = T; out.live = tdLive(T, out.prof, tdBin(now)); out.room = tdRoom(T.range, out.fc.day); }
+  return out;
+}
 // Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
 const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO", "TSLA", "NFLX", "COST"];
 const NDX_T2 = ["AMD", "PLTR", "ASML", "TMUS", "CSCO", "PEP", "LIN", "INTU", "ISRG", "AMGN", "ADBE", "QCOM", "TXN", "BKNG", "AMAT", "MU", "LRCX", "KLAC", "ADI", "PANW", "SHOP", "ARM", "APP",

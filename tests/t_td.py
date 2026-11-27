@@ -91,6 +91,26 @@ async def part3(q):
     check("day of week has five values", await q("() => tdDow(tdDays(tdFixture(4, {})), new Set()).length === 5"))
     check("series is the latest 65 trading days", await q("() => { const S = tdSeries(tdDays(tdFixture(5, {}))); return S.length === 65 && S[64].key > S[0].key; }"))
 
+async def part4(q):
+    print("4) forecast, calls, live check, room left")
+    P = "{ bins: TD_TEST_SHAPE.slice(), day: 60, n: 20 }"
+    check("no holiday: Tradeable", await q(f"() => tdCall(tdForecast('EURUSD', {P}, {{}}, []), {P}) === 'ok'"))
+    check("US closed, no history: Tradeable until London", await q(f"() => tdCall(tdForecast('EURUSD', {P}, {{}}, [{{ mk: 'US', half: false }}]), {P}) === 'untilLondon'"))
+    check("US closed: NAS100 Closed", await q(f"() => tdCall(tdForecast('NAS100', {P}, {{}}, [{{ mk: 'US', half: false }}]), {P}) === 'closed'"))
+    check("US half day: NAS100 not Closed", await q(f"() => tdCall(tdForecast('NAS100', {P}, {{}}, [{{ mk: 'US', half: true }}]), {P}) !== 'closed'"))
+    check("UK and US closed: Gold Likely quiet", await q(f"() => tdCall(tdForecast('Gold', {P}, {{}}, [{{ mk: 'UK', half: false }}, {{ mk: 'US', half: false }}]), {P}) === 'quiet'"))
+    check("Japan holiday leaves Gold Tradeable", await q(f"() => tdCall(tdForecast('Gold', {P}, {{}}, [{{ mk: 'JP', half: false }}]), {P}) === 'ok'"))
+    check("measured effect wins with 2+ examples", await q(f"() => tdForecast('Gold', {P}, {{ US: {{ n: 3, day: 0.95, bins: Array(24).fill(0.95) }} }}, [{{ mk: 'US', half: false }}]).ratio > 0.9"))
+    check("forecast says why, with the example count", await q(f"() => {{ const f = tdForecast('Gold', {P}, {{ US: {{ n: 3, day: 0.6, bins: Array(24).fill(0.6) }} }}, [{{ mk: 'US', half: false }}]); return f.why.length === 1 && f.why[0].centre === 'US' && f.why[0].n === 3 && Math.abs(f.day - 60 * f.ratio) < 1e-9; }}"))
+    check("live: waking up at twice the hour", await q(f"() => tdLive({{ bins: TD_TEST_SHAPE.map((v, i) => i === 6 ? v * 2.2 : i < 6 ? v : null), range: 70 }}, {P}, 6).state === 'waking'"))
+    check("live: quiet under 60%", await q(f"() => tdLive({{ bins: TD_TEST_SHAPE.map((v, i) => i <= 6 ? v * 0.4 : null), range: 6 }}, {P}, 6).state === 'quiet'"))
+    check("live: moving normally at 80%+", await q(f"() => tdLive({{ bins: TD_TEST_SHAPE.map((v, i) => i <= 6 ? v : null), range: 12 }}, {P}, 6).state === 'normal'"))
+    check("room left", await q("() => Math.abs(tdRoom(15, 40) - 0.625) < 1e-9 && tdRoom(50, 40) === 0"))
+    check("market ids", await q("() => ['CT:XAUUSD', 'XAUUSDT', 'MX:XAU_USDT', 'Gold'].every(s => tdMk(s) === 'Gold') && tdMk('QQQUSDT') === 'NAS100' && tdMk('Nasdaq 100') === 'NAS100' && tdMk('CT:US500') === 'US500' && tdMk('CT:EURUSD') === 'EURUSD' && tdMk('EUR/USD') === 'EURUSD' && tdMk('BTCUSDT') === null && tdMk('ETHUSDT') === null"))
+    check("no candles: no call, says so", await q("() => { const r = tdCalcMarket({ mk: 'Gold', sym: 'CT:XAUUSD' }, null, null, [], hdKey(2026, 11, 26), Date.UTC(2026, 10, 26, 7, 42)); return r.call === null && r.err === 'No data yet'; }"))
+    r = await q("() => { const E = holEntries(hdKey(2025, 6, 1), hdKey(2026, 12, 31)); const K = tdFixture(7, { thin: Object.fromEntries(E.filter(e => e.mk === 'US').map(e => [e.key, 0.6])) }); const m = tdCalcMarket({ mk: 'NAS100', sym: 'CT:NAS100' }, K, null, E, hdKey(2026, 11, 26), Date.UTC(2026, 10, 26, 7, 42)); return JSON.stringify({ call: m.call, n: m.prof.n, err: m.err || null }); }")
+    check("a full market on Thanksgiving: NAS100 Closed from candles + holidays", '"call":"closed"' in r and '"n":20' in r, r)
+
 async def main():
     serve()
     async with async_playwright() as pw:
@@ -105,6 +125,7 @@ async def main():
             await part2(q)
             errs += await part2b(ctx)
             await part3(q)
+            await part4(q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

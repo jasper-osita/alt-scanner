@@ -42,7 +42,10 @@ async def main():
             await asyncio.sleep(0.25)
         print("5b) opened cTrader's sign-in by itself:", len(auth))
         if len(auth) != 1: errs.append(f"expected one automatic trip to cTrader's sign-in, got {len(auth)}")
-        await pg.goto("http://localhost:8765/"); await ready(pg)
+        await pg.wait_for_url(re.compile(r"https://id\.ctrader\.com/.*"), timeout=10000)      # let that trip finish before coming back
+        await pg.goto("http://localhost:8765/"); await ready(pg); await asyncio.sleep(4)
+        print("5c) back on the app, no second trip:", len(auth) == 1)
+        if len(auth) != 1: errs.append(f"went to cTrader's sign-in again within half an hour ({len(auth)} trips)")
         print("6) dialog field:", await q("() => { openCTSettings(); return !!document.getElementById('ctRefresh'); }") if await q("() => typeof openCTSettings === 'function'") else "skip")
         print("errors:", errs or "none")
         await b.close()

@@ -1,5 +1,7 @@
 # Market holidays and the trade-day call
 
+> **Superseded** by `docs/superpowers/specs/2026-11-27-trading-day-design.md` (Trading day). Its holiday rules carry over as one input.
+
 ## Why
 Jas wants to know before the day starts whether it's a day to trade. A bank holiday or a half day in any major market
 thins liquidity and breaks his setups (Gold 5m in London, NAS100 1m at the US open, forex, crypto). His rule: **a bank

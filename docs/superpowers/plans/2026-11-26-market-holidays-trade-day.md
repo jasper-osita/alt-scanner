@@ -1,5 +1,7 @@
 # Market Holidays and the Trade-Day Call Implementation Plan
 
+> **Superseded** by `docs/superpowers/specs/2026-11-27-trading-day-design.md` (Trading day). Its holiday rules carry over as one input.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A Market holidays tab in the Economic Calendar that tracks every market's bank holidays and half days and calls each day Trade day or No trade, with quiet alerts, an order confirmation and a Telegram heads-up on no-trade days.

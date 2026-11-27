@@ -128,6 +128,21 @@ async def part5(q):
     check("the week in one sentence", w == "Normal Monday to Wednesday, thin Thursday and Friday.", w)
     check("a normal week", "normal week" in await q("() => tdSayWeek([0, 1, 2, 3, 4].map(i => ({ key: hdKey(2026, 11, 30) + i, verdict: 'Normal day' })))"))
 
+async def part6(pg, q):
+    print("6) loading candles and computing the day")
+    # the app's rate limiter waits on the real clock, so the day is passed in rather than freezing time
+    r = await q("() => tdLoad(true, Date.UTC(2026, 10, 26, 7, 42)).then(T => JSON.stringify(T.markets.map(m => [m.mk, m.sym, m.call, m.err])), e => 'err ' + e.message)")
+    print("   markets:", r[:400])
+    check("today's key is Thursday", await q("() => TD.key === hdKey(2026, 11, 26)"))
+    check("no crypto ever", await q("() => TD.markets.length > 0 && TD.markets.every(m => tdMk(m.mk) !== null)"))
+    check("NAS100 is closed on Thanksgiving", await q("() => (TD.markets.find(m => m.mk === 'NAS100') || {}).call === 'closed'"), r[:200])
+    check("Gold has a call and a profile", await q("() => { const g = TD.markets.find(m => m.mk === 'Gold'); return !!g && !!g.call && g.prof.n > 0; }"))
+    check("a market whose candles fail says so", await q("() => TD.markets.filter(x => x.err).every(m => m.call === null)"))
+    check("history cached for next time", await q("() => scTx('kl', 'readonly', st => st.get('td|' + TD.markets.find(m => m.sym).sym)).then(x => !!(x && x.t.length))"))
+    check("calls stored for the week", await q("() => !!JSON.parse(localStorage.getItem('finder-td-calls'))[TD.key]"))
+    check("markets fall back to the default seven with an all-crypto watchlist", await q("() => { const keep = CHW; CHW = ['BTCUSDT', 'ETHUSDT']; const L = tdMarkets().map(m => m.mk).join(); CHW = keep; return L === 'Gold,Silver,EURUSD,GBPUSD,USDJPY,AUDUSD,NAS100'; }"))
+    check("a default market with no source shows no data, not a call", await q("() => { const keep = CHW; CHW = []; const L = tdMarkets(); CHW = keep; return L.every(m => m.sym || tdCalcMarket(m, null, null, [], TD.key, Date.now()).err === 'No data yet'); }"))
+
 async def main():
     serve()
     async with async_playwright() as pw:
@@ -144,6 +159,7 @@ async def main():
             await part3(q)
             await part4(q)
             await part5(q)
+            await part6(pg, q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

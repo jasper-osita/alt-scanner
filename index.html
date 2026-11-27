@@ -1756,6 +1756,28 @@ async function klines(sym, interval, limit) {
   const raw = (await getJSON(`${base}?${qs({symbol: sym, interval, limit})}`)).slice(0, -1);
   return { t: raw.map(k => +k[0]), o: raw.map(k => +k[1]), h: raw.map(k => +k[2]), l: raw.map(k => +k[3]), c: raw.map(k => +k[4]), qv: raw.map(k => +k[7]) };
 }
+async function klinesRange(sym, interval, fromMs, toMs) {        // closed candles over a range, fetched page by page from the symbol's own source
+  const iv = MX_IVMS[interval]; if (!iv) throw new Error(`no ${interval} candles`);
+  const rows = [];
+  if (sym.startsWith("CT:")) {
+    let to = toMs;
+    for (let i = 0; i < 40 && to > fromMs; i++) {
+      const k = await ctKlines(sym, interval, 5000, false, to); if (!k.t.length) break;
+      k.t.forEach((t, j) => { if (t >= fromMs && t < to) rows.push([t, k.o[j], k.h[j], k.l[j], k.c[j], k.qv[j]]); });
+      if (k.t[0] >= to || k.t[0] <= fromMs) break; to = k.t[0];
+    }
+  } else if (isMX(sym)) {
+    for (let s = fromMs; s < toMs; s += 2000 * iv) rows.push(...await mxKlinesF(sym, interval, s, Math.min(toMs, s + 2000 * iv - 1)));
+  } else {
+    for (let s = fromMs, i = 0; s < toMs && i < 40; i++) {
+      await spend(5);
+      const raw = await getJSON(`${FAPI}/fapi/v1/klines?${qs({ symbol: sym, interval, startTime: s, endTime: toMs, limit: 1500 })}`); if (!raw.length) break;
+      raw.forEach(k => rows.push([+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]])); s = +raw.at(-1)[0] + iv; if (raw.length < 1500) break;
+    }
+  }
+  const seen = new Set(), now = Date.now(), R = rows.filter(r => r[0] + iv <= now && !seen.has(r[0]) && seen.add(r[0])).sort((a, b) => a[0] - b[0]);
+  return { t: R.map(r => r[0]), o: R.map(r => r[1]), h: R.map(r => r[2]), l: R.map(r => r[3]), c: R.map(r => r[4]), qv: R.map(r => r[5]) };
+}
 async function pingFutures() { try { await getJSON(`${FAPI}/fapi/v1/ping`, 1); return true; } catch (e) { return false; } }
 async function pingSpot() { for (const h of SPOT_HOSTS) { try { await getJSON(`${h}/api/v3/ping`, 1); SPOT_BASE = h; return true; } catch (e) {} } return false; }
 
@@ -10789,6 +10811,55 @@ function calBindFilter() {
     calFilterOpen = false; calRender(); });
 }
 $("calTabs").querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { calTab = b.dataset.ct; calFilterOpen = false; calRender(); });
+/* ===================== Trading day: which of your markets are worth your attention today and this week (calculations in core: tdCalcMarket, tdSay) ===================== */
+const TD_DEFAULT = ["Gold", "Silver", "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "NAS100"];
+const TD = { at: 0, key: null, markets: [], entries: [], broker: null, busy: false, err: null };
+function tdMarkets() {                               // your watchlist without crypto (or the default seven), each from the source the boards prefer
+  const by = new Map();
+  (typeof xRows === "function" ? xRows() : []).forEach(r => { const mk = tdMk(r.name) || tdMk(r.symbol); if (!mk) return; const o = by.get(mk); if (!o || (r.ct && !o.ct)) by.set(mk, { mk, sym: r.symbol, name: r.name || r.symbol, ct: !!r.ct }); });
+  const wl = [], seen = new Set();
+  (CHW || []).forEach(s => { const mk = tdMk(s); if (mk && !seen.has(mk)) { seen.add(mk); wl.push({ mk, sym: (by.get(mk) || {}).sym || s, name: (by.get(mk) || {}).name || mk }); } });
+  return wl.length ? wl : TD_DEFAULT.map(mk => ({ mk, sym: (by.get(mk) || {}).sym || null, name: (by.get(mk) || {}).name || mk }));
+}
+async function tdHist(sym) {                         // about two years of 1-hour candles, kept in the candle cache and topped up with what's new
+  const k = "td|" + sym, now = Date.now(), from = now - 730 * 864e5, KF = ["t", "o", "h", "l", "c", "qv"];
+  let c = null; try { const x = await scTx("kl", "readonly", st => st.get(k)); if (x && x.t && x.t.length) c = Object.fromEntries(KF.map(f => [f, Array.from(x[f])])); } catch (e) {}
+  if (!c || now - c.t.at(-1) > 2 * 3600e3) {
+    const n = await klinesRange(sym, "1h", c ? c.t.at(-1) + 3600e3 : from, now);
+    c = c ? Object.fromEntries(KF.map(f => [f, c[f].concat(n[f])])) : n;
+    const i = c.t.findIndex(t => t >= from - 30 * 864e5); if (i > 0) KF.forEach(f => c[f] = c[f].slice(i));
+    try { await scTx("kl", "readwrite", st => st.put({ k, at: now, lim: c.t.length, ...Object.fromEntries(KF.map(f => [f, Float64Array.from(c[f])])) })); } catch (e) {}
+  }
+  return c;
+}
+function tdStoreCalls(key, markets) {                // each day's calls, for This week's "was the call right"
+  let A = {}; try { A = JSON.parse(localStorage.getItem("finder-td-calls") || "{}") || {}; } catch (e) {}
+  A[key] = Object.fromEntries(markets.filter(m => m.call).map(m => [m.mk, { call: m.call, ratio: m.fc ? +m.fc.ratio.toFixed(3) : null }]));
+  Object.keys(A).map(Number).sort((a, b) => a - b).slice(0, -60).forEach(x => delete A[x]);
+  try { localStorage.setItem("finder-td-calls", JSON.stringify(A)); } catch (e) {}
+}
+async function tdLoad(force, now = Date.now()) {    // now: the moment to read the day for (tests pass one; candles are always fetched up to the real time)
+  if (TD.busy || (!force && TD.at && Date.now() - TD.at < 15 * 60e3)) return TD;
+  TD.busy = true; TD.err = null;
+  try {
+    if (!MACRO.rows.length && typeof macroScan === "function") await macroScan(false).catch(() => {});
+    const key = tdKey(now);
+    let extra = ffHolidays(typeof calAll === "function" ? calAll() : []), hb = null;
+    if (CT.state === "ready") { try { hb = await ctHolidays(false); } catch (e) {} }
+    if (!hb) { try { hb = JSON.parse(localStorage.getItem("finder-hol") || "null"); } catch (e) {} }
+    if (hb && hb.bySym) extra = extra.concat(brokerHolidays(hb.bySym, key - 800, key + 60));
+    const entries = holEntries(key - 800, key + 60, extra), out = [];
+    for (const m of tdMarkets()) {
+      let K1 = null, K15 = null;
+      if (m.sym) { try { K1 = await tdHist(m.sym); } catch (e) {} try { K15 = await klines(m.sym, "15m", 110); } catch (e) {} }
+      out.push(tdCalcMarket(m, K1, K15, entries, key, now));
+    }
+    Object.assign(TD, { at: now, key, markets: out, entries, broker: hb });
+    tdStoreCalls(key, out);
+  } catch (e) { TD.err = e.message; }
+  finally { TD.busy = false; }
+  return TD;
+}
 $("calViews").querySelectorAll("[data-cv]").forEach(b => b.onclick = () => { CALV.mode = b.dataset.cv; CALV.off = 0; lsSet(CALV_KEY, { mode: CALV.mode }); calRender(); });
 $("calFilterBtn").onclick = () => { calFilterOpen = !calFilterOpen; calRender(); };
 $("calRefresh").onclick = () => { Object.keys(EARN).forEach(k => EARN[k].at = 0); calFetch(true); };

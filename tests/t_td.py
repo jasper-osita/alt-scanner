@@ -64,11 +64,38 @@ async def part2b(ctx):
     await pg2.close()
     return e2
 
+FIXTURE_JS = """
+window.TD_TEST_SHAPE = [5, 5, 4.5, 4.5, 5, 6.5, 12, 16, 14, 12, 10, 9, 13, 18, 20, 16, 12, 9, 7, 5, 3, 3, 3.5, 4.5];
+window.tdFixture = function (seed, opts) {          // 1-hour candles for every weekday 2025-06-02 → 2026-12-31, ranges shaped like TD_TEST_SHAPE
+  opts = opts || {}; let s = seed * 9301 + 49297; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const K = { t: [], o: [], h: [], l: [], c: [], qv: [] };
+  for (let k = hdKey(2025, 6, 2); k <= hdKey(2026, 12, 31); k++) {
+    const wd = new Date(k * 864e5).getUTCDay(); if (wd === 0 || wd === 6) continue;
+    const t0 = tdStart(k), f = (opts.thin && opts.thin[k]) || 1;
+    for (let b = 0; b < 24; b++) { const r = TD_TEST_SHAPE[b] * (opts.flat ? 1 : 0.9 + 0.2 * rnd()) * f;
+      K.t.push(t0 + b * 3600e3); K.o.push(100); K.c.push(100); K.h.push(100 + r / 2); K.l.push(100 - r / 2); K.qv.push(1); }
+  }
+  return K;
+};
+"""
+
+async def part3(q):
+    print("3) profiles and holiday effects")
+    check("profile ignores holidays", await q("() => { const K = tdFixture(1, { thin: { [hdKey(2026, 11, 23)]: 0.3 } }), D = tdDays(K); const a = tdProfile(D, new Set([hdKey(2026, 11, 23)]), hdKey(2026, 11, 27)), b = tdProfile(D, new Set(), hdKey(2026, 11, 27)); return a.n === 20 && !a.keys.includes(hdKey(2026, 11, 23)) && b.keys.includes(hdKey(2026, 11, 23)); }"))
+    check("a Monday holiday doesn't drag the median down", await q("() => { const D = tdDays(tdFixture(6, { flat: true, thin: { [hdKey(2026, 11, 23)]: 0.3 } })); const a = tdProfile(D, new Set([hdKey(2026, 11, 23)]), hdKey(2026, 11, 27)); return Math.abs(a.day - 20) < 1e-6; }"))
+    check("profile median of a flat fixture equals its shape", await q("() => { const P = tdProfile(tdDays(tdFixture(2, { flat: true })), new Set(), hdKey(2026, 11, 27)); return Math.abs(P.bins[6] / P.bins[0] - TD_TEST_SHAPE[6] / TD_TEST_SHAPE[0]) < 0.01; }"))
+    check("weekends dropped from the days", await q("() => { const D = tdDays(tdFixture(2, {})); return ![...D.keys()].some(k => [0, 6].includes(new Date(k * 864e5).getUTCDay())); }"))
+    r = await q("() => { const E = holEntries(hdKey(2025, 7, 1), hdKey(2026, 11, 20)); const K = tdFixture(3, { thin: Object.fromEntries(E.filter(e => e.mk === 'US').map(e => [e.key, 0.6])) }); const fx = tdFx(tdDays(K), E, ['US'])['US']; return JSON.stringify({ n: fx.n, day: fx.day, b: fx.bins.length }); }")
+    check("US holiday effect measured at about 0.6 with its count", '"b":24' in r and (lambda d: d["n"] >= 8 and abs(d["day"] - 0.6) < 0.08)(__import__("json").loads(r)), r)
+    check("a centre with no past holidays has n 0", await q("() => { const D = tdDays(tdFixture(4, {})); return tdFx(D, [], ['JP'])['JP'].n === 0; }"))
+    check("day of week has five values", await q("() => tdDow(tdDays(tdFixture(4, {})), new Set()).length === 5"))
+    check("series is the latest 65 trading days", await q("() => { const S = tdSeries(tdDays(tdFixture(5, {}))); return S.length === 65 && S[64].key > S[0].key; }"))
+
 async def main():
     serve()
     async with async_playwright() as pw:
         b = await pw.chromium.launch(); ctx = await b.new_context(viewport={"width": 1400, "height": 950}, color_scheme="dark")
-        await setup(ctx); await setup_mexc(ctx); await setup_extra(ctx)
+        await setup(ctx); await setup_mexc(ctx); await setup_extra(ctx); await ctx.add_init_script(FIXTURE_JS)
         pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
@@ -77,6 +104,7 @@ async def main():
             await part1(q)
             await part2(q)
             errs += await part2b(ctx)
+            await part3(q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

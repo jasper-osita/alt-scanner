@@ -3171,6 +3171,43 @@ function holSay(e) {                                  // "US Thanksgiving", "US 
   const lbl = e.mk === "FX" ? "Your broker" : (HOL_MKTS.find(x => x[0] === e.mk) || [0, e.mk])[1];
   return e.half ? `${lbl} half day (${e.n})` : `${lbl} ${e.n}`;
 }
+/* ---- trading-day profiles: a normal day hour by hour, and what past holidays did to it ---- */
+const tdMed = a => { const v = a.filter(x => x != null && isFinite(x)).sort((x, y) => x - y); if (!v.length) return null; const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; };
+const tdWeekend = k => { const w = new Date(k * 864e5).getUTCDay(); return w === 0 || w === 6; };
+function tdDays(K) {                                  // candles → Map(day key → { bins: [24 ranges or null], hi, lo, range }), weekends dropped
+  const D = new Map(); if (!K || !K.t) return D;
+  for (let i = 0; i < K.t.length; i++) {
+    const k = tdKey(K.t[i]); if (tdWeekend(k)) continue;
+    let d = D.get(k); if (!d) D.set(k, d = { bins: Array(24).fill(null), hi: -Infinity, lo: Infinity, range: 0, bh: Array(24).fill(-Infinity), bl: Array(24).fill(Infinity) });
+    const b = tdBin(K.t[i]), h = +K.h[i], l = +K.l[i];
+    d.bh[b] = Math.max(d.bh[b], h); d.bl[b] = Math.min(d.bl[b], l); d.bins[b] = d.bh[b] - d.bl[b];
+    d.hi = Math.max(d.hi, h); d.lo = Math.min(d.lo, l); d.range = d.hi - d.lo;
+  }
+  D.forEach(d => { delete d.bh; delete d.bl; });
+  return new Map([...D.entries()].sort((a, b) => a[0] - b[0]));
+}
+const tdFull = d => d.bins.filter(x => x != null).length >= 12;          // enough of the day traded to count
+function tdProfile(days, skipKeys, beforeKey, n = 20) {          // the median hour and day over the last n normal trading days
+  const keys = [...days.keys()].filter(k => k < beforeKey && !(skipKeys && skipKeys.has(k)) && tdFull(days.get(k))).slice(-n);
+  return { bins: tdRange(0, 23).map(b => tdMed(keys.map(k => days.get(k).bins[b]))), day: tdMed(keys.map(k => days.get(k).range)), n: keys.length, keys };
+}
+function tdFx(days, entries, centres) {              // { centre: { n, day, bins, keys } }: a centre's past holidays against the 20 normal days before each
+  const skip = new Set((entries || []).map(e => e.key)), out = {};
+  (centres || []).forEach(c => {
+    const R = [];
+    (entries || []).filter(e => e.mk === c && days.has(e.key)).forEach(e => {
+      const p = tdProfile(days, skip, e.key, 20); if (p.n < 10 || !p.day) return;
+      const d = days.get(e.key); R.push({ key: e.key, day: d.range / p.day, bins: d.bins.map((v, b) => v == null || !p.bins[b] ? null : v / p.bins[b]) });
+    });
+    out[c] = { n: R.length, day: tdMed(R.map(r => r.day)), bins: tdRange(0, 23).map(b => tdMed(R.map(r => r.bins[b]))), keys: R.map(r => r.key) };
+  });
+  return out;
+}
+function tdDow(days, skipKeys, weeks = 12) {          // a normal week: the median day range Monday to Friday
+  const keys = [...days.keys()].filter(k => !(skipKeys && skipKeys.has(k)) && tdFull(days.get(k))).slice(-weeks * 5);
+  return [1, 2, 3, 4, 5].map(w => tdMed(keys.filter(k => new Date(k * 864e5).getUTCDay() === w).map(k => days.get(k).range)));
+}
+const tdSeries = (days, count = 65) => [...days.entries()].slice(-count).map(([key, d]) => ({ key, range: d.range }));
 // Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
 const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO", "TSLA", "NFLX", "COST"];
 const NDX_T2 = ["AMD", "PLTR", "ASML", "TMUS", "CSCO", "PEP", "LIN", "INTU", "ISRG", "AMGN", "ADBE", "QCOM", "TXN", "BKNG", "AMAT", "MU", "LRCX", "KLAC", "ADI", "PANW", "SHOP", "ARM", "APP",

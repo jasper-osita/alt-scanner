@@ -6135,8 +6135,14 @@ function ppLean(rows, g, legs) {                   // which way the shared side 
   if (!g.c) { const v = legs.reduce((p, l) => p + st(l.r), 0) / legs.length; return { v, word: v >= 0.34 ? "trending up" : v <= -0.34 ? "trending down" : "mixed" }; }
   const bk = []; rows.filter(r => /Forex/.test(r.group || "")).forEach(r => { const p = String(r.pair || r.name.replace("/", "")).toUpperCase(), sg = p.slice(0, 3) === g.c ? 1 : p.slice(3, 6) === g.c ? -1 : 0; if (sg) bk.push(sg * st(r)); });
   const dx = g.c === "USD" ? rows.find(r => r.name === "US Dollar Index") : null, idx = dx ? st(dx) : null, bv = bk.length ? bk.reduce((p, v) => p + v, 0) / bk.length : null;
-  const c = bv == null ? idx : idx == null ? bv : (bv + idx) / 2; if (c == null) return null;
-  return { v: -c, c, idx, n: bk.length, sess: xCcy(rows, "sess")[g.c], word: c >= 0.34 ? "strong" : c <= -0.34 ? "weak" : "mixed" };
+  const own = !!(dx && dx.ct && idx != null);          // your broker's dollar index: read it the way you see it on the chart
+  const c = own ? idx : bv == null ? idx : idx == null ? bv : (bv + idx) / 2; if (c == null) return null;
+  return { v: -c, c, idx, n: bk.length, src: own ? "index" : null, sess: xCcy(rows, "sess")[g.c], word: c >= 0.34 ? "strong" : c <= -0.34 ? "weak" : "mixed" };
+}
+function ppCross(rows, x, y) {                     // the cross as its own chart from your broker (x/y, or y/x turned round), when cTrader lists it
+  for (const [nm, s] of [[x + "/" + y, 1], [y + "/" + x, -1]]) { const r = rows.find(r => r.ct && r.name === nm && r.s1h && r.s4h);
+    if (r) return { r, s, f: p => p == null ? null : s > 0 ? p : (1 / (1 + p / 100) - 1) * 100 }; }
+  return null;
 }
 function ppGroups(rows) {
   const S = xSessStart();
@@ -6144,12 +6150,14 @@ function ppGroups(rows) {
     const legs = g.legs.map(([name, o, x]) => { const r = rows.find(r => r.name === name); return r ? { r, o, x, name } : null; }); if (legs.some(l => !l)) return null;
     const [a, b] = legs, P1 = ppAlign(a, b, "c1"), P4 = ppAlign(a, b, "c4"), lr = (l, pct) => pct == null ? null : l.o * Math.log(1 + pct / 100);
     const rel = (x, y) => x == null || y == null ? null : (Math.exp(x - y) - 1) * 100;      // the cross or ratio's change in %
-    const sess = rel(lr(a, xSessRet(a.r, S.t)), lr(b, xSessRet(b.r, S.t))), d24 = rel(lr(a, a.r.chg24h), lr(b, b.r.chg24h));
-    const st1 = ppStack(P1), st4 = ppStack(P4), corr = ppCorr(P1), rs = ppSgn(sess, 0.03) + ppSgn(d24, 0.05) + st1 + st4;
+    let sess = rel(lr(a, xSessRet(a.r, S.t)), lr(b, xSessRet(b.r, S.t))), d24 = rel(lr(a, a.r.chg24h), lr(b, b.r.chg24h)), st1 = ppStack(P1), st4 = ppStack(P4);
+    const cx = g.c ? ppCross(rows, a.x, b.x) : null;     // your broker's EUR/GBP (and the like) wins over working it out from the two legs
+    if (cx) { sess = cx.f(xSessRet(cx.r, S.t)); d24 = cx.f(cx.r.chg24h); st1 = cx.s * ppDir(cx.r.s1h.state); st4 = cx.s * ppDir(cx.r.s4h.state); }
+    const corr = ppCorr(P1), rs = ppSgn(sess, 0.03) + ppSgn(d24, 0.05) + st1 + st4;
     const strong = rs > 0 ? a : rs < 0 ? b : null, weak = rs > 0 ? b : rs < 0 ? a : null, lean = ppLean(rows, g, legs);
     const trade = (l, buy) => l ? { l, dir: (buy ? 1 : -1) * l.o > 0 ? "Long" : "Short" } : null;
     const up = trade(strong, true), dn = trade(weak, false), side = lean && lean.v >= 0.34 ? 1 : lean && lean.v <= -0.34 ? -1 : 0;
-    return { g, a, b, S, sess, d24, st1, st4, rs, corr, raw: corr == null ? null : corr * a.o * b.o, lean, side, up, dn, pick: side > 0 ? up : side < 0 ? dn : null };
+    return { g, a, b, S, src: cx ? "chart" : null, sess, d24, st1, st4, rs, corr, raw: corr == null ? null : corr * a.o * b.o, lean, side, up, dn, pick: side > 0 ? up : side < 0 ? dn : null };
   }).filter(Boolean);
 }
 function ppCardHTML(x) {
@@ -6159,7 +6167,7 @@ function ppCardHTML(x) {
     return ok(ppDir(r.s1h.state) === d, "1H stack agrees") + ok(ppDir(r.s4h.state) === d, "4H agrees") + (u ? ok(u.pct < 90, `day range ${u.pct}% used`) : ""); };
   const cor = x.raw == null ? "" : `<span class="ppcor ${Math.abs(x.corr) < 0.5 ? "loose" : ""}" title="How closely their hourly moves have lined up over about 5 days: 1 means in step, −1 mirror images. Under 0.5 they're not really moving together.">${Math.abs(x.corr) < 0.5 ? "loosely linked" : x.raw > 0 ? "move together" : "move opposite"} ${x.raw.toFixed(2)}</span>`;
   const leanH = !L ? `<span class="mute">no read yet</span>` : fx
-    ? `<b class="${L.c >= 0.34 ? "up" : L.c <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">${L.idx != null ? `index ${dirW(L.idx)} · ` : ""}${L.n} pairs on 1H/4H${L.sess != null ? ` · ${g.c} ${sgn(L.sess)} since ${S.name} opened` : ""}</span>`
+    ? `<b class="${L.c >= 0.34 ? "up" : L.c <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">${L.src === "index" ? `your broker's dollar index, ${dirW(L.idx)} on 1H/4H` : `${L.idx != null ? `index ${dirW(L.idx)} · ` : ""}${L.n} pairs on 1H/4H`}${L.sess != null ? ` · ${g.c} ${sgn(L.sess)} since ${S.name} opened` : ""}</span>`
     : `<b class="${L.v >= 0.34 ? "up" : L.v <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">both on 1H and 4H</span>`;
   const who = x.rs > 0 ? `${nm(a.x)} stronger` : x.rs < 0 ? `${nm(b.x)} stronger` : "neither clearly stronger";
   const ifUp = fx ? `Selling the ${ppCcy(g.c)}` : "Going long", ifDn = fx ? `Buying the ${ppCcy(g.c)}` : "Going short";
@@ -6172,7 +6180,7 @@ function ppCardHTML(x) {
   else pick = `<div class="ppno">Neither is clearly stronger, so there's no edge in picking one: either works${x.side ? "" : ", or wait"}.</div>`;
   return `<div class="ppcard"><div class="pph"><b>${a.name} vs ${b.name}</b>${cor}</div>
     <div class="pprow"><span class="mute ppl">${fx ? `The ${ppCcy(g.c)}` : g.theme}</span>${leanH}</div>
-    <div class="pprow"><span class="mute ppl">${fx ? `${a.x}/${b.x}` : g.ratio}</span><b class="${x.rs ? "" : "mute"}">${who}</b> <span class="meta">${sgn(x.sess)} since ${S.name} · ${sgn(x.d24)} 24h · 1H ${dirW(x.st1)} · 4H ${dirW(x.st4)}</span></div>
+    <div class="pprow"><span class="mute ppl">${fx ? `${a.x}/${b.x}` : g.ratio}</span><b class="${x.rs ? "" : "mute"}">${who}</b> <span class="meta">${sgn(x.sess)} since ${S.name} · ${sgn(x.d24)} 24h · 1H ${dirW(x.st1)} · 4H ${dirW(x.st4)}${x.src ? " · your broker's chart" : ""}</span></div>
     ${pick}${x.raw != null && Math.abs(x.corr) < 0.5 ? `<div class="ppalt">They aren't moving together lately${x.pick ? ", so treat this pick lightly" : ": read each chart on its own"}.</div>` : ""}</div>`;
 }
 function renderPP(rows) {

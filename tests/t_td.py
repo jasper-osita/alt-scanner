@@ -40,13 +40,13 @@ async def part2(q):
     check("summer time: 3:00 AM PHT is still the day before", await q("() => tdKey(Date.UTC(2026, 6, 15, 19, 0)) === hdKey(2026, 7, 15)"))
     check("July: 8:15 AM PHT is already bin 0", await q("() => tdBin(Date.UTC(2026, 6, 15, 0, 15)) === 0"))
     check("tdStart inverts tdKey (winter and summer)", await q("() => [hdKey(2026, 11, 27), hdKey(2026, 7, 15)].every(k => tdKey(tdStart(k)) === k && tdBin(tdStart(k)) === 0)"))
-    check("centre bins", await q("() => TD_CENTRE_BINS.US.join() === '13,14,15,16,17,18,19' && TD_CENTRE_BINS.UK.join() === '4,5,6,7,8,9,10' && TD_CENTRE_BINS.JP.join() === '0,1,2,3' && TD_CENTRE_BINS.CA.join() === '13,14,15,16,17'"))
+    check("centre bins follow each exchange's cash hours", await q("() => { const j = c => TD_CENTRE_BINS[c].join(); return j('US') === '13,14,15,16,17,18,19' && j('CA') === j('US') && j('UK') === '7,8,9,10,11,12,13,14,15' && j('EU') === j('UK') && j('CH') === j('UK') && j('JP') === '0,1,2,3,4,5,6' && j('KR') === j('JP') && j('HK') === '1,2,3,4,5,6,7' && j('AU') === '0,1,2,3,4,5'; }"))
     check("a range over New Year has Dec 31 and Jan 1", await q("() => { const E = holEntries(hdKey(2026, 12, 30), hdKey(2027, 1, 2)); return E.some(e => e.key === hdKey(2026, 12, 31)) && E.some(e => e.key === hdKey(2027, 1, 1)); }"))
     check("one entry per day and market, full close wins", await q("() => { const E = holEntries(hdKey(2026, 11, 26), hdKey(2026, 11, 26), [{ key: hdKey(2026, 11, 26), mk: 'US', n: 'Thanksgiving', half: true, src: 'broker' }]); const us = E.filter(e => e.mk === 'US'); return us.length === 1 && us[0].half === false && us[0].srcs.join() === 'rules,broker'; }"))
     check("a generic Forex Factory name doesn't pile onto a named holiday", await q("() => holEntries(hdKey(2026, 11, 26), hdKey(2026, 11, 26), [{ key: hdKey(2026, 11, 26), mk: 'US', n: 'Bank Holiday', half: false, src: 'ff' }]).find(e => e.mk === 'US').n === 'Thanksgiving'"))
     check("Forex Factory USD holiday maps to the US", await q("() => ffHolidays([{ at: Date.parse('2026-11-26T00:00:00-05:00'), ccy: 'USD', title: 'Bank Holiday', impact: 'Holiday' }])[0].key === hdKey(2026, 11, 26)"))
     check("Forex Factory: other currencies and other impacts dropped", await q("() => ffHolidays([{ at: Date.parse('2026-11-26T00:00:00-05:00'), ccy: 'NZD', title: 'Bank Holiday', impact: 'Holiday' }, { at: Date.parse('2026-11-26T08:30:00-05:00'), ccy: 'USD', title: 'GDP', impact: 'High' }]).length === 0"))
-    check("plain wording", await q("() => holSay({ mk: 'US', n: 'Day after Thanksgiving', half: true }) === 'US half day (Day after Thanksgiving)' && holSay({ mk: 'US', n: 'Thanksgiving', half: false }) === 'US Thanksgiving' && holSay({ mk: 'FX', n: 'Christmas', half: false }) === 'Your broker Christmas'"))
+    check("plain wording", await q("() => holSay({ mk: 'US', n: 'Day after Thanksgiving', half: true }) === 'US half day (Day after Thanksgiving)' && holSay({ mk: 'US', n: 'Thanksgiving', half: false }) === 'US Thanksgiving' && holSay({ mk: 'FX', n: 'Christmas', half: false }) === 'Your broker is closed (Christmas)' && holSay({ mk: 'FX', n: 'Christmas Eve', half: true }) === 'Your broker closes early (Christmas Eve)'"))
     check("no cTrader: a clear error, not a crash", (await q("() => ctHolidays(true).then(() => 'ok', e => 'err ' + e.message)")) == "err cTrader isn't connected")
 
 async def part2b(ctx):
@@ -211,6 +211,32 @@ async def part8(q):
     # M5 (re-graded): yesterday's call doesn't linger past the Asia open
     check("a call from an earlier trading day isn't shown", await q("() => { const keep = TD.at; TD.markets.forEach(m => { if (m.call) m.call = 'quiet'; }); TD.at = Date.now() - 2 * 864e5; const n = tdNote(); tdChip(); const hid = !document.getElementById('chDay') || document.getElementById('chDay').hidden; TD.at = keep; return n === '' && hid; }"))
 
+async def part9(q):
+    print("9) leftovers")
+    # M2: today's unfinished day never counts as a past holiday
+    r = await q("() => { const E = holEntries(hdKey(2025, 7, 1), hdKey(2026, 11, 26)), k = hdKey(2026, 11, 26), K = tdFixture(8, { thin: Object.fromEntries(E.filter(e => e.mk === 'US').map(e => [e.key, 0.5])) }); const fx = tdFx(tdDays(K), E, ['US'], k); return [fx.US.keys.includes(k), fx.US.n]; }")
+    check("today's partial day isn't a past holiday", r[0] is False and r[1] >= 2, r)
+    # M7: early in an hour, only the part of the hour that has passed counts
+    r = await q("() => tdLive({ range: 10.25, bins: Array(24).fill(1) }, { bins: Array(24).fill(1), day: 24 }, 10, 0.25).ratio")
+    check("the live ratio counts only the part of this hour that has passed", r is not None and abs(r - 1) < 0.01, r)
+    # M6: the page refresh lands just after each 15-minute close
+    r = await q("() => [TD.nextAt % 900e3, TD.nextAt > Date.now(), TD.nextAt - Date.now() <= 900e3 + 20e3]")
+    check("refresh lined up with 15-minute closes", r == [20000, True, True], r)
+    # M9: MEXC's yen, Canadian dollar and franc pairs (quoted the other way round) map; uncovered markets are named, not dropped silently
+    check("MEXC JPY_USDT / CAD_USDT / CHF_USDT map to their pairs", await q("() => tdMk('MX:JPY_USDT') === 'USDJPY' && tdMk('MX:CAD_USDT') === 'USDCAD' && tdMk('MX:CHF_USDT') === 'USDCHF' && tdMk('MX:EUR_USDT') === 'EURUSD'"))
+    r = await q("() => tdMissing(['CT:XAUUSD', 'BTCUSDT', 'CT:XTIUSD', 'MX:JPY_USDT'])")
+    check("watchlist markets without a map are named", len(r) == 1 and "BTC" not in r[0] and "Gold" not in r[0], r)
+    # M10: Binance history pages are counted at their real weight
+    check("Binance pages cost 10", await q("() => /spend\\(10\\)/.test(klinesSpan.toString())"))
+    # M1: the week's day story reads that day's own forecast, not today's
+    r = await q("() => { const m = TD.markets.find(m => m.prof); if (!m) return 'no market'; const keep = TD.entries, k = TD.key + 1; TD.entries = keep.concat([{ key: k, mk: (TD_CENTRES[m.mk] || ['US'])[0], n: 'Test Day', half: false, srcs: ['rules'] }]);"
+                 " const f = tdWeekFc(m, k); TD.entries = keep; return [f !== m.fc, !!(f && f.why && f.why.length)]; }")
+    check("another day's story uses that day's forecast", r == [True, True], r)
+    # M13: summer-time hour labels and a real Forex Factory holiday week
+    check("hour labels: 8 AM start in July, 9 AM in December", await q("() => tdHourLbl(hdKey(2026, 7, 15), 0).startsWith('8') && tdHourLbl(hdKey(2026, 12, 2), 0).startsWith('9')"))
+    r = await q("() => ffHolidays([['2026-11-23T00:00:00-05:00', 'JPY', 'Bank Holiday'], ['2026-11-26T00:00:00-05:00', 'USD', 'Bank Holiday'], ['2026-11-26T00:00:00-05:00', 'USD', 'Thanksgiving Day'], ['2026-11-26T08:30:00-05:00', 'USD', 'Unemployment Claims'], ['2026-11-27T00:00:00-05:00', 'NZD', 'Bank Holiday'], ['2026-11-24T00:00:00-05:00', 'EUR', 'German Bank Holiday']].map(([d, ccy, title]) => ({ at: Date.parse(d), ccy, title, impact: /Holiday|Day$/.test(title) ? 'Holiday' : 'Medium' }))).map(e => e.mk + ' ' + hdYmd(e.key).join('-'))")
+    check("a real Forex Factory holiday week maps by currency and New York date", r == ["JP 2026-11-23", "US 2026-11-26", "EU 2026-11-24"], r)
+
 async def main():
     serve()
     async with async_playwright() as pw:
@@ -230,6 +256,7 @@ async def main():
             await part6(pg, q)
             await part7(pg, q)
             await part8(q)
+            await part9(q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

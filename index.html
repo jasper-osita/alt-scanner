@@ -1780,7 +1780,7 @@ async function klinesSpan(sym, interval, fromMs, toMs) {         // closed candl
     for (let s = fromMs; s < toMs; s += 2000 * iv) rows.push(...await mxKlinesF(sym, interval, s, Math.min(toMs, s + 2000 * iv - 1)));
   } else {
     for (let s = fromMs, i = 0; s < toMs && i < 40; i++) {
-      await spend(5);
+      await spend(10);                    // a 1500-candle page weighs 10
       const raw = await getJSON(`${FAPI}/fapi/v1/klines?${qs({ symbol: sym, interval, startTime: s, endTime: toMs, limit: 1500 })}`); if (!raw.length) break;
       raw.forEach(k => rows.push([+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]])); s = +raw.at(-1)[0] + iv; if (raw.length < 1500) break;
     }
@@ -2919,7 +2919,9 @@ function tdStart(key) {                               // the real time of sessio
   return want - PHT_MS + sessShift(t) * 3600e3;
 }
 const tdRange = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-const TD_CENTRE_BINS = { US: tdRange(13, 19), CA: tdRange(13, 17), UK: tdRange(4, 10), EU: tdRange(4, 10), CH: tdRange(4, 10), JP: tdRange(0, 3), HK: tdRange(0, 3), KR: tdRange(0, 3), AU: tdRange(0, 3) };   // the hours a centre's closure thins
+const TD_CENTRE_BINS = { US: tdRange(13, 19), CA: tdRange(13, 19), UK: tdRange(7, 15), EU: tdRange(7, 15), CH: tdRange(7, 15), JP: tdRange(0, 6), HK: tdRange(1, 7), KR: tdRange(0, 6), AU: tdRange(0, 5) };
+// the hours a centre's closure thins: its exchanges' cash hours on the session clock (bin = New York hour + 4): New York and Toronto 9:30–16:00,
+// London, Frankfurt and Zurich 8:00–16:30 London time, Tokyo and Seoul 9:00–15:30, Hong Kong 9:30–16:00, Sydney 10:00–16:00
 const FF_HOL_MK = { USD: "US", GBP: "UK", EUR: "EU", JPY: "JP", AUD: "AU", CAD: "CA", CHF: "CH" };
 function nyYmd(ms) { const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value); return [+p.year, +p.month, +p.day]; }
 function ffHolidays(rows) {                           // Forex Factory's holiday rows (its feed is in New York time) → holiday entries
@@ -2939,7 +2941,8 @@ function holEntries(fromKey, toKey, extra = []) {     // every market's holidays
   return [...by.values()].sort((a, b) => a.key - b.key || order.indexOf(a.mk) - order.indexOf(b.mk));
 }
 function holSay(e) {                                  // "US Thanksgiving", "US half day (Day after Thanksgiving)"
-  const lbl = e.mk === "FX" ? "Your broker" : (HOL_MKTS.find(x => x[0] === e.mk) || [0, e.mk])[1];
+  if (e.mk === "FX") return e.half ? `Your broker closes early (${e.n})` : `Your broker is closed (${e.n})`;
+  const lbl = (HOL_MKTS.find(x => x[0] === e.mk) || [0, e.mk])[1];
   return e.half ? `${lbl} half day (${e.n})` : `${lbl} ${e.n}`;
 }
 /* ---- trading-day profiles: a normal day hour by hour, and what past holidays did to it ---- */
@@ -2962,11 +2965,11 @@ function tdProfile(days, skipKeys, beforeKey, n = 20) {          // the median h
   const keys = [...days.keys()].filter(k => k < beforeKey && !(skipKeys && skipKeys.has(k)) && tdFull(days.get(k))).slice(-n);
   return { bins: tdRange(0, 23).map(b => tdMed(keys.map(k => days.get(k).bins[b]))), day: tdMed(keys.map(k => days.get(k).range)), n: keys.length, keys };
 }
-function tdFx(days, entries, centres) {              // { centre: { n, day, bins, keys } }: a centre's past holidays against the 20 normal days before each
+function tdFx(days, entries, centres, beforeKey = Infinity) {   // { centre: { n, day, bins, keys } }: a centre's past holidays (before beforeKey: today's unfinished day never counts) against the 20 normal days before each
   const skip = new Set((entries || []).map(e => e.key)), out = {};
   (centres || []).flatMap(c => [[c, false], [c + ":half", true]]).forEach(([c, half]) => {
     const R = [], mk = c.replace(/:half$/, "");
-    (entries || []).filter(e => e.mk === mk && !!e.half === half && !tdFFOnly(e) && days.has(e.key)).forEach(e => {
+    (entries || []).filter(e => e.mk === mk && !!e.half === half && !tdFFOnly(e) && e.key < beforeKey && days.has(e.key)).forEach(e => {
       const p = tdProfile(days, skip, e.key, 20); if (p.n < 10 || !p.day) return;
       const d = days.get(e.key); R.push({ key: e.key, day: d.range / p.day, bins: d.bins.map((v, b) => v == null || !p.bins[b] ? null : v / p.bins[b]) });
     });
@@ -2988,7 +2991,8 @@ const TD_ALIAS = [[/^(XAU|GOLD)/, "Gold"], [/^(XAG|SILVER)/, "Silver"], [/^(NAS1
 function tdMk(sym) {                                  // a market id from any symbol or name, or null (crypto and anything without a centre map)
   const s = String(sym || "").toUpperCase().replace(/^[A-Z]{2}:/, "").replace(/[^A-Z0-9&]/g, "").replace(/USD[TC]$/, "USD");
   const a = TD_ALIAS.find(([re]) => re.test(s)); if (a) return a[1];
-  const p = s.slice(0, 6); return /^(EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY){2}$/.test(p) && TD_CENTRES[p] ? p : null;
+  const p = s.slice(0, 6), r = p.slice(3) + p.slice(0, 3); if (!/^(EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY){2}$/.test(p)) return null;
+  return TD_CENTRES[p] ? p : TD_CENTRES[r] ? r : null;                  // MEXC quotes the yen, franc and Canadian dollar the other way round (JPY_USDT)
 }
 const tdSum = a => a.reduce((x, v) => x + (v || 0), 0);
 const tdFFOnly = e => !!(e && e.srcs && e.srcs.length === 1 && e.srcs[0] === "ff");
@@ -3011,11 +3015,12 @@ function tdCall(fc, prof) {                           // closed · quiet (under 
   if (fc.closed) return "closed";
   if (fc.ratio < 0.7) return "quiet";
   const r = bs => { const p = tdSum(bs.map(b => prof.bins[b])); return p ? tdSum(bs.map(b => fc.bins[b])) / p : 1; };
-  return r(tdRange(0, 3)) >= 0.8 && r(TD_CENTRE_BINS.UK) >= 0.8 && r(TD_CENTRE_BINS.US) < 0.7 ? "untilLondon" : "ok";
+  const lon = TD_CENTRE_BINS.UK.filter(b => !TD_CENTRE_BINS.US.includes(b));        // London before New York opens (their overlap belongs to New York here)
+  return r(tdRange(0, 3)) >= 0.8 && r(lon) >= 0.8 && r(TD_CENTRE_BINS.US) < 0.7 ? "untilLondon" : "ok";
 }
-function tdLive(today, prof, bin) {                   // today so far against a normal day at the same point
-  const tot = tdSum(prof.bins), normalSoFar = tot ? prof.day * tdSum(prof.bins.slice(0, bin + 1)) / tot : 0;
-  const ratio = normalSoFar ? today.range / normalSoFar : null, hourRatio = prof.bins[bin] ? (today.bins[bin] || 0) / prof.bins[bin] : null;
+function tdLive(today, prof, bin, frac = 1) {         // today so far against a normal day at the same point; frac = how much of this hour has passed
+  const f = Math.max(0.25, Math.min(1, frac)), tot = tdSum(prof.bins), normalSoFar = tot ? prof.day * (tdSum(prof.bins.slice(0, bin)) + (prof.bins[bin] || 0) * f) / tot : 0;
+  const ratio = normalSoFar ? today.range / normalSoFar : null, hourRatio = prof.bins[bin] ? (today.bins[bin] || 0) / (prof.bins[bin] * Math.sqrt(f)) : null;   // a part-hour's range grows about with the square root of time
   const state = hourRatio >= 2 ? "waking" : ratio == null ? "between" : ratio >= 0.8 ? "normal" : ratio < 0.6 ? "quiet" : "between";
   return { soFar: today.range, normalSoFar, ratio, hourRatio, state };
 }
@@ -3058,11 +3063,11 @@ function tdCalcMarket(m, K1h, K15, entries, key, now) {          // one market's
   const days = tdDays(K1h), C = TD_CENTRES[m.mk] || [], E = entries || [];
   out.days = days; out.prof = tdProfile(days, new Set(E.filter(e => C.includes(e.mk) || e.mk === "FX").map(e => e.key)), key, 20);
   if (!out.prof.n || !out.prof.day) { out.prof = null; out.err = days.size ? "Not enough history yet" : "No data yet"; return out; }
-  out.fx = tdFx(days, E, C);
+  out.fx = tdFx(days, E, C, key);
   if (tdWeekend(key)) { out.fc = { bins: Array(24).fill(0), day: 0, ratio: 0, closed: true, why: [] }; out.call = "closed"; return out; }      // the weekend: markets are shut
   out.fc = tdForecast(m.mk, out.prof, out.fx, E.filter(e => e.key === key)); out.call = tdCall(out.fc, out.prof);
   const T = K15 && K15.t && K15.t.length ? tdDays(K15).get(key) : null;
-  if (T) { out.today = T; out.live = tdLive(T, out.prof, tdBin(now)); out.room = tdRoom(T.range, out.fc.day); }
+  if (T) { const b = tdBin(now); out.today = T; out.live = tdLive(T, out.prof, b, (now - tdStart(key)) / 3600e3 - b); out.room = tdRoom(T.range, out.fc.day); }
   return out;
 }
 // Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
@@ -9832,6 +9837,11 @@ $("calTabs").querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { calT
 /* ===================== Trading day: which of your markets are worth your attention today and this week (calculations in core: tdCalcMarket, tdSay) ===================== */
 const TD_DEFAULT = ["Gold", "Silver", "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "NAS100"];
 const TD = { at: 0, key: null, markets: [], entries: [], broker: null, busy: false, err: null };
+function tdMissing(syms) {                           // watchlist markets that aren't crypto and have no holiday map yet: named on the page, not dropped silently
+  const out = []; (syms || []).forEach(s => { if (tdMk(s) || (typeof chCatOf === "function" ? chCatOf(s) === "crypto" : /USDT$/.test(s))) return;
+    const n = typeof chName === "function" ? chName(s) : s; if (!out.includes(n)) out.push(n); });
+  return out;
+}
 function tdMarkets() {                               // your watchlist without crypto (or the default seven), each from the source the boards prefer
   const by = new Map();
   (typeof xRows === "function" ? xRows() : []).forEach(r => { const mk = tdMk(r.name) || tdMk(r.symbol); if (!mk) return; const o = by.get(mk); if (!o || (r.ct && !o.ct)) by.set(mk, { mk, sym: r.symbol, name: r.name || r.symbol, ct: !!r.ct }); });
@@ -9935,7 +9945,8 @@ function tdTodayHTML() {
       <div class="tdlines">${S.lines.map(l => `<b>${l.k}</b><span>${tdEsc(l.v)}</span>`).join("")}</div>
       ${lv && today ? `<div class="tdlive"><i class="tdlivedot"></i><b>Live</b> <span class="mu">at each 15-minute close</span> <span>${lv} of a normal day by now.</span></div>` : ""}</div>
     <div class="tdsec"><h3>Your markets today <span class="mu">your watchlist without crypto · click one for its hours</span></h3>
-      <div class="tdtbl" id="tdMkts"><div class="tdhd"><span>Market</span><span>Asia · London · New York</span><span>Day call</span><span>Day range</span><span>Live, so far</span></div>${rows}</div></div>
+      <div class="tdtbl" id="tdMkts"><div class="tdhd"><span>Market</span><span>Asia · London · New York</span><span>Day call</span><span>Day range</span><span>Live, so far</span></div>${rows}</div>
+      ${(() => { const miss = tdMissing(CHW); return miss.length ? `<p class="mu tdnote">Not covered yet: ${tdEsc(miss.join(", "))} (no holiday map for ${miss.length > 1 ? "them" : "it"} yet).</p>` : ""; })()}</div>
     ${tdHoursHTML(bin, today)}
     <div class="tdgrid">${tdDowHTML()}${tdVolHTML()}${tdWhyHTML()}</div>`;
 }
@@ -9977,6 +9988,7 @@ function tdWhyHTML() {
     <b class="tdk">Who moves your markets</b><p>${map}.</p><b class="tdk">${tdEsc(m ? m.name : "")} on past holidays</b><p>${past}</p>
     <p class="mu tdnote">A normal day is the middle of the last 20 trading days that weren't holidays, measured on 1-hour candles across the whole trading day. Sources: ${src} Hong Kong and Korea dates come from a table for 2026–2027: check them against HKEX and KRX.</p></div>`;
 }
+const tdWeekFc = (m, k) => k === TD.key ? m.fc : m.prof ? tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === k)) : null;    // that day's own forecast
 function tdWeekHTML() {
   const mon = TD.key - ((new Date(TD.key * 864e5).getUTCDay() + 6) % 7), keys = [0, 1, 2, 3, 4].map(i => mon + i);
   let A = {}; try { A = JSON.parse(localStorage.getItem("finder-td-calls") || "{}") || {}; } catch (e) {}
@@ -9992,7 +10004,7 @@ function tdWeekHTML() {
   const grid = `<div class="tdweek"><span></span>${keys.map((k, i) => `<b class="${k === TD.key ? "tdnow" : ""}">${tdDayShort(k).split(",")[0]} ${new Date(k * 864e5).getUTCDate()}${k === TD.key ? " · today" : ""}</b>`).join("")}
     ${TD.markets.map(m => `<b class="tdwmk">${tdEsc(m.name)}</b>${keys.map(k => cell(m, k)).join("")}`).join("")}</div>`;
   const di = TD_DAY != null ? TD_DAY : keys.indexOf(TD.key), dk = keys[di] ?? TD.key;
-  const DS = tdSay({ key: dk, markets: TD.markets.map(m => ({ mk: m.mk, call: ((A[dk] || {})[m.mk] || {}).call || (m.prof ? tdCall(dk === TD.key ? m.fc : tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === dk)), m.prof) : null), fc: m.fc })), entries: TD.entries });
+  const DS = tdSay({ key: dk, markets: TD.markets.map(m => { const fc = tdWeekFc(m, dk); return { mk: m.mk, call: ((A[dk] || {})[m.mk] || {}).call || (fc ? tdCall(fc, m.prof) : null), fc }; }), entries: TD.entries });
   const happened = dk < TD.key ? TD.markets.filter(m => m.days && m.days.get(dk) && m.prof).map(m => { const r = m.days.get(dk).range / m.prof.day, a = ((A[dk] || {})[m.mk] || {}).call;
     const right = a ? ((a === "quiet" || a === "closed") ? r < 0.7 : r >= 0.7) : null; return `${tdEsc(m.name)} ${tdPct(r)}${right == null ? "" : right ? ` <b class="up">Right.</b>` : ` <b class="dn">Off.</b>`}`; }).join(" · ") : "";
   const ahead = TD.entries.filter(e => e.key > TD.key && e.key <= TD.key + 56 && !tdWeekend(e.key)).map(e => ({ e, mk: TD.markets.filter(m => (TD_CENTRES[m.mk] || []).includes(e.mk) || TD_OWN[m.mk] === e.mk).map(m => m.name) })).filter(x => x.mk.length);
@@ -10004,7 +10016,10 @@ function tdWeekHTML() {
 }
 document.querySelectorAll("[data-tdview]").forEach(b => b.onclick = () => { TD_VIEW = b.dataset.tdview; TD_DAY = null; try { localStorage.setItem("finder-td-view", TD_VIEW); } catch (e) {} tdRender(); });
 $("tdRefresh").onclick = () => tdLoad(true).then(tdRender);
-setInterval(() => { if (page === "tday" && document.visibilityState === "visible") tdLoad(true).then(tdRender); }, 15 * 60e3);
+(function tdTick() {                                 // refresh just after each 15-minute close (20 s for the candle to settle)
+  const now = Date.now(); TD.nextAt = Math.floor((now - 20e3) / 900e3) * 900e3 + 900e3 + 20e3;
+  setTimeout(() => { if (page === "tday" && document.visibilityState === "visible") tdLoad(true).then(tdRender); tdTick(); }, TD.nextAt - now);
+})();
 setTimeout(() => tdBackground().catch(() => {}), 30e3);                           // the day's call for the session note and the Charts chip
 setInterval(() => { if (page !== "tday") tdBackground().catch(() => {}); }, 30 * 60e3);
 function tdNote() {                                 // the session note's lead on a day that isn't normal

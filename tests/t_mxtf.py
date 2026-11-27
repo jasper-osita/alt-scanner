@@ -53,14 +53,6 @@ async def main():
         # 5) alert on a MEXC TradFi symbol
         r = await pg.evaluate("""async () => { WL.alerts.push({ sym: 'MX:XAU_USDT', price: 1, dir: 'above', at: Date.now() }); await checkPrices(); const a = WL.alerts.find(a => a.sym === 'MX:XAU_USDT'); return a && !!a.fired; }""")
         print("5) alert on MEXC gold fired:", r)
-        # 6) backtest on MEXC gold + Nasdaq
-        await pg.evaluate("() => goPage('backtest')")
-        print("6) backtest TradFi list:", await pg.evaluate("() => btpTradfi().slice(0, 5).map(x => x.sym + ' ' + x.name + ' [' + x.group + ']').join(', ')"))
-        await pg.evaluate("() => { BTP.syms = ['MX:XAU_USDT', 'MX:NAS100_USDT', 'MX:EUR_USDT']; }")
-        await pg.select_option("#btCoins", "pick"); await pg.select_option("#btDays", "30")
-        MX_RL["hits"] = 0; t0 = time.time(); await pg.click("#btRun")
-        await waitfor(pg, "() => !btRunning && !!BT", 400)
-        print(f"   backtest {time.time()-t0:.0f}s:", await pg.evaluate("() => BT.trades.length + ' trades on ' + [...new Set(BT.trades.map(t => t.sym || t.symbol))].join(', ')"), "| refusals", MX_RL["hits"])
         # 7) back to Binance: macro returns to Binance TradFi
         await pg.evaluate("() => goPage('overview')"); await pg.select_option("#exF", "binance")
         await waitfor(pg, "() => data && data.exchange === 'binance' && !document.getElementById('runBtn').disabled")

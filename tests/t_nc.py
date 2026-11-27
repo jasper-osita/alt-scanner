@@ -15,7 +15,7 @@ async def main():
         await pg.screenshot(path=f"{OUT}/nc_toasts.png")
         # other sources
         await q("() => { notify('TIA reached 6.420', 'Price is 6.447, above your alert level.', { sym: data.all[3].symbol, kind: 'Price', icon: '🔔', tone: 'blue', title: 'Crossed above your 6.420 alert' }); }")
-        await q("() => ncAdd({ sym: data.all[5].symbol, kind: 'Bots', icon: '🤖', tone: 'up', title: 'Bounce bot closed at +2.10R', detail: 'Paper trade · Target · +$21.40' })")
+        await q("() => ncAdd({ sym: data.all[5].symbol, kind: 'Setups', icon: '⚡', tone: 'up', title: 'NBB triggered', detail: 'Long · entry, stop and target on the coin' })")
         await q("() => ncAdd({ kind: 'System', icon: '⚠️', tone: 'warn', sym: null, action: 'ctrader', title: \"cTrader didn't connect\", detail: 'The access token is invalid or expired.' })")
         print("2) toasts now:", await q("() => document.querySelectorAll('#ncToasts .nctoast').length"), "| more:", await q("() => (document.querySelector('#ncToasts .ncmore') || {}).textContent || 'none'"))
         # bell → drawer

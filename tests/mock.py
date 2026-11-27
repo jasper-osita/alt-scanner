@@ -179,6 +179,7 @@ CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
 def CT_BASE(n): return CT_ASSET.get(n[:3], 9) if len(n) == 6 and n.isupper() else 9
 def CT_QUOTE(n): return CT_ASSET.get(n[3:6], 9) if len(n) == 6 and n.isupper() else (2 if n in ("GER40",) else 3 if n == "JPN225" else 5 if n == "UK100" else 1)
 CT_TRADE = {"pos": [], "ord": [], "log": [], "deals": []}
+CT_AUTH = {"access": set(), "refresh": set(), "n": 0}      # opts["rotate"]: like the real service, one live sign-in; each renewal ends the old pair
 def ct_handler(opts):
     """opts: {'secret': 'sec', 'token': 'tok', 'live': True} — what the fake server accepts."""
     def handler(ws):
@@ -192,8 +193,13 @@ def ct_handler(opts):
             if t == 51: return
             if t == 2100:
                 return reply(2101, {}) if p.get("clientSecret") == opts["secret"] else reply(2142, {"errorCode": "CH_CLIENT_AUTH_FAILURE", "description": "Client authentication failure"})
+            if t == 2173 and opts.get("rotate"):
+                if p.get("refreshToken") not in CT_AUTH["refresh"]: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid refresh token"})
+                CT_AUTH["n"] += 1; n = CT_AUTH["n"]; CT_AUTH["access"] = {f"tok-r{n}"}; CT_AUTH["refresh"] = {f"ref-r{n}"}
+                return reply(2174, {"accessToken": f"tok-r{n}", "refreshToken": f"ref-r{n}", "expiresIn": 2628000, "tokenType": "bearer"})
             if t == 2149:
-                if p.get("accessToken") not in (opts["token"], "tok-renewed"): return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
+                ok = p.get("accessToken") in (CT_AUTH["access"] if opts.get("rotate") else (opts["token"], "tok-renewed"))
+                if not ok: return reply(2142, {"errorCode": "CH_ACCESS_TOKEN_INVALID", "description": "Invalid access token"})
                 accts = [{"ctidTraderAccountId": 4242, "isLive": opts["live"], "traderLogin": 5150123, "brokerTitleShort": "Pepperstone"}]
                 if opts.get("demo2"): accts.append({"ctidTraderAccountId": 777, "isLive": False, "traderLogin": 900777, "brokerTitleShort": "Demo Broker"})
                 return reply(2150, {"accessToken": p["accessToken"], "permissionScope": opts.get("scope", "SCOPE_VIEW"), "ctidTraderAccount": accts})
@@ -355,7 +361,7 @@ def mx_ws_handler(ws):
             ws.send(json.dumps({"channel": "push.kline", "symbol": "BTC_USDT", "data": {"symbol": "BTC_USDT", "interval": iv, "t": t0 + step, "o": 77777.7, "h": 77800, "l": 77700, "c": 77750}}))
     ws.on_message(on)
 
-# ---------------- calendar feeds, Telegram, keep-awake ----------------
+# ---------------- calendar feeds, Telegram ----------------
 def ff_sample():
     import datetime as dt
     now = time.time(); base = int(now // 3600) * 3600
@@ -368,7 +374,7 @@ def ff_sample():
     return [{"title": t, "country": c, "date": iso((int(now // 60) * 60 + 600 if t == "Core CPI m/m" else base + off)), "impact": imp, "forecast": f, "previous": pv} for t, c, imp, off, f, pv in ev]
 EARN_ROWS = {"NFLX": ("Netflix, Inc.", "time-after-hours", 520e9, "$6.88"), "TSLA": ("Tesla, Inc.", "time-after-hours", 1.3e12, "$0.55"), "JPM": ("JPMorgan Chase & Co.", "time-pre-market", 820e9, "$5.10"),
              "ASML": ("ASML Holding N.V.", "time-pre-market", 682e9, "$12.47"), "PEP": ("PepsiCo, Inc.", "time-pre-market", 205e9, "$2.30"), "XYZ": ("Small Co", "time-not-supplied", 12e9, "$0.10")}
-TG_LOG = []; AWAKE_LOG = []; FF_HITS = {"n": 0}; EARN_HITS = []
+TG_LOG = []; FF_HITS = {"n": 0}; EARN_HITS = []
 async def route_extra(route):
     u = route.request.url; p = urlparse(u)
     if p.path == "/proxy/ff":
@@ -379,8 +385,6 @@ async def route_extra(route):
         wd = dt.date.fromisoformat(d).weekday(); keys = list(EARN_ROWS)
         rows = [{"symbol": k, "name": EARN_ROWS[k][0], "time": EARN_ROWS[k][1], "marketCap": "${:,.0f}".format(EARN_ROWS[k][2]), "epsForecast": EARN_ROWS[k][3], "noOfEsts": "5"} for k in keys if hash(k + d) % 3 == 0 or (k == "TSLA" and wd == 2)]
         return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"data": {"asOf": d, "rows": rows}}))
-    if p.path == "/api/awake":
-        AWAKE_LOG.append(p.query); return await route.fulfill(status=200, content_type="application/json", body=json.dumps({"awakeUntil": int(time.time() * 1000) + 1200000, "running": True}))
     if "api.telegram.org" in u:
         if u.endswith("/getUpdates"): return await route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"ok": True, "result": [{"update_id": 1, "message": {"message_id": 1, "chat": {"id": 987654321, "first_name": "Jas", "type": "private"}, "text": "hi"}}]}))
         if u.endswith("/sendMessage"):
@@ -388,7 +392,7 @@ async def route_extra(route):
             TG_LOG.append(json.loads(route.request.post_data or "{}")); return await route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"ok": True, "result": {"message_id": len(TG_LOG)}}))
     return await route.fulfill(status=404, body="")
 async def setup_extra(ctx):
-    for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api/awake*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
+    for pat in ["**/proxy/ff*", "**/proxy/earnings*", "**/api.telegram.org/**"]: await ctx.route(pat, route_extra)
 
 # ---------------- fundamentals page: Treasury yield curves, CFTC positioning, FRED, news RSS ----------------
 FUND_HITS = []; FUND_SRV = {"key": False}     # key: the relay has its own FRED key (Vercel env / ~/.finder-fred-key)

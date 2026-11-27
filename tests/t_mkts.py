@@ -31,7 +31,7 @@ async def main():
         for k in ["all", "fx", "idx", "metals", "crypto"]:
             await pg.click(f'#mktSeg [data-mk="{k}"]'); await asyncio.sleep(0.4)
             out = []
-            for pgid, sel in [("day", "#dayBoard"), ("swing", "#swingBoard"), ("aots", "#aotsBoard"), ("momentum", "#momoBoard"), ("sessions", "#sessionPicks")]:
+            for pgid, sel in [("day", "#dayBoard"), ("swing", "#swingBoard"), ("aots", "#aotsBoard"), ("momentum", "#momoBoard")]:
                 await q(f"() => goPage('{pgid}')")
                 rows = await q(f"() => [...document.querySelectorAll('{sel} .row')].map(r => r.dataset.s)")
                 cls = await pg.evaluate("(L) => L.map(s => { const r = rowOf(s); return r ? mkCls(r) : '?'; })", rows)

@@ -62,6 +62,8 @@ async def part2b(ctx):
     check("recurring broker holiday repeats", await q2("() => brokerHolidays(JSON.parse(localStorage.getItem('finder-hol')).bySym, hdKey(2026, 12, 1), hdKey(2026, 12, 31)).some(h => h.mk === 'FX' && h.key === hdKey(2026, 12, 25))"))
     check("broker half day", await q2("() => brokerHolidays(JSON.parse(localStorage.getItem('finder-hol')).bySym, hdKey(2026, 11, 27), hdKey(2026, 11, 27))[0].half === true"))
     check("cached: a second read reuses the stored list", await q2("() => { const at = JSON.parse(localStorage.getItem('finder-hol')).at; return ctHolidays(false).then(x => x.at === at && x.count === 4); }"))
+    r = await q2("() => tdLoad(true, Date.UTC(2026, 10, 26, 7, 42)).then(T => JSON.stringify(T.markets.map(m => [m.mk, m.sym, m.prof && m.prof.n, m.err])), e => 'err ' + e.message)")
+    check("with cTrader connected, broker markets get their history (C1)", '"CT:' in r and __import__("json").loads(r) and any(x[1] and x[1].startswith("CT:") and x[2] == 20 for x in __import__("json").loads(r)), r[:300])
     await pg2.close()
     return e2
 
@@ -176,6 +178,39 @@ async def part7(pg, q):
     note2 = await q("() => { TD.markets.forEach(m => { if (m.call) m.call = 'ok'; }); tickClock(); return document.getElementById('sessNote').innerText; }")
     check("no prefix on a normal day", not note2.startswith("Normal day"), note2[:80])
 
+async def part8(q):
+    print("8) review fixes")
+    P = "{ bins: TD_TEST_SHAPE.slice(), day: 60, n: 20 }"
+    # C2: Forex Factory bank holidays are thin days, not exchange closures
+    check("FF USD bank holiday (Columbus Day) doesn't close NAS100", await q(f"() => {{ const k = hdKey(2026, 10, 12), E = holEntries(k, k, [{{ key: k, mk: 'US', n: 'Bank Holiday', half: false, src: 'ff' }}]); return tdCall(tdForecast('NAS100', {P}, {{}}, E.filter(e => e.key === k)), {P}) !== 'closed'; }}"))
+    check("FF EUR bank holiday doesn't close GER40", await q(f"() => {{ const k = hdKey(2026, 12, 8), E = holEntries(k, k, [{{ key: k, mk: 'EU', n: 'Bank Holiday', half: false, src: 'ff' }}]); return tdCall(tdForecast('GER40', {P}, {{}}, E.filter(e => e.key === k)), {P}) !== 'closed'; }}"))
+    check("FF non-holiday rows dropped", await q("() => ffHolidays([{ at: Date.parse('2026-11-26T00:00:00-05:00'), ccy: 'EUR', title: 'G20 Meetings', impact: 'Holiday' }]).length === 0"))
+    # I1: weekends
+    check("a weekend day is Closed", await q("() => tdCalcMarket({ mk: 'Gold', sym: 'X' }, tdFixture(1, {}), null, [], hdKey(2026, 11, 28), Date.UTC(2026, 10, 28, 4, 0)).call === 'closed'"))
+    check("a weekend day says so", "weekend" in await q("() => tdSay({ key: hdKey(2026, 11, 28), markets: [{ mk: 'Gold', call: 'closed', fc: null }], entries: [] }).title"))
+    # I2: no data
+    check("no data: no verdict pretending it's normal", await q("() => tdSay({ key: hdKey(2026, 12, 2), markets: [{ mk: 'Gold', call: null }], entries: [] }).verdict === 'No data yet'"))
+    check("partial data says how many markets it covers", "1 of 2" in await q("() => tdSay({ key: hdKey(2026, 12, 2), markets: [{ mk: 'Gold', call: 'ok', fc: { ratio: 1, why: [] } }, { mk: 'Silver', call: null }], entries: [] }).title"))
+    # I3: half days measured apart from full closes
+    r = await q("() => { const E = holEntries(hdKey(2025, 7, 1), hdKey(2026, 11, 20)); const K = tdFixture(8, { thin: Object.fromEntries(E.filter(e => e.mk === 'US').map(e => [e.key, e.half ? 0.85 : 0.5])) }); const fx = tdFx(tdDays(K), E, ['US']); return JSON.stringify({ full: fx.US.day, half: fx['US:half'] && fx['US:half'].day, hn: fx['US:half'] && fx['US:half'].n }); }")
+    import json as _j; d = _j.loads(r)
+    check("full closes and half days measured apart", abs(d["full"] - 0.5) < 0.08 and d["half"] is not None and abs(d["half"] - 0.85) < 0.08 and d["hn"] >= 2, r)
+    check("a half day uses the half-day effect", await q(f"() => tdForecast('NAS100', {P}, {{ US: {{ n: 9, day: 0.5, bins: Array(24).fill(0.5) }}, 'US:half': {{ n: 3, day: 0.85, bins: Array(24).fill(0.85) }} }}, [{{ mk: 'US', half: true }}]).ratio > 0.8"))
+    # I4: candles but no full day
+    check("not enough history: no profile, no crash", await q("() => { const K = tdFixture(2, {}), ix = K.t.map((t, i) => i).filter(i => tdBin(K.t[i]) < 6), S = {}; ['t', 'o', 'h', 'l', 'c', 'qv'].forEach(f => S[f] = ix.map(i => K[f][i])); const r = tdCalcMarket({ mk: 'Gold', sym: 'X' }, S, null, [], hdKey(2026, 11, 26), Date.now()); return r.prof === null && r.call === null && r.err === 'Not enough history yet'; }"))
+    # I5: crypto tickers never read as indices
+    check("SPX6900 and DIA tokens aren't indices", await q("() => tdMk('SPXUSDT') === null && tdMk('MX:SPX_USDT') === null && tdMk('MX:DIA_USDT') === null && tdMk('DIAUSDT') === null"))
+    check("a crypto-only watchlist with SPX falls back to the default seven", await q("() => { const keep = CHW; CHW = ['SPXUSDT', 'BTCUSDT']; const L = tdMarkets().map(m => m.mk).join(); CHW = keep; return L === 'Gold,Silver,EURUSD,GBPUSD,USDJPY,AUDUSD,NAS100'; }"))
+    # I6: background loads only after the page was opened, and never start a scan
+    check("no background load before the page is first opened", await q("() => { localStorage.removeItem('finder-td-used'); const at = TD.at; return tdBackground().then(did => did === false && TD.at === at); }"))
+    check("no background scan when the markets aren't loaded", await q("() => { localStorage.setItem('finder-td-used', '1'); const keep = MACRO.rows; MACRO.rows = []; const at = TD.at; return tdBackground().then(did => { MACRO.rows = keep; return did === false && TD.at === at; }); }"))
+    # M3 (re-graded): a failed top-up keeps the cached history
+    check("a failed top-up falls back to the cache", await q("() => scTx('kl', 'readwrite', st => st.put({ k: 'td|CT:NOPE', at: Date.now(), lim: 3, t: Float64Array.from([1, 2, 3]), o: Float64Array.from([1, 1, 1]), h: Float64Array.from([2, 2, 2]), l: Float64Array.from([0, 0, 0]), c: Float64Array.from([1, 1, 1]), qv: Float64Array.from([1, 1, 1]) })).then(() => tdHist('CT:NOPE')).then(K => K.t.length === 3, e => 'threw ' + e.message)"))
+    # M4 (re-graded): the weekly cache prune keeps the trading-day history
+    check("the weekly prune keeps td| history", await q("() => scTx('kl', 'readwrite', st => st.put({ k: 'td|OLD', at: Date.now() - 9 * 864e5, lim: 1, t: Float64Array.from([1]), o: Float64Array.from([1]), h: Float64Array.from([1]), l: Float64Array.from([1]), c: Float64Array.from([1]), qv: Float64Array.from([1]) })).then(() => { SC.mem.set('x|dummy', { t: [1], o: [1], h: [1], l: [1], c: [1], qv: [1], lim: 1 }); SC.dirty.add('x|dummy'); klFlush(); return new Promise(r => setTimeout(r, 300)); }).then(() => scTx('kl', 'readonly', st => st.get('td|OLD'))).then(x => !!x)"))
+    # M5 (re-graded): yesterday's call doesn't linger past the Asia open
+    check("a call from an earlier trading day isn't shown", await q("() => { const keep = TD.at; TD.markets.forEach(m => { if (m.call) m.call = 'quiet'; }); TD.at = Date.now() - 2 * 864e5; const n = tdNote(); tdChip(); const hid = !document.getElementById('chDay') || document.getElementById('chDay').hidden; TD.at = keep; return n === '' && hid; }"))
+
 async def main():
     serve()
     async with async_playwright() as pw:
@@ -194,6 +229,7 @@ async def main():
             await part5(q)
             await part6(pg, q)
             await part7(pg, q)
+            await part8(q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

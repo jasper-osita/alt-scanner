@@ -1800,7 +1800,7 @@ async function klines(sym, interval, limit) {
   const raw = (await getJSON(`${base}?${qs({symbol: sym, interval, limit})}`)).slice(0, -1);
   return { t: raw.map(k => +k[0]), o: raw.map(k => +k[1]), h: raw.map(k => +k[2]), l: raw.map(k => +k[3]), c: raw.map(k => +k[4]), qv: raw.map(k => +k[7]) };
 }
-async function klinesRange(sym, interval, fromMs, toMs) {        // closed candles over a range, fetched page by page from the symbol's own source
+async function klinesSpan(sym, interval, fromMs, toMs) {         // closed candles over a range, page by page from the symbol's own source (cTrader, MEXC or Binance)
   const iv = MX_IVMS[interval]; if (!iv) throw new Error(`no ${interval} candles`);
   const rows = [];
   if (sym.startsWith("CT:")) {
@@ -3218,7 +3218,7 @@ const TD_CENTRE_BINS = { US: tdRange(13, 19), CA: tdRange(13, 17), UK: tdRange(4
 const FF_HOL_MK = { USD: "US", GBP: "UK", EUR: "EU", JPY: "JP", AUD: "AU", CAD: "CA", CHF: "CH" };
 function nyYmd(ms) { const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value); return [+p.year, +p.month, +p.day]; }
 function ffHolidays(rows) {                           // Forex Factory's holiday rows (its feed is in New York time) → holiday entries
-  return (rows || []).filter(x => x.impact === "Holiday" && FF_HOL_MK[x.ccy]).map(x => ({ key: hdKey(...nyYmd(x.at)), mk: FF_HOL_MK[x.ccy], n: x.title, half: false, src: "ff" }));
+  return (rows || []).filter(x => x.impact === "Holiday" && /holiday/i.test(x.title || "") && FF_HOL_MK[x.ccy]).map(x => ({ key: hdKey(...nyYmd(x.at)), mk: FF_HOL_MK[x.ccy], n: x.title, half: false, src: "ff" }));
 }
 function holEntries(fromKey, toKey, extra = []) {     // every market's holidays in a range: the rules plus other sources, one entry per day and market
   const all = [], y0 = hdYmd(fromKey)[0], y1 = hdYmd(toKey)[0];
@@ -3259,9 +3259,9 @@ function tdProfile(days, skipKeys, beforeKey, n = 20) {          // the median h
 }
 function tdFx(days, entries, centres) {              // { centre: { n, day, bins, keys } }: a centre's past holidays against the 20 normal days before each
   const skip = new Set((entries || []).map(e => e.key)), out = {};
-  (centres || []).forEach(c => {
-    const R = [];
-    (entries || []).filter(e => e.mk === c && days.has(e.key)).forEach(e => {
+  (centres || []).flatMap(c => [[c, false], [c + ":half", true]]).forEach(([c, half]) => {
+    const R = [], mk = c.replace(/:half$/, "");
+    (entries || []).filter(e => e.mk === mk && !!e.half === half && !tdFFOnly(e) && days.has(e.key)).forEach(e => {
       const p = tdProfile(days, skip, e.key, 20); if (p.n < 10 || !p.day) return;
       const d = days.get(e.key); R.push({ key: e.key, day: d.range / p.day, bins: d.bins.map((v, b) => v == null || !p.bins[b] ? null : v / p.bins[b]) });
     });
@@ -3278,21 +3278,24 @@ const tdSeries = (days, count = 65) => [...days.entries()].slice(-count).map(([k
 const TD_CENTRES = { Gold: ["UK", "US"], Silver: ["UK", "US"], EURUSD: ["UK", "EU", "US"], GBPUSD: ["UK", "US"], USDJPY: ["JP", "US"], AUDUSD: ["AU", "US"], NZDUSD: ["AU", "US"],
   USDCAD: ["CA", "US"], USDCHF: ["CH", "UK", "US"], EURJPY: ["EU", "JP", "UK"], GBPJPY: ["UK", "JP"], EURGBP: ["UK", "EU"], NAS100: ["US"], US500: ["US"], US30: ["US"], GER40: ["EU"], JP225: ["JP"], HK50: ["HK"], UK100: ["UK"] };
 const TD_OWN = { NAS100: "US", US500: "US", US30: "US", GER40: "EU", JP225: "JP", HK50: "HK", UK100: "UK" };          // indices: their own exchange shut = closed
-const TD_ALIAS = [[/^(XAU|GOLD)/, "Gold"], [/^(XAG|SILVER)/, "Silver"], [/^(NAS100|US100|USTEC|NDX|QQQ|NASDAQ)/, "NAS100"], [/^(US500|SPX|SPY|SP500|S&P500)/, "US500"],
-  [/^(US30|DJI|DIA|DOW)/, "US30"], [/^(GER40|DE40|GER30|DAX)/, "GER40"], [/^(JP225|JPN225|NI225|NIKKEI)/, "JP225"], [/^(HK50|HSI|HANGSENG)/, "HK50"], [/^(UK100|FTSE)/, "UK100"]];
+const TD_ALIAS = [[/^(XAU|GOLD)/, "Gold"], [/^(XAG|SILVER)/, "Silver"], [/^(NAS100|US100|USTEC|NDX|QQQ|NASDAQ)/, "NAS100"], [/^(US500|SPY|SP500|S&P500)/, "US500"],
+  [/^(US30|DJI|DOW)/, "US30"], [/^(GER40|DE40|GER30|DAX)/, "GER40"], [/^(JP225|JPN225|NI225|NIKKEI)/, "JP225"], [/^(HK50|HSI|HANGSENG)/, "HK50"], [/^(UK100|FTSE)/, "UK100"]];
 function tdMk(sym) {                                  // a market id from any symbol or name, or null (crypto and anything without a centre map)
   const s = String(sym || "").toUpperCase().replace(/^[A-Z]{2}:/, "").replace(/[^A-Z0-9&]/g, "").replace(/USD[TC]$/, "USD");
   const a = TD_ALIAS.find(([re]) => re.test(s)); if (a) return a[1];
   const p = s.slice(0, 6); return /^(EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY){2}$/.test(p) && TD_CENTRES[p] ? p : null;
 }
 const tdSum = a => a.reduce((x, v) => x + (v || 0), 0);
+const tdFFOnly = e => !!(e && e.srcs && e.srcs.length === 1 && e.srcs[0] === "ff");
 function tdForecast(mk, prof, fx, todayEntries) {     // { bins, day, ratio, closed, why: [{ centre, n, half, factor }] }
   const C = TD_CENTRES[mk] || [], bins = prof.bins.map(v => v || 0), why = []; let closed = false;
   (todayEntries || []).forEach(e => {
     if (e.mk === "FX") { if (!e.half) closed = true; else bins.forEach((v, b) => bins[b] = v * 0.7); why.push({ centre: "FX", n: 0, half: e.half, factor: e.half ? 0.7 : 0 }); return; }   // the broker shut
-    if (TD_OWN[mk] === e.mk && !e.half) closed = true;
+    const ff = tdFFOnly(e);                            // a bank holiday only Forex Factory knows: banks shut, exchanges open, so it thins and never closes
+    if (TD_OWN[mk] === e.mk && !e.half && !ff) closed = true;
     if (!C.includes(e.mk)) return;
-    const f = fx && fx[e.mk];
+    if (ff) { (TD_CENTRE_BINS[e.mk] || []).forEach(b => bins[b] *= 0.85); why.push({ centre: e.mk, n: 0, half: e.half, factor: 0.85, ff: true }); return; }
+    const f = fx && fx[e.half ? e.mk + ":half" : e.mk];      // half days are measured apart from full closes
     if (f && f.n >= 2) { bins.forEach((v, b) => bins[b] = v * (f.bins[b] ?? f.day ?? 1)); why.push({ centre: e.mk, n: f.n, half: e.half, factor: f.day }); }
     else { const k = e.half ? 0.7 : 0.5; (TD_CENTRE_BINS[e.mk] || []).forEach(b => bins[b] *= k); why.push({ centre: e.mk, n: f ? f.n : 0, half: e.half, factor: k }); }
   });
@@ -3317,25 +3320,26 @@ const TD_WD = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
 const tdDayLbl = key => { const d = new Date(key * 864e5); return `${TD_WD[d.getUTCDay()]}, ${TD_MO[d.getUTCMonth()]} ${d.getUTCDate()}`; };
 const TD_SESS = [["Asia", "JP", ["JP", "HK", "KR", "AU"]], ["London", "UK", ["UK", "EU", "CH"]], ["New York", "US", ["US", "CA"]]];      // [session, its main centre, the centres in it]
 function tdSay({ key, markets, entries }) {          // { verdict, title, lines: [{ k, v }] }
-  const M = (markets || []).filter(m => m.call), E = (entries || []).filter(e => e.key === key);
+  const M = (markets || []).filter(m => m.call), E = (entries || []).filter(e => e.key === key), dl = tdDayLbl(key);
+  if (tdWeekend(key)) return { verdict: "Closed day", title: `${dl}: the weekend, markets are closed.`, lines: [{ k: "For you", v: "Markets reopen with Asia on Monday morning. Use the weekend to plan the week." }] };
   const below = M.filter(m => m.call !== "ok").length;
-  const verdict = M.length && M.every(m => m.call === "closed") ? "Closed day" : below * 2 > M.length ? "Thin day" : "Normal day";
-  const sess = TD_SESS.map(([k, main, cs]) => { const es = E.filter(e => cs.includes(e.mk)), m = es.find(e => e.mk === main);
+  const verdict = !M.length ? "No data yet" : M.every(m => m.call === "closed") ? "Closed day" : below * 2 > M.length ? "Thin day" : "Normal day";
+  const sess = TD_SESS.map(([k, main, cs]) => { const es = E.filter(e => cs.includes(e.mk)), m = es.find(e => e.mk === main && !tdFFOnly(e));
     const st = m && !m.half ? "Closed." : m ? "Half day." : es.length ? "Thin." : "Normal.";
     return { k, st, v: st + (es.length ? " " + es.map(holSay).join("; ") + "." : "") }; });
   const ok = sess.filter(s => s.st === "Normal."), off = sess.filter(s => s.st !== "Normal.");
   const best = ["London", "Asia", "New York"].find(k => ok.some(s => s.k === k));
-  const dl = tdDayLbl(key);
-  const title = verdict === "Closed day" ? `${dl}: markets are closed.` : verdict === "Thin day" ? `${dl}: a thin day${best && best !== "New York" ? ", trade it early" : ""}.` : `${dl}: a normal day.`;
+  const part = M.length && M.length < (markets || []).length ? ` (based on ${M.length} of ${markets.length} markets)` : "";
+  const title = verdict === "No data yet" ? `${dl}: no market data yet.` : (verdict === "Closed day" ? `${dl}: markets are closed.` : verdict === "Thin day" ? `${dl}: a thin day${best && best !== "New York" ? ", trade it early" : ""}.` : `${dl}: a normal day.`).replace(/\.$/, part + ".");
   const lines = sess.map(s => ({ k: s.k, v: s.v }));
   const past = M.map(m => ({ m, w: ((m.fc && m.fc.why) || []).find(w => w.n >= 2) })).find(x => x.w);
   if (past) lines.push({ k: "Past years", v: `On the last ${past.w.n} holidays like this, ${past.m.mk} moved about ${Math.round(past.w.factor * 100)}% of a normal day.` });
-  lines.push({ k: "For you", v: verdict === "Closed day" ? "Stay out today." : !off.length ? "A normal day: Asia, London and New York as usual."
+  lines.push({ k: "For you", v: verdict === "No data yet" ? "Waiting for candles from your markets: check the connection, or open Charts once to connect cTrader." : verdict === "Closed day" ? "Stay out today." : !off.length ? "A normal day: Asia, London and New York as usual."
     : best ? `Take entries in ${best === "London" && ok.some(s => s.k === "Asia") ? "Asia or London" : best}, and don't count on ${off.map(s => s.k).join(" or ")} to extend a day hold.` : "Little to trade: keep size small or stay out." });
   return { verdict, title, lines };
 }
 function tdSayWeek(days) {                            // "Normal Monday to Wednesday, thin Thursday and Friday."
-  const D = (days || []).filter(d => d && d.verdict); if (!D.length) return "";
+  const D = (days || []).filter(d => d && d.verdict && d.verdict !== "No data yet"); if (!D.length) return "";
   if (D.every(d => d.verdict === "Normal day")) return "A normal week: no holidays in any market you follow.";
   const word = v => v === "Closed day" ? "closed" : v === "Thin day" ? "thin" : "normal", runs = [];
   D.forEach(d => { const w = word(d.verdict), r = runs.at(-1); if (r && r.w === w) r.k.push(d.key); else runs.push({ w, k: [d.key] }); });
@@ -3348,8 +3352,10 @@ function tdCalcMarket(m, K1h, K15, entries, key, now) {          // one market's
   if (!K1h || !K1h.t || !K1h.t.length) { out.err = "No data yet"; return out; }
   const days = tdDays(K1h), C = TD_CENTRES[m.mk] || [], E = entries || [];
   out.days = days; out.prof = tdProfile(days, new Set(E.filter(e => C.includes(e.mk) || e.mk === "FX").map(e => e.key)), key, 20);
-  if (!out.prof.n || !out.prof.day) { out.err = "No data yet"; return out; }
-  out.fx = tdFx(days, E, C); out.fc = tdForecast(m.mk, out.prof, out.fx, E.filter(e => e.key === key)); out.call = tdCall(out.fc, out.prof);
+  if (!out.prof.n || !out.prof.day) { out.prof = null; out.err = days.size ? "Not enough history yet" : "No data yet"; return out; }
+  out.fx = tdFx(days, E, C);
+  if (tdWeekend(key)) { out.fc = { bins: Array(24).fill(0), day: 0, ratio: 0, closed: true, why: [] }; out.call = "closed"; return out; }      // the weekend: markets are shut
+  out.fc = tdForecast(m.mk, out.prof, out.fx, E.filter(e => e.key === key)); out.call = tdCall(out.fc, out.prof);
   const T = K15 && K15.t && K15.t.length ? tdDays(K15).get(key) : null;
   if (T) { out.today = T; out.live = tdLive(T, out.prof, tdBin(now)); out.room = tdRoom(T.range, out.fc.day); }
   return out;
@@ -6630,7 +6636,7 @@ function klFlush() {                                  // saves the candles this 
   const keys = [...SC.dirty]; SC.dirty.clear(); if (!keys.length) return;
   const at = Date.now();
   scTx("kl", "readwrite", st => { keys.forEach(k => { const c = SC.mem.get(k); if (c) st.put({ k, at, lim: c.lim, ...Object.fromEntries(KC_F.map(f => [f, Float64Array.from(c[f])])) }); });
-    st.index("at").openKeyCursor(IDBKeyRange.upperBound(at - 7 * 864e5)).onsuccess = e => { const cur = e.target.result; if (cur) { st.delete(cur.primaryKey); cur.continue(); } }; }).catch(() => {});
+    st.index("at").openKeyCursor(IDBKeyRange.upperBound(at - 7 * 864e5)).onsuccess = e => { const cur = e.target.result; if (cur) { if (!String(cur.primaryKey).startsWith("td|")) st.delete(cur.primaryKey); cur.continue(); } }; }).catch(() => {});
 }
 
 /* ---- run ---- */
@@ -10873,7 +10879,7 @@ async function tdHist(sym) {                         // about two years of 1-hou
   const k = "td|" + sym, now = Date.now(), from = now - 730 * 864e5, KF = ["t", "o", "h", "l", "c", "qv"];
   let c = null; try { const x = await scTx("kl", "readonly", st => st.get(k)); if (x && x.t && x.t.length) c = Object.fromEntries(KF.map(f => [f, Array.from(x[f])])); } catch (e) {}
   if (!c || now - c.t.at(-1) > 2 * 3600e3) {
-    const n = await klinesRange(sym, "1h", c ? c.t.at(-1) + 3600e3 : from, now);
+    let n; try { n = await klinesSpan(sym, "1h", c ? c.t.at(-1) + 3600e3 : from, now); } catch (e) { if (c) return c; throw e; }
     c = c ? Object.fromEntries(KF.map(f => [f, c[f].concat(n[f])])) : n;
     const i = c.t.findIndex(t => t >= from - 30 * 864e5); if (i > 0) KF.forEach(f => c[f] = c[f].slice(i));
     try { await scTx("kl", "readwrite", st => st.put({ k, at: now, lim: c.t.length, ...Object.fromEntries(KF.map(f => [f, Float64Array.from(c[f])])) })); } catch (e) {}
@@ -10888,14 +10894,21 @@ function tdStoreCalls(key, markets) {                // each day's calls, for Th
 }
 async function tdLoad(force, now = Date.now()) {    // now: the moment to read the day for (tests pass one; candles are always fetched up to the real time)
   while (TD.p) { await TD.p.catch(() => {}); if (!force) return TD; }                // one load at a time: wait for the one running
-  if (!force && TD.at && Date.now() - TD.at < 15 * 60e3) return TD;
+  if (!force && TD.at && Date.now() - TD.at < 15 * 60e3 && tdFresh()) return TD;
   TD.p = tdLoadRun(now); try { await TD.p; } finally { TD.p = null; }
   return TD;
+}
+const tdFresh = () => TD.key != null && TD.at > 0 && tdKey((TD.now || TD.at) + (Date.now() - TD.at)) === TD.key;      // still the same trading day as the one read
+async function tdBackground() {                       // the call for the session note and the Charts chip, once you've opened Trading day here; never starts a scan
+  try { if (!localStorage.getItem("finder-td-used")) return false; } catch (e) { return false; }
+  if (!MACRO.rows.length || document.visibilityState !== "visible") return false;
+  await tdLoad(false).catch(() => {}); if (typeof tickClock === "function") tickClock(); return true;
 }
 async function tdLoadRun(now) {
   TD.busy = true; TD.err = null;
   try {
-    if (!MACRO.rows.length && typeof macroScan === "function") await macroScan(false).catch(() => {});
+    if (!MACRO.rows.length && !MACRO.running && typeof macroScan === "function") await macroScan(false).catch(() => {});
+    for (let i = 0; i < 360 && MACRO.running; i++) await sleep(500);          // a scan already running: wait for its markets
     const key = tdKey(now);
     let extra = ffHolidays(typeof calAll === "function" ? calAll() : []), hb = null;
     if (CT.state === "ready") { try { hb = await ctHolidays(false); } catch (e) {} }
@@ -10930,11 +10943,11 @@ const tdDayShort = key => { const d = new Date(key * 864e5); return `${TD_WD[d.g
 function tdSessOf(m, key) {                          // for one market: Asia, London, New York → normal / thin / half / closed
   const C = TD_CENTRES[m.mk] || [], E = TD.entries.filter(e => e.key === key && (C.includes(e.mk) || e.mk === "FX"));
   return TD_SESS.map(([k, , cs]) => { const es = E.filter(e => cs.includes(e.mk) || e.mk === "FX");
-    const own = es.find(e => TD_OWN[m.mk] === e.mk || e.mk === "FX");
+    const own = es.find(e => (TD_OWN[m.mk] === e.mk && !tdFFOnly(e)) || e.mk === "FX");
     return { k, st: own && !own.half ? "closed" : es.some(e => e.half) && !es.some(e => !e.half) ? "half" : es.length ? "thin" : "normal" }; });
 }
 const tdDay = () => tdSay({ key: TD.key, markets: TD.markets, entries: TD.entries });
-function tdShown() { tdRender(); tdLoad(false).then(tdRender); }
+function tdShown() { try { localStorage.setItem("finder-td-used", "1"); } catch (e) {} tdRender(); tdLoad(false).then(tdRender); }
 function tdRender() {
   const el = $("tdBody"); if (!el) return;
   document.querySelectorAll("[data-tdview]").forEach(b => { const on = b.dataset.tdview === TD_VIEW; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
@@ -10946,7 +10959,7 @@ function tdRender() {
   el.querySelectorAll("[data-day]").forEach(c => c.onclick = () => { TD_DAY = +c.dataset.day; tdRender(); });
 }
 function tdTodayHTML() {
-  const S = tdDay(), vc = S.verdict === "Normal day" ? "up" : S.verdict === "Closed day" ? "dn" : "warn", bin = tdBin(Date.now()), today = tdKey(Date.now()) === TD.key;
+  const S = tdDay(), vc = S.verdict === "Normal day" ? "up" : S.verdict === "Closed day" ? "dn" : S.verdict === "No data yet" ? "" : "warn", bin = tdBin(Date.now()), today = tdKey(Date.now()) === TD.key;
   const lv = TD.markets.filter(m => m.live).map(m => `${tdEsc(m.name)} <b class="${TD_LIVE[m.live.state][1]}">${tdPct(m.live.ratio)}</b>`).join(", ");
   const dots = m => tdSessOf(m, TD.key).map(s => `<i class="tddot ${s.st}" title="${s.k}: ${s.st}"></i>`).join("");
   const rows = TD.markets.map(m => { const c = m.call ? TD_CALL[m.call] : null;
@@ -10981,7 +10994,7 @@ function tdDowHTML() {
     <div class="tdhlbl tdh5">${["Mon", "Tue", "Wed", "Thu", "Fri"].map(d => `<span>${d}</span>`).join("")}</div><p class="mu tdnote">Outline: a normal week. Filled: this week.</p></div>`;
 }
 function tdVolHTML() {
-  const m = TD.markets.find(x => x.mk === TD_SEL); if (!m || !m.days) return "";
+  const m = TD.markets.find(x => x.mk === TD_SEL); if (!m || !m.days || !m.prof) return "";
   const S = tdSeries(m.days).filter(s => s.key < TD.key), C = TD_CENTRES[m.mk] || [], hk = new Set(TD.entries.filter(e => C.includes(e.mk)).map(e => e.key));
   if (S.length < 2) return "";
   const mx = Math.max(...S.map(s => s.range), m.prof.day) * 1.1, X = i => 30 + i / (S.length - 1) * 560, Y = v => 150 - v / mx * 135;
@@ -11028,16 +11041,16 @@ function tdWeekHTML() {
 document.querySelectorAll("[data-tdview]").forEach(b => b.onclick = () => { TD_VIEW = b.dataset.tdview; TD_DAY = null; try { localStorage.setItem("finder-td-view", TD_VIEW); } catch (e) {} tdRender(); });
 $("tdRefresh").onclick = () => tdLoad(true).then(tdRender);
 setInterval(() => { if (page === "tday" && document.visibilityState === "visible") tdLoad(true).then(tdRender); }, 15 * 60e3);
-setTimeout(() => tdLoad(false).then(() => { if (typeof tickClock === "function") tickClock(); }).catch(() => {}), 30e3);       // the day's call for the session note and the Charts chip
-setInterval(() => { if (document.visibilityState === "visible" && page !== "tday") tdLoad(false).catch(() => {}); }, 30 * 60e3);
+setTimeout(() => tdBackground().catch(() => {}), 30e3);                           // the day's call for the session note and the Charts chip
+setInterval(() => { if (page !== "tday") tdBackground().catch(() => {}); }, 30 * 60e3);
 function tdNote() {                                 // the session note's lead on a day that isn't normal
-  if (!TD.key || !TD.markets.some(m => m.call)) return "";
-  const S = tdDay(); if (S.verdict === "Normal day") return "";
+  if (!tdFresh() || !TD.markets.some(m => m.call)) return "";
+  const S = tdDay(); if (S.verdict === "Normal day" || S.verdict === "No data yet") return "";
   return `<b>${S.verdict}</b> · ${tdEsc((S.lines.find(l => l.k === "For you") || {}).v || S.title)} `;
 }
 function tdChip() {                                 // the Charts page chip
   const el = $("chDay"); if (!el) return;
-  if (!TD.key || !TD.markets.some(m => m.call)) { el.hidden = true; return; }
+  if (!tdFresh() || !TD.markets.some(m => m.call)) { el.hidden = true; return; }
   const S = tdDay(); el.hidden = false; el.textContent = S.verdict; el.title = S.title + " Open Trading day.";
   el.className = "chday " + (S.verdict === "Normal day" ? "up" : S.verdict === "Closed day" ? "dn" : "warn"); el.onclick = () => goPage("tday");
 }

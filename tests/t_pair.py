@@ -39,6 +39,13 @@ async def main():
         print("1) in the menu:", await q("() => [...document.querySelectorAll('#navList .nav')].map(e => e.innerText.trim()).filter(t => /Pair Picker/.test(t)).length === 1"))
         print("2) dollar weak:", await q(f"() => ({CARD})(ppGroups(({SYN})(false)))"))
         print("3) dollar strong:", await q(f"() => ({CARD})(ppGroups(({SYN})(true)))"))
+        # your broker's own EUR/GBP and dollar index win over working them out (here they disagree with the legs on purpose)
+        REAL = """(rows) => { const H = 3600e3, now = Math.floor(Date.now() / H) * H, n = 220, t = [], up = [], dn = []; for (let i = 0; i < n; i++) { t.push(now - (n - 1 - i) * H); dn.push(0.86 * Math.exp(-0.0004 * i)); up.push(99 * Math.exp(0.0003 * i)); }
+          const mk = (name, group, pair, cc, s) => ({ name, group, pair, ct: true, symbol: 'CT:' + (pair || name), price: cc.at(-1), chg24h: (cc.at(-1) / cc.at(-25) - 1) * 100, s1h: { state: s }, s4h: { state: s }, c1: { t, c: cc }, c4: { t, c: cc }, opens: { t, o: cc.map((x, i) => i ? cc[i - 1] : x) } });
+          return [...rows, mk('EUR/GBP', 'Forex', 'EURGBP', dn, 'Bear stack'), mk('US Dollar Index', 'Commodities', null, up, 'Bull stack')]; }"""
+        r2 = await q(f"() => {{ const x = ppGroups(({REAL})(({SYN})(false)))[0], d = document.createElement('div'); d.innerHTML = ppCardHTML(x); return [x.src || 'worked out', x.rs, x.lean && x.lean.src, x.lean && x.lean.word, x.pick ? x.pick.dir + ' ' + x.pick.l.name : 'no pick', d.innerText.replace(/\\s+/g, ' ').slice(0, 200)]; }}")
+        print("2b) broker's own EUR/GBP and dollar index:", r2)
+        if r2[:5] != ["chart", -4, "index", "strong", "Short EUR/USD"] or "broker" not in r2[5]: errs.append("Pair Picker didn't read the broker's own cross and dollar index")
         print("4) card, dollar weak:", await q(f"() => {{ const d = document.createElement('div'); d.innerHTML = ppCardHTML(ppGroups(({SYN})(false))[0]); return d.innerText.replace(/\\s+/g, ' '); }}"))
         print("5) card, EUR/USD vs USD/CHF:", await q(f"() => {{ const G = ppGroups(({SYN})(false)), x = G.find(x => x.b.name === 'USD/CHF' && x.a.name === 'EUR/USD'), d = document.createElement('div'); d.innerHTML = ppCardHTML(x); return d.innerText.replace(/\\s+/g, ' '); }}"))
         # the page on MEXC (dollar pairs, gold, silver, indices; no NZD or yen crosses)

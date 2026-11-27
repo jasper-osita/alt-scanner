@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.27.1941">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.28.0053">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -902,7 +902,10 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 .fcard:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* market brief (floating, page dimmed behind) */
 dialog#fbDlg{width:min(940px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;font-variant-numeric:tabular-nums}dialog#fbDlg:not([open]){display:none}
-dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62);backdrop-filter:blur(2px)}
+dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62);backdrop-filter:blur(2px);animation:fbDim .32s ease-out}dialog#fbDlg.closing::backdrop{animation:fbUndim .22s ease-in forwards}
+@keyframes fbDim{from{background:rgba(6,7,8,0);backdrop-filter:blur(0)}}@keyframes fbUndim{to{background:rgba(6,7,8,0);backdrop-filter:blur(0)}}
+.fbpress{animation:fbPress .6s ease-out}@keyframes fbPress{0%{background:color-mix(in srgb,var(--accent) 26%,transparent)}100%{background:transparent}}.fcard.fbpress{animation-name:fbPressC}@keyframes fbPressC{0%{border-color:var(--accent);transform:scale(.98)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){dialog#fbDlg::backdrop,dialog#fbDlg.closing::backdrop,.fbpress{animation:none}}
 .fbh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px}.fbh h3{margin:0 2px 0 6px;font:700 20px var(--display);color:var(--strong)}
 .fbpx{font:600 20px var(--display);color:var(--strong);margin:0 2px 0 8px}.fbib{width:30px;height:30px;border-radius:8px;border:1px solid var(--pill-b);background:var(--pill);color:var(--text);cursor:pointer;font-size:15px;line-height:1;padding:0}.fbib:hover{background:var(--hover)}
 .fbb{flex:1;min-height:0;overflow-y:auto}.fbf{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 16px;border-top:1px solid var(--line);font-size:11.5px}.fbkeys{margin-left:auto}
@@ -1268,7 +1271,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
   </section>
   <section class="card xchsec" data-page="macroov">
     <div class="xmh"><h2>Dollar · Nasdaq 100 <span class="meta">click a chart to draw on it or change its symbol</span></h2>
-      <div class="ovtgs" role="group" aria-label="Chart options"><button class="btn sm ovtg" id="ovcAuto" aria-pressed="true" title="Nasdaq 100 switches to 1m for the US open (9:30 PM to 12 AM) and Gold to 5m for London (12 to 6 PM) on weekdays, then back to your own pick">Session timeframes</button><button class="btn sm ovtg" id="ovcLink" aria-pressed="false" title="Change one chart's timeframe and the other follows">Same timeframe</button></div></div>
+      <div class="ovtgs" role="group" aria-label="Chart options"><button class="btn sm ovtg" id="ovcLink" aria-pressed="false" title="Change one chart's timeframe and the other follows">Same timeframe</button></div></div>
     <div class="ovchost x" id="ovChartX"><div class="empty">Loading the charts…</div></div>
     <div class="xmh ovsub"><h3>Gold · Indices <span class="meta">EMA 20 / 50 / 100 · click one to show it in the chart you last clicked</span></h3>
       <div class="xseg" id="xchTf" role="group" aria-label="Small charts timeframe"><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">D</button></div></div>
@@ -1777,7 +1780,7 @@ async function klinesSpan(sym, interval, fromMs, toMs) {         // closed candl
     for (let s = fromMs; s < toMs; s += 2000 * iv) rows.push(...await mxKlinesF(sym, interval, s, Math.min(toMs, s + 2000 * iv - 1)));
   } else {
     for (let s = fromMs, i = 0; s < toMs && i < 40; i++) {
-      await spend(5);
+      await spend(10);                    // a 1500-candle page weighs 10
       const raw = await getJSON(`${FAPI}/fapi/v1/klines?${qs({ symbol: sym, interval, startTime: s, endTime: toMs, limit: 1500 })}`); if (!raw.length) break;
       raw.forEach(k => rows.push([+k[0], +k[1], +k[2], +k[3], +k[4], +k[7]])); s = +raw.at(-1)[0] + iv; if (raw.length < 1500) break;
     }
@@ -2916,7 +2919,9 @@ function tdStart(key) {                               // the real time of sessio
   return want - PHT_MS + sessShift(t) * 3600e3;
 }
 const tdRange = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-const TD_CENTRE_BINS = { US: tdRange(13, 19), CA: tdRange(13, 17), UK: tdRange(4, 10), EU: tdRange(4, 10), CH: tdRange(4, 10), JP: tdRange(0, 3), HK: tdRange(0, 3), KR: tdRange(0, 3), AU: tdRange(0, 3) };   // the hours a centre's closure thins
+const TD_CENTRE_BINS = { US: tdRange(13, 19), CA: tdRange(13, 19), UK: tdRange(7, 15), EU: tdRange(7, 15), CH: tdRange(7, 15), JP: tdRange(0, 6), HK: tdRange(1, 7), KR: tdRange(0, 6), AU: tdRange(0, 5) };
+// the hours a centre's closure thins: its exchanges' cash hours on the session clock (bin = New York hour + 4): New York and Toronto 9:30–16:00,
+// London, Frankfurt and Zurich 8:00–16:30 London time, Tokyo and Seoul 9:00–15:30, Hong Kong 9:30–16:00, Sydney 10:00–16:00
 const FF_HOL_MK = { USD: "US", GBP: "UK", EUR: "EU", JPY: "JP", AUD: "AU", CAD: "CA", CHF: "CH" };
 function nyYmd(ms) { const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(new Date(ms)).forEach(x => p[x.type] = x.value); return [+p.year, +p.month, +p.day]; }
 function ffHolidays(rows) {                           // Forex Factory's holiday rows (its feed is in New York time) → holiday entries
@@ -2936,7 +2941,8 @@ function holEntries(fromKey, toKey, extra = []) {     // every market's holidays
   return [...by.values()].sort((a, b) => a.key - b.key || order.indexOf(a.mk) - order.indexOf(b.mk));
 }
 function holSay(e) {                                  // "US Thanksgiving", "US half day (Day after Thanksgiving)"
-  const lbl = e.mk === "FX" ? "Your broker" : (HOL_MKTS.find(x => x[0] === e.mk) || [0, e.mk])[1];
+  if (e.mk === "FX") return e.half ? `Your broker closes early (${e.n})` : `Your broker is closed (${e.n})`;
+  const lbl = (HOL_MKTS.find(x => x[0] === e.mk) || [0, e.mk])[1];
   return e.half ? `${lbl} half day (${e.n})` : `${lbl} ${e.n}`;
 }
 /* ---- trading-day profiles: a normal day hour by hour, and what past holidays did to it ---- */
@@ -2959,11 +2965,11 @@ function tdProfile(days, skipKeys, beforeKey, n = 20) {          // the median h
   const keys = [...days.keys()].filter(k => k < beforeKey && !(skipKeys && skipKeys.has(k)) && tdFull(days.get(k))).slice(-n);
   return { bins: tdRange(0, 23).map(b => tdMed(keys.map(k => days.get(k).bins[b]))), day: tdMed(keys.map(k => days.get(k).range)), n: keys.length, keys };
 }
-function tdFx(days, entries, centres) {              // { centre: { n, day, bins, keys } }: a centre's past holidays against the 20 normal days before each
+function tdFx(days, entries, centres, beforeKey = Infinity) {   // { centre: { n, day, bins, keys } }: a centre's past holidays (before beforeKey: today's unfinished day never counts) against the 20 normal days before each
   const skip = new Set((entries || []).map(e => e.key)), out = {};
   (centres || []).flatMap(c => [[c, false], [c + ":half", true]]).forEach(([c, half]) => {
     const R = [], mk = c.replace(/:half$/, "");
-    (entries || []).filter(e => e.mk === mk && !!e.half === half && !tdFFOnly(e) && days.has(e.key)).forEach(e => {
+    (entries || []).filter(e => e.mk === mk && !!e.half === half && !tdFFOnly(e) && e.key < beforeKey && days.has(e.key)).forEach(e => {
       const p = tdProfile(days, skip, e.key, 20); if (p.n < 10 || !p.day) return;
       const d = days.get(e.key); R.push({ key: e.key, day: d.range / p.day, bins: d.bins.map((v, b) => v == null || !p.bins[b] ? null : v / p.bins[b]) });
     });
@@ -2985,7 +2991,8 @@ const TD_ALIAS = [[/^(XAU|GOLD)/, "Gold"], [/^(XAG|SILVER)/, "Silver"], [/^(NAS1
 function tdMk(sym) {                                  // a market id from any symbol or name, or null (crypto and anything without a centre map)
   const s = String(sym || "").toUpperCase().replace(/^[A-Z]{2}:/, "").replace(/[^A-Z0-9&]/g, "").replace(/USD[TC]$/, "USD");
   const a = TD_ALIAS.find(([re]) => re.test(s)); if (a) return a[1];
-  const p = s.slice(0, 6); return /^(EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY){2}$/.test(p) && TD_CENTRES[p] ? p : null;
+  const p = s.slice(0, 6), r = p.slice(3) + p.slice(0, 3); if (!/^(EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY){2}$/.test(p)) return null;
+  return TD_CENTRES[p] ? p : TD_CENTRES[r] ? r : null;                  // MEXC quotes the yen, franc and Canadian dollar the other way round (JPY_USDT)
 }
 const tdSum = a => a.reduce((x, v) => x + (v || 0), 0);
 const tdFFOnly = e => !!(e && e.srcs && e.srcs.length === 1 && e.srcs[0] === "ff");
@@ -3008,11 +3015,12 @@ function tdCall(fc, prof) {                           // closed · quiet (under 
   if (fc.closed) return "closed";
   if (fc.ratio < 0.7) return "quiet";
   const r = bs => { const p = tdSum(bs.map(b => prof.bins[b])); return p ? tdSum(bs.map(b => fc.bins[b])) / p : 1; };
-  return r(tdRange(0, 3)) >= 0.8 && r(TD_CENTRE_BINS.UK) >= 0.8 && r(TD_CENTRE_BINS.US) < 0.7 ? "untilLondon" : "ok";
+  const lon = TD_CENTRE_BINS.UK.filter(b => !TD_CENTRE_BINS.US.includes(b));        // London before New York opens (their overlap belongs to New York here)
+  return r(tdRange(0, 3)) >= 0.8 && r(lon) >= 0.8 && r(TD_CENTRE_BINS.US) < 0.7 ? "untilLondon" : "ok";
 }
-function tdLive(today, prof, bin) {                   // today so far against a normal day at the same point
-  const tot = tdSum(prof.bins), normalSoFar = tot ? prof.day * tdSum(prof.bins.slice(0, bin + 1)) / tot : 0;
-  const ratio = normalSoFar ? today.range / normalSoFar : null, hourRatio = prof.bins[bin] ? (today.bins[bin] || 0) / prof.bins[bin] : null;
+function tdLive(today, prof, bin, frac = 1) {         // today so far against a normal day at the same point; frac = how much of this hour has passed
+  const f = Math.max(0.25, Math.min(1, frac)), tot = tdSum(prof.bins), normalSoFar = tot ? prof.day * (tdSum(prof.bins.slice(0, bin)) + (prof.bins[bin] || 0) * f) / tot : 0;
+  const ratio = normalSoFar ? today.range / normalSoFar : null, hourRatio = prof.bins[bin] ? (today.bins[bin] || 0) / (prof.bins[bin] * Math.sqrt(f)) : null;   // a part-hour's range grows about with the square root of time
   const state = hourRatio >= 2 ? "waking" : ratio == null ? "between" : ratio >= 0.8 ? "normal" : ratio < 0.6 ? "quiet" : "between";
   return { soFar: today.range, normalSoFar, ratio, hourRatio, state };
 }
@@ -3055,11 +3063,11 @@ function tdCalcMarket(m, K1h, K15, entries, key, now) {          // one market's
   const days = tdDays(K1h), C = TD_CENTRES[m.mk] || [], E = entries || [];
   out.days = days; out.prof = tdProfile(days, new Set(E.filter(e => C.includes(e.mk) || e.mk === "FX").map(e => e.key)), key, 20);
   if (!out.prof.n || !out.prof.day) { out.prof = null; out.err = days.size ? "Not enough history yet" : "No data yet"; return out; }
-  out.fx = tdFx(days, E, C);
+  out.fx = tdFx(days, E, C, key);
   if (tdWeekend(key)) { out.fc = { bins: Array(24).fill(0), day: 0, ratio: 0, closed: true, why: [] }; out.call = "closed"; return out; }      // the weekend: markets are shut
   out.fc = tdForecast(m.mk, out.prof, out.fx, E.filter(e => e.key === key)); out.call = tdCall(out.fc, out.prof);
   const T = K15 && K15.t && K15.t.length ? tdDays(K15).get(key) : null;
-  if (T) { out.today = T; out.live = tdLive(T, out.prof, tdBin(now)); out.room = tdRoom(T.range, out.fc.day); }
+  if (T) { const b = tdBin(now); out.today = T; out.live = tdLive(T, out.prof, b, (now - tdStart(key)) / 3600e3 - b); out.room = tdRoom(T.range, out.fc.day); }
   return out;
 }
 // Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
@@ -3098,7 +3106,8 @@ function cbItems(ccy, text) {                         // a bank's decision list 
   if (B.key === "rba") L = (s.match(/<article[\s\S]*?<\/article>/g) || []).map(a => { const h = a.match(/itemprop="headline">([^<]*)</), l = a.match(/href="([^"]+)"/), d = a.match(/datetime="([^"]+)"/);
     return { title: h ? cbDec(h[1]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1].replace(/T(\d\d:\d\d)([+-])/, "T$1:00$2")) || 0 : 0 }; });
   else if (B.key === "ecb") L = (s.match(/<dt[^>]*isoDate="[^"]+"[\s\S]*?<\/dd>/g) || []).map(a => { const d = a.match(/isoDate="([^"]+)"/), l = a.match(/<div class="title"><a href="([^"]+)"[^>]*>([^<]*)</);
-    return { title: l ? cbDec(l[2]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1] + "T12:15:00Z") || 0 : 0 }; });
+    const t0 = d ? Date.parse(d[1] + "T12:15:00Z") || 0 : 0;                                      // 14:15 in Frankfurt: 12:15 UTC in summer time, 13:15 in winter
+    return { title: l ? cbDec(l[2]).trim() : "", link: l ? l[1] : "", t: t0 && !ukDst(t0) ? t0 + 3600e3 : t0 }; });
   else L = rssItems(s).map(x => ({ title: x.title, link: x.link, t: x.t }));
   return L.filter(x => x.title && x.link && B.item.test(x.title)).map(x => ({ ...x, path: cbPath(x.link) })).sort((a, b) => b.t - a.t);
 }
@@ -4528,7 +4537,7 @@ function initPanelExtras(r) {
 }
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.27.1941";
+const APP_VERSION = "2026.11.28.0053";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -6131,8 +6140,14 @@ function ppLean(rows, g, legs) {                   // which way the shared side 
   if (!g.c) { const v = legs.reduce((p, l) => p + st(l.r), 0) / legs.length; return { v, word: v >= 0.34 ? "trending up" : v <= -0.34 ? "trending down" : "mixed" }; }
   const bk = []; rows.filter(r => /Forex/.test(r.group || "")).forEach(r => { const p = String(r.pair || r.name.replace("/", "")).toUpperCase(), sg = p.slice(0, 3) === g.c ? 1 : p.slice(3, 6) === g.c ? -1 : 0; if (sg) bk.push(sg * st(r)); });
   const dx = g.c === "USD" ? rows.find(r => r.name === "US Dollar Index") : null, idx = dx ? st(dx) : null, bv = bk.length ? bk.reduce((p, v) => p + v, 0) / bk.length : null;
-  const c = bv == null ? idx : idx == null ? bv : (bv + idx) / 2; if (c == null) return null;
-  return { v: -c, c, idx, n: bk.length, sess: xCcy(rows, "sess")[g.c], word: c >= 0.34 ? "strong" : c <= -0.34 ? "weak" : "mixed" };
+  const own = !!(dx && dx.ct && idx != null);          // your broker's dollar index: read it the way you see it on the chart
+  const c = own ? idx : bv == null ? idx : idx == null ? bv : (bv + idx) / 2; if (c == null) return null;
+  return { v: -c, c, idx, n: bk.length, src: own ? "index" : null, sess: xCcy(rows, "sess")[g.c], word: c >= 0.34 ? "strong" : c <= -0.34 ? "weak" : "mixed" };
+}
+function ppCross(rows, x, y) {                     // the cross as its own chart from your broker (x/y, or y/x turned round), when cTrader lists it
+  for (const [nm, s] of [[x + "/" + y, 1], [y + "/" + x, -1]]) { const r = rows.find(r => r.ct && r.name === nm && r.s1h && r.s4h);
+    if (r) return { r, s, f: p => p == null ? null : s > 0 ? p : (1 / (1 + p / 100) - 1) * 100 }; }
+  return null;
 }
 function ppGroups(rows) {
   const S = xSessStart();
@@ -6140,12 +6155,14 @@ function ppGroups(rows) {
     const legs = g.legs.map(([name, o, x]) => { const r = rows.find(r => r.name === name); return r ? { r, o, x, name } : null; }); if (legs.some(l => !l)) return null;
     const [a, b] = legs, P1 = ppAlign(a, b, "c1"), P4 = ppAlign(a, b, "c4"), lr = (l, pct) => pct == null ? null : l.o * Math.log(1 + pct / 100);
     const rel = (x, y) => x == null || y == null ? null : (Math.exp(x - y) - 1) * 100;      // the cross or ratio's change in %
-    const sess = rel(lr(a, xSessRet(a.r, S.t)), lr(b, xSessRet(b.r, S.t))), d24 = rel(lr(a, a.r.chg24h), lr(b, b.r.chg24h));
-    const st1 = ppStack(P1), st4 = ppStack(P4), corr = ppCorr(P1), rs = ppSgn(sess, 0.03) + ppSgn(d24, 0.05) + st1 + st4;
+    let sess = rel(lr(a, xSessRet(a.r, S.t)), lr(b, xSessRet(b.r, S.t))), d24 = rel(lr(a, a.r.chg24h), lr(b, b.r.chg24h)), st1 = ppStack(P1), st4 = ppStack(P4);
+    const cx = g.c ? ppCross(rows, a.x, b.x) : null;     // your broker's EUR/GBP (and the like) wins over working it out from the two legs
+    if (cx) { sess = cx.f(xSessRet(cx.r, S.t)); d24 = cx.f(cx.r.chg24h); st1 = cx.s * ppDir(cx.r.s1h.state); st4 = cx.s * ppDir(cx.r.s4h.state); }
+    const corr = ppCorr(P1), rs = ppSgn(sess, 0.03) + ppSgn(d24, 0.05) + st1 + st4;
     const strong = rs > 0 ? a : rs < 0 ? b : null, weak = rs > 0 ? b : rs < 0 ? a : null, lean = ppLean(rows, g, legs);
     const trade = (l, buy) => l ? { l, dir: (buy ? 1 : -1) * l.o > 0 ? "Long" : "Short" } : null;
     const up = trade(strong, true), dn = trade(weak, false), side = lean && lean.v >= 0.34 ? 1 : lean && lean.v <= -0.34 ? -1 : 0;
-    return { g, a, b, S, sess, d24, st1, st4, rs, corr, raw: corr == null ? null : corr * a.o * b.o, lean, side, up, dn, pick: side > 0 ? up : side < 0 ? dn : null };
+    return { g, a, b, S, src: cx ? "chart" : null, sess, d24, st1, st4, rs, corr, raw: corr == null ? null : corr * a.o * b.o, lean, side, up, dn, pick: side > 0 ? up : side < 0 ? dn : null };
   }).filter(Boolean);
 }
 function ppCardHTML(x) {
@@ -6155,7 +6172,7 @@ function ppCardHTML(x) {
     return ok(ppDir(r.s1h.state) === d, "1H stack agrees") + ok(ppDir(r.s4h.state) === d, "4H agrees") + (u ? ok(u.pct < 90, `day range ${u.pct}% used`) : ""); };
   const cor = x.raw == null ? "" : `<span class="ppcor ${Math.abs(x.corr) < 0.5 ? "loose" : ""}" title="How closely their hourly moves have lined up over about 5 days: 1 means in step, −1 mirror images. Under 0.5 they're not really moving together.">${Math.abs(x.corr) < 0.5 ? "loosely linked" : x.raw > 0 ? "move together" : "move opposite"} ${x.raw.toFixed(2)}</span>`;
   const leanH = !L ? `<span class="mute">no read yet</span>` : fx
-    ? `<b class="${L.c >= 0.34 ? "up" : L.c <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">${L.idx != null ? `index ${dirW(L.idx)} · ` : ""}${L.n} pairs on 1H/4H${L.sess != null ? ` · ${g.c} ${sgn(L.sess)} since ${S.name} opened` : ""}</span>`
+    ? `<b class="${L.c >= 0.34 ? "up" : L.c <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">${L.src === "index" ? `your broker's dollar index, ${dirW(L.idx)} on 1H/4H` : `${L.idx != null ? `index ${dirW(L.idx)} · ` : ""}${L.n} pairs on 1H/4H`}${L.sess != null ? ` · ${g.c} ${sgn(L.sess)} since ${S.name} opened` : ""}</span>`
     : `<b class="${L.v >= 0.34 ? "up" : L.v <= -0.34 ? "dn" : ""}">${L.word}</b> <span class="meta">both on 1H and 4H</span>`;
   const who = x.rs > 0 ? `${nm(a.x)} stronger` : x.rs < 0 ? `${nm(b.x)} stronger` : "neither clearly stronger";
   const ifUp = fx ? `Selling the ${ppCcy(g.c)}` : "Going long", ifDn = fx ? `Buying the ${ppCcy(g.c)}` : "Going short";
@@ -6168,7 +6185,7 @@ function ppCardHTML(x) {
   else pick = `<div class="ppno">Neither is clearly stronger, so there's no edge in picking one: either works${x.side ? "" : ", or wait"}.</div>`;
   return `<div class="ppcard"><div class="pph"><b>${a.name} vs ${b.name}</b>${cor}</div>
     <div class="pprow"><span class="mute ppl">${fx ? `The ${ppCcy(g.c)}` : g.theme}</span>${leanH}</div>
-    <div class="pprow"><span class="mute ppl">${fx ? `${a.x}/${b.x}` : g.ratio}</span><b class="${x.rs ? "" : "mute"}">${who}</b> <span class="meta">${sgn(x.sess)} since ${S.name} · ${sgn(x.d24)} 24h · 1H ${dirW(x.st1)} · 4H ${dirW(x.st4)}</span></div>
+    <div class="pprow"><span class="mute ppl">${fx ? `${a.x}/${b.x}` : g.ratio}</span><b class="${x.rs ? "" : "mute"}">${who}</b> <span class="meta">${sgn(x.sess)} since ${S.name} · ${sgn(x.d24)} 24h · 1H ${dirW(x.st1)} · 4H ${dirW(x.st4)}${x.src ? " · your broker's chart" : ""}</span></div>
     ${pick}${x.raw != null && Math.abs(x.corr) < 0.5 ? `<div class="ppalt">They aren't moving together lately${x.pick ? ", so treat this pick lightly" : ": read each chart on its own"}.</div>` : ""}</div>`;
 }
 function renderPP(rows) {
@@ -6277,6 +6294,7 @@ function ctShareBind() {
     try { await ctKeeperJoin(v.pass, v.url); ctClose(); CT.state = "closed"; await after("Using the shared login. Connecting to cTrader…", $("kpJoin")); }
     catch (e) { msg(`<span class="dn">${esc(e.message)}</span>`); $("kpJoin").disabled = false; } };
   if ($("kpLeave")) $("kpLeave").onclick = () => { const c = ctCfg() || {}; kpSave(null); ctClose(); CT.state = "closed";
+    if (typeof cttClose === "function" && typeof CTT !== "undefined") { cttClose(); CTT.state = "off"; }                // the Trade page was on the borrowed login too
     ctSaveCfg({ clientId: c.clientId, clientSecret: c.clientSecret, prefer: c.prefer }); openCTSettings(); msg("This device no longer uses the shared login. Sign in or use it again any time."); renderMacro(); };
 }
 function openCTSettings() {
@@ -6295,17 +6313,18 @@ function openCTSettings() {
       <div class="ctsso"><button class="btn primary" id="ctSignIn" type="button">Sign in with cTrader</button>
         <p class="meta">Easiest: fill in the Client ID and Secret, then sign in. The app gets the tokens and renews them itself, so you can leave the two token boxes empty.
         Once only, add this return address to your app on openapi.ctrader.com (Applications → Edit → Redirect URIs → Save): <code id="ctRedir">${esc(ctRedirectUri())}</code> <button class="btn sm" id="ctCopyRedir" type="button">Copy</button></p></div>
-      <details class="ctmanual" ${c.accessToken && !c.refreshToken ? "open" : ""}><summary class="meta">Or paste tokens from the Sandbox page</summary>
+      <details class="ctmanual" ${c.accessToken && !c.refreshToken && !c.keeper ? "open" : ""}><summary class="meta">Or paste tokens from the Sandbox page</summary>
       <p class="meta">Getting a token there ends the app's sign-in on your other devices (cTrader keeps only the latest one). Sign in with cTrader is the better way.</p>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
       <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label></details>
-      ${c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
+      ${c.keeper ? `<p class="meta">The shared login is renewed on your website; this device picks up each renewal by itself.</p>`
+        : c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${typeof trTitle === "function" ? trTitle(a.brokerTitleShort || "Broker") : a.brokerTitleShort || "Broker"} · ${a.traderLogin || a.ctidTraderAccountId} · ${a.isLive ? "Live" : "Demo"}</option>`).join("")}</select></label>` : ""}
       ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.filter(x => x[3] !== "Commodities").map(x => x[0])].filter(n => !got.some(o => o.name === n));
         return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => !/Forex/.test(o.group)).map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => /Forex/.test(o.group)) ? `, plus ${got.filter(o => /Forex/.test(o.group)).length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
       <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
       ${ctShareHTML(c)}
-      <p class="meta">Saved in this browser and sent only to cTrader (and to your own website when you share it). Without sharing, each address keeps its own copy and renewing on one signs the others out. The token gives read access to prices and your account list; the app never places orders.</p>
+      <p class="meta">Saved in this browser and sent only to cTrader (and to your own website when you share it). Without sharing, each address keeps its own copy and renewing on one signs the others out. The login reads prices and your accounts; orders are placed only from the Trade page and Quick trade, with a trading-access sign-in.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
       <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
     </div>`;
@@ -6381,7 +6400,12 @@ CH.sizes = CH.sizes || {};
 let CHD = chLoadJSON(CHD_KEY, {});                          // symbol → drawings, stored in time (ms) and price so every timeframe can draw them
 var CHA = chLoadJSON("finder-chart-alerts", []);                // alerts made on the chart (price, a drawn line, an indicator): see chaDialog
 let CHW = chLoadJSON(CHW_KEY, null) || ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XAUUSDT", "XAGUSDT", "CLUSDT", "QQQUSDT", "SPYUSDT"];
-const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: chLoadJSON("finder-ovch", {}) };   // the overview pages borrowing this chart (see ovcHost)
+function ovcMigrate(st) {                            // once: the old session switch (Nasdaq 1m at the US open, Gold 5m in London) left 1m/5m saved; you trade 15m all day now
+  const x = st && st.x; if (!x || x.m15) return st;
+  if (x.auto !== false && Array.isArray(x.tfs)) x.tfs = x.tfs.map(tf => tf === "1m" || tf === "5m" ? "15m" : tf);
+  delete x.auto; x.m15 = 1; return st;
+}
+const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: ovcMigrate(chLoadJSON("finder-ovch", {})) };   // the overview pages borrowing this chart (see ovcHost)
 const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
 const CHP = [];                                              // the four panes
 let CHM = null;                                              // a trade marked on the chart (clicked in the trade watch): { list: [trade], i: 0 }
@@ -7887,7 +7911,7 @@ function chPickRender(focus) {
   const list = pkMarkets(chPickCat, chPickSrc).map((m, i) => ({ m, r: rank(m), i })).filter(x => !q || x.r).sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.m).slice(0, 150);
   chPickSel = Math.max(0, Math.min(chPickSel, list.length - 1));
   const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex comes from cTrader (connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page) or MEXC's forex perpetuals.</div>` : "";
-  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">Loading MEXC's stock perpetuals…</div>` : "";
+  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">${chMexc() ? "Loading MEXC's stock perpetuals…" : "Stocks come from MEXC's stock perpetuals: set the exchange to MEXC in the scan settings to list them here."}</div>` : "";
   const px = x => { const qd = chQuote(x), c = qd && qd.chg; return `<span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>`; };
   p.innerHTML = head + `<div class="pkq"><span aria-hidden="true">${chIco("M9 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM13.5 13.5l4.5 4.5", 16)}</span><input id="chPickQ" type="search" placeholder="Symbol or name" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets"></div>
     <div class="pkbar"><div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
@@ -7898,7 +7922,7 @@ function chPickRender(focus) {
         <span class="n"><b>${chEsc(pkTick(x))}</b><small>${chEsc(m.desc)} <i class="pktag">${chEsc(m.type)}</i></small></span>${px(x)}
         <span class="pksrc">${chEsc(pkSrcName(pkSrcOf(x)))}</span>${more ? `<button class="pkmore ${open ? "on" : ""}" data-more="${chEsc(m.key)}" aria-expanded="${open}" title="Other sources">+${more} ▾</button>` : `<span></span>`}</div>
         ${more ? `<div class="pksubs" data-subs="${chEsc(m.key)}" ${open ? "" : "hidden"}>${m.syms.slice(1).map(y => `<div class="pksub" data-ps="${y}" role="option"><span class="pksrc">${chEsc(pkSrcName(pkSrcOf(y)))}</span><span class="mute">${chEsc(pkTick(y))} · ${chEsc(pkType(y))}</span>${px(y)}</div>`).join("")}</div>` : ""}`; }).join("")
-      || (fxNote || stNote || `<div class="meta chpnote">No market matches “${chEsc(chPickQ)}”.</div>`)}</div>`;
+      || (fxNote || stNote || `<div class="meta chpnote">${chPickQ.trim() ? `No market matches “${chEsc(chPickQ.trim())}”.` : "No markets in this list yet."}</div>`)}</div>`;
   p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(pkMarkets(chPickCat, chPickSrc).slice(0, 24).map(m => m.syms[0])); });
   $("pkSrcB").onclick = e => { e.stopPropagation(); chPickView = "src"; p.dataset.srcq = ""; chPickRender(true); };
   p.querySelectorAll("[data-more]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpenK = chPickOpenK === b.dataset.more ? null : b.dataset.more; chPickRender(); });
@@ -7972,28 +7996,17 @@ function ovcSyms(mode) {                           // your last pick, else Bitco
   const fx = p => { const r = rows.find(r => (r.group === "Forex" || r.group === "MEXC Forex") && (r.pair || coin(r.symbol)) === p); return r && r.symbol; };
   return [saved[0] || nm("US Dollar Index") || fx("EURUSD"), saved[1] || nm("Nasdaq 100")];
 }
-function ovcSessTf(sym) {                         // the timeframe a session asks for (session clock, weekdays): Nasdaq 100 on 1m for the US open, Gold on 5m for London
-  if (!sym) return null; const d = sessD(), wd = d.getUTCDay(), h = sessH();
-  if (wd < 1 || wd > 5) return null; const n = chName(sym);
-  if (/Nasdaq 100/.test(n) && h >= 21.5) return "1m";
-  if (/^Gold/.test(n) && h >= 12 && h < 18) return "5m";
-  return null;
-}
-function ovcSessApply(load) {                     // switch on entering or leaving a session window only, so your own pick inside the window stands
-  if (OVC.on !== "x") return; const o = OVC.st.x || {}, ps = [CHP[0], CHP[1]];
-  if ($("ovcAuto")) $("ovcAuto").title = `Nasdaq 100 switches to 1m for the US open (${sessLbl(21.5)} to ${sessLbl(24)}) and Gold to 5m for London (${sessLbl(12)} to ${sessLbl(18)}) on weekdays, then back to your own pick`;
-  let want = ps.map(P => o.auto !== false ? ovcSessTf(P.psym) : null);
-  if (o.link) { const w = want.find(Boolean) || null; want = want.map(() => w); }
-  ps.forEach((P, i) => { const key = (want[i] || "") + "|" + P.psym; if (P.sessKey === key) return; P.sessKey = key;
-    const tf = want[i] || P.manTf || P.tf; if (P.tf === tf) return;
+function ovcSessApply(load) {                     // the forex overview charts sit on your own pick (15m to start); with "Same timeframe" on, the other follows
+  if (OVC.on !== "x") return;
+  [CHP[0], CHP[1]].forEach((P, i) => { const tf = P.manTf || P.tf; if (P.tf === tf) return;
     P.tf = CH.tfs[i] = tf; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; if (load) chLoad(P); });
 }
 function ovcTfPicked(P) {                          // your own timeframe pick; with "Same timeframe" on, the other chart follows
-  const inSess = !!(P.sessKey && P.sessKey.split("|")[0]); if (!inSess) P.manTf = P.tf;
-  if ((OVC.st.x || {}).link) [CHP[0], CHP[1]].forEach(Q => { if (Q === P || Q.tf === P.tf) return; Q.tf = CH.tfs[Q.i] = P.tf; if (!inSess) Q.manTf = P.tf;
+  P.manTf = P.tf;
+  if ((OVC.st.x || {}).link) [CHP[0], CHP[1]].forEach(Q => { if (Q === P || Q.tf === P.tf) return; Q.tf = CH.tfs[Q.i] = P.tf; Q.manTf = P.tf;
     const sel = Q.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; chLoad(Q); });
 }
-function ovcTgSync() { const o = OVC.st.x || {}; [["ovcAuto", o.auto !== false], ["ovcLink", !!o.link]].forEach(([id, on]) => { const b = $(id); if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); } }); }
+function ovcTgSync() { const o = OVC.st.x || {}; [["ovcLink", !!o.link]].forEach(([id, on]) => { const b = $(id); if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); } }); }
 function ovcMarkAct() { CHP.forEach(P => P.pane.classList.toggle("act", OVC.on === "x" && P.i === OVC.act)); }
 function ovcActivate(i) {
   OVC.act = i; CH.sym = CHP[i].psym; chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = [];
@@ -8018,7 +8031,7 @@ async function ovcHost(mode) {
   const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
   CH.layout = mode === "c" ? "1" : "2c"; CH.max = null;
   syms.forEach((sym, i) => { const P = CHP[i]; P.psym = mode === "x" ? sym : null; P.sym = null;
-    P.tf = P.manTf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : "1h"; P.sessKey = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
+    P.tf = P.manTf = CH.tfs[i] = CH_TFS.includes(tfs[i]) ? tfs[i] : mode === "x" ? "15m" : "1h"; P.sessKey = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; });
   ovcSessApply(false);
   OVC.act = mode === "x" ? Math.min(1, +(OVC.st.x && OVC.st.x.act) || 0) : 0; CH.sym = syms[OVC.act];
   chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor");
@@ -8086,7 +8099,6 @@ async function chStudyGo() {
   if (P.t.length && P.chart) { const a = chLogical(P, c.opened), b = chLogical(P, c.closed), pad = Math.max(25, (b - a) * 1.5); P.userAt = Date.now(); P.chart.timeScale().setVisibleLogicalRange({ from: a - pad, to: b + pad }); }
   chDirty = true;
 }
-if ($("ovcAuto")) $("ovcAuto").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.auto = o.auto === false; chSaveJSON("finder-ovch", OVC.st); ovcTgSync(); CHP.forEach(P => P.sessKey = null); ovcSessApply(true); };
 if ($("ovcLink")) $("ovcLink").onclick = () => { const o = OVC.st.x = OVC.st.x || {}; o.link = !o.link; chSaveJSON("finder-ovch", OVC.st); ovcTgSync();
   if (OVC.on === "x") { CHP.forEach(P => P.sessKey = null); ovcSessApply(true); if (o.link) ovcTfPicked(CHP[OVC.act]); } };
 ovcTgSync();
@@ -9825,6 +9837,11 @@ $("calTabs").querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { calT
 /* ===================== Trading day: which of your markets are worth your attention today and this week (calculations in core: tdCalcMarket, tdSay) ===================== */
 const TD_DEFAULT = ["Gold", "Silver", "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "NAS100"];
 const TD = { at: 0, key: null, markets: [], entries: [], broker: null, busy: false, err: null };
+function tdMissing(syms) {                           // watchlist markets that aren't crypto and have no holiday map yet: named on the page, not dropped silently
+  const out = []; (syms || []).forEach(s => { if (tdMk(s) || (typeof chCatOf === "function" ? chCatOf(s) === "crypto" : /USDT$/.test(s))) return;
+    const n = typeof chName === "function" ? chName(s) : s; if (!out.includes(n)) out.push(n); });
+  return out;
+}
 function tdMarkets() {                               // your watchlist without crypto (or the default seven), each from the source the boards prefer
   const by = new Map();
   (typeof xRows === "function" ? xRows() : []).forEach(r => { const mk = tdMk(r.name) || tdMk(r.symbol); if (!mk) return; const o = by.get(mk); if (!o || (r.ct && !o.ct)) by.set(mk, { mk, sym: r.symbol, name: r.name || r.symbol, ct: !!r.ct }); });
@@ -9928,7 +9945,8 @@ function tdTodayHTML() {
       <div class="tdlines">${S.lines.map(l => `<b>${l.k}</b><span>${tdEsc(l.v)}</span>`).join("")}</div>
       ${lv && today ? `<div class="tdlive"><i class="tdlivedot"></i><b>Live</b> <span class="mu">at each 15-minute close</span> <span>${lv} of a normal day by now.</span></div>` : ""}</div>
     <div class="tdsec"><h3>Your markets today <span class="mu">your watchlist without crypto · click one for its hours</span></h3>
-      <div class="tdtbl" id="tdMkts"><div class="tdhd"><span>Market</span><span>Asia · London · New York</span><span>Day call</span><span>Day range</span><span>Live, so far</span></div>${rows}</div></div>
+      <div class="tdtbl" id="tdMkts"><div class="tdhd"><span>Market</span><span>Asia · London · New York</span><span>Day call</span><span>Day range</span><span>Live, so far</span></div>${rows}</div>
+      ${(() => { const miss = tdMissing(CHW); return miss.length ? `<p class="mu tdnote">Not covered yet: ${tdEsc(miss.join(", "))} (no holiday map for ${miss.length > 1 ? "them" : "it"} yet).</p>` : ""; })()}</div>
     ${tdHoursHTML(bin, today)}
     <div class="tdgrid">${tdDowHTML()}${tdVolHTML()}${tdWhyHTML()}</div>`;
 }
@@ -9970,6 +9988,7 @@ function tdWhyHTML() {
     <b class="tdk">Who moves your markets</b><p>${map}.</p><b class="tdk">${tdEsc(m ? m.name : "")} on past holidays</b><p>${past}</p>
     <p class="mu tdnote">A normal day is the middle of the last 20 trading days that weren't holidays, measured on 1-hour candles across the whole trading day. Sources: ${src} Hong Kong and Korea dates come from a table for 2026–2027: check them against HKEX and KRX.</p></div>`;
 }
+const tdWeekFc = (m, k) => k === TD.key ? m.fc : m.prof ? tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === k)) : null;    // that day's own forecast
 function tdWeekHTML() {
   const mon = TD.key - ((new Date(TD.key * 864e5).getUTCDay() + 6) % 7), keys = [0, 1, 2, 3, 4].map(i => mon + i);
   let A = {}; try { A = JSON.parse(localStorage.getItem("finder-td-calls") || "{}") || {}; } catch (e) {}
@@ -9985,7 +10004,7 @@ function tdWeekHTML() {
   const grid = `<div class="tdweek"><span></span>${keys.map((k, i) => `<b class="${k === TD.key ? "tdnow" : ""}">${tdDayShort(k).split(",")[0]} ${new Date(k * 864e5).getUTCDate()}${k === TD.key ? " · today" : ""}</b>`).join("")}
     ${TD.markets.map(m => `<b class="tdwmk">${tdEsc(m.name)}</b>${keys.map(k => cell(m, k)).join("")}`).join("")}</div>`;
   const di = TD_DAY != null ? TD_DAY : keys.indexOf(TD.key), dk = keys[di] ?? TD.key;
-  const DS = tdSay({ key: dk, markets: TD.markets.map(m => ({ mk: m.mk, call: ((A[dk] || {})[m.mk] || {}).call || (m.prof ? tdCall(dk === TD.key ? m.fc : tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === dk)), m.prof) : null), fc: m.fc })), entries: TD.entries });
+  const DS = tdSay({ key: dk, markets: TD.markets.map(m => { const fc = tdWeekFc(m, dk); return { mk: m.mk, call: ((A[dk] || {})[m.mk] || {}).call || (fc ? tdCall(fc, m.prof) : null), fc }; }), entries: TD.entries });
   const happened = dk < TD.key ? TD.markets.filter(m => m.days && m.days.get(dk) && m.prof).map(m => { const r = m.days.get(dk).range / m.prof.day, a = ((A[dk] || {})[m.mk] || {}).call;
     const right = a ? ((a === "quiet" || a === "closed") ? r < 0.7 : r >= 0.7) : null; return `${tdEsc(m.name)} ${tdPct(r)}${right == null ? "" : right ? ` <b class="up">Right.</b>` : ` <b class="dn">Off.</b>`}`; }).join(" · ") : "";
   const ahead = TD.entries.filter(e => e.key > TD.key && e.key <= TD.key + 56 && !tdWeekend(e.key)).map(e => ({ e, mk: TD.markets.filter(m => (TD_CENTRES[m.mk] || []).includes(e.mk) || TD_OWN[m.mk] === e.mk).map(m => m.name) })).filter(x => x.mk.length);
@@ -9997,7 +10016,10 @@ function tdWeekHTML() {
 }
 document.querySelectorAll("[data-tdview]").forEach(b => b.onclick = () => { TD_VIEW = b.dataset.tdview; TD_DAY = null; try { localStorage.setItem("finder-td-view", TD_VIEW); } catch (e) {} tdRender(); });
 $("tdRefresh").onclick = () => tdLoad(true).then(tdRender);
-setInterval(() => { if (page === "tday" && document.visibilityState === "visible") tdLoad(true).then(tdRender); }, 15 * 60e3);
+(function tdTick() {                                 // refresh just after each 15-minute close (20 s for the candle to settle)
+  const now = Date.now(); TD.nextAt = Math.floor((now - 20e3) / 900e3) * 900e3 + 900e3 + 20e3;
+  setTimeout(() => { if (page === "tday" && document.visibilityState === "visible") tdLoad(true).then(tdRender); tdTick(); }, TD.nextAt - now);
+})();
 setTimeout(() => tdBackground().catch(() => {}), 30e3);                           // the day's call for the session note and the Charts chip
 setInterval(() => { if (page !== "tday") tdBackground().catch(() => {}); }, 30 * 60e3);
 function tdNote() {                                 // the session note's lead on a day that isn't normal
@@ -10601,14 +10623,15 @@ function fundRender() {
   $("fundStrip").innerHTML = fundStrip() || `<span class="mu">Prices fill in once the forex, metals and indices scan has run.</span>`;
   const keep = document.activeElement && ["fredKey", "eiaKey"].includes(document.activeElement.id) ? document.activeElement.value : null; if (keep != null) return;   // don't wipe a key being typed
   $("fundRead").innerHTML = fundReadHTML();
-  $("fundRead").querySelectorAll("[data-fmk]").forEach(c => { c.onclick = () => fbOpen(c.dataset.fmk); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(c.dataset.fmk); } }; });
+  $("fundRead").querySelectorAll("[data-fmk]").forEach(c => { c.onclick = () => fbOpen(c.dataset.fmk, c); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(c.dataset.fmk, c); } }; });
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}${fundGapsHTML()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
     <div class="fp fcbr"><div class="fph">Central bank reads <span>from each bank's own statement</span></div>${fundCBReads()}</div>
     <div class="fp fseasp"><div class="fph">Seasonality <span>average change by calendar month</span></div>${fundSeasHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
-  el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk));            // a market's brief, not the chart (the brief has "Open chart")
+  el.querySelectorAll("[data-fmk]").forEach(tr => { tr.onclick = () => fbOpen(tr.dataset.fmk, tr);
+    if (tr.getAttribute("role") === "button") tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(tr.dataset.fmk, tr); } }; });   // lean chips: the keyboard too            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
@@ -10821,11 +10844,15 @@ const CBR_KEY = "finder-cbreads"; let CBR = lsGet(CBR_KEY, {}); const CBW = { po
 const cbSave = () => lsSet(CBR_KEY, CBR), cbUrl = (B, path) => `/proxy/cbpage?bank=${B.key}&p=${encodeURIComponent(path)}`;
 async function cbList(ccy, now = Date.now()) {         // the bank's decisions, newest first (last year's too when this year's list is short)
   const B = CB_BANKS[ccy], y = new Date(now).getUTCFullYear(), get = async path => { const r = await fetch(cbUrl(B, path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); return cbItems(ccy, await r.text()); };
-  let L = await get(B.list.replace("{y}", y)); if (L.length < 2 && B.list.includes("{y}")) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));
+  const yearly = B.list.includes("{y}"); let err = null;
+  let L = await get(B.list.replace("{y}", y)).catch(e => { if (!yearly) throw e; err = e; return []; });     // early January: this year's list may not exist yet
+  if (L.length < 2 && yearly) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));
+  if (!L.length && err) throw err;
   return L;
 }
+const CB_DECISION = /\b(rate|statement|policy decision)\b/i, CB_NOT_DECISION = /minutes|votes|speaks|speech|testimony|press conference|report|accounts|summary of opinions|hearing/i;   // a decision, not its minutes or a speech
 function cbDue(now = Date.now()) {                     // banks with a high-impact decision from 2 minutes before to 90 minutes after
-  const due = new Set(); (typeof calAll === "function" ? calAll() : []).forEach(e => { if (CB_BANKS[e.ccy] && e.impact === "High" && e.type === "Central Bank" && now >= e.at - 2 * 60e3 && now <= e.at + 90 * 60e3) due.add(e.ccy); });
+  const due = new Set(); (typeof calAll === "function" ? calAll() : []).forEach(e => { if (CB_BANKS[e.ccy] && e.impact === "High" && e.type === "Central Bank" && CB_DECISION.test(e.title || "") && !CB_NOT_DECISION.test(e.title || "") && now >= e.at - 2 * 60e3 && now <= e.at + 90 * 60e3) due.add(e.ccy); });
   return [...due];
 }
 function cbForecast(ccy, t, p) {                       // the calendar's forecast for this decision's rate (the ECB's is quoted on its main refinancing rate)
@@ -10952,6 +10979,7 @@ function fbAlerts(m) {                             // the top strip: a sudden mo
 }
 function fbRender() {
   const m = fbMk(FB.k), dlg = $("fbDlg"); if (!m || !dlg || !dlg.open) return;
+  const wait = (FB.hold || 0) - Date.now(); if (wait > 0) { clearTimeout(FB.holdT); FB.holdT = setTimeout(fbRender, wait + 20); return; }     // let the opening animation finish first
   const S = fundSignals(), q = fbQuote(m), D = fbDrivers(m, S), W = fbWarn(m, S), sc = D.reduce((a, x) => a + x.v, 0), now = Date.now();
   const v = sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", D.some(x => x.v) ? "Mixed: no strong lean" : D.length ? "No lean right now" : "Not enough data yet"];
   const nf = D.filter(x => x.v > 0).length, na = D.filter(x => x.v < 0).length, sym = q && q.sym ? q.sym.replace(/^(CT:|MX:)/, "").replace("_", "") : "";
@@ -11012,7 +11040,7 @@ function fbRender() {
     </div></div>`);
   body.scrollTop = keep;
   dlg.querySelectorAll("[data-fbs]").forEach(b => b.onclick = () => fbStep(+b.dataset.fbs));
-  $("fbX").onclick = () => dlg.close();
+  $("fbX").onclick = () => fbClose();
   if ($("fbChart")) $("fbChart").onclick = () => { dlg.close(); openInCharts(q.sym); };
   $("fbCopy").onclick = async () => { const T = s => String(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
     const t = [`${m.k}${sym ? " (" + sym + ")" : ""} ${q && q.price ? fmtPrice(q.price) : ""}, ${q && q.chg != null ? fPct(q.chg) + " today" : ""}${q && q.w != null ? ", " + fPct(q.w, 1) + " this week" : ""} · ${fmtPHT(new Date(now + PHT_MS))}`,
@@ -11024,19 +11052,47 @@ function fbRender() {
       r && r.s1h ? `Chart: 1H ${r.s1h.state}, 4H ${r.s4h.state}, D ${r.s1d.state}` : ""].filter(Boolean).join("\n");
     const b = $("fbCopy"); try { await navigator.clipboard.writeText(t); b.textContent = "Copied ✓"; } catch (e) { b.textContent = "Copy blocked"; } setTimeout(() => { if ($("fbCopy")) $("fbCopy").textContent = "Copy brief"; }, 1500); };
 }
-function fbOpen(k) {
+const fbCalm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FB_EASE = "cubic-bezier(.16,1,.3,1)";
+function fbFrom(d, src) {                          // where the box grows from: the row or card you clicked (or a little below the middle)
+  const r = d.getBoundingClientRect(), s = src && src.isConnected && src.getBoundingClientRect(), on = s && s.width && s.bottom > 0 && s.top < innerHeight;
+  return on ? { x: s.left + s.width / 2 - (r.left + r.width / 2), y: s.top + s.height / 2 - (r.top + r.height / 2), k: Math.max(0.12, Math.min(0.5, s.width / r.width)) } : { x: 0, y: 24, k: 0.94 };
+}
+function fbOpen(k, src, dir) {                     // src: the clicked element (the box grows out of it); dir: ±1 when switching market with ← →
   const m = fbMk(k); if (!m) return; FB.k = k; let d = $("fbDlg");
   if (!d) { d = document.createElement("dialog"); d.id = "fbDlg"; d.tabIndex = -1; d.setAttribute("aria-labelledby", "fbTitle"); document.body.appendChild(d);
     d.innerHTML = `<div class="fbh" id="fbHead"></div><div class="fbb" id="fbBody"></div><div class="fbf meta"><span>A lean for your bias, not an entry: the NBB setup on the chart still decides the trade.</span><span class="fbkeys"><kbd>←</kbd> <kbd>→</kbd> switch market · <kbd>Esc</kbd> or click outside to close</span></div>`;
-    d.addEventListener("click", e => { if (e.target === d) d.close(); });
+    d.addEventListener("click", e => { if (e.target === d) fbClose(); });
+    d.addEventListener("cancel", e => { e.preventDefault(); fbClose(); });          // Esc: close with the animation
     document.addEventListener("keydown", e => { if (!d.open || !(e.key === "ArrowLeft" || e.key === "ArrowRight") || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); fbStep(e.key === "ArrowRight" ? 1 : -1); });
-    d.addEventListener("close", () => { if (d.open) return; FB.k = null; clearInterval(FB.t); FB.t = null; }); }      // (a late close after reopening is ignored)
+    d.addEventListener("close", () => { if (d.open) return; FB.k = null; FB.closing = false; d.classList.remove("closing"); clearInterval(FB.t); FB.t = null; }); }      // (a late close after reopening is ignored)
+  const opening = !d.open || FB.closing; FB.closing = false; d.classList.remove("closing"); d.getAnimations().forEach(a => a.cancel());
+  if (src && src.classList) { src.classList.remove("fbpress"); void src.offsetWidth; src.classList.add("fbpress"); setTimeout(() => src.classList.remove("fbpress"), 600); }
   if (!d.open) d.showModal(); $("fbBody").scrollTop = 0; $("fbHead")._h = $("fbBody")._h = null;
-  fbRender(); fbLevels(m); if (m.earn && Date.now() - FB.earnAt > 3600e3) fbEarn();
+  FB.hold = 0; fbRender(); if (opening && !fbCalm()) FB.hold = Date.now() + 650; fbLevels(m); if (m.earn && Date.now() - FB.earnAt > 3600e3) fbEarn();
+  FB.src = opening ? src || null : FB.src;
+  if (fbCalm()) { if (opening) d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); }
+  else if (opening) {                              // grow out of the clicked row, then the sections fade up one after another
+    const f = fbFrom(d, src);
+    d.animate([{ opacity: 0, transform: `translate(${f.x}px, ${f.y}px) scale(${f.k})` }, { opacity: 1, offset: 0.35 }, { opacity: 1, transform: "none" }], { duration: 380, easing: FB_EASE });
+    const B = $("fbBody"), Q = sel => [...B.querySelectorAll(sel)];         // in steps: header, the top strip, the lean, the levels, then the two columns
+    [[$("fbHead")], Q(":scope > .fbal"), Q(":scope > .fblean"), Q(":scope > .fblv, :scope > .fblv1"), Q(".fbcols > div")].filter(g => g.length).forEach((g, i) => g.forEach((el, j) =>
+      el.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 320, delay: 60 + i * 45 + j * 25, easing: FB_EASE, fill: "backwards" })));
+    const on = $("fbBody").querySelector(".fbmeter i.on"); if (on) on.animate([{ transform: "scale(.2)", opacity: 0 }, { transform: "scale(1.25)", opacity: 1, offset: 0.7 }, { transform: "scale(1)" }], { duration: 420, delay: 280, easing: "ease-out", fill: "backwards" });
+  } else if (dir) {                                // switching market: the content slides the way you went
+    [$("fbHead"), $("fbBody")].forEach(el => el.animate([{ opacity: 0, transform: `translateX(${dir * 28}px)` }, { opacity: 1, transform: "none" }], { duration: 260, easing: FB_EASE }));
+  }
   const news = () => (FUND.news && Date.now() - FUND.news.at < 20e3 ? Promise.resolve() : fundNews(true)).then(() => { if (FB.k) fbRender(); }).catch(() => {});
   news(); clearInterval(FB.t); FB.t = setInterval(() => { if (!FB.k) return; news(); const x = fbMk(FB.k); if (x) fbLevels(x); }, 60e3);     // headlines every minute while open
 }
-const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k); };
+function fbClose(now) {                            // shrink back toward the row it came from while the page brightens
+  const d = $("fbDlg"); if (!d || !d.open || FB.closing) return;
+  if (now || fbCalm()) { d.close(); return; }
+  FB.closing = true; d.classList.add("closing"); const f = fbFrom(d, FB.src);
+  const a = d.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translate(${f.x}px, ${f.y}px) scale(${f.k})` }], { duration: 220, easing: "cubic-bezier(.4,0,.8,.4)", fill: "forwards" });
+  a.onfinish = () => { if (FB.closing) d.close(); a.cancel(); };
+}
+const fbStep = s => { const i = FB_MK.findIndex(m => m.k === FB.k); fbOpen(FB_MK[(i + s + FB_MK.length) % FB_MK.length].k, null, s); };
 /* ===================== Headline alerts: market-moving headlines on your markets, on any page, checked every 2 minutes ===================== */
 const NA_KEY = "finder-news-seen"; let NA_SEEN = lsGet(NA_KEY, {});
 const naMine = () => [fbMk("Gold"), fbMk("Nasdaq 100")].filter(Boolean);

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Serves Alt Scanner on http://localhost (this Mac only) with the same security headers as the Vercel deploy."""
-import http.server, socketserver, sys, os, json, urllib.request, urllib.error, subprocess, threading, time
+import http.server, socketserver, sys, os, json, urllib.request, urllib.error, urllib.parse, subprocess, threading, time
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8787
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
@@ -36,12 +36,17 @@ def relay_mexc(prefix, rest):
 # Relay for Forex Factory's weekly calendar feed and Nasdaq's earnings calendar (neither allows calls from a web page).
 # Cached so the sources are asked at most every few minutes.
 CACHE = {}
-def cached_get(key, url, ttl, headers):
+class SameHostRedirect(urllib.request.HTTPRedirectHandler):     # follow a redirect only on the same site (the bank's own); anything else comes back as the 3xx
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if urllib.parse.urlsplit(newurl).netloc.lower() != urllib.parse.urlsplit(req.full_url).netloc.lower(): return None
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+SAME_HOST = urllib.request.build_opener(SameHostRedirect)
+def cached_get(key, url, ttl, headers, opener=None):
     hit = CACHE.get(key)
     if hit and time.time() - hit[0] < ttl: return 200, hit[1]
     try:
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=20) as r:
+        with (opener.open if opener else urllib.request.urlopen)(req, timeout=20) as r:
             body = r.read(); CACHE[key] = (time.time(), body)
             if len(CACHE) > 200: CACHE.pop(next(iter(CACHE)))
             return r.status, body
@@ -135,7 +140,7 @@ def relay_fund(path, q):
         from urllib.parse import parse_qs
         qq = parse_qs(q or ""); bank, rel = (qq.get("bank") or [""])[0], (qq.get("p") or [""])[0]
         if bank not in CB_HOSTS or not re.match(r"^[A-Za-z0-9_.~-][A-Za-z0-9/_.~-]*$", rel) or ".." in rel or "//" in rel: return 400, b'{"error":"not allowed"}'
-        return cached_get("cb" + bank + rel, CB_HOSTS[bank] + "/" + rel, 30, {**BROWSER, "Accept": "text/html,application/xhtml+xml,application/xml,*/*"})
+        return cached_get("cb" + bank + rel, CB_HOSTS[bank] + "/" + rel, 30, {**BROWSER, "Accept": "text/html,application/xhtml+xml,application/xml,*/*"}, SAME_HOST)
     return 404, b'{"error":"unknown source"}'
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".webmanifest": "application/manifest+json", ".js": "text/javascript"}

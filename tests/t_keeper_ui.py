@@ -54,7 +54,13 @@ async def main():
         await A.evaluate("() => ctKeeperPull().catch(e => { document.getElementById('ctMsg').textContent = e.message; })"); await asyncio.sleep(0.5)
         print("5) keeper down:", await A.evaluate("() => document.getElementById('ctMsg').innerText.slice(0, 140)"), "| A still", await A.evaluate("() => CT.state"))
         st["fail503"] = False
-        await B.evaluate("() => openCTSettings()"); await asyncio.sleep(0.2); await B.click("#kpLeave"); await asyncio.sleep(0.3)
+        await B.evaluate("() => openCTSettings()"); await asyncio.sleep(0.2)
+        hb = await B.evaluate("() => ({ pasteOpen: document.querySelector('.ctmanual').open, text: document.getElementById('dlgBody').innerText })")
+        print("8a) borrowing device's dialog: paste section open", hb["pasteOpen"], "| renewal line:", [l for l in hb["text"].split("\n") if "renew" in l.lower() or "expires" in l.lower()][:3])
+        if hb["pasteOpen"] or "never places orders" in hb["text"] or "Access expires" in hb["text"]: eb.append("borrowing device's Connect cTrader dialog is out of date")
+        await B.click("#kpLeave"); await asyncio.sleep(0.3)
+        tr = await B.evaluate("() => [CTT.state, !!CTT.ws]"); print("8b) trade socket after stopping:", tr)
+        if tr[0] == "ready" or tr[1]: eb.append("the Trade page kept the borrowed login after 'Stop using the shared login'")
         print("8) B stops borrowing:", await B.evaluate("() => JSON.stringify({ kp: localStorage.getItem('finder-keeper'), tok: (ctCfg() || {}).accessToken || null, keeper: !!(ctCfg() || {}).keeper })"))
         # ---- review fixes: each check below must hold
         F = []

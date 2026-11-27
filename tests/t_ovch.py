@@ -64,6 +64,11 @@ async def main():
         print("macro hosted:", await wait("() => OVC.on === 'x' && CHP[0].t.length > 50 && CHP[1].t.length > 50", 60))
         await asyncio.sleep(1)
         print("macro:", await q(state))
+        df = await q("() => [CHP[0].tf, CHP[1].tf, !!document.getElementById('ovcAuto'), typeof ovcSessTf]"); print("15m all day:", df)
+        if df != ["15m", "15m", False, "undefined"]: errs.append("the forex overview isn't on 15m all day (no session switch)")
+        mg = await q("() => [ovcMigrate({ x: { tfs: ['1m', '5m'] } }).x.tfs, ovcMigrate({ x: { auto: false, tfs: ['5m', '1h'] } }).x.tfs, ovcMigrate({ x: { tfs: ['1m', '5m'], m15: 1 } }).x.tfs]")
+        print("   saved 1m/5m session picks move to 15m once:", mg)
+        if mg != [["15m", "15m"], ["5m", "1h"], ["1m", "5m"]]: errs.append("old session timeframes weren't moved to 15m")
         # click the Nasdaq chart: it becomes the active one
         await q("() => CHP[1].cv.scrollIntoView({ block: 'center' })"); await asyncio.sleep(0.3)
         bx = await q("() => { const r = CHP[1].cv.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }")
@@ -88,21 +93,9 @@ async def main():
         print("crypto from macro:", await q("() => [OVC.on, CH.sym, CH.layout, chVis().length]"))
         await q("() => goPage('macroov')"); await wait("() => OVC.on === 'x' && CHP[1].t.length > 50", 30)
         print("macro again:", await q("() => [OVC.act, chName(CHP[0].psym), chName(CHP[1].psym)]"))
-        # session timeframes: pretend it's London, so Gold goes to 5m; your own pick inside the window stands; after London it's back to yours
         tfs = "() => [CHP[0].tf, CHP[1].tf, CHP[0].manTf, CHP[1].manTf]"
-        await q("() => { window._sessReal = ovcSessTf; ovcSessTf = sym => /^Gold/.test(chName(sym)) ? '5m' : null; ovcSessApply(true); }")
-        await wait("() => CHP[1].tf === '5m' && CHP[1].t.length > 50", 20)
-        print("london:", await q(tfs))
-        await q("() => { const s = CHP[1].pane.querySelector('.chtf'); s.value = '15m'; s.onchange(); }"); await asyncio.sleep(0.5)
-        await q("() => ovcSessApply(true)")
-        print("own pick in london:", await q(tfs))
-        await q("() => { ovcSessTf = () => null; ovcSessApply(true); }"); await asyncio.sleep(0.5)
-        print("after london:", await q(tfs), "| saved:", await q("() => JSON.stringify(lsGet('finder-ovch').x.tfs)"))
-        # session timeframes off: nothing switches
-        await q("() => document.getElementById('ovcAuto').click()")
-        await q("() => { ovcSessTf = sym => /^Gold/.test(chName(sym)) ? '5m' : null; CHP.forEach(P => P.sessKey = null); ovcSessApply(true); }"); await asyncio.sleep(0.3)
-        print("auto off:", await q(tfs), await q("() => [document.getElementById('ovcAuto').getAttribute('aria-pressed'), lsGet('finder-ovch').x.auto]"))
-        await q("() => { document.getElementById('ovcAuto').click(); ovcSessTf = window._sessReal; CHP.forEach(P => P.sessKey = null); ovcSessApply(true); }")
+        await q("() => { const s = CHP[1].pane.querySelector('.chtf'); s.value = '1h'; s.onchange(); }"); await asyncio.sleep(0.5); await q("() => ovcSessApply(true)")
+        print("own pick stands:", await q(tfs), "| saved:", await q("() => JSON.stringify(lsGet('finder-ovch').x.tfs)"))
         # same timeframe: change one, the other follows
         await q("() => document.getElementById('ovcLink').click()"); await asyncio.sleep(0.3)
         await q("() => { const s = CHP[0].pane.querySelector('.chtf'); s.value = '4h'; s.onchange(); }")

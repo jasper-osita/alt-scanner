@@ -951,6 +951,43 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 @media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
 @media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
+/* Trading day page */
+.tdcard .momohead{gap:10px}
+#tdBody{display:flex;flex-direction:column;gap:14px;margin-top:10px}
+.tdsay,.tdsec{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.tdsayh{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}.tdsay h3,.tdsec h3{margin:0;font:600 15px var(--display);color:var(--strong)}
+.tdsec h3{margin-bottom:10px;font-size:14px}.tdsec h3 .mu,.tdsec h3 span{font:400 12px var(--font)}
+.tdlines{display:grid;grid-template-columns:110px minmax(0,1fr);gap:5px 14px;font-size:13.5px;line-height:1.5}.tdlines b{color:var(--strong)}
+.tdlive{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.tdlivedot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 25%,transparent)}
+.tdchip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;font-size:12px;font-weight:700;white-space:nowrap;background:var(--pill);color:var(--text)}
+.tdchip.up{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}.tdchip.warn{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber)}
+.tdchip.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+.tdtbl{overflow-x:auto}
+.tdrow{display:grid;grid-template-columns:120px 150px 190px minmax(160px,1fr) 170px;gap:8px;align-items:center;width:100%;min-width:780px;padding:8px 6px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.tdrow:hover,.tdrow.on{background:var(--hover)}.tdhd{display:grid;grid-template-columns:120px 150px 190px minmax(160px,1fr) 170px;gap:8px;min-width:780px;padding:8px 6px;color:var(--mute);font-size:12px}.tdrow b{color:var(--strong)}
+.tddots{display:inline-flex;gap:5px}.tddot{width:10px;height:10px;border-radius:50%;background:var(--green)}.tddot.thin,.tddot.half{background:var(--amber)}.tddot.closed{background:var(--red)}
+.tdhours{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:4px;align-items:end;height:200px;border-bottom:1px solid var(--pill-b)}
+.tdbar{position:relative;height:100%}.tdbar i{position:absolute;bottom:0;border-radius:3px 3px 0 0}
+.tdbar i.n{left:0;right:0;border:1px solid var(--blue);background:color-mix(in srgb,var(--blue) 10%,transparent);box-sizing:border-box}
+.tdbar i.t,.tdbar i.f{left:22%;right:22%}.tdbar i.t{background:var(--green)}.tdbar i.f{background:color-mix(in srgb,var(--amber) 60%,transparent)}
+.tdhlbl{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:4px;margin-top:5px;font-size:11px;color:var(--mute);text-align:center}.tdhlbl .tdnow{color:var(--strong);font-weight:700}
+.tdh5{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.tddowbars{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:end;height:150px;border-bottom:1px solid var(--pill-b)}
+.tdbands{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:4px;margin-top:6px;font-size:11px}.tdbands span{padding:3px 6px;border-radius:4px;background:var(--pill);color:var(--mute);overflow:hidden;white-space:nowrap}
+.tdleg{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--mute)}.tdleg span{display:inline-flex;align-items:center;gap:6px}
+.tdleg i{width:12px;height:10px;border-radius:2px}.tdleg i.n{border:1px solid var(--blue)}.tdleg i.t{background:var(--green)}.tdleg i.f{background:color-mix(in srgb,var(--amber) 60%,transparent)}
+.tdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.tdvol svg{width:100%;height:auto}.tdnote{margin:8px 0 0;font-size:12px;line-height:1.5}
+.tdwhy p{margin:2px 0 10px;font-size:13px;line-height:1.5}.tdk{font-size:12px;color:var(--text)}
+.tdweek{display:grid;grid-template-columns:110px repeat(5,minmax(110px,1fr));gap:6px;overflow-x:auto;font-size:12px}.tdweek>b{color:var(--mute);font-weight:500;align-self:end}.tdweek>b.tdnow{color:var(--accent);font-weight:700}
+.tdweek .tdwmk{color:var(--strong);font-weight:700;align-self:center}
+.tdcell{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;cursor:pointer;min-width:0}
+.tdcell.on{border-color:var(--accent)}
+.tdah{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}.tdah b{color:var(--strong)}
+.tdcard .warn{color:var(--amber)}
+.chday{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap;margin-left:6px;cursor:pointer;border:0;font-family:inherit}
+.chday.up{background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green)}.chday.warn{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber)}.chday.dn{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+@media (max-width:760px){.tdlines{grid-template-columns:1fr}.tdhlbl span:nth-child(even){visibility:hidden}}
 .calviews{display:inline-flex;border:1px solid var(--pill-b);border-radius:8px;overflow:hidden}.calviews button{background:transparent;border:0;color:var(--mute);font:500 12px var(--font);padding:5px 11px;cursor:pointer}.calviews button+button{border-left:1px solid var(--pill-b)}.calviews button.on{background:var(--pill);color:var(--accent)}
 .calnav{display:flex;align-items:center;gap:8px;margin:4px 0 10px}.calnav b{font-size:15px;color:var(--strong);margin-left:4px}.calnav .btn{min-width:30px}
 .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}.calgrid>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
@@ -1232,6 +1269,13 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
     <div class="why">The next-base breakout on your trading timeframes: Gold on M5 through London, the Nasdaq on M1 at the US open. Read on closed candles from your broker (cTrader) when connected, otherwise MEXC or Binance. A trigger is a displacing close out of a base of 6+ candles; entry at that close, stop beyond the far side of the base, target 3R. Checks show whether it's with the trend, whether the base was swept first, whether there's room, and whether high-impact news is close.</div>
     <div id="nwEdit" class="nwedit" hidden></div>
     <div id="nwGrid" class="nwgrid"><div class="empty">Loading…</div></div>
+  </section>
+
+  <section class="card tdcard" data-page="tday">
+    <div class="momohead"><h2>Trading day</h2><span class="meta" id="tdMeta"></span>
+      <span class="calbtns"><span class="calviews" role="group" aria-label="Trading day view"><button data-tdview="today">Today</button><button data-tdview="week">This week</button></span><button class="btn sm" id="tdRefresh">Refresh</button></span></div>
+    <div class="why">When to be present and when to stay quiet: each of your markets (your chart watchlist without crypto) called for the whole trading day, from a normal day hour by hour, past holidays and a live check.</div>
+    <div id="tdBody"><div class="empty">Loading…</div></div>
   </section>
 
   <section class="card calcard" data-page="calendar">
@@ -3184,7 +3228,7 @@ function holEntries(fromKey, toKey, extra = []) {     // every market's holidays
     const k = e.key + "|" + e.mk, o = by.get(k);
     if (!o) { by.set(k, { key: e.key, mk: e.mk, n: e.n, half: !!e.half, srcs: [e.src] }); return; }
     if (o.half && !e.half) o.half = false;
-    if (e.n && !o.n.split(" / ").includes(e.n)) o.n += " / " + e.n;
+    if (e.n && e.src !== "ff" && !o.n.split(" / ").includes(e.n)) o.n += " / " + e.n;          // Forex Factory's generic "Bank Holiday" doesn't add to a named one
     if (!o.srcs.includes(e.src)) o.srcs.push(e.src);
   });
   return [...by.values()].sort((a, b) => a.key - b.key || order.indexOf(a.mk) - order.indexOf(b.mk));
@@ -3362,6 +3406,8 @@ function tickClock() {
   $("now").style.left = ($("bar").getBoundingClientRect().width * h / 24) + "px";
   const toWin = hs < NBB[0] ? NBB[0] - hs : (hs >= NBB[1] ? 24 - hs + NBB[0] : 0);
   $("sessNote").innerHTML = toWin === 0 ? `<b>NBB window is open</b> until ${sessLbl(NBB[1])} (London, ${sessLbl(12)} – ${sessLbl(18)}, is the best of it).` : `Now in ${cur}. NBB window opens in <b>${Math.floor(toWin)}h ${Math.round((toWin % 1) * 60)}m</b> (${sessLbl(NBB[0])}).`;
+  if (typeof tdNote === "function") { const td = tdNote(); if (td) $("sessNote").innerHTML = td + $("sessNote").innerHTML; }
+  if (typeof tdChip === "function") tdChip();
 }
 
 /* ---- formatting ---- */
@@ -6773,7 +6819,7 @@ ncPrune(); ncSave(); ncRenderBell();
 
 /* ===================== The Finder: sidebar pages ===================== */
 const PAGES = [
-  { g: "MARKET", items: [["overview", "Overview"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"], ["fund", "Fundamentals"]] },
+  { g: "MARKET", items: [["overview", "Overview"], ["tday", "Trading day"], ["playbook", "Playbook"], ["charts", "Charts"], ["calendar", "Calendar", "Economic Calendar"], ["fund", "Fundamentals"]] },
   { g: "FIND", items: [["momentum", "Momentum Board"], ["day", "Day Trade"], ["swing", "Swing"], ["aots", "Trend Starting"], ["sessions", "Session Picks"]] },
   { g: "FOREX · METALS · INDICES", items: [["nbbwatch", "NBB Watch", "NBB Watch: Gold & Nasdaq"], ["macroov", "Overview", "Forex, Metals & Indices Overview"], ["macromomo", "Momentum Board", "Forex, Metals & Indices Momentum"], ["macro", "All Instruments", "Forex, Gold & Indices"]] },
   { g: "SCREENER", items: [["screener", "All Coins"], ["filters", "Filters & Templates"]] },
@@ -6811,6 +6857,7 @@ function goPage(id, keepTab) {
   if (MACRO_PAGES.includes(id)) { if (id !== "macro") renderMacroBoards(); macroScan(false).catch(() => {}); }
   if (id === "nbbwatch" && typeof nwShown === "function") nwShown();
   if (id === "calendar" && typeof calShown === "function") calShown();
+  if (id === "tday" && typeof tdShown === "function") tdShown();
   if (id === "fund" && typeof fundShown === "function") fundShown();
   if (id === "trade" && typeof trShown === "function") trShown();
   if (id === "overview" && typeof renderCCharts === "function") setTimeout(() => renderCCharts(), 0);
@@ -8613,6 +8660,7 @@ function chBuild() {
         <div class="chcats" role="group" aria-label="Markets">${CH_CATS.filter(c => c[0] !== "all").map(([k, l]) => `<button data-cat="${k}">${l} <i>▾</i></button>`).join("")}</div>
         <div class="chpick" id="chPick" hidden></div>
       </div>
+      <button class="chday" id="chDay" hidden title="The day's call: open Trading day">Normal day</button>
       <button class="chindbtn" id="chCmpBtn" title="Compare or add symbol" aria-label="Compare or add symbol">${chIco("M10.5 4v13M4 10.5h13", 17)}</button>
       <button class="chindbtn chtypebtn" id="chTypeBtn" aria-haspopup="true" title="Chart type" aria-label="Chart type"></button>
       <div class="chlay"><button class="chlaybtn" id="chLayBtn" aria-haspopup="true" aria-expanded="false" title="Layout">${chLayIcon(CH.layout)}<span>▾</span></button><div class="chlaypop" id="chLayPop" hidden></div></div>
@@ -10839,7 +10887,12 @@ function tdStoreCalls(key, markets) {                // each day's calls, for Th
   try { localStorage.setItem("finder-td-calls", JSON.stringify(A)); } catch (e) {}
 }
 async function tdLoad(force, now = Date.now()) {    // now: the moment to read the day for (tests pass one; candles are always fetched up to the real time)
-  if (TD.busy || (!force && TD.at && Date.now() - TD.at < 15 * 60e3)) return TD;
+  while (TD.p) { await TD.p.catch(() => {}); if (!force) return TD; }                // one load at a time: wait for the one running
+  if (!force && TD.at && Date.now() - TD.at < 15 * 60e3) return TD;
+  TD.p = tdLoadRun(now); try { await TD.p; } finally { TD.p = null; }
+  return TD;
+}
+async function tdLoadRun(now) {
   TD.busy = true; TD.err = null;
   try {
     if (!MACRO.rows.length && typeof macroScan === "function") await macroScan(false).catch(() => {});
@@ -10854,11 +10907,139 @@ async function tdLoad(force, now = Date.now()) {    // now: the moment to read t
       if (m.sym) { try { K1 = await tdHist(m.sym); } catch (e) {} try { K15 = await klines(m.sym, "15m", 110); } catch (e) {} }
       out.push(tdCalcMarket(m, K1, K15, entries, key, now));
     }
-    Object.assign(TD, { at: now, key, markets: out, entries, broker: hb });
+    Object.assign(TD, { at: Date.now(), now, key, markets: out, entries, broker: hb });
     tdStoreCalls(key, out);
   } catch (e) { TD.err = e.message; }
   finally { TD.busy = false; }
   return TD;
+}
+let TD_VIEW = (() => { try { return localStorage.getItem("finder-td-view") || "today"; } catch (e) { return "today"; } })(), TD_SEL = null, TD_DAY = null;
+const TD_CALL = { ok: ["Tradeable", "up"], untilLondon: ["Tradeable until London", "warn"], quiet: ["Likely quiet", "warn"], closed: ["Closed", "dn"] };
+const TD_LIVE = { normal: ["Moving normally", "up"], quiet: ["Quiet so far", "warn"], waking: ["Waking up", "up"], between: ["A bit slow", ""] };
+const tdEsc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+function tdFmt(mk, v) {                               // a range in the units people use: pips, dollars, points
+  if (v == null || !isFinite(v)) return "—";
+  if (/^[A-Z]{6}$/.test(mk)) return Math.round(v / (mk.endsWith("JPY") ? 0.01 : 0.0001)) + " pips";
+  if (mk === "Gold" || mk === "Silver") return "$" + (v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(mk === "Gold" ? 1 : 2));
+  return Math.round(v).toLocaleString("en-US") + " pts";
+}
+const tdPct = r => r == null || !isFinite(r) ? "—" : Math.round(r * 100) + "%";
+const tdHourLbl = (key, b) => { const h = new Date(tdStart(key) + b * 3600e3 + PHT_MS).getUTCHours(); return String((h + 11) % 12 + 1); };
+const tdClock = ms => { const d = new Date(ms + PHT_MS), h = d.getUTCHours(), m = d.getUTCMinutes(); return `${(h + 11) % 12 + 1}${m ? ":" + String(m).padStart(2, "0") : ""} ${h < 12 ? "AM" : "PM"}`; };
+const tdDayShort = key => { const d = new Date(key * 864e5); return `${TD_WD[d.getUTCDay()].slice(0, 3)}, ${TD_MO[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+function tdSessOf(m, key) {                          // for one market: Asia, London, New York → normal / thin / half / closed
+  const C = TD_CENTRES[m.mk] || [], E = TD.entries.filter(e => e.key === key && (C.includes(e.mk) || e.mk === "FX"));
+  return TD_SESS.map(([k, , cs]) => { const es = E.filter(e => cs.includes(e.mk) || e.mk === "FX");
+    const own = es.find(e => TD_OWN[m.mk] === e.mk || e.mk === "FX");
+    return { k, st: own && !own.half ? "closed" : es.some(e => e.half) && !es.some(e => !e.half) ? "half" : es.length ? "thin" : "normal" }; });
+}
+const tdDay = () => tdSay({ key: TD.key, markets: TD.markets, entries: TD.entries });
+function tdShown() { tdRender(); tdLoad(false).then(tdRender); }
+function tdRender() {
+  const el = $("tdBody"); if (!el) return;
+  document.querySelectorAll("[data-tdview]").forEach(b => { const on = b.dataset.tdview === TD_VIEW; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  $("tdMeta").textContent = TD.busy ? "Reading the markets…" : TD.at ? `${tdDayLbl(TD.key)} · updated ${tdClock(TD.at)} PHT` : "";
+  if (!TD.markets.length) { el.innerHTML = `<div class="empty">${TD.busy ? "Reading two years of candles for your markets: the first time takes a minute." : TD.err ? "Couldn't read the markets: " + tdEsc(TD.err) : "Loading…"}</div>`; return; }
+  if (!TD_SEL || !TD.markets.some(m => m.mk === TD_SEL)) TD_SEL = (TD.markets.find(m => m.call) || TD.markets[0]).mk;
+  el.innerHTML = TD_VIEW === "week" ? tdWeekHTML() : tdTodayHTML();
+  el.querySelectorAll("[data-mk]").forEach(r => r.onclick = () => { TD_SEL = r.dataset.mk; tdRender(); });
+  el.querySelectorAll("[data-day]").forEach(c => c.onclick = () => { TD_DAY = +c.dataset.day; tdRender(); });
+}
+function tdTodayHTML() {
+  const S = tdDay(), vc = S.verdict === "Normal day" ? "up" : S.verdict === "Closed day" ? "dn" : "warn", bin = tdBin(Date.now()), today = tdKey(Date.now()) === TD.key;
+  const lv = TD.markets.filter(m => m.live).map(m => `${tdEsc(m.name)} <b class="${TD_LIVE[m.live.state][1]}">${tdPct(m.live.ratio)}</b>`).join(", ");
+  const dots = m => tdSessOf(m, TD.key).map(s => `<i class="tddot ${s.st}" title="${s.k}: ${s.st}"></i>`).join("");
+  const rows = TD.markets.map(m => { const c = m.call ? TD_CALL[m.call] : null;
+    return `<button class="tdrow ${m.mk === TD_SEL ? "on" : ""}" data-mk="${tdEsc(m.mk)}"><b>${tdEsc(m.name)}</b><span class="tddots">${dots(m)}</span>
+      <span>${c ? `<span class="tdchip ${c[1]}">${c[0]}</span>` : `<span class="mu">${tdEsc(m.err || "No data yet")}</span>`}</span>
+      <span>${m.fc ? `~${tdFmt(m.mk, m.fc.day)} <span class="mu">of ${tdFmt(m.mk, m.prof.day)} usual (${tdPct(m.fc.ratio)})</span>` : ""}</span>
+      <span>${m.live ? `<b class="${TD_LIVE[m.live.state][1]}">${tdPct(m.live.ratio)}</b> <span class="mu">${TD_LIVE[m.live.state][0].toLowerCase()}</span>` : ""}</span></button>`; }).join("");
+  return `<div class="tdsay"><div class="tdsayh"><span class="tdchip ${vc}">${S.verdict}</span><h3>${tdEsc(S.title)}</h3></div>
+      <div class="tdlines">${S.lines.map(l => `<b>${l.k}</b><span>${tdEsc(l.v)}</span>`).join("")}</div>
+      ${lv && today ? `<div class="tdlive"><i class="tdlivedot"></i><b>Live</b> <span class="mu">at each 15-minute close</span> <span>${lv} of a normal day by now.</span></div>` : ""}</div>
+    <div class="tdsec"><h3>Your markets today <span class="mu">your watchlist without crypto · click one for its hours</span></h3>
+      <div class="tdtbl" id="tdMkts"><div class="tdhd"><span>Market</span><span>Asia · London · New York</span><span>Day call</span><span>Day range</span><span>Live, so far</span></div>${rows}</div></div>
+    ${tdHoursHTML(bin, today)}
+    <div class="tdgrid">${tdDowHTML()}${tdVolHTML()}${tdWhyHTML()}</div>`;
+}
+function tdHoursHTML(bin, today) {
+  const m = TD.markets.find(x => x.mk === TD_SEL); if (!m || !m.prof) return `<div class="tdsec"><h3 class="tdhourstitle">Hour by hour: ${tdEsc(m ? m.name : "")}</h3><div class="empty">No data yet for this market.</div></div>`;
+  const P = m.prof.bins, F = m.fc.bins, T = m.today ? m.today.bins : [], mx = Math.max(...P.map(v => v || 0), ...F, ...T.map(v => v || 0)) * 1.1 || 1;
+  const bars = P.map((v, b) => { const done = today && b <= bin && T[b] != null, t = done ? T[b] : today && b <= bin ? null : F[b];
+    return `<div class="tdbar" title="${tdHourLbl(TD.key, b)}: usually ${tdFmt(m.mk, v)}${t != null ? (done ? ", today " : ", forecast ") + tdFmt(m.mk, t) : ""}"><i class="n" style="height:${(v || 0) / mx * 100}%"></i>${t != null ? `<i class="${done ? "t" : "f"}" style="height:${t / mx * 100}%"></i>` : ""}</div>`; }).join("");
+  return `<div class="tdsec"><h3 class="tdhourstitle">Hour by hour: ${tdEsc(m.name)} <span class="mu">usual range per hour over the last ${m.prof.n} normal days · PHT</span></h3>
+    <div class="tdhours">${bars}</div><div class="tdhlbl">${P.map((v, b) => `<span class="${today && b === bin ? "tdnow" : ""}">${tdHourLbl(TD.key, b)}</span>`).join("")}</div>
+    <div class="tdbands"><span style="grid-column:1/span 4">Asia</span><span style="grid-column:5/span 7">London</span><span style="grid-column:12/span 2">Pre-NY</span><span style="grid-column:14/span 7">New York</span><span style="grid-column:21/span 4">Off-hours</span></div>
+    <div class="tdleg"><span><i class="n"></i>A normal hour</span><span><i class="t"></i>Today so far</span><span><i class="f"></i>Forecast for the rest of today</span></div></div>`;
+}
+function tdDowHTML() {
+  const m = TD.markets.find(x => x.mk === TD_SEL); if (!m || !m.days) return "";
+  const C = TD_CENTRES[m.mk] || [], skip = new Set(TD.entries.filter(e => C.includes(e.mk)).map(e => e.key)), N = tdDow(m.days, skip);
+  const mon = TD.key - ((new Date(TD.key * 864e5).getUTCDay() + 6) % 7), W = [0, 1, 2, 3, 4].map(i => { const d = m.days.get(mon + i); return mon + i < TD.key && d ? d.range : mon + i === TD.key && m.fc ? m.fc.day : null; });
+  const mx = Math.max(...N.map(v => v || 0), ...W.map(v => v || 0)) * 1.15 || 1;
+  return `<div class="tdsec tddow"><h3>Day of the week <span class="mu">${tdEsc(m.name)} · day range</span></h3><div class="tddowbars">${N.map((v, i) => `<div class="tdbar" title="${TD_WD[i + 1]}: normal ${tdFmt(m.mk, v)}${W[i] != null ? ", this week " + tdFmt(m.mk, W[i]) : ""}"><i class="n" style="height:${(v || 0) / mx * 100}%"></i>${W[i] != null ? `<i class="${mon + i === TD.key ? "f" : "t"}" style="height:${W[i] / mx * 100}%"></i>` : ""}</div>`).join("")}</div>
+    <div class="tdhlbl tdh5">${["Mon", "Tue", "Wed", "Thu", "Fri"].map(d => `<span>${d}</span>`).join("")}</div><p class="mu tdnote">Outline: a normal week. Filled: this week.</p></div>`;
+}
+function tdVolHTML() {
+  const m = TD.markets.find(x => x.mk === TD_SEL); if (!m || !m.days) return "";
+  const S = tdSeries(m.days).filter(s => s.key < TD.key), C = TD_CENTRES[m.mk] || [], hk = new Set(TD.entries.filter(e => C.includes(e.mk)).map(e => e.key));
+  if (S.length < 2) return "";
+  const mx = Math.max(...S.map(s => s.range), m.prof.day) * 1.1, X = i => 30 + i / (S.length - 1) * 560, Y = v => 150 - v / mx * 135;
+  const dots = S.map((s, i) => hk.has(s.key) ? `<circle cx="${X(i).toFixed(1)}" cy="${Y(s.range).toFixed(1)}" r="4" fill="var(--accent)"><title>${tdDayShort(s.key)}: ${tdEsc(TD.entries.filter(e => e.key === s.key && C.includes(e.mk)).map(holSay).join("; "))}</title></circle>` : "").join("");
+  return `<div class="tdsec tdvol"><h3>Volatility, last 3 months <span class="mu">${tdEsc(m.name)} · day range</span></h3>
+    <svg viewBox="0 0 600 170" role="img" aria-label="Day range over the last three months, holidays marked"><line x1="30" y1="${Y(m.prof.day).toFixed(1)}" x2="590" y2="${Y(m.prof.day).toFixed(1)}" stroke="var(--mute)" stroke-dasharray="4 4"/>
+    <text x="34" y="${(Y(m.prof.day) - 5).toFixed(1)}" fill="var(--mute)" font-size="11">normal ${tdFmt(m.mk, m.prof.day)}</text>
+    <polyline points="${S.map((s, i) => X(i).toFixed(1) + "," + Y(s.range).toFixed(1)).join(" ")}" fill="none" stroke="var(--blue)" stroke-width="1.8"/>${dots}</svg><p class="mu tdnote">Dots: holidays in the centres that move ${tdEsc(m.name)}.</p></div>`;
+}
+function tdWhyHTML() {
+  const today = TD.entries.filter(e => e.key === TD.key), m = TD.markets.find(x => x.mk === TD_SEL);
+  const map = TD.markets.map(x => `${tdEsc(x.name)}: ${(TD_CENTRES[x.mk] || []).map(c => (HOL_MKTS.find(h => h[0] === c) || [0, c])[1]).join(", ")}`).join(". ");
+  const past = m && m.fc && m.fc.why.length ? m.fc.why.map(w => w.n >= 2 ? `${(HOL_MKTS.find(h => h[0] === w.centre) || [0, w.centre])[1]} holidays: ${tdEsc(m.name)} moved about ${tdPct(w.factor)} of a normal day (${w.n} past holidays).` : `${(HOL_MKTS.find(h => h[0] === w.centre) || [0, w.centre])[1]}: fewer than 2 past examples, so the usual rule is used (that session at ${tdPct(w.factor)}).`).join(" ") : "Nothing today that touches it.";
+  const src = TD.broker && TD.broker.count != null ? `Pepperstone's holiday hours (${TD.broker.count} on record), the exchange rules and Forex Factory.` : "The exchange rules and Forex Factory (connect cTrader to add Pepperstone's own holiday hours).";
+  return `<div class="tdsec tdwhy"><h3>Why this call</h3><b class="tdk">Holidays today</b><p>${today.length ? tdEsc(today.map(holSay).join("; ")) + "." : "None in any market."}</p>
+    <b class="tdk">Who moves your markets</b><p>${map}.</p><b class="tdk">${tdEsc(m ? m.name : "")} on past holidays</b><p>${past}</p>
+    <p class="mu tdnote">A normal day is the middle of the last 20 trading days that weren't holidays, measured on 1-hour candles across the whole trading day. Sources: ${src} Hong Kong and Korea dates come from a table for 2026–2027: check them against HKEX and KRX.</p></div>`;
+}
+function tdWeekHTML() {
+  const mon = TD.key - ((new Date(TD.key * 864e5).getUTCDay() + 6) % 7), keys = [0, 1, 2, 3, 4].map(i => mon + i);
+  let A = {}; try { A = JSON.parse(localStorage.getItem("finder-td-calls") || "{}") || {}; } catch (e) {}
+  const cell = (m, k) => {
+    const d = m.days && m.days.get(k), past = k < TD.key && d && m.prof, meas = past ? d.range / m.prof.day : null;
+    let call = (A[k] || {})[m.mk] ? A[k][m.mk].call : null, fc = null;
+    if (!call && k >= TD.key && m.prof) { fc = k === TD.key ? m.fc : tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === k)); call = tdCall(fc, m.prof); }
+    const c = call ? TD_CALL[call] : null, ratio = past ? meas : (fc || (k === TD.key ? m.fc : null) || {}).ratio;
+    return `<button class="tdcell ${TD_DAY === keys.indexOf(k) ? "on" : ""}" data-day="${keys.indexOf(k)}">${c ? `<span class="tdchip ${c[1]}">${call === "untilLondon" ? "Until London" : c[0]}</span>` : `<span class="mu">—</span>`}
+      <span class="tddots">${tdSessOf(m, k).map(s => `<i class="tddot ${s.st}"></i>`).join("")}</span><span class="mu">${ratio != null ? (past ? "" : "~") + tdPct(ratio) : ""}</span></button>`; };
+  const verdicts = keys.map(k => ({ key: k, verdict: tdSay({ key: k, markets: TD.markets.map(m => { const a = (A[k] || {})[m.mk]; if (a) return { mk: m.mk, call: a.call, fc: { ratio: a.ratio, why: [] } };
+    if (!m.prof) return { mk: m.mk, call: null }; const fc = k === TD.key ? m.fc : tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === k)); return { mk: m.mk, call: tdCall(fc, m.prof), fc }; }), entries: TD.entries }).verdict }));
+  const grid = `<div class="tdweek"><span></span>${keys.map((k, i) => `<b class="${k === TD.key ? "tdnow" : ""}">${tdDayShort(k).split(",")[0]} ${new Date(k * 864e5).getUTCDate()}${k === TD.key ? " · today" : ""}</b>`).join("")}
+    ${TD.markets.map(m => `<b class="tdwmk">${tdEsc(m.name)}</b>${keys.map(k => cell(m, k)).join("")}`).join("")}</div>`;
+  const di = TD_DAY != null ? TD_DAY : keys.indexOf(TD.key), dk = keys[di] ?? TD.key;
+  const DS = tdSay({ key: dk, markets: TD.markets.map(m => ({ mk: m.mk, call: ((A[dk] || {})[m.mk] || {}).call || (m.prof ? tdCall(dk === TD.key ? m.fc : tdForecast(m.mk, m.prof, m.fx, TD.entries.filter(e => e.key === dk)), m.prof) : null), fc: m.fc })), entries: TD.entries });
+  const happened = dk < TD.key ? TD.markets.filter(m => m.days && m.days.get(dk) && m.prof).map(m => { const r = m.days.get(dk).range / m.prof.day, a = ((A[dk] || {})[m.mk] || {}).call;
+    const right = a ? ((a === "quiet" || a === "closed") ? r < 0.7 : r >= 0.7) : null; return `${tdEsc(m.name)} ${tdPct(r)}${right == null ? "" : right ? ` <b class="up">Right.</b>` : ` <b class="dn">Off.</b>`}`; }).join(" · ") : "";
+  const ahead = TD.entries.filter(e => e.key > TD.key && e.key <= TD.key + 56 && !tdWeekend(e.key)).map(e => ({ e, mk: TD.markets.filter(m => (TD_CENTRES[m.mk] || []).includes(e.mk) || TD_OWN[m.mk] === e.mk).map(m => m.name) })).filter(x => x.mk.length);
+  return `<div class="tdsay"><h3 class="tdweeksay">${tdEsc(tdSayWeek(verdicts))}</h3></div>
+    <div class="tdsec"><h3>Your markets this week <span class="mu">dots: Asia · London · New York · % of a normal day's range</span></h3>${grid}
+      <p class="mu tdnote">Past days show what happened; today and later show the forecast. Click a day for its story.</p></div>
+    <div class="tdsec tdstory"><h3>${tdEsc(DS.title)}</h3><div class="tdlines">${DS.lines.map(l => `<b>${l.k}</b><span>${tdEsc(l.v)}</span>`).join("")}${happened ? `<b>What happened</b><span>${happened}</span>` : ""}</div></div>
+    <div class="tdsec tdahead"><h3>Thin stretches ahead <span class="mu">next 8 weeks, only holidays that touch your markets</span></h3>${ahead.length ? ahead.map(x => `<div class="tdah"><b>${tdDayShort(x.e.key)}</b><span>${tdEsc(holSay(x.e))} <span class="mu">· ${tdEsc(x.mk.join(", "))}</span></span></div>`).join("") : `<div class="empty">No holidays in your markets in the next 8 weeks.</div>`}</div>`;
+}
+document.querySelectorAll("[data-tdview]").forEach(b => b.onclick = () => { TD_VIEW = b.dataset.tdview; TD_DAY = null; try { localStorage.setItem("finder-td-view", TD_VIEW); } catch (e) {} tdRender(); });
+$("tdRefresh").onclick = () => tdLoad(true).then(tdRender);
+setInterval(() => { if (page === "tday" && document.visibilityState === "visible") tdLoad(true).then(tdRender); }, 15 * 60e3);
+setTimeout(() => tdLoad(false).then(() => { if (typeof tickClock === "function") tickClock(); }).catch(() => {}), 30e3);       // the day's call for the session note and the Charts chip
+setInterval(() => { if (document.visibilityState === "visible" && page !== "tday") tdLoad(false).catch(() => {}); }, 30 * 60e3);
+function tdNote() {                                 // the session note's lead on a day that isn't normal
+  if (!TD.key || !TD.markets.some(m => m.call)) return "";
+  const S = tdDay(); if (S.verdict === "Normal day") return "";
+  return `<b>${S.verdict}</b> · ${tdEsc((S.lines.find(l => l.k === "For you") || {}).v || S.title)} `;
+}
+function tdChip() {                                 // the Charts page chip
+  const el = $("chDay"); if (!el) return;
+  if (!TD.key || !TD.markets.some(m => m.call)) { el.hidden = true; return; }
+  const S = tdDay(); el.hidden = false; el.textContent = S.verdict; el.title = S.title + " Open Trading day.";
+  el.className = "chday " + (S.verdict === "Normal day" ? "up" : S.verdict === "Closed day" ? "dn" : "warn"); el.onclick = () => goPage("tday");
 }
 $("calViews").querySelectorAll("[data-cv]").forEach(b => b.onclick = () => { CALV.mode = b.dataset.cv; CALV.off = 0; lsSet(CALV_KEY, { mode: CALV.mode }); calRender(); });
 $("calFilterBtn").onclick = () => { calFilterOpen = !calFilterOpen; calRender(); };

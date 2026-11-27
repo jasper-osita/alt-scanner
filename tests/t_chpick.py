@@ -37,7 +37,7 @@ async def main():
         await pg.click('.chcats [data-cat="indices"]'); await asyncio.sleep(0.4)
         await pg.click('#chPick [data-star="IWMUSDT"]'); await asyncio.sleep(0.2)
         print("4) starred Russell:", await q("() => CHW.includes('IWMUSDT') && !!document.querySelector('#chWL .chwr[data-s=\"IWMUSDT\"]')"), "| still open:", await q("() => !document.getElementById('chPick').hidden"))
-        await pg.mouse.click(900, 600); await asyncio.sleep(0.2)
+        await pg.mouse.click(30, 930); await asyncio.sleep(0.2)   # outside the centred picker
         print("   outside click closes:", await q("() => document.getElementById('chPick').hidden"))
         await pg.click('.chcats [data-cat="recent"]'); await asyncio.sleep(0.3)
         print("5) recent:", await q("() => [...document.querySelectorAll('#chPick [data-ps]')].map(r => r.dataset.ps).join(',')"))

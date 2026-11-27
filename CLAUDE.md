@@ -23,6 +23,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   `scSave` stores each fresh one; during a scan `klines` keeps closed candles and fetches only new ones (`klinesNet` is the real fetch, `klFlush` saves).
 - cTrader: `ctKlines(sym, tf, limit, keepForming, toMs)`, `ctAccountInfo`, `ctSpec`, `ctLots`, `CT_PERIOD/CT_MS/CT_SPAN`, `ctPrefer`, `ctEquiv`.
   Staying connected: `ctSignIn`/`ctOAuthReturn` (OAuth; token swap direct, or via `/api/ct-token`: server.py on the Mac, `api/ct-token.js` on Vercel), `ctRenew` (2173), `ctScheduleReconnect`, `ctResubscribe`.
+  Shared login: `api/ct-keeper.js` (private Vercel Blob store `the-finder-keeper`, or Upstash Redis if connected; env `FINDER_PASS`; `GET /api/ct-keeper?check=1` = set-up check) holds and renews the one login; devices borrow it (`ctCfg().keeper`, no local refresh token): `ctKeeperSeed`/`ctKeeperJoin`/`ctKeeperPull(bad)`, dialog `ctShareHTML`; passphrase in `finder-keeper`. Tests `t_keeper`, `t_keeper_ui`.
 - Charts: `CHP` panes, `chLoad`, `chSetData`, `chLoadOlder` (history on scroll, max 5000), `chPaint`, `chIndPaint`, `IND` registry,
   `chIndBuild/Layout/Sync`, dialog mode `CHDLG`/`chDlgStart`, settings `CS_DEF`/`chCS()`.
   Overview main charts borrow the same engine: `OVC`, `ovcHost`/`ovcPark` (Bitcoin on Overview; dollar + Nasdaq 100 side by side on the
@@ -40,6 +41,21 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   levels from 1H candles `fbLevels`/`fbLvCalc` (US indices: 15m `fbUsLv`, overnight range, 4 PM close, open gap, first 15 min), `fbFedExp`, `fbStrength`, `fbEvents` (+ `fbEarn`), `fbNews`;
   sudden moves `fbSample` (every 2 s, live prices, alert via `ncAdd` for your NBB Watch markets); release read `rxTick` (market reaction 2 and 10 min after a high-impact release, history `finder-react`);
   headline alerts on any page `naCheck` (core `NEWS_TAGS`/`newsBig`, MACRO tag; alerts carry `action: "brief"`). Cloud watcher sends headlines too (`.github/workflows/cloud-watch.yml`). Test: `t_brief`.
+- TradingView extras on Charts (end of `<script id="charts">`; test `t_tvx`, `t_sync`): chart types `CH_TYPES`/`chMainSeries`/`chSerPt` (Heikin Ashi `chHA`);
+  chart alerts `CHA` (`chaDialog`, `chaQuick`, `chaEval` every 3 s, `chaCandles`, list `chaList`); bar replay `RP` (`rpEnter`, `rpCut`, `rpForward`; blocks `cttPlace`/`mxtPlace`/`qtPlace`);
+  compare `CH.cmp` (`chCmpSync`, percent scale); right panel tabs `CH.side` (object tree `chSideRender`, data window `chDataWin`); snapshot `chSnap`;
+  sync via private GitHub gist `SYNC_PARTS`/`syNow` (token in `finder-sync`, Settings → Sync); scripts `PS` (Pine-like, no eval: `psLex`/`psParse`/`psCompile`/`psRun`, editor `psEditor`, registered as `IND["ps_<id>"]`).
+- Market picker (TradingView style, `#chPick` as a centred dialog): `pkMarkets(cat, src)` groups each market's sources (key = `chName`), preferred first;
+  `pkSrcOf`/`pkSrcName`/`pkType`/`pkIcon`; sources page `chPickView = "src"`; a source picked by hand sticks (`chSetSym(sym, true)` → `CH.symExact`). Test `t_picker`.
+  Tests start on Overview unless `setup(ctx, start=None)` (the app itself opens on Charts).
+- Markets switch on the boards (`MK`, `boardRows`, `mkDay`/`mkSwing`, `mkMix`, `rowOf`; test `t_mkts`): crypto plus `MACRO.rows` (forex, indices, metals & energy) through the same detectors.
+  `data.day`/`data.swing`/`aotsList()` stay coin-only for history, streams and exports; the boards call the mixed versions.
+- Trading day page (`tday`, sidebar MARKET; spec `docs/superpowers/specs/2026-11-27-trading-day-design.md`, piece 1 built): core `tdKey`/`tdBin`/`tdStart`
+  (session-clock day from 8:00, so 3 AM PHT is still yesterday), holiday rules `holRules`/`HOL_TABLE` (HK, KR 2026–2027 only), `holEntries`, broker list
+  `ctHolidays`/`brokerHolidays` (`finder-hol`); profiles `tdDays`/`tdProfile`/`tdFx`/`tdDow`/`tdSeries`; forecast and calls `TD_CENTRES`/`tdMk`/`tdForecast`/`tdCall`
+  /`tdLive`/`tdRoom`/`tdCalcMarket`; words `tdSay`/`tdSayWeek`. Extras: `tdLoad(force, now)` (1H history ~2 years cached as `td|sym` in `finder-cache` → `kl`,
+  15m today, calls kept in `finder-td-calls`), `tdRender` (Today / This week), `tdNote` (Overview session note) and `tdChip` (`#chDay` on Charts). Test `t_td`
+  (pass the day to `tdLoad`: a frozen test clock stalls the rate limiter `spend`).
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow

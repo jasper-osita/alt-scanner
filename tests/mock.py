@@ -1,6 +1,7 @@
 """Mock market data for testing Alt Scanner offline: Binance futures + spot, CoinGecko, alternative.me.
 Every timeframe is aggregated from one hourly path per coin, so 15m/1H/4H/1D candles agree."""
 import json, math, random, time, hashlib, os, threading, http.server, socketserver, re
+from datetime import date
 from urllib.parse import urlparse, parse_qs
 H = 3600_000
 NOW = (int(time.time() * 1000) // H) * H            # top of the current hour; the last hourly candle is still forming
@@ -132,9 +133,11 @@ async def route_all(route):
     elif "alternative.me" in url: body = fng(url)
     else: return await route.abort()
     await route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"access-control-allow-origin": "*"})
-async def setup(ctx):
+async def setup(ctx, start="overview"):
     for pat in ["**/*binance*/**", "**/api.coingecko.com/**", "**/api.alternative.me/**"]: await ctx.route(pat, route_all)
     await ctx.route("**/s3-symbol-logo.tradingview.com/**", lambda r: r.abort())
+    # The app opens on Charts; most tests were written for Overview, so a plain address starts there unless the test asks (start=None)
+    if start: await ctx.add_init_script("if (location.pathname === '/' && !location.hash) history.replaceState(null, '', '#%s');" % start)
 # static server with the app's production headers (from vercel.json)
 APP = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 def serve(port=8765):
@@ -149,7 +152,12 @@ def serve(port=8765):
         def guess_type(s, p): return "application/manifest+json" if p.endswith(".webmanifest") else super().guess_type(p)
         def log_message(s, *a): pass
     socketserver.TCPServer.allow_reuse_address = True
-    srv = socketserver.ThreadingTCPServer(("localhost", port), Hd); threading.Thread(target=srv.serve_forever, daemon=True).start(); return srv
+    class Srv(socketserver.ThreadingTCPServer):
+        def handle_error(s, request, addr):              # the browser hanging up mid-download is not a test failure
+            import sys as _s
+            if isinstance(_s.exc_info()[1], (BrokenPipeError, ConnectionResetError)): return
+            super().handle_error(request, addr)
+    srv = Srv(("localhost", port), Hd); threading.Thread(target=srv.serve_forever, daemon=True).start(); return srv
 async def ready(pg, secs=150):
     for _ in range(secs * 2):
         if await pg.evaluate("() => !document.getElementById('runBtn').disabled && document.getElementById('copyBtn').disabled === false"): return True
@@ -160,6 +168,11 @@ async def ready(pg, secs=150):
 CT_FX = ["EURUSD","GBPUSD","USDJPY","USDCHF","USDCAD","AUDUSD","NZDUSD","EURGBP","EURJPY","EURCHF","EURCAD","EURAUD","EURNZD","GBPJPY",
          "GBPCHF","GBPCAD","GBPAUD","GBPNZD","AUDJPY","AUDCHF","AUDCAD","AUDNZD","NZDJPY","NZDCHF","NZDCAD","CADJPY","CADCHF","CHFJPY"]
 CT_LIST = CT_FX + ["XAUUSD", "XAGUSD", "US500", "NAS100", "US30", "SpotCrude", "GER40", "AAPL.US", "XPTUSD", "SpotBrent", "NatGas", "JPN225", "HK50", "UK100"]
+_DK = lambda y, m, d: (date(y, m, d) - date(1970, 1, 1)).days
+CT_HOL = {"NAS100": [{"holidayId": 1, "name": "Thanksgiving", "holidayDate": _DK(2026, 11, 26), "isRecurring": False, "scheduleTimeZone": "America/New_York"},
+                     {"holidayId": 2, "name": "Day after Thanksgiving", "holidayDate": _DK(2026, 11, 27), "isRecurring": False, "startSecond": 46800, "endSecond": 86400, "scheduleTimeZone": "America/New_York"}],
+          "UK100": [{"holidayId": 3, "name": "Boxing Day", "holidayDate": _DK(2026, 12, 28), "isRecurring": False, "scheduleTimeZone": "Europe/London"}],
+          "XAUUSD": [{"holidayId": 4, "name": "Christmas", "holidayDate": _DK(2025, 12, 25), "isRecurring": True, "scheduleTimeZone": "UTC"}]}   # the broker's holiday list (ProtoOASymbol.holiday)
 CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w"}
 CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
@@ -204,7 +217,7 @@ def ct_handler(opts):
                 for sid in p.get("symbolId", []):
                     n = CT_LIST[sid - 1]
                     out.append({"symbolId": sid, "digits": 2 if n.startswith("XAU") or not n.isupper() or n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 5,
-                                "lotSize": 10000 if n == "XAUUSD" else 100 if n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 10000000, "stepVolume": 100 if n in ("US500","NAS100","US30") else 1000, "minVolume": 100 if n in ("US500","NAS100","US30") else 1000, "pipPosition": 1 if n.startswith("XAU") else 2 if "JPY" in n else 4})
+                                "lotSize": 10000 if n == "XAUUSD" else 100 if n in ("US500","NAS100","US30","GER40","JPN225","HK50","UK100") else 10000000, "stepVolume": 100 if n in ("US500","NAS100","US30") else 1000, "minVolume": 100 if n in ("US500","NAS100","US30") else 1000, "pipPosition": 1 if n.startswith("XAU") else 2 if "JPY" in n else 4, **({"holiday": CT_HOL[n]} if n in CT_HOL else {})})
                 return reply(2117, {"ctidTraderAccountId": 4242, "symbol": out})
             if t == 2127:
                 reply(2128, {})
@@ -434,3 +447,29 @@ async def route_fund(route):
     return await route.fulfill(status=404, body="")
 async def setup_fund(ctx):
     for pat in ["**/proxy/ust/**", "**/proxy/cot*", "**/proxy/fred/**", "**/proxy/rss/**"]: await ctx.route(pat, route_fund)
+
+# ---------------- fake shared-login keeper (/api/ct-keeper) ----------------
+def keeper_state():
+    return {"pass": "correct horse 42", "login": None, "gets": 0, "seeds": 0, "bads": [], "serve_stale": False, "fail503": False, "junk": False, "err403": None}
+async def route_keeper(ctx, st):
+    async def handle(route):
+        r = route.request
+        if r.method == "OPTIONS": return await route.fulfill(status=204, body="")
+        if r.method != "POST": return await route.fulfill(status=405, body="")
+        p = json.loads(r.post_data or "{}"); send = lambda code, obj: route.fulfill(status=code, content_type="application/json", body=json.dumps(obj))
+        if st["fail503"]: return await send(503, {"error": "The shared login isn't set up yet: add the Upstash Redis store to this Vercel project and set FINDER_PASS."})
+        if st["junk"]: return await route.fulfill(status=200, content_type="text/html", body="<html>not the keeper</html>")
+        if p.get("pass") != st["pass"]: return await send(403, {"error": st["err403"] or "That passphrase didn't work."})
+        if p.get("action") == "seed":
+            st["seeds"] += 1; st["login"] = {k: p.get(k) for k in ("clientId", "clientSecret", "accessToken", "refreshToken", "expAt", "scope")}; return await send(200, {"ok": True})
+        if p.get("action") == "get":
+            st["gets"] += 1
+            if not st["login"]: return await send(404, {"error": "Nothing is shared yet."})
+            if p.get("bad"):
+                st["bads"].append(p["bad"]); st["serve_stale"] = False; st["login"]["accessToken"] = "tok-renewed"
+            L = dict(st["login"]); L.pop("refreshToken", None)
+            if st["serve_stale"]: L["accessToken"] = "stale"
+            return await send(200, L)
+        if p.get("action") == "forget": st["login"] = None; return await send(200, {"ok": True})
+        return await send(400, {"error": "Unknown action."})
+    await ctx.route("**/api/ct-keeper", handle)

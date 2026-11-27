@@ -6281,6 +6281,7 @@ function ctShareBind() {
     try { await ctKeeperJoin(v.pass, v.url); ctClose(); CT.state = "closed"; await after("Using the shared login. Connecting to cTrader…", $("kpJoin")); }
     catch (e) { msg(`<span class="dn">${esc(e.message)}</span>`); $("kpJoin").disabled = false; } };
   if ($("kpLeave")) $("kpLeave").onclick = () => { const c = ctCfg() || {}; kpSave(null); ctClose(); CT.state = "closed";
+    if (typeof cttClose === "function" && typeof CTT !== "undefined") { cttClose(); CTT.state = "off"; }                // the Trade page was on the borrowed login too
     ctSaveCfg({ clientId: c.clientId, clientSecret: c.clientSecret, prefer: c.prefer }); openCTSettings(); msg("This device no longer uses the shared login. Sign in or use it again any time."); renderMacro(); };
 }
 function openCTSettings() {
@@ -6299,17 +6300,18 @@ function openCTSettings() {
       <div class="ctsso"><button class="btn primary" id="ctSignIn" type="button">Sign in with cTrader</button>
         <p class="meta">Easiest: fill in the Client ID and Secret, then sign in. The app gets the tokens and renews them itself, so you can leave the two token boxes empty.
         Once only, add this return address to your app on openapi.ctrader.com (Applications → Edit → Redirect URIs → Save): <code id="ctRedir">${esc(ctRedirectUri())}</code> <button class="btn sm" id="ctCopyRedir" type="button">Copy</button></p></div>
-      <details class="ctmanual" ${c.accessToken && !c.refreshToken ? "open" : ""}><summary class="meta">Or paste tokens from the Sandbox page</summary>
+      <details class="ctmanual" ${c.accessToken && !c.refreshToken && !c.keeper ? "open" : ""}><summary class="meta">Or paste tokens from the Sandbox page</summary>
       <p class="meta">Getting a token there ends the app's sign-in on your other devices (cTrader keeps only the latest one). Sign in with cTrader is the better way.</p>
       <label>Access token<input id="ctToken" type="password" autocomplete="off" value="${esc(c.accessToken)}"></label>
       <label>Refresh token <span class="mute">(keeps you connected: the app renews access itself before it expires)</span><input id="ctRefresh" type="password" autocomplete="off" value="${esc(c.refreshToken)}"></label></details>
-      ${c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
+      ${c.keeper ? `<p class="meta">The shared login is renewed on your website; this device picks up each renewal by itself.</p>`
+        : c.expAt ? `<p class="meta">Access ${c.refreshToken ? "renews automatically; next renewal" : "expires"} around ${new Date(c.expAt - (c.refreshToken ? CT_RENEW_MS : 0)).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}.</p>` : ""}
       ${CT.accounts.length > 1 ? `<label>Account<select id="ctAcct">${CT.accounts.map(a => `<option value="${a.ctidTraderAccountId}" ${String(a.ctidTraderAccountId) === String(c.accountId) ? "selected" : ""}>${typeof trTitle === "function" ? trTitle(a.brokerTitleShort || "Broker") : a.brokerTitleShort || "Broker"} · ${a.traderLogin || a.ctidTraderAccountId} · ${a.isLive ? "Live" : "Demo"}</option>`).join("")}</select></label>` : ""}
       ${CT.state === "ready" ? (() => { const got = ctList(), miss = [...FX_PAIRS.map(p => p.slice(0, 3) + "/" + p.slice(3)), ...CT_CFD.filter(x => x[3] !== "Commodities").map(x => x[0])].filter(n => !got.some(o => o.name === n));
         return `<div class="meta ctfound"><b>Found on your account (${got.length}):</b> ${got.filter(o => !/Forex/.test(o.group)).map(o => `${o.name} <span class="mute">${o.x.symbolName}</span>`).join(", ")}${got.some(o => /Forex/.test(o.group)) ? `, plus ${got.filter(o => /Forex/.test(o.group)).length} forex pairs` : ""}.${miss.length ? ` <b>Not found:</b> ${miss.join(", ")} (MEXC or Binance fill these in).` : ""}</div>`; })() : ""}
       <label class="chk ctpref"><input type="checkbox" id="ctPrefer" ${c.prefer === false ? "" : "checked"}> Use my broker's prices for forex, gold, oil and the indices wherever it lists them (boards, charts, pop-ups); MEXC or Binance fill in the rest</label>
       ${ctShareHTML(c)}
-      <p class="meta">Saved in this browser and sent only to cTrader (and to your own website when you share it). Without sharing, each address keeps its own copy and renewing on one signs the others out. The token gives read access to prices and your account list; the app never places orders.</p>
+      <p class="meta">Saved in this browser and sent only to cTrader (and to your own website when you share it). Without sharing, each address keeps its own copy and renewing on one signs the others out. The login reads prices and your accounts; orders are placed only from the Trade page and Quick trade, with a trading-access sign-in.</p>
       <div class="meta" id="ctMsg" aria-live="polite">${CT.state === "error" && CT.err ? `<span class="dn">${CT.err}</span>` : ""}</div>
       <div class="ctacts"><button class="btn primary" id="ctSave">Connect</button>${ctCfg() ? '<button class="btn" id="ctForget">Disconnect and forget</button>' : ""}</div>
     </div>`;
@@ -7891,7 +7893,7 @@ function chPickRender(focus) {
   const list = pkMarkets(chPickCat, chPickSrc).map((m, i) => ({ m, r: rank(m), i })).filter(x => !q || x.r).sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.m).slice(0, 150);
   chPickSel = Math.max(0, Math.min(chPickSel, list.length - 1));
   const fxNote = chPickCat === "fx" && !list.length ? `<div class="meta chpnote">Forex comes from cTrader (connect it on the <a href="#macro" data-go2="macro">Forex, Gold &amp; Indices</a> page) or MEXC's forex perpetuals.</div>` : "";
-  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">Loading MEXC's stock perpetuals…</div>` : "";
+  const stNote = chPickCat === "stocks" && !list.length ? `<div class="meta chpnote">${chMexc() ? "Loading MEXC's stock perpetuals…" : "Stocks come from MEXC's stock perpetuals: set the exchange to MEXC in the scan settings to list them here."}</div>` : "";
   const px = x => { const qd = chQuote(x), c = qd && qd.chg; return `<span class="v">${chFmt(qd && qd.price)}</span><span class="v ${c >= 0 ? "up" : "dn"}">${c == null ? "" : (c >= 0 ? "+" : "") + c.toFixed(2) + "%"}</span>`; };
   p.innerHTML = head + `<div class="pkq"><span aria-hidden="true">${chIco("M9 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM13.5 13.5l4.5 4.5", 16)}</span><input id="chPickQ" type="search" placeholder="Symbol or name" value="${chPickQ.replace(/"/g, "&quot;")}" autocomplete="off" aria-label="Search markets"></div>
     <div class="pkbar"><div class="chptabs" role="tablist">${CH_CATS.map(([k, l]) => `<button role="tab" data-pc="${k}" class="${k === chPickCat ? "on" : ""}" aria-selected="${k === chPickCat}">${l}</button>`).join("")}</div>
@@ -7902,7 +7904,7 @@ function chPickRender(focus) {
         <span class="n"><b>${chEsc(pkTick(x))}</b><small>${chEsc(m.desc)} <i class="pktag">${chEsc(m.type)}</i></small></span>${px(x)}
         <span class="pksrc">${chEsc(pkSrcName(pkSrcOf(x)))}</span>${more ? `<button class="pkmore ${open ? "on" : ""}" data-more="${chEsc(m.key)}" aria-expanded="${open}" title="Other sources">+${more} ▾</button>` : `<span></span>`}</div>
         ${more ? `<div class="pksubs" data-subs="${chEsc(m.key)}" ${open ? "" : "hidden"}>${m.syms.slice(1).map(y => `<div class="pksub" data-ps="${y}" role="option"><span class="pksrc">${chEsc(pkSrcName(pkSrcOf(y)))}</span><span class="mute">${chEsc(pkTick(y))} · ${chEsc(pkType(y))}</span>${px(y)}</div>`).join("")}</div>` : ""}`; }).join("")
-      || (fxNote || stNote || `<div class="meta chpnote">No market matches “${chEsc(chPickQ)}”.</div>`)}</div>`;
+      || (fxNote || stNote || `<div class="meta chpnote">${chPickQ.trim() ? `No market matches “${chEsc(chPickQ.trim())}”.` : "No markets in this list yet."}</div>`)}</div>`;
   p.querySelectorAll("[data-pc]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickCat = b.dataset.pc; chPickSel = 0; chPickRender(true); chQuotesFetch(pkMarkets(chPickCat, chPickSrc).slice(0, 24).map(m => m.syms[0])); });
   $("pkSrcB").onclick = e => { e.stopPropagation(); chPickView = "src"; p.dataset.srcq = ""; chPickRender(true); };
   p.querySelectorAll("[data-more]").forEach(b => b.onclick = e => { e.stopPropagation(); chPickOpenK = chPickOpenK === b.dataset.more ? null : b.dataset.more; chPickRender(); });

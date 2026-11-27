@@ -863,12 +863,16 @@ textarea.chtxt{resize:none;width:220px;line-height:1.35}
 }
 @media (hover:none){.chia{display:inline-flex}.chtools .chtarr{opacity:1}}
 .fundcard .momohead{gap:10px}.fstrip{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;margin:4px 0 10px;background:var(--pill);border:1px solid var(--line);border-radius:10px;font-variant-numeric:tabular-nums;font-size:13px}
-.fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w p n";gap:10px;font-variant-numeric:tabular-nums}
-.fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}
+.fgrid{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,1.45fr) minmax(290px,1fr);grid-template-areas:"w c n" "w r n" "w p n";gap:10px;font-variant-numeric:tabular-nums}
+.fp{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column}.fworld{grid-area:w}.fcb{grid-area:c}.fnewsp{grid-area:n}.fcot{grid-area:p}.fcbr{grid-area:r}
 .fph{display:flex;align-items:center;gap:8px;padding:8px 11px;border-bottom:1px solid var(--line);color:var(--accent);font:700 11.5px var(--font);letter-spacing:.05em;text-transform:uppercase}.fph span{margin-left:auto;color:var(--mute);font-weight:500;letter-spacing:0;text-transform:none}.fph.fsub{border-top:1px solid var(--line)}
 .ftbl{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px}.ftbl td{padding:5px 11px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.ftbl td.r{text-align:right}.ftbl tr:hover{background:transparent}.ftbl tr.fclk{cursor:pointer}.ftbl tr.fclk:hover{background:var(--hover)}
 .fworld .ftbl td{padding:5px 7px}.fworld .ftbl td:first-child{padding-left:11px;white-space:normal}.fnewsp .ftbl td{white-space:normal;padding:5px 8px}.fnewsp .ftbl td.r{font-size:11.5px}.fp{overflow:hidden}
 .ftbl .fgrp{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding-top:9px}.fam{color:var(--accent)}
+.cbc{padding:9px 11px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.45;min-width:0}.cbh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cbl{display:flex;flex-wrap:wrap;gap:4px}.cbl .fk{cursor:pointer}.cbsh{color:var(--mute);font-size:11.5px;font-weight:600}.cbsh span{font-weight:400}.cbw ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.cbw li{padding-left:14px;text-indent:-14px;overflow-wrap:anywhere}.cbw li.add::before{content:"+ ";color:var(--green);font-weight:700}.cbw li.drop::before{content:"− ";color:var(--red);font-weight:700}.cbw li.drop{color:var(--mute)}
+.cbwhy{font-size:11.5px}.cblink{font-size:12px;margin-left:auto}.cbmore{display:flex;flex-direction:column;gap:6px}.cbmore summary{cursor:pointer;color:var(--mute);font-size:12px}.cbmore[open] summary{margin-bottom:6px}.cbmore>*+*{margin-top:6px}.cbfoot{padding:8px 11px;font-size:11.5px}
 .fk{display:inline-block;padding:0 6px;border-radius:4px;background:var(--pill);color:var(--mute);font-size:11px;font-weight:600}.fk.up{color:var(--green)}.fk.dn{color:var(--red)}
 .fbar{height:8px;background:var(--pill);border-radius:4px;position:relative;overflow:hidden}.fbar i{position:absolute;top:0;bottom:0}
 .fcurve{display:flex;gap:12px;padding:10px 11px 0;align-items:flex-end}.fsvg{width:100%;height:118px;display:block}.fkv{display:grid;grid-template-columns:auto auto;gap:3px 12px;font-size:12.5px;align-content:end;padding-bottom:6px}.fkv b{text-align:right;font-weight:600}
@@ -907,8 +911,8 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .fbpos{display:flex;align-items:center;gap:12px}.fbnews{display:flex;flex-direction:column}.fbnews a{display:block;padding:5px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none}.fbnews a:hover .fnt{text-decoration:underline}
 @media (max-width:760px){dialog#fbDlg{max-height:94vh;width:98vw}.fblean,.fbcols{grid-template-columns:minmax(0,1fr)}.fbcols>div+div{border-left:0;border-top:1px solid var(--line)}.fblv{grid-template-columns:repeat(2,minmax(0,1fr))}.fbkeys{display:none}}
 @media (max-width:1100px){.fcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.fcards{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "w n" "p p"}}
-@media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
+@media (max-width:1100px){.fgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"c c" "r r" "w n" "p p"}}
+@media (max-width:760px){.fgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"c" "r" "w" "n" "p"}.fcurve{flex-direction:column;align-items:stretch}.ftbl td{white-space:normal;padding:5px 7px}}
 .calcard .momohead{gap:10px}.caltabs{margin:0}.calbtns{margin-left:auto;display:flex;gap:6px;align-items:center}
 /* Trading day page */
 .tdcard .momohead{gap:10px}
@@ -3033,6 +3037,83 @@ function rssItems(xml) {
 }
 const NEWS_FEEDS = { fxstreet: "https://www.fxstreet.com/rss/news", marketwatch: "https://feeds.content.dowjones.io/public/rss/mw_topstories", investing: "https://www.investing.com/rss/news_25.rss",
   coindesk: "https://www.coindesk.com/arc/outboundfeeds/rss/", financialjuice: "https://www.financialjuice.com/feed.ashx?xy=rss" };
+/* ===================== central bank reads: each bank's own decision list and statement, read by rules (no AI, nothing paid) =====================
+   list: where the bank lists its decisions (a path on its own site, {y} = year); item: which entries are rate decisions;
+   from/to: where the statement text starts and ends in the page. The relay (/proxy/cbpage?bank=<key>&p=<path>: server.py, api/cb.js) only reaches these sites. */
+const CB_BANKS = {
+  USD: { bank: "Fed", key: "fed", host: "https://www.federalreserve.gov", list: "feeds/press_monetary.xml", item: /^Federal Reserve issues FOMC statement$/i, from: 'id="article"', to: ["For media inquiries", "Implementation Note", "Last Update"] },
+  EUR: { bank: "ECB", key: "ecb", host: "https://www.ecb.europa.eu", list: "press/govcdec/mopo/{y}/html/index_include.en.html", item: /^Monetary policy decisions$/i, from: "<main", to: ["Related topics", "Media contacts"] },
+  GBP: { bank: "BoE", key: "boe", host: "https://www.bankofengland.co.uk", list: "rss/news", item: /^Bank Rate (maintained|increased|reduced|cut|raised|held|lowered)\b/i, from: "<h2>Monetary Policy Summary", to: ["<h2>Minutes of the Monetary Policy Committee", "Other Monetary Policy Committee news"] },
+  JPY: { bank: "BoJ", key: "boj", host: "https://www.boj.or.jp", list: "en/rss/whatsnew.xml", item: /^Statement on Monetary Policy$/i, from: "<main", to: [] },
+  AUD: { bank: "RBA", key: "rba", host: "https://www.rba.gov.au", list: "media-releases/{y}/", item: /Monetary Policy Decision/i, from: 'class="rss-mr-content"', to: ["Enquiries", "</article>"] },
+  CAD: { bank: "BoC", key: "boc", host: "https://www.bankofcanada.ca", list: "content_type/press-releases/feed/", item: /^Bank of Canada (raises|increases|lowers|reduces|cuts|maintains|holds)\b.*policy rate/i, from: "<main", to: ["Information note", "Content Type(s)"] } };
+const CB_ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", rsquo: "’", lsquo: "‘", ldquo: "“", rdquo: "”", ndash: "–", mdash: "—", hellip: "…", frac12: "½", frac14: "¼", frac34: "¾" };
+const cbDec = s => String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d)).replace(/&([a-z0-9]+);/gi, (m, n) => CB_ENT[n.toLowerCase()] ?? m);
+const cbPath = link => String(link || "").trim().replace(/^https?:\/\/[^/]+/i, "").replace(/^\/+/, "");
+function cbItems(ccy, text) {                         // a bank's decision list → [{ title, link, path, t }], newest first
+  const B = CB_BANKS[ccy], s = String(text || ""); if (!B) return []; let L = [];
+  if (B.key === "rba") L = (s.match(/<article[\s\S]*?<\/article>/g) || []).map(a => { const h = a.match(/itemprop="headline">([^<]*)</), l = a.match(/href="([^"]+)"/), d = a.match(/datetime="([^"]+)"/);
+    return { title: h ? cbDec(h[1]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1].replace(/T(\d\d:\d\d)([+-])/, "T$1:00$2")) || 0 : 0 }; });
+  else if (B.key === "ecb") L = (s.match(/<dt[^>]*isoDate="[^"]+"[\s\S]*?<\/dd>/g) || []).map(a => { const d = a.match(/isoDate="([^"]+)"/), l = a.match(/<div class="title"><a href="([^"]+)"[^>]*>([^<]*)</);
+    return { title: l ? cbDec(l[2]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1] + "T12:15:00Z") || 0 : 0 }; });
+  else L = rssItems(s).map(x => ({ title: x.title, link: x.link, t: x.t }));
+  return L.filter(x => x.title && x.link && B.item.test(x.title)).map(x => ({ ...x, path: cbPath(x.link) })).sort((a, b) => b.t - a.t);
+}
+const CB_NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+const cbFrac = s => { const m = String(s).match(/^(\d+)(?:-(\d+)\/(\d+))?$|^(\d+)\/(\d+)$/); return !m ? parseFloat(s) : m[4] ? m[4] / m[5] : +m[1] + (m[2] ? m[2] / m[3] : 0); };
+const cbPct = s => { const m = String(s).match(/(\d+(?:\.\d+)?)\s*([¼½¾])?/); return m ? +m[1] + ({ "¼": 0.25, "½": 0.5, "¾": 0.75 }[m[2]] || 0) : null; };
+const cbMove = v => /^(rais|increas|hik)/i.test(v) ? "hike" : /^(lower|reduc|cut)/i.test(v) ? "cut" : /^(maintain|keep|kept|leave|left|hold|held|unchanged)/i.test(v) ? "hold" : null;
+const CB_VOTE = /\bvot(e|ed|es|ing)\b|decision was (unanimous|by majority)/i;
+function cbParse(ccy, html, title, path) {            // a statement page → { ok, err?, sentences, move, rate, hawk, dove }
+  const B = CB_BANKS[ccy], out = { ok: false, sentences: [], move: null, rate: null, hawk: 0, dove: 0 };
+  const fromTitle = () => { const t = String(title || ""); out.move = cbMove((t.match(/\b(raises|increases|increased|raised|lowers|lowered|reduces|reduced|cuts|cut|maintains|maintained|holds|held)\b/i) || [])[1] || ""); const r = t.match(/(\d+(?:\.\d+)?\s*[¼½¾]?)\s*(%|per cent|percent)/i); out.rate = r ? cbPct(r[1]) : null; };
+  if (!B) { out.err = "unknown bank"; return out; }
+  if (/\.pdf$/i.test(path || "")) { fromTitle(); out.err = "statement is a PDF"; return out; }
+  const h = String(html || ""), a = h.indexOf(B.from); if (a < 0) { fromTitle(); out.err = "the page layout changed"; return out; }
+  const ends = B.to.map(m => h.indexOf(m, a + B.from.length)).filter(i => i > 0), b = ends.length ? Math.min(...ends) : a + 30000;
+  const lines = cbDec(h.slice(a, b).replace(/^[^>]*>/, "").replace(/\s+/g, " ").replace(/<br\s*\/?>|<\/(p|h\d|li|div|dt|dd|td|tr|section|article|header|ul|ol|table)>|<h\d[^>]*>/gi, "\n").replace(/<[^>]+>/g, " "))
+    .split(/\n+/).map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const all = lines.join(" "), sents = [];
+  lines.forEach(l => l.split(/(?<=[.!?:])(?<!\b[A-Z]\.)(?<!\bU\.S\.)(?<!\b[ap]\.m\.)\s+(?=[A-Z"“‘(])/).forEach(x => { x = x.trim(); if (x.length >= 25 && /[.!?;]["”’)]?$/.test(x) && !CB_VOTE.test(x)) sents.push(x); }));
+  out.sentences = sents;
+  let m, dissent = [];
+  if (ccy === "USD") { m = all.match(/decided to (raise|lower|maintain|reduce|increase)\b(?:[^.]|\.\d)*?target range for the federal funds rate(?:[^.]|\.\d)*?(?:at|to) ([\d\-\/]+) to ([\d\-\/]+) percent/i); if (m) { out.move = cbMove(m[1]); out.rate = cbFrac(m[3]); }
+    const vi = all.search(/Voting against/i), vs = vi < 0 ? "" : all.slice(vi), re = /(?:\b(?:was|were)\s+|;\s*(?:and\s+)?)([^;]{3,300}?), who preferred (?:to )?(\w+)/gi; let v;   // every group: "A, who preferred to lower…; and B and C, who preferred no change…"
+    while ((v = re.exec(vs))) { const n = v[1].split(/,\s*and\s+|,\s*|\s+and\s+/).filter(x => x.trim()).length, d = /^no$/i.test(v[2]) ? "hold" : cbMove(v[2]);
+      dissent.push([n, d === "hike" ? 1 : d === "cut" ? -1 : out.move === "hike" ? -1 : out.move === "cut" ? 1 : 0]); } }
+  else if (ccy === "EUR") { m = all.match(/decided to (raise|increase|lower|reduce|cut|keep|maintain|leave)\b(?:[^.]|\.\d)*?key ECB interest rates/i); if (m) out.move = cbMove(m[1]);
+    const r = all.match(/deposit facility[^%]*?(?:at|to) (\d+(?:\.\d+)?)%(?:, (\d+(?:\.\d+)?)%)?/i); if (r) { out.rate = +r[1]; if (r[2]) out.mro = +r[2]; } }
+  else if (ccy === "GBP") { m = all.match(/voted (?:by a majority of [\d–-]+ |unanimously )?to (increase|reduce|maintain|cut|raise|lower|hold|keep) Bank Rate(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
+  else if (ccy === "AUD") { m = all.match(/decided to (increase|raise|lower|reduce|cut|leave|keep|hold|maintain)\b(?:[^.]|\.\d)*?cash rate target(?:[^.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?) per ?cent/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
+  else if (ccy === "CAD") { m = all.match(/\b(increased|raised|lowered|reduced|cut|held|maintained|kept)\b(?:[^.]|\.\d)*?target for the overnight rate[^%]*?(?:to|at) (\d+(?:\.\d+)?)%/i); if (m) { out.move = cbMove(m[1]); out.rate = +m[2]; } }
+  if (ccy === "GBP" || ccy === "AUD") { const re = /\b(one|two|three|four|five|six|seven|eight|nine|\d+) members? voted to (increase|reduce|maintain|cut|raise|lower|leave|keep|hold)\b(?:[^;.]|\.\d)*?(?:to|at) (\d+(?:\.\d+)?) ?(?:%|per ?cent)/gi; let v;
+    while ((v = re.exec(all))) { const n = CB_NUM[v[1].toLowerCase()] || +v[1], r = +v[3]; if (out.rate != null && Math.abs(r - out.rate) > 1e-9) dissent.push([n, r > out.rate ? 1 : -1]); } }
+  dissent.forEach(([n, d]) => { if (d > 0) out.hawk += n; else if (d < 0) out.dove += n; });
+  if (out.move == null) { fromTitle(); out.err = "couldn't find the decision"; return out; }
+  out.ok = sents.length >= 3; if (!out.ok) out.err = "the page layout changed"; return out;
+}
+// what changed: sentences compared with numbers, fractions and month names blanked, so "In October, inflation rose to 2.9%" isn't a new sentence
+const cbNorm = s => String(s).toLowerCase().replace(/\d+(?:[.,]\d+)?(?:-\d+\/\d+|\/\d+)?\s*[¼½¾]?/g, "#").replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/g, "@").replace(/[’']/g, "'").replace(/\s+/g, " ").trim();
+function cbDiff(prev, cur) { const P = new Set((prev || []).map(cbNorm)), C = new Set((cur || []).map(cbNorm));
+  return { added: (cur || []).filter(x => !P.has(cbNorm(x))), dropped: (prev || []).filter(x => !C.has(cbNorm(x))) }; }
+const CB_HAWK = ["upside risk", "further tightening", "additional policy firming", "additional firming", "remain vigilant", "inflation remains elevated", "inflation remains high", "restrictive for longer", "price pressures", "need to increase", "further increase"];
+const CB_DOVE = ["further adjustments", "additional adjustments", "downside risk", "has softened", "have softened", "has eased", "have eased", "reduce the degree of", "less restrictive", "further reductions", "lower interest rates"];
+const cbHits = (s, L) => L.filter(w => s.toLowerCase().includes(w));
+function cbVerdict(p, diff, forecast) {               // the surprise counts most, dissents next, wording least; +2 or more = Hawkish, −2 or less = Dovish
+  const why = []; let sc = 0; const f2 = v => v.toFixed(2) + "%";
+  if (p.rate != null && forecast != null && isFinite(forecast)) {
+    if (Math.abs(p.rate - forecast) >= 0.05) { const s = p.rate > forecast ? 1 : -1; sc += 3 * s; why.push(`Rate ${f2(p.rate)} vs ${f2(forecast)} expected: ${s > 0 ? "higher" : "lower"} than the market thought`); }
+    else why.push(`Rate ${f2(p.rate)}, as expected`);
+  } else why.push("No forecast to compare the decision with");
+  const dv = Math.max(-2, Math.min(2, (p.hawk || 0) - (p.dove || 0)));
+  if (p.hawk) why.push(`${p.hawk} voted for a higher rate`); if (p.dove) why.push(`${p.dove} voted for a lower rate`); sc += dv;
+  let w = 0; const said = [];
+  (diff && diff.added || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w++; said.push(`added “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w--; said.push(`added “${x}”`); }); });
+  (diff && diff.dropped || []).forEach(s => { cbHits(s, CB_HAWK).forEach(x => { w--; said.push(`dropped “${x}”`); }); cbHits(s, CB_DOVE).forEach(x => { w++; said.push(`dropped “${x}”`); }); });
+  w = Math.max(-2, Math.min(2, w)); sc += w; if (said.length) why.push("Wording: " + [...new Set(said)].slice(0, 3).join(", "));
+  const known = forecast != null && isFinite(forecast);                // without a forecast the app can't say the decision was expected
+  return { score: sc, label: sc >= 2 ? "Hawkish" : sc <= -2 ? "Dovish" : known ? "As expected" : "No clear lean", why };
+}
 </script>
 <script>/* ===================== UI ===================== */
 const $ = id => document.getElementById(id);
@@ -9757,7 +9838,7 @@ async function tgPump() {
 function tgSend(text) { return new Promise(res => { if (TGQ.length > 20) TGQ.shift(); TGQ.push({ text, res: (ok, why) => res({ ok, why }) }); tgPump(); }); }
 const tgText = n => `${n.icon || "🔔"} <b>${xEsc(n.title)}</b>${n.detail ? "\n" + xEsc(n.detail) : ""}${n.url ? "\n" + xEsc(n.url) : ""}${n.sym ? `\n<i>${xEsc(typeof coin === "function" ? (MACRO.by[n.sym] ? MACRO.by[n.sym].name : coin(n.sym)) : n.sym)}</i>` : ""}\n<i>${phtHM(n.at || Date.now())} PHT · The Finder</i>`;
 const _ncAdd = ncAdd;
-ncAdd = function (n, push) { const it = _ncAdd(n, push); try { const c = tgCfg(); if (!it.muted && tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };
+ncAdd = function (n, push) { const it = _ncAdd(n, push); try { const c = tgCfg(); if (!it.muted && !it.noTg && tgOn() && tgKind(c, it.kind)) tgSend(tgText(it)); } catch (e) {} return it; };   // noTg: in-app only
 ncPhoneHook = { ready: tgOn, get: k => tgKind(tgCfg(), k), setup: () => { ncShow(false); openTGSettings(); },      // the Phone column in Notification settings
   set: (k, on) => { const c = tgCfg() || {}; lsSet(TG_KEY, { ...c, kinds: { ...(c.kinds || {}), [k]: on } }); },
   reset: () => { const c = tgCfg(); if (c && c.kinds) { delete c.kinds; lsSet(TG_KEY, c); } } };
@@ -9864,7 +9945,7 @@ const fCls = v => v == null ? "mu" : v > 0 ? "up" : v < 0 ? "dn" : "mu";
 const fPct = (v, d = 2) => v == null || !isFinite(v) ? "—" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
 const fRow = names => (MACRO.rows || []).find(r => names.includes(r.name)) || (MACRO.rows || []).find(r => names.some(n => String(r.symbol).replace(/^(CT:|MX:)/, "").replace(/_USDT$/, "").toUpperCase() === n.replace(/[^A-Z0-9]/gi, "").toUpperCase()));
 const FUND_WM = [["Indices", [["Nasdaq 100", ["Nasdaq 100", "NAS100"]], ["S&P 500", ["S&P 500", "US500"]], ["Dow 30", ["Dow Jones", "US30"]], ["DAX 40", ["DAX 40", "GER40"]], ["Nikkei 225", ["Nikkei 225", "JP225"]]]],
-  ["FX", [["Dollar index", ["US Dollar Index", "USDX", "DXY"]], ["EUR/USD", ["EUR/USD", "EURUSD"]], ["GBP/USD", ["GBP/USD", "GBPUSD"]], ["USD/JPY", ["USD/JPY", "USDJPY"]], ["AUD/USD", ["AUD/USD", "AUDUSD"]], ["USD/CAD", ["USD/CAD", "USDCAD"]]]],
+  ["FX", [["Dollar index", ["US Dollar Index", "USDX", "DXY"]], ["EUR/USD", ["EUR/USD", "EURUSD"]], ["GBP/USD", ["GBP/USD", "GBPUSD"]], ["EUR/GBP", ["EUR/GBP", "EURGBP"]], ["USD/JPY", ["USD/JPY", "USDJPY"]], ["AUD/USD", ["AUD/USD", "AUDUSD"]], ["USD/CAD", ["USD/CAD", "USDCAD"]]]],
   ["Commodities", [["Gold", ["Gold", "XAUUSD"]], ["Silver", ["Silver", "XAGUSD"]], ["WTI crude", ["WTI Crude Oil", "USOIL"]], ["Copper", ["Copper"]]]]];
 function fundLast(id) { const s = FUND.fred && FUND.fred.s && FUND.fred.s[id]; return s && s.length ? s : null; }
 function fundStrip() {
@@ -9973,11 +10054,11 @@ function fundCardsData() {
   const riskL = (good) => S.risk === "on" ? [good, `Risk appetite is up (VIX ${S.vix.toFixed(0)})`] : S.risk === "off" ? [-good, `Markets are nervous (VIX ${S.vix.toFixed(0)})`] : null;
   const gold = fRow(["Gold", "XAUUSD"]), nas = fRow(["Nasdaq 100", "NAS100"]);
   return [
-    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
-    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
+    { k: "Gold", sym: gold && gold.symbol, px: gold && gold.price, chg: gold && gold.chg24h, L: [cbL("USD", -1), realL, usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null, fedL(+1), trend(gold && gold.ret7 != null ? gold.ret7 * 100 : null, "Gold"), crowd(S.cot("Gold"), "gold"), evL] },
+    { k: "Nasdaq 100", sym: nas && nas.symbol, px: nas && nas.price, chg: nas && nas.chg24h, L: [cbL("USD", -1), riskL(+1), realL, fedL(+1), trend(nas && nas.ret7 != null ? nas.ret7 * 100 : null, "Nasdaq"), crowd(S.cot("Nasdaq 100"), "Nasdaq"), evL] },
     { k: "US dollar", sym: S.dollar && S.dollar.sym, px: S.dollar && S.dollar.price, chg: S.dollar && S.dollar.chg, est: S.dollar && S.dollar.est,
-      L: [S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
-    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
+      L: [cbL("USD", 1), S.y2 == null ? null : S.y2 >= 0.1 ? [+1, `2-year yield up ${Math.round(S.y2 * 100)}bp in a month: fewer Fed cuts expected`] : S.y2 <= -0.1 ? [-1, `2-year yield down ${Math.round(-S.y2 * 100)}bp in a month: more Fed cuts expected`] : null, fedL(-1), riskL(-1), trend(usdW, "The dollar"), evL] },
+    { k: "Bitcoin", sym: btc && "BTCUSDT", px: btc && btc.price, chg: btc && btc.chg24h, L: [cbL("USD", -1), riskL(+1), usdW == null ? null : usdW <= -0.5 ? [+1, "The dollar is weaker this week"] : usdW >= 0.5 ? [-1, "The dollar is stronger this week"] : null,
       trend(btc && btc.ret7 != null ? btc.ret7 * 100 : null, "Bitcoin"), mf != null && mf > 0.0003 ? [0, "Funding is high: longs are crowded"] : null, S.fng != null && S.fng >= 75 ? [0, `Extreme greed (${S.fng}): late to chase`] : S.fng != null && S.fng <= 25 ? [0, `Extreme fear (${S.fng}): often near lows`] : null] }
   ].map(c => { const L = c.L.filter(Boolean), sc = L.reduce((a, x) => a + x[0], 0);
     return { ...c, L: L.sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])), sc, v: sc >= 2 ? ["up", "Tailwind: favour longs"] : sc <= -2 ? ["dn", "Headwind: favour shorts"] : ["", L.some(x => x[0]) ? "Mixed: no strong lean" : "Not enough data yet"] }; });
@@ -10013,6 +10094,7 @@ function fundRender() {
   el.innerHTML = `<div class="fp fworld"><div class="fph">World markets <span>24h · 1 week</span></div>${fundWorld()}</div>
     <div class="fp fcb"><div class="fph">Rates &amp; central banks <span>rate · last move · next meeting</span></div>${fundCB()}${fundCurve()}</div>
     <div class="fp fnewsp"><div class="fph">Headlines <span>${FUND.news ? "updated " + phtHM(FUND.news.at) : ""}</span></div>${fundNewsHTML()}<div class="fph fsub">Coming up <span>high impact</span></div>${fundCalHTML()}</div>
+    <div class="fp fcbr"><div class="fph">Central bank reads <span>from each bank's own statement</span></div>${fundCBReads()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
   el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk));            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
@@ -10034,6 +10116,7 @@ const FB_MK = [
   { k: "US dollar", dollar: true, kind: "usd", ccy: ["USD"], tag: ["USD", "FED"], cot: "US dollar index", cw: "the dollar", sess: ["NY AM", 21.5, 24] },
   { k: "EUR/USD", n: ["EUR/USD", "EURUSD"], kind: "fx", b: "EUR", q: "USD", tag: ["EUR", "USD", "FED"], cot: "Euro", cw: "the euro", sess: ["London", 12, 18] },
   { k: "GBP/USD", n: ["GBP/USD", "GBPUSD"], kind: "fx", b: "GBP", q: "USD", tag: ["GBP", "USD", "FED"], cot: "Pound", cw: "the pound", sess: ["London", 12, 18] },
+  { k: "EUR/GBP", n: ["EUR/GBP", "EURGBP"], kind: "fx", b: "EUR", q: "GBP", tag: ["EUR", "GBP"], cw: "EUR/GBP", sess: ["London", 12, 18] },
   { k: "USD/JPY", n: ["USD/JPY", "USDJPY"], kind: "fx", b: "USD", q: "JPY", tag: ["JPY", "USD", "FED"], cot: "Yen", cw: "the yen", sess: ["Asia", 8, 12] },
   { k: "AUD/USD", n: ["AUD/USD", "AUDUSD"], kind: "fx", b: "AUD", q: "USD", tag: ["USD", "FED"], cot: "Aussie", cw: "the Aussie", sess: ["Asia", 8, 12] },
   { k: "USD/CAD", n: ["USD/CAD", "USDCAD"], kind: "fx", b: "USD", q: "CAD", tag: ["OIL", "USD", "FED"], cot: "Canadian dollar", cw: "the Canadian dollar", sess: ["NY AM", 21.5, 24] },
@@ -10086,6 +10169,13 @@ function fbDrivers(m, S) {                         // the forces on this market 
   else { risk(1); dollar(1); }                       // oil, copper, Bitcoin
   trend(m.dollar ? usdW : q && q.w, m.dollar ? "The dollar" : m.k);
   return D;
+}
+function cbLean(ccy, label) {                      // which way a bank's read leans each market: hawkish = its currency up (same signs as fbDrivers' bank())
+  const s = label === "Hawkish" ? 1 : label === "Dovish" ? -1 : 0, mine = typeof naMine === "function" ? naMine().map(m => m.k) : []; if (!s) return [];
+  return FB_MK.map(m => { const g = m.kind === "fx" ? (m.b === ccy ? s : m.q === ccy ? -s : 0) : m.kind === "usd" ? (ccy === "USD" ? s : 0)
+    : ["gold", "oil", "copper", "btc"].includes(m.kind) ? (ccy === "USD" ? -s : 0) : m.kind === "idx" ? (m.ccy[0] === ccy ? -s : 0) : 0;
+    return g ? { k: m.k, dir: g > 0 ? "long" : "short" } : null; }).filter(Boolean)
+    .map((x, i) => { const j = mine.indexOf(x.k), fx = (fbMk(x.k) || {}).kind === "fx"; return [j >= 0 ? j : x.k === "US dollar" ? mine.length : (fx ? 100 : 200) + i, x]; }).sort((a, b) => a[0] - b[0]).map(x => x[1]);   // your markets, the dollar, the pairs, the rest
 }
 function fbWhen(x, now = Date.now()) { return x.at - now > 6 * 864e5 ? phtDay(x.at).slice(4) : `${phtDayKey(x.at) === phtDayKey(now) ? "Today" : phtDay(x.at).slice(0, 3)} ${x.earn ? x.timeLbl : x.timeLbl || phtHM(x.at)}`; }
 function fbEvents(m) {                             // high-impact events for this market's currencies, the next Fed decision, big tech earnings
@@ -10208,6 +10298,112 @@ function rxTick(now = Date.now()) {
       RX = [{ ccy: x.ccy, title: x.title, at: x.at, mv2: L.mv, mv10: mv, read: L.read, read10: L.read10 }, ...RX.filter(y => !(y.title === x.title && y.at === x.at))].slice(0, 200); lsSet(RX_KEY, RX); }
   });
 }
+/* central bank reads: while a high-impact rate decision is due, watch that bank's own list every 45 s until the new statement is out, then read it,
+   keep it (finder-cbreads: the last 2 per bank, with their sentences so the next meeting can be compared) and alert in the app only (not Telegram).
+   Every 6 hours (and when the app opens) each bank's list is checked once, so a meeting missed while the app was closed is still read. */
+const CBR_KEY = "finder-cbreads"; let CBR = lsGet(CBR_KEY, {}); const CBW = { poll: {}, caught: {}, busy: {}, rounds: 0 };
+const cbSave = () => lsSet(CBR_KEY, CBR), cbUrl = (B, path) => `/proxy/cbpage?bank=${B.key}&p=${encodeURIComponent(path)}`;
+async function cbList(ccy, now = Date.now()) {         // the bank's decisions, newest first (last year's too when this year's list is short)
+  const B = CB_BANKS[ccy], y = new Date(now).getUTCFullYear(), get = async path => { const r = await fetch(cbUrl(B, path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); return cbItems(ccy, await r.text()); };
+  let L = await get(B.list.replace("{y}", y)); if (L.length < 2 && B.list.includes("{y}")) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));
+  return L;
+}
+function cbDue(now = Date.now()) {                     // banks with a high-impact decision from 2 minutes before to 90 minutes after
+  const due = new Set(); (typeof calAll === "function" ? calAll() : []).forEach(e => { if (CB_BANKS[e.ccy] && e.impact === "High" && e.type === "Central Bank" && now >= e.at - 2 * 60e3 && now <= e.at + 90 * 60e3) due.add(e.ccy); });
+  return [...due];
+}
+function cbForecast(ccy, t, p) {                       // the calendar's forecast for this decision's rate (the ECB's is quoted on its main refinancing rate)
+  const E = (typeof calAll === "function" ? calAll() : []).filter(e => e.ccy === ccy && e.type === "Central Bank" && Math.abs(e.at - t) < 864e5 && /^[<>]?\s*-?\d+(\.\d+)?%$/.test(String(e.forecast || "").trim()))
+    .sort((a, b) => Math.abs(a.at - t) - Math.abs(b.at - t)); if (!E.length) return null;
+  const v = parseFloat(String(E[0].forecast).replace(/[<>\s%]/g, "")); if (!isFinite(v)) return null;
+  return ccy === "EUR" && /refinanc/i.test(E[0].title) ? (p && p.mro != null && p.rate != null ? +(v - (p.mro - p.rate)).toFixed(4) : null) : v;
+}
+async function cbCheck(ccy, now = Date.now()) {        // read the newest decision if it's new (or retry a failed read, 3 tries at most)
+  if (CBW.busy[ccy]) return; CBW.busy[ccy] = true;
+  try { const L = await cbList(ccy, now), it = L[0]; if (!it) return; const R = CBR[ccy] || [], have = R[0];
+    if (have && (it.t < have.at || R.some((x, i) => i && x.id === it.link))) return;      // a stale copy of the list: never step back to an older decision
+    if (have && have.id === it.link && (have.ok || /\.pdf$/i.test(it.path) || have.tries >= 3 && now - have.readAt < 30 * 60e3)) return;   // 3 quick tries, then every 30 min
+    await cbRead(ccy, it, L, now); }
+  catch (e) {} finally { CBW.busy[ccy] = false; }
+}
+async function cbRead(ccy, it, L, now = Date.now()) {
+  const B = CB_BANKS[ccy], old = CBR[ccy] || [], same = old.find(x => x.id === it.link) || null;
+  const rd = { id: it.link, path: it.path, title: it.title, at: it.t, readAt: now, tries: (same ? same.tries || 0 : 0) + 1, alerted: same ? same.alerted || false : false };   // alerted: false, "fail" (couldn't read) or "ok"
+  if (/\.pdf$/i.test(it.path)) rd.p = cbParse(ccy, "", it.title, it.path);
+  else try { const r = await fetch(cbUrl(B, it.path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); rd.p = cbParse(ccy, await r.text(), it.title, it.path); }
+  catch (e) { rd.p = cbParse(ccy, "", it.title, it.path); rd.p.err = e.message || "couldn't reach the bank's site"; }
+  rd.ok = !!rd.p.ok; rd.err = rd.p.err || null;
+  let prev = old.find(x => x.id !== it.link && x.ok && x.p && x.p.sentences.length);            // the last statement before this one: kept, else the list's next decision
+  const nx = (L || []).find(x => x.link !== it.link && x.t < it.t);
+  if (!prev && rd.ok && nx && !/\.pdf$/i.test(nx.path)) try { const r = await fetch(cbUrl(B, nx.path)); if (r.ok) { const pp = cbParse(ccy, await r.text(), nx.title, nx.path); if (pp.ok) prev = { id: nx.link, path: nx.path, title: nx.title, at: nx.t, ok: true, p: pp }; } } catch (e) {}
+  rd.prevAt = prev ? prev.at : null; rd.diff = prev && rd.ok ? cbDiff(prev.p.sentences, rd.p.sentences) : null;
+  rd.forecast = cbForecast(ccy, it.t, rd.p); rd.v = rd.p.move ? cbVerdict(rd.p, rd.diff, rd.forecast) : null;
+  CBR[ccy] = [rd, ...(prev ? [prev] : [])].slice(0, 2);
+  const sent = rd.alerted === "ok" || rd.alerted === true;            // one alert per statement, plus one with the real read if it only came through later
+  if (now - it.t < 7 * 864e5 && (rd.ok ? !sent : !rd.alerted && (rd.tries >= 3 || /\.pdf$/i.test(it.path)))) { rd.alerted = rd.ok ? "ok" : "fail"; cbAlert(ccy, rd); }
+  cbSave(); if (typeof fundRender === "function") fundRender();
+  return rd;
+}
+function cbAlert(ccy, rd) {                            // in the app only (noTg)
+  const B = CB_BANKS[ccy], p = rd.p || {}, v = rd.v, lean = v ? cbLean(ccy, v.label) : [], mine = naMine().find(m => fbCcys(m).includes(ccy));
+  const verb = p.move === "hike" ? "raised" : p.move === "cut" ? "cut" : p.move === "hold" ? "held" : null;
+  const title = verb ? `${B.bank} ${verb}${p.rate != null ? ` ${verb === "held" ? "at" : "to"} ${p.rate.toFixed(2)}%` : ""}${v ? ": " + v.label.toLowerCase() : ""}` : `${B.bank} statement is out`;
+  const detail = !rd.ok ? `Couldn't read the statement (${rd.err || "unknown reason"}). Open the brief for the link.` : lean.length ? lean.slice(0, 3).map(x => `${x.k} ${x.dir}`).join(" · ") : `No strong lean. ${v ? v.why[0] : ""}`;
+  return ncAdd({ kind: "News", icon: "🏦", tone: "warn", action: "brief", mk: mine ? mine.k : RX_MK[ccy], title, detail, noTg: true });
+}
+const CB_HINT = "Hawkish = leaning toward higher rates (supports the currency, weighs on gold and stocks). Dovish = leaning toward lower rates. No clear lean = no forecast to compare and the votes and wording are mixed.";
+const cbVerb = p => p.move === "hike" ? "Raised to" : p.move === "cut" ? "Cut to" : p.move === "hold" ? "Held at" : "";
+const cbChip = v => v ? `<span class="fk ${v.label === "Hawkish" ? "dn" : v.label === "Dovish" ? "up" : ""}" title="${CB_HINT}">${v.label}</span>` : "";
+const cbLeanHTML = (ccy, v) => (v ? cbLean(ccy, v.label) : []).slice(0, 6).map(x => `<span class="fk ${x.dir === "long" ? "up" : "dn"}" data-fmk="${xEsc(x.k)}" role="button" tabindex="0" title="Open the ${xEsc(x.k)} brief">${xEsc(x.k)} ${x.dir}</span>`).join("");
+const cbRank = s => cbHits(s, CB_HAWK).length + cbHits(s, CB_DOVE).length;
+function cbCardHTML(ccy, rd, open) {
+  const B = CB_BANKS[ccy], p = rd.p || {}, v = rd.v, now = Date.now(), next = fbMeet(ccy), fc = rd.forecast, pdf = /\.pdf$/i.test(rd.path || "");
+  const dec = cbVerb(p) ? `${cbVerb(p)} ${p.rate != null ? p.rate.toFixed(2) + "%" : ""}${fc != null ? ` · expected ${fc.toFixed(2)}%` : " · no forecast in the calendar"}` : "";
+  const votes = [p.hawk ? `${p.hawk} voted for a higher rate` : "", p.dove ? `${p.dove} voted for a lower rate` : ""].filter(Boolean).join(" · ");
+  const d = rd.diff, add = d ? [...d.added].sort((a, b) => cbRank(b) - cbRank(a)).slice(0, 3) : [], drop = d ? [...d.dropped].sort((a, b) => cbRank(b) - cbRank(a)).slice(0, 3) : [];
+  const changed = !rd.ok ? "" : !d ? `<div class="cbw"><div class="cbsh">What changed</div><div class="mu">Nothing to compare yet: this is the first ${B.bank} statement read.</div></div>`
+    : `<div class="cbw"><div class="cbsh">What changed <span>since ${phtDay(rd.prevAt).slice(4)}${d.added.length + d.dropped.length > 6 ? ` · ${d.added.length} new, ${d.dropped.length} dropped sentences, the strongest shown` : ""}</span></div>${add.length + drop.length
+      ? `<ul>${add.map(x => `<li class="add">${xEsc(x)}</li>`).join("")}${drop.map(x => `<li class="drop">${xEsc(x)}</li>`).join("")}</ul>` : `<div class="mu">Same wording as last time, apart from dates and numbers.</div>`}</div>`;
+  const st = FB_BANK[ccy] ? fundBank(FB_BANK[ccy].id).stance : "", fe = ccy === "USD" ? fbFedExp() : null;
+  const data = (typeof calAll === "function" ? calAll() : []).filter(e => e.ccy === ccy && e.impact === "High" && e.type !== "Central Bank" && e.at > now && (!next || e.at < next)).slice(0, 4);
+  const out = v && v.label === "No clear lean" ? "no clear lean: there was no forecast to compare the decision with, and the votes and wording don't lean far enough. The drivers on each market's brief decide."
+    : !v || v.label === "As expected" ? "no new lean from this meeting; the drivers on each market's brief decide."
+    : v.label === "Hawkish" ? `leans ${ccy} up, unless the data before it comes in weak.` : `leans ${ccy} down, unless the data before it comes in hot.`;
+  const lean = cbLeanHTML(ccy, v), nd = d ? d.added.length + d.dropped.length : 0;
+  return `<div class="cbc" data-cb="${ccy}">
+    <div class="cbh"><b>${B.bank}</b><span class="mu">${ccy} · ${rd.at ? phtDay(rd.at).slice(4) + " " + phtHM(rd.at) : ""}</span>${cbChip(v)}<a class="cblink" href="${xEsc(B.host + "/" + rd.path)}" target="_blank" rel="noopener noreferrer">Statement ↗</a></div>
+    ${pdf ? `<div class="mu">The ${B.bank} publishes this statement as a PDF, which the app can't read yet. Open it with the link above.</div>` : !rd.ok ? `<div class="dn">Couldn't read the statement (${xEsc(rd.err || "unknown reason")}).</div>` : ""}
+    ${dec || votes ? `<div>${dec ? `<b>${dec}</b>` : ""}${votes ? ` <span class="mu">· ${votes}</span>` : ""}</div>` : ""}${lean ? `<div class="cbl">${lean}</div>` : ""}
+    <div class="cbout"><span class="cbsh">Until the next meeting</span> <span class="mu">(${next ? `${phtDay(next).slice(4)}, in ${inTxt(next - now)}` : "date not in the calendar yet"})</span>: ${out}</div>
+    <details class="cbmore"${open ? " open" : ""}><summary>Why and what changed${nd ? ` <span class="mu">(${d.added.length} new, ${d.dropped.length} dropped)</span>` : ""}</summary>
+      ${v ? `<div class="cbwhy mu">${v.why.map(xEsc).join(" · ")}</div>` : ""}${changed}
+      <div class="mu">${st ? `Stance from the rate history: ${st}. ` : ""}${fe ? xEsc(fe.txt) + " " : ""}${data.length ? "Could change it: " + data.map(x => `${xEsc(x.title)} (${fbWhen(x)})`).join(", ") + "." : `No high-impact ${ccy} data in the calendar yet (it covers this week).`}</div></details></div>`;
+}
+function fundCBReads() {
+  const R = Object.keys(CB_BANKS).filter(c => CBR[c] && CBR[c][0]).sort((a, b) => CBR[b][0].at - CBR[a][0].at);
+  if (!R.length) { const now = Date.now(), nx = Object.keys(CB_BANKS).map(c => [c, fbMeet(c)]).filter(x => x[1] && x[1] > now).sort((a, b) => a[1] - b[1])[0];
+    return `<div class="empty">No decisions read yet.${nx ? ` The next one: ${CB_BANKS[nx[0]].bank} ${phtDay(nx[1]).slice(4)}.` : ""}</div>`; }
+  return R.map((c, i) => cbCardHTML(c, CBR[c][0], !i && Date.now() - CBR[c][0].at < 7 * 864e5)).join("") + `<div class="cbfoot mu">Read by rules from each bank's own statement (decision, votes, wording changes). A lean for your bias, not an entry.</div>`;
+}
+function cbBriefHTML(m) {                              // the market brief: the latest read for this market's currencies (last 60 days)
+  const L = [...new Set(fbCcys(m) || [])].map(c => [c, CBR[c] && CBR[c][0]]).filter(([c, r]) => CB_BANKS[c] && r && Date.now() - r.at < 60 * 864e5); if (!L.length) return "";
+  return `<div class="fbs"><div class="fbsh">Last central bank read</div>${L.map(([c, r]) => { const p = r.p || {}, x = r.v ? cbLean(c, r.v.label).find(y => y.k === m.k) : null;
+    return `<div><b>${CB_BANKS[c].bank}</b> <span class="mu">${phtDay(r.at).slice(4)}</span> ${cbVerb(p) ? `${cbVerb(p).toLowerCase()} ${p.rate != null ? p.rate.toFixed(2) + "%" : ""}` : r.ok ? "" : "couldn't read the statement"} ${cbChip(r.v)}${x ? ` <b class="${x.dir === "long" ? "up" : "dn"}">${xEsc(m.k)} ${x.dir}</b>` : ""}
+      ${r.v ? `<div class="mu">${r.v.why.map(xEsc).join(" · ")}</div>` : ""}<a class="cblink" href="${xEsc(CB_BANKS[c].host + "/" + r.path)}" target="_blank" rel="noopener noreferrer">Read the statement ↗</a></div>`; }).join("")}</div>`;
+}
+function cbL(ccy, g) {                                 // "Today's read" reason: a fresh (under 7 days) hawkish or dovish read
+  const r = CBR[ccy] && CBR[ccy][0]; if (!r || !r.v || !["Hawkish", "Dovish"].includes(r.v.label) || Date.now() - r.at > 7 * 864e5) return null;
+  return [g * (r.v.label === "Hawkish" ? 1 : -1), `${CB_BANKS[ccy].bank} statement ${r.v.label.toLowerCase()} (${phtDay(r.at).slice(4)})`];
+}
+async function cbCatchUp(now = Date.now()) { for (const ccy of Object.keys(CB_BANKS)) { CBW.caught[ccy] = now; await cbCheck(ccy, now); } }
+async function cbTick(now = Date.now()) {
+  try { const due = cbDue(now);
+    for (const ccy of Object.keys(CB_BANKS)) {
+      if (due.includes(ccy)) { if (now - (CBW.poll[ccy] || 0) < 45e3) continue; CBW.poll[ccy] = now; await cbCheck(ccy, now); }
+      else if (now - (CBW.caught[ccy] || 0) > 6 * 3600e3) { CBW.caught[ccy] = now; await cbCheck(ccy, now); } } }
+  finally { CBW.rounds++; }
+}
+setTimeout(() => { cbTick().catch(() => {}); setInterval(() => cbTick().catch(() => {}), 15e3); }, 5e3);
 const rxLast = x => RX.find(y => y.ccy === x.ccy && y.title === x.title && y.at < x.at - 60e3);       // the same event's last release
 /* sudden moves: live prices sampled every 2 seconds; a jump of 15% of an average day (or FB_THR) inside 3 minutes is flagged, usually before any headline */
 function fbShockOf(m, a, now) {
@@ -10288,6 +10484,7 @@ function fbRender() {
       <div class="fbs"><div class="fbsh">What moves ${xEsc(m.k)} <span>now · change · effect</span></div>${drv}${W.length ? `<ul class="fwhy">${W.map(t => `<li class="fwatch"><i>⚠</i><span>${xEsc(t)}</span></li>`).join("")}</ul>` : ""}</div>
       ${fe ? `<div class="fbs"><div class="fbsh">What the market expects from the Fed</div><div>US 2-year <b>${fe.two.toFixed(2)}%</b> vs Fed <b>${fe.fed.toFixed(2)}%</b>: <b class="${fe.s === "hike" ? "dn" : fe.s === "cut" ? "up" : ""}">${fe.s === "hike" ? "more hikes" : fe.s === "cut" ? "cuts" : "a hold"} priced in</b></div><div class="mu">${fe.txt}</div></div>` : ""}
       ${gap}
+      ${cbBriefHTML(m)}
       ${cs ? `<div class="fbs"><div class="fbsh">Currency strength <span>strongest → weakest</span></div><div class="fbccs"><span class="mu">Today</span>${csRow(cs, "d")}</div><div class="fbccs"><span class="mu">Week</span>${csRow(cs, "w")}</div></div>` : ""}
       ${c ? `<div class="fbs"><div class="fbsh">Positioning <span>CFTC large speculators</span></div><div class="fbpos"><b class="${fCls(c.net)}">${(c.net >= 0 ? "+" : "") + c.net.toFixed(0)}% net ${c.net >= 0 ? "long" : "short"}</b>${spark(c.hist)}</div>
         <div><span class="${fCls(c.chg)}">${c.chg == null ? "" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(1)}</span> <span class="mu">this week ·</span> ${c.pct}${c.pct % 100 >= 11 && c.pct % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][c.pct % 10] || "th"} <span class="mu">of the year${c.pct >= 90 || c.pct <= 10 ? "" : ": not crowded"}</span>${m.cot === "Yen" || m.cot === "Canadian dollar" || m.cot === "Swiss franc" ? ` <span class="mu">(this is ${m.cw}: long here pushes ${m.k} down)</span>` : ""}</div></div>` : ""}
@@ -10306,7 +10503,7 @@ function fbRender() {
       `Lean: ${v[1]} (score ${sc}: ${nf} for, ${na} against)`, `Read: ${fbSay(D, sc)}`, T(fbTip(D, sc)),
       "Drivers: " + D.map(x => `${x.v > 0 ? "▲" : x.v < 0 ? "▼" : "–"} ${x.name} ${x.now} ${x.chg}`.trim()).join("; "), ...W.map(x => "⚠ " + x),
       ...fbAlerts(m).map(([, h]) => T(h)), lv ? T($("fbBody").querySelector(".fblv") ? $("fbBody").querySelector(".fblv").innerText.replace(/\n/g, " ") : "") : "",
-      fe ? `Fed: 2Y ${fe.two.toFixed(2)}% vs Fed ${fe.fed.toFixed(2)}%: ${fe.txt}` : "", c ? `Positioning: ${c.net.toFixed(0)}% net, ${c.pct}th of the year` : "",
+      fe ? `Fed: 2Y ${fe.two.toFixed(2)}% vs Fed ${fe.fed.toFixed(2)}%: ${fe.txt}` : "", T(cbBriefHTML(m).replace(/<a [\s\S]*?<\/a>/g, "")).replace(/^Last central bank read/, "Central bank:"), c ? `Positioning: ${c.net.toFixed(0)}% net, ${c.pct}th of the year` : "",
       ev.length ? "Coming up: " + ev.map(x => `${fbWhen(x)} ${x.ccy} ${x.title}`).join("; ") : "", news.length ? "Headlines: " + news.slice(0, 4).map(x => `${phtHM(x.t)} ${x.title} (${x.src})`).join("; ") : "",
       r && r.s1h ? `Chart: 1H ${r.s1h.state}, 4H ${r.s4h.state}, D ${r.s1d.state}` : ""].filter(Boolean).join("\n");
     const b = $("fbCopy"); try { await navigator.clipboard.writeText(t); b.textContent = "Copied ✓"; } catch (e) { b.textContent = "Copy blocked"; } setTimeout(() => { if ($("fbCopy")) $("fbCopy").textContent = "Copy brief"; }, 1500); };

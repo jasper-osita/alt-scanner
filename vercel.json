@@ -111,6 +111,10 @@
     {
       "source": "/proxy/rss/financialjuice",
       "destination": "https://www.financialjuice.com/feed.ashx?xy=rss"
+    },
+    {
+      "source": "/proxy/cbpage",
+      "destination": "/api/cb"
     }
   ],
   "functions": {

@@ -28,6 +28,7 @@ async def main():
         await pg.tap('#chTools [data-garr="lines"]'); await asyncio.sleep(0.3); await shot("m_flyout")
         print("   flyout:", await q("() => { const r = document.getElementById('chMenu').getBoundingClientRect(); return Math.round(r.left) + ',' + Math.round(r.top) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height); }"))
         await pg.tap('#chMenu [data-mk="trend"]'); await asyncio.sleep(0.2)
+        await q("() => ncClearToasts()")                    # an alert banner arriving now would sit over the chart and take the taps
         bx = await pg.locator(f"#chCv{await q('() => chVis()[0].i')}").bounding_box()
         await pg.touchscreen.tap(bx["x"] + bx["width"] * 0.3, bx["y"] + bx["height"] * 0.5); await asyncio.sleep(0.2)
         await pg.touchscreen.tap(bx["x"] + bx["width"] * 0.65, bx["y"] + bx["height"] * 0.3); await asyncio.sleep(0.4)
@@ -42,6 +43,7 @@ async def main():
         # touch: tap a line to select, drag it with a finger
         await q("() => { chSel = null; chSelBar(); }")
         mid = await q("() => { const P = chVis()[0], d = chList()[0], r = P.cv.getBoundingClientRect(); return [r.left + (chX(P, d.pts[0].t) + chX(P, d.pts[1].t)) / 2, r.top + (chY(P, d.pts[0].p) + chY(P, d.pts[1].p)) / 2 + 7]; }")
+        await q("() => ncClearToasts()")                    # an alert banner arriving now would sit over the chart and take the tap
         await pg.touchscreen.tap(mid[0], mid[1]); await asyncio.sleep(0.3)
         print("7) tap 7px off the line selects:", await q("() => !!chSelD()"))
         print("errors:", errs or "none")

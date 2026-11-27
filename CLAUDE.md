@@ -50,6 +50,12 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   Tests start on Overview unless `setup(ctx, start=None)` (the app itself opens on Charts).
 - Markets switch on the boards (`MK`, `boardRows`, `mkDay`/`mkSwing`, `mkMix`, `rowOf`; test `t_mkts`): crypto plus `MACRO.rows` (forex, indices, metals & energy) through the same detectors.
   `data.day`/`data.swing`/`aotsList()` stay coin-only for history, streams and exports; the boards call the mixed versions.
+- Trading day page (`tday`, sidebar MARKET; spec `docs/superpowers/specs/2026-11-27-trading-day-design.md`, piece 1 built): core `tdKey`/`tdBin`/`tdStart`
+  (session-clock day from 8:00, so 3 AM PHT is still yesterday), holiday rules `holRules`/`HOL_TABLE` (HK, KR 2026–2027 only), `holEntries`, broker list
+  `ctHolidays`/`brokerHolidays` (`finder-hol`); profiles `tdDays`/`tdProfile`/`tdFx`/`tdDow`/`tdSeries`; forecast and calls `TD_CENTRES`/`tdMk`/`tdForecast`/`tdCall`
+  /`tdLive`/`tdRoom`/`tdCalcMarket`; words `tdSay`/`tdSayWeek`. Extras: `tdLoad(force, now)` (1H history ~2 years cached as `td|sym` in `finder-cache` → `kl`,
+  15m today, calls kept in `finder-td-calls`), `tdRender` (Today / This week), `tdNote` (Overview session note) and `tdChip` (`#chDay` on Charts). Test `t_td`
+  (pass the day to `tdLoad`: a frozen test clock stalls the rate limiter `spend`).
 - Calendar: List / Week / Month views (`CALV`, `calGrid`, `calGridRange`), `ffNorm`, `usMarketEvents`, `FOMC_DATES`, `earnImpact`. Alerts: `ncAdd` (wrapped to forward to Telegram), `NC_KINDS`.
 
 ## Workflow

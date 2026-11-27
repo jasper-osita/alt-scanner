@@ -3060,6 +3060,61 @@ function usMarketEvents(fromMs, toMs) {             // OPEX, quad witching + Nas
   });
   return out.sort((a, b) => a.at - b.at);
 }
+/* ---- market holidays: each market's full closes and half days, from its exchange's rules (Hong Kong and Korea from a table) ---- */
+const HOL_MKTS = [["US", "US"], ["UK", "UK"], ["EU", "Euro area"], ["JP", "Japan"], ["HK", "Hong Kong"], ["KR", "Korea"], ["AU", "Australia"], ["CA", "Canada"], ["CH", "Switzerland"]];
+const hdKey = (y, m, d) => Math.floor(Date.UTC(y, m - 1, d) / 864e5);          // a calendar date as a day number
+const hdYmd = key => { const d = new Date(key * 864e5); return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]; };
+// Lunar-calendar markets: HKEX and KRX closures as published for 2026–2027 (check them against HKEX and KRX; extend each year). [month, day, name, half day?]
+const HOL_TABLE = {
+  HK: { 2026: [[1, 1, "New Year's Day"], [2, 16, "Lunar New Year's Eve", 1], [2, 17, "Lunar New Year"], [2, 18, "Lunar New Year"], [2, 19, "Lunar New Year"], [4, 3, "Good Friday"], [4, 6, "Easter Monday"],
+      [4, 7, "Day after Ching Ming"], [5, 1, "Labour Day"], [5, 25, "Day after Buddha's Birthday"], [6, 19, "Tuen Ng"], [7, 1, "HKSAR Establishment Day"], [10, 1, "National Day"], [10, 19, "Day after Chung Yeung"],
+      [12, 24, "Christmas Eve", 1], [12, 25, "Christmas Day"], [12, 31, "New Year's Eve", 1]],
+    2027: [[1, 1, "New Year's Day"], [2, 5, "Lunar New Year's Eve", 1], [2, 8, "Lunar New Year"], [2, 9, "Lunar New Year"], [3, 26, "Good Friday"], [3, 29, "Easter Monday"], [4, 5, "Ching Ming"],
+      [5, 13, "Buddha's Birthday"], [6, 9, "Tuen Ng"], [7, 1, "HKSAR Establishment Day"], [9, 16, "Day after Mid-Autumn"], [10, 1, "National Day"], [10, 8, "Chung Yeung"], [12, 24, "Christmas Eve", 1],
+      [12, 27, "First weekday after Christmas"], [12, 31, "New Year's Eve", 1]] },
+  KR: { 2026: [[1, 1, "New Year's Day"], [2, 16, "Seollal"], [2, 17, "Seollal"], [2, 18, "Seollal"], [3, 2, "Independence Movement Day (moved)"], [5, 1, "Labour Day"], [5, 5, "Children's Day"],
+      [5, 25, "Buddha's Birthday (moved)"], [6, 3, "Local elections"], [8, 17, "Liberation Day (moved)"], [9, 24, "Chuseok"], [9, 25, "Chuseok"], [10, 5, "National Foundation Day (moved)"], [10, 9, "Hangeul Day"],
+      [12, 25, "Christmas Day"], [12, 31, "Year-end closing"]],
+    2027: [[1, 1, "New Year's Day"], [2, 8, "Seollal"], [2, 9, "Seollal (moved)"], [3, 1, "Independence Movement Day"], [5, 5, "Children's Day"], [5, 13, "Buddha's Birthday"], [8, 16, "Liberation Day (moved)"],
+      [9, 14, "Chuseok"], [9, 15, "Chuseok"], [9, 16, "Chuseok"], [10, 4, "National Foundation Day (moved)"], [10, 11, "Hangeul Day (moved)"], [12, 27, "Christmas (moved)"], [12, 31, "Year-end closing"]] },
+};
+function holRules(mk, y) {                            // [{ m, d, n, half }] on weekdays, or null when this market's dates for that year aren't loaded
+  if (HOL_TABLE[mk]) { const t = HOL_TABLE[mk][y]; return t ? t.map(([m, d, n, h]) => ({ m, d, n, half: !!h })).filter(h => ![0, 6].includes(new Date(Date.UTC(y, h.m - 1, h.d)).getUTCDay())) : null; }
+  const out = [], wd = (m, d) => new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const add = (n, m, d, half) => { const t = new Date(Date.UTC(y, m - 1, d)); if (t.getUTCFullYear() === y) out.push({ m: t.getUTCMonth() + 1, d: t.getUTCDate(), n, half: !!half }); };
+  const [em, ed] = easter(y), ez = k => [em, ed + k];
+  const mon = (n, m, d) => { const w = wd(m, d); w === 6 ? add(n + " (moved)", m, d + 2) : w === 0 ? add(n + " (moved)", m, d + 1) : add(n, m, d); };       // a weekend date moves to Monday
+  const xmas = () => { const w = wd(12, 25);                                            // Christmas and Boxing Day, UK-style substitutes
+    if (w === 6) { add("Christmas Day (moved)", 12, 27); add("Boxing Day (moved)", 12, 28); }
+    else if (w === 0) { add("Boxing Day", 12, 26); add("Christmas Day (moved)", 12, 27); }
+    else if (w === 5) { add("Christmas Day", 12, 25); add("Boxing Day (moved)", 12, 28); }
+    else { add("Christmas Day", 12, 25); add("Boxing Day", 12, 26); } };
+  if (mk === "US") { const h = usHolidays(y); h.closed.forEach(x => add(x.n, x.m, x.d)); h.early.forEach(x => add(x.n, x.m, x.d, true)); }
+  else if (mk === "UK") { mon("New Year's Day", 1, 1); add("Good Friday", ...ez(-2)); add("Easter Monday", ...ez(1)); add("Early May bank holiday", 5, nthWd(y, 5, 1, 1)); add("Spring bank holiday", 5, lastWd(y, 5, 1));
+    add("Summer bank holiday", 8, lastWd(y, 8, 1)); xmas(); add("Christmas Eve", 12, 24, true); add("New Year's Eve", 12, 31, true); }
+  else if (mk === "EU") { add("New Year's Day", 1, 1); add("Good Friday", ...ez(-2)); add("Easter Monday", ...ez(1)); add("Labour Day", 5, 1); add("Christmas Eve", 12, 24); add("Christmas Day", 12, 25); add("Boxing Day", 12, 26); add("New Year's Eve", 12, 31); }
+  else if (mk === "JP") {
+    const eq = c => Math.floor(c + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+    const nat = [["New Year's Day", 1, 1], ["Coming of Age Day", 1, nthWd(y, 1, 1, 2)], ["National Foundation Day", 2, 11], ["Emperor's Birthday", 2, 23], ["Vernal Equinox Day", 3, eq(20.8431)], ["Showa Day", 4, 29],
+      ["Constitution Day", 5, 3], ["Greenery Day", 5, 4], ["Children's Day", 5, 5], ["Marine Day", 7, nthWd(y, 7, 1, 3)], ["Mountain Day", 8, 11], ["Respect for the Aged Day", 9, nthWd(y, 9, 1, 3)],
+      ["Autumnal Equinox Day", 9, eq(23.2488)], ["Sports Day", 10, nthWd(y, 10, 1, 2)], ["Culture Day", 11, 3], ["Labour Thanksgiving Day", 11, 23]];
+    const K = new Map(nat.map(([n, m, d]) => [hdKey(y, m, d), n])), extra = [];
+    K.forEach((n, k) => { if (new Date(k * 864e5).getUTCDay() === 0) { let s = k + 1; while (K.has(s)) s++; extra.push([s, n + " (moved)"]); } });           // a Sunday holiday moves to the next free day
+    K.forEach((n, k) => { if (K.has(k + 2) && !K.has(k + 1) && new Date((k + 1) * 864e5).getUTCDay() !== 0) extra.push([k + 1, "Citizens' holiday"]); });     // a day between two holidays
+    nat.forEach(([n, m, d]) => add(n, m, d)); extra.forEach(([k, n]) => { const [, m, d] = hdYmd(k); add(n, m, d); });
+    add("Bank holiday", 1, 2); add("Bank holiday", 1, 3); add("Year-end closing", 12, 31);
+  }
+  else if (mk === "AU") { mon("New Year's Day", 1, 1); mon("Australia Day", 1, 26); add("Good Friday", ...ez(-2)); add("Easter Monday", ...ez(1)); add("Anzac Day", 4, 25); add("King's Birthday", 6, nthWd(y, 6, 1, 2));
+    xmas(); add("Christmas Eve", 12, 24, true); add("New Year's Eve", 12, 31, true); }
+  else if (mk === "CA") { mon("New Year's Day", 1, 1); add("Family Day", 2, nthWd(y, 2, 1, 3)); add("Good Friday", ...ez(-2)); add("Victoria Day", 5, 24 - ((wd(5, 24) + 6) % 7)); mon("Canada Day", 7, 1);
+    add("Civic Holiday", 8, nthWd(y, 8, 1, 1)); add("Labour Day", 9, nthWd(y, 9, 1, 1)); add("Thanksgiving", 10, nthWd(y, 10, 1, 2)); xmas(); add("Christmas Eve", 12, 24, true); }
+  else if (mk === "CH") { add("New Year's Day", 1, 1); add("Berchtold's Day", 1, 2); add("Good Friday", ...ez(-2)); add("Easter Monday", ...ez(1)); add("Labour Day", 5, 1); add("Ascension Day", ...ez(39));
+    add("Whit Monday", ...ez(50)); add("National Day", 8, 1); add("Christmas Eve", 12, 24); add("Christmas Day", 12, 25); add("Boxing Day", 12, 26); add("New Year's Eve", 12, 31); }
+  else return null;
+  const by = new Map();                                // one entry per date; a full close beats a half day
+  out.filter(h => ![0, 6].includes(wd(h.m, h.d))).forEach(h => { const k = h.m * 100 + h.d, o = by.get(k); if (!o || (o.half && !h.half)) by.set(k, h); });
+  return [...by.values()].sort((a, b) => a.m * 100 + a.d - (b.m * 100 + b.d));
+}
 // Nasdaq-100 heavyweights: their earnings move the whole index. Tier 1 ≈ the biggest weights.
 const NDX_T1 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "AVGO", "TSLA", "NFLX", "COST"];
 const NDX_T2 = ["AMD", "PLTR", "ASML", "TMUS", "CSCO", "PEP", "LIN", "INTU", "ISRG", "AMGN", "ADBE", "QCOM", "TXN", "BKNG", "AMAT", "MU", "LRCX", "KLAC", "ADI", "PANW", "SHOP", "ARM", "APP",

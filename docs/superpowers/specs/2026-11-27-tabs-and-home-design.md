@@ -30,6 +30,11 @@ The redesign is three pieces, in this order:
   that market; switching tabs never removes them.
 - Tabs reopen as left and carry over to other devices through Sync.
 - Phones stay as they are until piece 3.
+- **The boards' Chart buttons open The Finder's own chart** (a chart tab), not TradingView. Today's "Open Charts In"
+  setting (New Tab / Copy Link / TradingView Helper App, used by `openTV` and `chartBtn`) becomes **"Open charts in"**:
+  a chart tab here (the default; jumps to a tab already showing that market), the chart tab I used last, TradingView in a
+  browser tab, the TradingView Helper App, or copy the TradingView link. It stays where it is in the scan settings bar,
+  which also shows on Home's crypto Overview (as drawn).
 
 ## Calls I made (Jas saw these as defaults and didn't object; each can change)
 - The app opens on the **last tab** you had open (today it opens on Charts).
@@ -41,10 +46,18 @@ The redesign is three pieces, in this order:
 - The right end of the tab row holds search, the bell, Scan now, the Live badge, and a ⋯ menu with Auto-refresh, Copy for
   Claude, Export JSON and Settings (the current top bar's controls).
 - **Replay ends** when you leave its chart tab (replay blocks orders; carrying it hidden across tabs is a trap).
-- **"Open in a chart" from any page** (a board row, a brief, an alert) goes to a chart tab already showing that market if
-  there is one, else opens a new chart tab. A setting on Home's crypto Overview ("Open charts in: a new chart tab / the
-  chart tab I used last", from the mockup) picks the second behaviour instead.
-- **Tabs synced from another device** apply the next time the app opens, never mid-session (it would yank the screen).
+- **"Open in a chart" from any page** (a brief, an alert, the coin panel, Trade) goes to a chart tab already showing that
+  market if there is one, else opens a new chart tab.
+- **What syncs:** which tabs are open, their order, each chart tab's market and Home's section. Each device keeps its own
+  timeframes, layout, zoom and open tab: today's rule that "a phone wants one chart, the Mac four" (`SYNC_PARTS` note)
+  stays. The newest device's tab list replaces the others' (merging would bring back tabs you closed). A tab list pulled
+  in the first few seconds after the app opens, before you've touched the tabs, applies at once; one pulled later
+  applies on the next open, never mid-session (it would yank the screen).
+- **Phones in this piece:** chart tabs stay a desktop thing. On a phone, "Charts" shows the open chart tab and "open in a
+  chart" changes that tab's market; a phone opens no new tabs, keeps no background feeds for other tabs, and neither
+  sends nor applies the tab list until piece 3.
+- **A new chart tab copies the timeframes and layout of the chart tab you used last** (the built-in 4H / 1H / 15m / 5m
+  four-pane grid only when there is none).
 
 ## How it works
 
@@ -58,8 +71,8 @@ The redesign is three pieces, in this order:
 - Closing the last tab other than Home leaves Home showing.
 
 ### The + menu
-- **New chart** first: opens the market picker; picking a market opens a new chart tab with it, using your default
-  timeframes and layout.
+- **New chart** first: opens the market picker; picking a market opens a new chart tab with it, with the timeframes
+  and layout of the chart tab you used last.
 - Then every page, grouped:
   - **Home pages**, each in its own tab: Overview (Crypto), Overview (Forex, metals & indices), Trading day, Calendar,
     Fundamentals.
@@ -97,7 +110,8 @@ The redesign is three pieces, in this order:
 
 ### Remembering and syncing
 - Tabs, their order, the open tab and Home's section are saved on the device and restored on open.
-- Sync (Settings → Sync) gains a part, "Your tabs", next to drawings, watchlist and the rest.
+- Sync (Settings → Sync) gains a part, "Your tabs", next to drawings, watchlist and the rest; what it carries and when it
+  applies is under "Calls I made". The Sync panel's note about what stays per device is updated to match.
 - Links that name a page (`#fund` and the like) open that page's tab, or jump to it if it's open.
 
 ### First open after the update
@@ -107,7 +121,7 @@ The redesign is three pieces, in this order:
 ### What goes away
 - The sidebar on desktop (its pages move to + and Home), and the breadcrumb in the top bar (the tab row replaces it).
 - On phones nothing changes in this piece: the bottom bar and the More sheet stay, and "Charts" there shows the open chart
-  tab.
+  tab (see "Phones in this piece").
 
 ## Approaches considered
 1. **Every chart tab runs its own live chart.** Instant switching with everything kept as left, per-tab indicators

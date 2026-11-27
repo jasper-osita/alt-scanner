@@ -65,7 +65,7 @@ def hourly(base):
         qv = vb * (0.6 + rnd.random() * 0.8) * (3 if rnd.random() < 0.02 else 1)
         rows.append([t, o, hi, lo, p, qv])
     _cache[base] = rows; return rows
-STEP = {"1m": H // 60, "3m": H // 20, "5m": H // 12, "15m": H // 4, "30m": H // 2, "1h": H, "2h": 2 * H, "4h": 4 * H, "1d": 24 * H, "1w": 168 * H}
+STEP = {"1m": H // 60, "3m": H // 20, "5m": H // 12, "15m": H // 4, "30m": H // 2, "1h": H, "2h": 2 * H, "4h": 4 * H, "1d": 24 * H, "1w": 168 * H, "1M": 720 * H}   # 1M: 30-day buckets, close enough for a mock
 def candles(base, interval):
     hr = hourly(base)
     if interval == "1h": return hr
@@ -173,7 +173,7 @@ CT_HOL = {"NAS100": [{"holidayId": 1, "name": "Thanksgiving", "holidayDate": _DK
                      {"holidayId": 2, "name": "Day after Thanksgiving", "holidayDate": _DK(2026, 11, 27), "isRecurring": False, "startSecond": 46800, "endSecond": 86400, "scheduleTimeZone": "America/New_York"}],
           "UK100": [{"holidayId": 3, "name": "Boxing Day", "holidayDate": _DK(2026, 12, 28), "isRecurring": False, "scheduleTimeZone": "Europe/London"}],
           "XAUUSD": [{"holidayId": 4, "name": "Christmas", "holidayDate": _DK(2025, 12, 25), "isRecurring": True, "scheduleTimeZone": "UTC"}]}   # the broker's holiday list (ProtoOASymbol.holiday)
-CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w"}
+CT_IV = {1: "1m", 3: "3m", 5: "5m", 7: "15m", 8: "30m", 9: "1h", 10: "4h", 12: "1d", 13: "1w", 14: "1M"}   # 14 = MN1 (seasonality)
 CT_LOG = []
 CT_ASSET = {"USD": 1, "EUR": 2, "JPY": 3, "XAU": 4, "GBP": 5}
 def CT_BASE(n): return CT_ASSET.get(n[:3], 9) if len(n) == 6 and n.isupper() else 9

@@ -11,7 +11,7 @@ def check(ok, msg):                               # the runner flags a Traceback
 def relay_check():                                 # server.py and the Vercel function only ever fetch the six banks' own sites
     sys.path.insert(0, ROOT); import server, subprocess
     from urllib.parse import urlencode
-    seen = []; server.cached_get = lambda key, url, ttl, headers: (seen.append(url), (200, b"ok"))[1]
+    seen = []; server.cached_get = lambda key, url, ttl, headers, *a, **k: (seen.append(url), (200, b"ok"))[1]
     bad = [("fed", "@evil.com/x"), ("fed", "../x"), ("fed", "/evil.com/x"), ("fed", "a%2Fb"), ("fed", "a:b"), ("xyz", "feeds/a.xml"), ("fed", ""), ("fed", "a?b=1"), ("fed", "a b"), ("fed", "a//b")]
     codes = [server.relay_fund("/proxy/cbpage", urlencode({"bank": b, "p": x}))[0] for b, x in bad]
     old = server.relay_fund("/proxy/cbpage/fed/feeds/press_monetary.xml", "")[0]
@@ -20,6 +20,12 @@ def relay_check():                                 # server.py and the Vercel fu
     ok = [server.relay_fund("/proxy/cbpage", urlencode({"bank": "fed", "p": "feeds/press_monetary.xml"}))[0], server.relay_fund("/proxy/cbpage", urlencode({"bank": "ecb", "p": "press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html"}))[0]]
     print("   valid ->", ok, seen)
     check(seen == ["https://www.federalreserve.gov/feeds/press_monetary.xml", "https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.mp261029~9a493adf17.en.html"], "relay built the wrong URL")
+    # the Mac relay follows a redirect only on the bank's own site (as the Vercel function does)
+    import urllib.request
+    rh = server.SameHostRedirect(); rq = urllib.request.Request("https://www.federalreserve.gov/a")
+    off = rh.redirect_request(rq, None, 301, "Moved", {}, "https://evil.example/x"); same = rh.redirect_request(rq, None, 301, "Moved", {}, "https://www.federalreserve.gov/b")
+    print("   Mac relay redirect: off-site ->", off, "| same site ->", same and same.full_url)
+    check(off is None and same is not None and same.full_url == "https://www.federalreserve.gov/b", "Mac relay follows redirects off the bank's site")
     # the Vercel function (api/cb.js): same allowlist, redirects must stay on the bank's site, served as plain text in a sandbox
     NODE = r"""
 const h = require(process.argv[1]); const seen = []; let plan = [];
@@ -184,6 +190,9 @@ async def main():
         B = await q("() => [FB.k, document.getElementById('fbDlg').open, document.getElementById('fbBody').textContent.includes('Last central bank read'), (document.getElementById('fbBody').textContent.match(/Last central bank read[\\s\\S]{0,160}/) || [''])[0].replace(/\\s+/g, ' ')]")
         print("   chip → brief:", B); check(B[0] == "Gold" and B[1] and B[2], "lean chip opens the brief with the read")
         await q("() => document.getElementById('fbDlg').close()")
+        await pg.focus('#fundBody .fcbr .cbc[data-cb="USD"] [data-fmk="Nasdaq 100"]'); await pg.keyboard.press("Enter"); await asyncio.sleep(0.4)
+        K = await q("() => [FB.k, document.getElementById('fbDlg').open]"); print("   chip by keyboard (Enter):", K); check(K == ["Nasdaq 100", True], "lean chips don't open with the keyboard")
+        await q("() => document.getElementById('fbDlg').close()")
         T = await q("() => (document.querySelector('#fundRead [data-fmk=\"Gold\"]') || {}).innerText || ''")
         print("   today's read, Gold:", T.replace("\n", " | ")[:220]); check("Fed statement hawkish" in T, "today's read line")
         await pg.set_viewport_size({"width": 390, "height": 900}); await asyncio.sleep(0.4)
@@ -192,6 +201,15 @@ async def main():
         await pg.set_viewport_size({"width": 1500, "height": 1000})
         E = await q("() => { const keep = CBR; CBR = {}; fundRender(); const t = document.querySelector('#fundBody .fcbr').innerText; CBR = keep; fundRender(); return t; }")
         print("   empty:", E.replace("\n", " | ")[:160]); check("No decisions read yet" in E, "empty state")
+        # review leftovers: the ECB's time follows summer/winter time, last year's list when this year's isn't up, only decisions open the watch window
+        ecb = await q("""() => { const h = '<dt isoDate="2026-12-17"><div class="date">x</div></dt><dd><div class="title"><a href="/a.en.html">Monetary policy decisions</a></div></dd><dt isoDate="2026-07-23"><div class="date">x</div></dt><dd><div class="title"><a href="/b.en.html">Monetary policy decisions</a></div></dd>';
+          return cbItems('EUR', h).map(x => new Date(x.t).toISOString().slice(11, 16)); }""")
+        print("8) ECB decision times (UTC), December and July:", ecb); check(ecb == ["13:15", "12:15"], "ECB time ignores summer/winter time")
+        jan = await q("t => cbList('EUR', t).then(L => L.length, e => 'threw: ' + e.message)", 1799020800000)      # 2027-01-04: no 2027 list on the bank's site yet
+        print("   January 2027, no list for the year yet:", jan, "decisions from 2026"); check(isinstance(jan, int) and jan > 0, "a missing list for the new year hides last year's")
+        due = await q("""() => { const now = Date.now(), keep = calAll; calAll = () => [{ ccy: 'USD', impact: 'High', type: 'Central Bank', title: 'FOMC Meeting Minutes', at: now }, { ccy: 'GBP', impact: 'High', type: 'Central Bank', title: 'BOE Gov Bailey Speaks', at: now },
+          { ccy: 'EUR', impact: 'High', type: 'Central Bank', title: 'Main Refinancing Rate', at: now }, { ccy: 'CAD', impact: 'High', type: 'Central Bank', title: 'BOC Rate Statement', at: now }]; const r = cbDue(now); calAll = keep; return r.sort(); }""")
+        print("   watch window opens for:", due); check(due == ["CAD", "EUR"], "minutes or speeches start the watch window")
         CB_SRV["swap"].clear(); await q(reset); await q("() => cbCatchUp()")
         print("errors:", errs or "none")
         await b.close()

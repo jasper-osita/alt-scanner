@@ -3101,7 +3101,8 @@ function cbItems(ccy, text) {                         // a bank's decision list 
   if (B.key === "rba") L = (s.match(/<article[\s\S]*?<\/article>/g) || []).map(a => { const h = a.match(/itemprop="headline">([^<]*)</), l = a.match(/href="([^"]+)"/), d = a.match(/datetime="([^"]+)"/);
     return { title: h ? cbDec(h[1]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1].replace(/T(\d\d:\d\d)([+-])/, "T$1:00$2")) || 0 : 0 }; });
   else if (B.key === "ecb") L = (s.match(/<dt[^>]*isoDate="[^"]+"[\s\S]*?<\/dd>/g) || []).map(a => { const d = a.match(/isoDate="([^"]+)"/), l = a.match(/<div class="title"><a href="([^"]+)"[^>]*>([^<]*)</);
-    return { title: l ? cbDec(l[2]).trim() : "", link: l ? l[1] : "", t: d ? Date.parse(d[1] + "T12:15:00Z") || 0 : 0 }; });
+    const t0 = d ? Date.parse(d[1] + "T12:15:00Z") || 0 : 0;                                      // 14:15 in Frankfurt: 12:15 UTC in summer time, 13:15 in winter
+    return { title: l ? cbDec(l[2]).trim() : "", link: l ? l[1] : "", t: t0 && !ukDst(t0) ? t0 + 3600e3 : t0 }; });
   else L = rssItems(s).map(x => ({ title: x.title, link: x.link, t: x.t }));
   return L.filter(x => x.title && x.link && B.item.test(x.title)).map(x => ({ ...x, path: cbPath(x.link) })).sort((a, b) => b.t - a.t);
 }
@@ -10611,7 +10612,8 @@ function fundRender() {
     <div class="fp fcbr"><div class="fph">Central bank reads <span>from each bank's own statement</span></div>${fundCBReads()}</div>
     <div class="fp fseasp"><div class="fph">Seasonality <span>average change by calendar month</span></div>${fundSeasHTML()}</div>
     <div class="fp fcot"><div class="fph">Positioning <span>CFTC, net % of open interest</span></div>${fundCOTHTML()}</div>`;
-  el.querySelectorAll("[data-fmk]").forEach(tr => tr.onclick = () => fbOpen(tr.dataset.fmk, tr));            // a market's brief, not the chart (the brief has "Open chart")
+  el.querySelectorAll("[data-fmk]").forEach(tr => { tr.onclick = () => fbOpen(tr.dataset.fmk, tr);
+    if (tr.getAttribute("role") === "button") tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fbOpen(tr.dataset.fmk, tr); } }; });   // lean chips: the keyboard too            // a market's brief, not the chart (the brief has "Open chart")
   el.querySelectorAll("[data-ftag]").forEach(b => b.onclick = () => { FUND.tag = b.dataset.ftag; fundRender(); });
   if ($("fredSave")) $("fredSave").onclick = () => { const v = $("fredKey").value.trim(); if (!/^[a-z0-9]{20,40}$/i.test(v)) { toast("That doesn't look like a FRED key (32 letters and numbers)."); return; } lsSet(FRED_LS, v); $("fredKey").blur(); FUND.fred = {}; FUND.err.fred = null; fundLoad(true); };
   if ($("fredClear")) $("fredClear").onclick = () => { lsSet(FRED_LS, ""); FUND.fred = {}; FUND.err.fred = null; fundRender(); };
@@ -10824,11 +10826,15 @@ const CBR_KEY = "finder-cbreads"; let CBR = lsGet(CBR_KEY, {}); const CBW = { po
 const cbSave = () => lsSet(CBR_KEY, CBR), cbUrl = (B, path) => `/proxy/cbpage?bank=${B.key}&p=${encodeURIComponent(path)}`;
 async function cbList(ccy, now = Date.now()) {         // the bank's decisions, newest first (last year's too when this year's list is short)
   const B = CB_BANKS[ccy], y = new Date(now).getUTCFullYear(), get = async path => { const r = await fetch(cbUrl(B, path)); if (!r.ok) throw new Error(`the bank's site answered ${r.status}`); return cbItems(ccy, await r.text()); };
-  let L = await get(B.list.replace("{y}", y)); if (L.length < 2 && B.list.includes("{y}")) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));
+  const yearly = B.list.includes("{y}"); let err = null;
+  let L = await get(B.list.replace("{y}", y)).catch(e => { if (!yearly) throw e; err = e; return []; });     // early January: this year's list may not exist yet
+  if (L.length < 2 && yearly) L = L.concat(await get(B.list.replace("{y}", y - 1)).catch(() => []));
+  if (!L.length && err) throw err;
   return L;
 }
+const CB_DECISION = /\b(rate|statement|policy decision)\b/i, CB_NOT_DECISION = /minutes|votes|speaks|speech|testimony|press conference|report|accounts|summary of opinions|hearing/i;   // a decision, not its minutes or a speech
 function cbDue(now = Date.now()) {                     // banks with a high-impact decision from 2 minutes before to 90 minutes after
-  const due = new Set(); (typeof calAll === "function" ? calAll() : []).forEach(e => { if (CB_BANKS[e.ccy] && e.impact === "High" && e.type === "Central Bank" && now >= e.at - 2 * 60e3 && now <= e.at + 90 * 60e3) due.add(e.ccy); });
+  const due = new Set(); (typeof calAll === "function" ? calAll() : []).forEach(e => { if (CB_BANKS[e.ccy] && e.impact === "High" && e.type === "Central Bank" && CB_DECISION.test(e.title || "") && !CB_NOT_DECISION.test(e.title || "") && now >= e.at - 2 * 60e3 && now <= e.at + 90 * 60e3) due.add(e.ccy); });
   return [...due];
 }
 function cbForecast(ccy, t, p) {                       // the calendar's forecast for this decision's rate (the ECB's is quoted on its main refinancing rate)

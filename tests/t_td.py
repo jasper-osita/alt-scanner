@@ -143,6 +143,35 @@ async def part6(pg, q):
     check("markets fall back to the default seven with an all-crypto watchlist", await q("() => { const keep = CHW; CHW = ['BTCUSDT', 'ETHUSDT']; const L = tdMarkets().map(m => m.mk).join(); CHW = keep; return L === 'Gold,Silver,EURUSD,GBPUSD,USDJPY,AUDUSD,NAS100'; }"))
     check("a default market with no source shows no data, not a call", await q("() => { const keep = CHW; CHW = []; const L = tdMarkets(); CHW = keep; return L.every(m => m.sym || tdCalcMarket(m, null, null, [], TD.key, Date.now()).err === 'No data yet'); }"))
 
+async def part7(pg, q):
+    print("7) the Trading day page")
+    await q("() => tdLoad(true, Date.UTC(2026, 10, 26, 7, 42))")
+    await q("() => goPage('tday')")
+    await pg.wait_for_selector("#tdMkts .tdrow", timeout=60000)
+    check("sidebar has Trading day under MARKET", await q("() => !!PAGE_INFO.tday && PAGE_INFO.tday.g === 'MARKET'"))
+    check("summary leads with the verdict", any(v in await q("() => document.querySelector('.tdsay').innerText") for v in ("Thin day", "Normal day", "Closed day")))
+    check("summary names Thanksgiving", "Thanksgiving" in await q("() => document.querySelector('.tdsay').innerText"))
+    check("one row per market, no crypto", await q("() => { const R = [...document.querySelectorAll('#tdMkts .tdrow')]; return R.length === TD.markets.length && R.every(r => !/BTC|ETH|SOL/.test(r.innerText)); }"))
+    check("NAS100 row says Closed", "Closed" in await q("() => (document.querySelector('#tdMkts .tdrow[data-mk=\"NAS100\"]') || {}).innerText || ''"))
+    check("24 hour bars with PHT labels starting 9 (winter)", await q("() => document.querySelectorAll('.tdhours .tdbar').length === 24 && document.querySelector('.tdhlbl span').innerText.trim() === '9'"))
+    await pg.click('#tdMkts .tdrow[data-mk="Silver"]')
+    check("clicking a market switches the charts", "Silver" in await q("() => document.querySelector('.tdhourstitle').innerText"))
+    check("day of week and 3 months drawn", await q("() => document.querySelectorAll('.tddow .tdbar').length === 5 && !!document.querySelector('.tdvol polyline')"))
+    check("why this call quotes holidays", "Thanksgiving" in await q("() => document.querySelector('.tdwhy').innerText"))
+    await pg.click('[data-tdview="week"]')
+    check("week grid: 5 days × markets", await q("() => document.querySelectorAll('.tdweek .tdcell').length === 5 * TD.markets.length"))
+    check("the week in one sentence", len(await q("() => document.querySelector('.tdweeksay').innerText")) > 10)
+    await pg.click('.tdweek .tdcell[data-day="3"]')
+    check("a day's story with the call checked", "Thursday" in await q("() => document.querySelector('.tdstory').innerText"))
+    check("thin stretches ahead list Christmas", "Dec 25" in await q("() => document.querySelector('.tdahead').innerText"))
+    await pg.click('[data-tdview="today"]')
+    await q("() => { goPage('charts'); tickClock(); }")
+    check("Charts chip shows the day", await q("() => { const c = document.getElementById('chDay'); return !!c && !c.hidden && /Thin day|Normal day|Closed day/.test(c.innerText); }"))
+    note = await q("() => { TD.markets.forEach(m => { if (m.call) m.call = 'quiet'; }); goPage('overview'); tickClock(); return document.getElementById('sessNote').innerText; }")
+    check("Overview note leads with the day on a thin day", note.startswith("Thin day"), note[:80])
+    note2 = await q("() => { TD.markets.forEach(m => { if (m.call) m.call = 'ok'; }); tickClock(); return document.getElementById('sessNote').innerText; }")
+    check("no prefix on a normal day", not note2.startswith("Normal day"), note2[:80])
+
 async def main():
     serve()
     async with async_playwright() as pw:
@@ -160,6 +189,7 @@ async def main():
             await part4(q)
             await part5(q)
             await part6(pg, q)
+            await part7(pg, q)
         except Exception as e:
             check("ran without a crash", False, str(e)[:300])
         print("errors:", F + errs[:4] or "none")

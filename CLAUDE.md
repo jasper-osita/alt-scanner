@@ -12,7 +12,7 @@ Never compare session times with plain PHT: use the session clock in core (`sess
 
 ## Files
 - `index.html` (~850 KB, everything). Scripts in order: `<script id="core">` (DOM-free, also run by cloud/watch.mjs in Node),
-  UI script, `<script id="charts">`, `<script id="extras">` (calendar, Telegram, Fundamentals, overview charts), SW registration.
+  UI script, `<script id="charts">`, `<script id="extras">` (calendar, Telegram, Fundamentals, overview charts), `<script id="trade">`, `<script id="tabs">` (tabs, router, first page), SW registration.
   Grep for the function you need and read only that range; never read the whole file.
 - `server.py` local app on http://localhost:8787 (LaunchAgent, auto-pulls from GitHub). Relays: /proxy/ff, /proxy/earnings.
 - `vercel.json` (CSP + rewrites), `sw.js` (skips /proxy, /api, version.json), `cloud/` (GitHub Actions watcher), `tests/`.
@@ -71,10 +71,16 @@ Never compare session times with plain PHT: use the session clock in core (`sess
   sync via private GitHub gist `SYNC_PARTS`/`syNow` (token in `finder-sync`, Settings → Sync); scripts `PS` (Pine-like, no eval: `psLex`/`psParse`/`psCompile`/`psRun`, editor `psEditor`, registered as `IND["ps_<id>"]`).
 - Market picker (TradingView style, `#chPick` as a centred dialog): `pkMarkets(cat, src)` groups each market's sources (key = `chName`), preferred first;
   `pkSrcOf`/`pkSrcName`/`pkType`/`pkIcon`; sources page `chPickView = "src"`; a source picked by hand sticks (`chSetSym(sym, true)` → `CH.symExact`). Test `t_picker`.
-  Tests start on Overview unless `setup(ctx, start=None)` (the app itself opens on Charts).
+  Tests start on Overview unless `setup(ctx, start=None)` (the app opens on the last tab; Charts the first time).
 - Markets switch on the boards (`MK`, `boardRows`, `mkDay`/`mkSwing`, `mkMix`, `rowOf`; test `t_mkts`): crypto plus `MACRO.rows` (forex, indices, metals & energy) through the same detectors.
   `data.day`/`data.swing`/`aotsList()` stay coin-only for history, streams and exports; the boards call the mixed versions.
-- Trading day page (`tday`, sidebar MARKET; spec `docs/superpowers/specs/2026-11-27-trading-day-design.md`, piece 1 built): core `tdKey`/`tdBin`/`tdStart`
+- Tabs (desktop; `<script id="tabs">`, spec `docs/superpowers/specs/2026-11-27-tabs-and-home-design.md`, piece 1 of the redesign): model `TB` (`list`, `active`, `home`, `last`, `mem`),
+  `tbRead`/`tbSave` (`finder-tabs`), `tbFirst`, `tbOpenPage`/`tbOpenChart(sym, {reuse, exact})` (12 chart tabs max), `tbClose`/`tbMove`; `goPage` is the router (old body = `pgShow`),
+  `tbActivate`, tab row `tbRender` (`#tabRow`), + menu `tbPlusMenu` (`#tbMenu`, "New chart" → `tbNewChart`), Alt+1…9; Home (`body.homeon`, rail `#homeNav`/`tbHomeRender`, `data-owntab`).
+  Chart tabs share the one chart: `tbShowChart`/`tbSnapChart`/`tbLeaveChart`, `chSave` → `tbSyncActiveChart`, views back via `tbViewHook`; hidden tabs live in `TB.mem` (`tbBgTick` every 15 s,
+  one fetch per market and timeframe, `tbMerge`, `tbMemFor`), labels `tbLabel`, 🔔 `tbBell`. Board Chart buttons `openChart` ("Open charts in", `#chartMode`); sync `SYNC_PARTS.tabs`
+  (`tbSyncGet`/`tbSyncSet`, `finder-tabs-in`, quiet on phones). Phones keep the bottom bar and More sheet (no new tabs). Test `t_tabs`.
+- Trading day page (`tday`, Home › Trading day; spec `docs/superpowers/specs/2026-11-27-trading-day-design.md`, piece 1 built): core `tdKey`/`tdBin`/`tdStart`
   (session-clock day from 8:00, so 3 AM PHT is still yesterday), holiday rules `holRules`/`HOL_TABLE` (HK, KR 2026–2027 only), `holEntries`, broker list
   `ctHolidays`/`brokerHolidays` (`finder-hol`); profiles `tdDays`/`tdProfile`/`tdFx`/`tdDow`/`tdSeries`; forecast and calls `TD_CENTRES`/`tdMk`/`tdForecast`/`tdCall`
   /`tdLive`/`tdRoom`/`tdCalcMarket`; words `tdSay`/`tdSayWeek`. Extras: `tdLoad(force, now)` (1H history ~2 years cached as `td|sym` in `finder-cache` → `kl`,

@@ -90,7 +90,7 @@ async def part5(pg, q):
     check("merge: same candle replaced, newer appended, older ignored", await q("""() => { const m = { t: [1, 2], o: [1, 1], h: [2, 2], l: [0, 0], c: [1, 1], v: [1, 1] };
       tbMerge(m, { t: 2, o: 1, h: 3, l: 0, c: 2.5, v: 2 }); tbMerge(m, { t: 3, o: 2.5, h: 3, l: 2, c: 2.8, v: 1 }); tbMerge(m, { t: 1, o: 9, h: 9, l: 9, c: 9, v: 9 });
       return m.t.join() === '1,2,3' && m.c.join() === '1,2.5,2.8'; }"""))
-    await q("() => { window.__fb = 0; const f = formingBar; window.formingBar = formingBar = (s, tf) => { window.__fb++; return f(s, tf); }; }")
+    await q("() => { window.__fb = 0; const f = formingBar; window.formingBar = formingBar = (s, tf) => { if (s === 'BTCUSDT') window.__fb++; return f(s, tf); }; }")
     await q("() => { TB.list = TB.list.filter(t => t.kind !== 'chart'); const ids = []; for (let i = 0; i < 5; i++) { const t = tbOpenChart('BTCUSDT'); t.ch.tfs = ['15m','15m','15m','15m']; t.ch.layout = '1'; ids.push(t.id); } const o = tbOpenChart('ETHUSDT'); o.ch.layout = '1'; tbActivate(o.id); window.__ids = ids; }")
     await asyncio.sleep(1); await q("() => { window.__fb = 0; return tbBgTick(); }")
     check("five tabs on BTC 15m: one fetch per tick", await q("() => window.__fb === 1"), await q("() => window.__fb"))
@@ -131,7 +131,81 @@ async def part7(pg, q):
     check("phone: a pulled list isn't applied and the phone never sends its own", r == [True, True, True], r)
     await pg.set_viewport_size({"width": 1440, "height": 900})
 
-PARTS = [part1, part2, part3, part4, part5, part6, part7]
+async def part8(pg, q, wait):
+    print("8) fixes from the review")
+    async def safe(name, js, want):
+        try: r = await q(js)
+        except Exception as e: check(name, False, "crash: " + str(e)[:200]); return
+        check(name, r == want, r)
+    T = "await new Promise(r => setTimeout(r, 250))"
+    # C1: a pulled tab list never replaces newer tabs
+    await safe("a pulled list is dropped at the next open if you changed your tabs after it came", """() => { TB.list = TB.list.filter(t => t.kind === 'chart').slice(0, 1); tbOpenPage('day'); TB.touched = true; localStorage.removeItem('finder-tabs-in');
+      tbSyncSet({ list: [{ kind: 'page', page: 'swing' }], home: 'fund' }); tbOpenPage('aots');
+      tbSyncLoad(); return [TB.list.some(t => t.page === 'aots'), TB.list.some(t => t.page === 'swing'), localStorage.getItem('finder-tabs-in')]; }""", [True, False, None])
+    await safe("a pulled list with no change here applies at the next open", """() => { localStorage.removeItem('finder-tabs-in'); TB.touched = true; const keep = TB.list.filter(t => t.kind === 'chart').map(t => t.ch.sym);
+      tbSyncSet({ list: [{ kind: 'page', page: 'swing' }, { kind: 'chart', sym: keep[0], symExact: false }], home: 'fund' }); const ok = tbSyncLoad();
+      return [ok, TB.list.map(t => t.page || t.ch.sym).join() === 'swing,' + keep[0], TB.home]; }""", [True, True, "fund"])
+    await safe("the first look at the tab list doesn't count as a change (it would push over another device's tabs)", """() => { const keep = localStorage.getItem('finder-sync'); localStorage.setItem('finder-sync', JSON.stringify({ token: '', at: {}, h: {} }));
+      syMark(); const at = SY().at; if (keep === null) localStorage.removeItem('finder-sync'); else localStorage.setItem('finder-sync', keep); return [at.tabs, at.draw > 0]; }""", [0, True])
+    await safe("joining sync takes the gist's tab list and doesn't push this device's", """async () => { const keepSync = localStorage.getItem('finder-sync'), keepApi = syApi; let patched = null;
+      const remote = { v: 1, parts: { tabs: { at: Date.now() - 60000, v: { list: [{ kind: 'page', page: 'swing' }], home: 'fund' } } } };
+      window.syApi = syApi = async (path, opt) => { if (opt && opt.method === 'PATCH') { patched = JSON.parse(JSON.parse(opt.body).files['finder-sync.json'].content); return {}; } return { files: { 'finder-sync.json': { content: JSON.stringify(remote) } } }; };
+      localStorage.setItem('finder-sync', JSON.stringify({ token: 't', gist: 'g1', at: {}, h: {}, last: 0 })); TB.touched = true; localStorage.removeItem('finder-tabs-in');
+      try { await syNow('quiet'); } finally { window.syApi = syApi = keepApi; if (keepSync === null) localStorage.removeItem('finder-sync'); else localStorage.setItem('finder-sync', keepSync); }
+      const pushed = patched && patched.parts.tabs; localStorage.removeItem('finder-tabs-in'); return [JSON.stringify(pushed ? pushed.v.list : null)]; }""", ['[{"kind":"page","page":"swing"}]'])
+    # I1: closing the chart tab in bar replay ends replay (orders would be refused)
+    await safe("closing the open chart tab in replay ends replay", f"""async () => {{ const t = tbOpenChart('BTCUSDT', {{ reuse: true }}), d = tbOpenPage('day'); TB.list = [t, d]; tbActivate(t.id);
+      for (let i = 0; i < 80 && !(chVis()[0] && chVis()[0].sym === 'BTCUSDT' && chVis()[0].t.length > 50); i++) {T};
+      rpEnter(); const was = RP.on; tbClose(t.id); return [was, RP.on, page]; }}""", [True, False, "day"])
+    # I2: back on a chart tab, its candles are current (memory tops it up)
+    await safe("returning to a chart tab shows the candles that formed while you were away", f"""async () => {{ const t = tbOpenChart('BTCUSDT'); t.ch.layout = '1'; t.ch.tfs = ['15m', '1h', '4h', '1d']; tbActivate(t.id);
+      for (let i = 0; i < 80 && !(chVis()[0].sym === 'BTCUSDT' && chVis()[0].tf === '15m' && chVis()[0].t.length > 50); i++) {T};
+      goPage('swing'); const m = TB.mem.get('BTCUSDT|15m'), L = m.t.length - 1, nt = m.t[L] + 900e3;
+      m.t.push(nt); m.o.push(m.c[L]); m.h.push(m.c[L]); m.l.push(m.c[L]); m.c.push(m.c[L]); m.v.push(0); m.chk = m.at = Date.now();
+      tbActivate(t.id); return chVis()[0].t.at(-1) === nt; }}""", True)
+    # I3: a closed market (last candle hours old) isn't reloaded every tick
+    await safe("a hidden tab on a closed market doesn't reload its history every tick", f"""async () => {{ const t = tbOpenChart('ETHUSDT'); t.ch.layout = '1'; t.ch.tfs = ['1h', '1h', '1h', '1h']; tbActivate(tbOpenPage('day').id);
+      for (let i = 0; i < 80 && TB.ticking; i++) {T};
+      const iv = 3600e3, old = Math.floor(Date.now() / iv) * iv - 20 * iv, n = 50, mk = f => Array.from({{ length: n }}, (_, i) => f(i));
+      TB.mem.set('ETHUSDT|1h', {{ t: mk(i => old - (n - 1 - i) * iv), o: mk(() => 1), h: mk(() => 1), l: mk(() => 1), c: mk(() => 1), v: mk(() => 0), at: Date.now(), chk: Date.now() }});
+      const fb = formingBar, kl = klines; let nk = 0;
+      window.formingBar = formingBar = async (s, tf) => s === 'ETHUSDT' && tf === '1h' ? {{ t: old, o: 1, h: 1, l: 1, c: 1, v: 0 }} : fb(s, tf);
+      window.klines = klines = async (...a) => {{ if (a[0] === 'ETHUSDT') nk++; return kl(...a); }};
+      try {{ await tbBgTick(); await tbBgTick(); }} finally {{ window.formingBar = formingBar = fb; window.klines = klines = kl; }}
+      const m = TB.mem.get('ETHUSDT|1h'); return [nk, !!m && m.t.at(-1) === old]; }}""", [0, True])
+    # I4: Alt+number while the coin window has the chart
+    await safe("Alt+number under the coin window closes it and leaves every tab on its own market", f"""async () => {{ const b = tbOpenChart('BTCUSDT', {{ reuse: true }}), e = tbOpenChart('ETHUSDT', {{ reuse: true }});
+      TB.list = [b, e, ...TB.list.filter(x => x !== b && x !== e)]; tbActivate(b.id);
+      for (let i = 0; i < 80 && !(chVis()[0] && chVis()[0].sym === 'BTCUSDT' && chVis()[0].t.length > 50); i++) {T};
+      goPage('day'); openDetail(data.all.find(r => !r.macro && r.symbol !== 'ETHUSDT' && r.symbol !== 'BTCUSDT').symbol);
+      for (let i = 0; i < 60 && !CHDLG.on; i++) {T};
+      document.dispatchEvent(new KeyboardEvent('keydown', {{ code: 'Digit2', key: '2', altKey: true, bubbles: true }})); {T};
+      if (document.getElementById('dlg').open) document.getElementById('dlg').close(); {T}; {T};
+      return [CHDLG.on, b.ch.sym, e.ch.sym, CH.sym, TB.active === e.id]; }}""", [False, "BTCUSDT", "ETHUSDT", "ETHUSDT", True])
+    # M1: a changing label is patched in place, so a click can't fall between two redraws
+    await safe("the tab row patches labels in place", """() => { tbRender(); const el = document.querySelector('#tabRow .tbtab'), t = TB.list.find(x => x.id === el.dataset.tab);
+      t.bell = !t.bell; tbRender(); const ok = [el.isConnected, el.textContent.includes('🔔') === !!t.bell]; t.bell = false; tbRender(); return ok; }""", [True, True])
+    # M2: tabs past the edge are reachable with the mouse wheel
+    await q("() => { for (let i = 0; i < 12; i++) tbOpenChart('W' + i + 'USDT'); ['momentum', 'aots', 'swing', 'screener', 'trade', 'watch', 'playbook', 'guide'].forEach(p => tbOpenPage(p)); tbRender(); document.querySelector('#tabRow .tblist').scrollLeft = 0; }")
+    box = await q("() => { const r = document.querySelector('#tabRow .tblist').getBoundingClientRect(); return [r.left + 30, r.top + r.height / 2]; }")
+    await pg.mouse.move(box[0], box[1]); await pg.mouse.wheel(0, 300); await asyncio.sleep(0.4)
+    await safe("the mouse wheel scrolls tabs that don't fit", "() => { const l = document.querySelector('#tabRow .tblist'); return [l.scrollWidth > l.clientWidth, l.scrollLeft > 0]; }", [True, True])
+    await q("() => { TB.list = TB.list.filter(t => !(t.ch && /^W\\d+USDT$/.test(t.ch.sym))); tbSave(); }")
+    # M4: the Live badge keeps its own explanation
+    await safe("the Live badge tooltip keeps its explanation and adds the exchange", """() => { const was = LIVE.state; liveSetState('down'); mirrorSide(); const t = document.getElementById('liveBadge').title; liveSetState(was); mirrorSide(); return [/Click to retry/.test(t), /Binance/.test(t)]; }""", [True, True])
+    # M9: page tabs keep their scroll position
+    await pg.set_viewport_size({"width": 1440, "height": 420}); await q("() => goPage('screener')"); await asyncio.sleep(0.4)
+    y = await q("() => { window.scrollTo(0, Math.min(400, document.documentElement.scrollHeight - innerHeight)); return window.scrollY; }")
+    await q("() => goPage('swing')"); await asyncio.sleep(0.3); await q("() => goPage('screener')"); await asyncio.sleep(0.4)
+    r = await q("() => window.scrollY"); check("a page tab keeps its scroll position", y > 50 and abs(r - y) < 5, [y, r])
+    await pg.set_viewport_size({"width": 1440, "height": 900})
+    # C1 (last; reloads): after a pulled list applies at open, the address bar's old page doesn't reopen a tab the other device closed
+    await q("""() => { const keep = TB.list.filter(t => t.kind === 'chart').slice(0, 1); TB.list = [...keep, { id: 'dd1', kind: 'page', page: 'day' }]; TB.active = 'dd1'; tbSave();
+      localStorage.setItem('finder-tabs-in', JSON.stringify({ v: { list: [{ kind: 'chart', sym: keep[0].ch.sym, symExact: false }], home: 'overview' }, base: syHash(tbSyncGet()) })); history.replaceState(null, '', '#day'); }""")
+    await pg.reload(); await ready(pg)
+    await safe("after a pulled list applies at open, the old address doesn't reopen a closed page", "() => [TB.list.some(t => t.page === 'day'), page]", [False, "charts"])
+
+PARTS = [part1, part2, part3, part4, part5, part6, part7, part8]
 
 async def main():
     serve()

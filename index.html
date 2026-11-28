@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="The Finder">
-<link rel="manifest" href="/manifest.webmanifest?v=2026.11.28.1946">
+<link rel="manifest" href="/manifest.webmanifest?v=2026.11.28.2013">
 <link rel="icon" href="/icons/finder-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/finder-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/icons/finder-touch-180.png">
@@ -1126,7 +1126,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .tbtab:focus-visible,.tbhome:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .tbtab.drop{box-shadow:inset 2px 0 0 var(--accent)}
 .tbl{flex:1;min-width:0;overflow:hidden;display:flex;gap:6px;align-items:baseline}
-.tbl .n{overflow:hidden;text-overflow:ellipsis}.tbl .tf,.tbl .ct{color:var(--mute);font-size:11px}.tbl .px{font-variant-numeric:tabular-nums}.tbl .up{color:var(--green)}.tbl .dn{color:var(--red)}
+.tbl span:empty{display:none}.tbl .n{overflow:hidden;text-overflow:ellipsis}.tbl .tf,.tbl .ct{color:var(--mute);font-size:11px}.tbl .px{font-variant-numeric:tabular-nums}.tbl .up{color:var(--green)}.tbl .dn{color:var(--red)}
 .tbx{flex:none;width:20px;height:20px;border:0;border-radius:5px;background:transparent;color:var(--mute);cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center}
 .tbx:hover{background:var(--pill-b);color:var(--text)}
 .tbstat{align-items:center;gap:6px;color:var(--mute);font-size:12px;white-space:nowrap;max-width:260px;position:relative;padding-bottom:3px}
@@ -4582,7 +4582,7 @@ function initPanelExtras(r) {
 }
 
 /* ===================== Version + self-update ===================== */
-const APP_VERSION = "2026.11.28.1946";
+const APP_VERSION = "2026.11.28.2013";
 let updateReady = false;
 async function checkForUpdate() {
   if (location.protocol === "file:") return;                       // the standalone file can't self-update
@@ -4727,6 +4727,7 @@ function liveSetState(st, note) {
   b.title = note || { live: "Prices, chart and alerts update in real time. Click to pause.", connecting: "Connecting to the live stream…",
     down: "The live stream is blocked or unreachable on this network. Alerts fall back to checking every 30 seconds. Click to retry.",
     off: "Live data is paused. Click to resume." }[st];
+  b.dataset.tip = b.title;                            // the tab row adds the exchange and direction to it (tbStatPaint)
 }
 function liveTarget() {
   if (!data) return null;
@@ -9054,7 +9055,7 @@ async function syApi(path, opt = {}) {
 }
 function syMark() {                                               // note which parts changed here since the last look
   const c = SY(), at = { ...c.at }, h = { ...c.h }; let ch = false;
-  Object.entries(SYNC_PARTS).forEach(([k, P]) => { if (P.quiet && P.quiet()) return; let v; try { v = P.get(); } catch (e) { return; } const x = syHash(v); if (h[k] !== x) { h[k] = x; at[k] = Date.now(); ch = true; } });
+  Object.entries(SYNC_PARTS).forEach(([k, P]) => { if (P.quiet && P.quiet()) return; let v; try { v = P.get(); } catch (e) { return; } const x = syHash(v); if (h[k] !== x) { at[k] = h[k] === undefined && P.firstOld ? 0 : Date.now(); h[k] = x; ch = true; } });
   if (ch) sySave({ at, h }); return ch;
 }
 let syBusy = false, syTimer = 0;
@@ -9079,7 +9080,7 @@ async function syNow(why) {                                      // pull, take w
     if (f) { let txt = f.content; if (f.truncated && f.raw_url) txt = await (await fetch(f.raw_url)).text(); try { remote = JSON.parse(txt) || remote; } catch (e) {} } remote.parts = remote.parts || {};
     const loc = SY(), at = { ...loc.at }, h = { ...loc.h }, first = !loc.last; let push = false, pulled = [];
     Object.entries(SYNC_PARTS).forEach(([k, P]) => { const R = remote.parts[k], la = at[k] || 0, quiet = !!(P.quiet && P.quiet());
-      if (R && first && quiet) { try { P.set(R.v); } catch (e) {} at[k] = R.at; }                 // a part this device only receives
+      if (R && first && (quiet || P.joinPull)) { try { P.set(R.v); } catch (e) {} at[k] = R.at; try { h[k] = syHash(P.get()); } catch (e) {} }    // received, not merged and sent back
       else if (R && first) {                                         // a device joining: keep both sides (the gist's copy plus anything only here)
         try { P.set(syUnion(k, P.get(), R.v)); pulled.push(P.l.toLowerCase()); } catch (e) {} at[k] = Date.now(); try { h[k] = syHash(P.get()); remote.parts[k] = { at: at[k], v: P.get() }; push = true; } catch (e) {} }
       else if (R && R.at > la) { try { P.set(R.v); pulled.push(P.l.toLowerCase()); } catch (e) {} at[k] = R.at; try { h[k] = syHash(P.get()); } catch (e) {} }
@@ -12306,7 +12307,7 @@ if (page === "charts" && !chBuilt) chPageShown(true);
    indicators, chart style and drawings stay shared (drawings per market). Saved per device in finder-tabs; Sync carries the list (SYNC_PARTS.tabs). */
 const TB_KEY = "finder-tabs", TB_MAX_CHARTS = 12, HOME_PAGES = ["overview", "macroov", "tday", "calendar", "fund"];
 const TB_DEF = { tfs: ["4h", "1h", "15m", "5m"], layout: "4g" };
-const TB = { list: [], active: "home", home: "overview", last: null, touched: false, mem: new Map() };
+const TB = { list: [], active: "home", home: "overview", last: null, touched: false, mem: new Map(), memTry: new Map(), scroll: new Map() };
 let tbN = 0;
 const tbId = () => Date.now().toString(36) + (tbN++);
 const tbFind = id => TB.list.find(t => t.id === id) || null;
@@ -12353,7 +12354,7 @@ function tbRead() {
 }
 function tbSave() {
   chSaveJSON(TB_KEY, { list: TB.list, active: TB.active, home: TB.home, last: TB.last });
-  if (typeof tbRender === "function") tbRender();
+  if (TB.ready) tbRender();                             // (not while the script is still loading)
 }
 function tbOpenPage(pg) {                              // a page opens once: opening it again finds its tab
   if (!PAGE_INFO[pg] || pg === "charts" || pg === "filters") return null;
@@ -12373,7 +12374,8 @@ function tbNextAfterClose(id) {                        // the tab to its right, 
   return (TB.list[i + 1] || TB.list[i - 1] || { id: "home" }).id;
 }
 function tbClose(id) {
-  if (id === "home" || !tbFind(id)) return;
+  const t = tbFind(id); if (id === "home" || !t) return;
+  if (t.kind === "chart" && TB.shown === id && typeof tbLeaveChart === "function") tbLeaveChart(t);     // replay ends, menus close
   const was = TB.active === id, next = was ? tbNextAfterClose(id) : TB.active;
   TB.list = TB.list.filter(t => t.id !== id);
   if (TB.last === id) { const c = tbCharts(); TB.last = c.length ? c[c.length - 1].id : null; }
@@ -12393,11 +12395,15 @@ function tbSyncGet() {                                 // what other devices get
 function tbSyncSet(v) {
   if (isPhone()) { TB.syncLast = v; return; }
   if (!v || typeof v !== "object" || !Array.isArray(v.list)) return;
-  chSaveJSON("finder-tabs-in", v);
-  if (Date.now() - TB_BOOT < 5000 && !TB.touched) tbSyncApply(true);          // later: on the next open, never mid-session
+  if (Date.now() - TB_BOOT < 5000 && !TB.touched) { try { localStorage.removeItem("finder-tabs-in"); } catch (e) {} tbSyncApply(v, true); return; }
+  chSaveJSON("finder-tabs-in", { v, base: syHash(tbSyncGet()) });              // later: on the next open, and only if you haven't changed your tabs since
 }
-function tbSyncApply(show) {                           // the pulled list replaces this one; each chart tab keeps this device's timeframes, layout and view
-  let v = null; try { v = JSON.parse(localStorage.getItem("finder-tabs-in")); localStorage.removeItem("finder-tabs-in"); } catch (e) {}
+function tbSyncLoad() {                                // at open: a list pulled last time applies if this device's tabs are still as they were when it came
+  let s = null; try { s = JSON.parse(localStorage.getItem("finder-tabs-in")); localStorage.removeItem("finder-tabs-in"); } catch (e) {}
+  if (!s || !s.v || s.base !== syHash(tbSyncGet())) return false;
+  return tbSyncApply(s.v, false);
+}
+function tbSyncApply(v, show) {                        // the pulled list replaces this one; each chart tab keeps this device's timeframes, layout and view
   if (!v || !Array.isArray(v.list)) return false;
   const L = tbFind(TB.last), base = L && L.kind === "chart" ? L.ch : CH, pool = tbCharts(), list = [];
   v.list.forEach(x => {
@@ -12413,8 +12419,8 @@ function tbSyncApply(show) {                           // the pulled list replac
   if (show) tbActivate(TB.active); else tbSave();
   return true;
 }
-SYNC_PARTS.tabs = { l: "Your tabs", get: tbSyncGet, set: tbSyncSet, quiet: () => isPhone() };
-try { if (localStorage.getItem("finder-tabs-in") && !isPhone()) tbSyncApply(false); } catch (e) {}       // a list pulled last time
+SYNC_PARTS.tabs = { l: "Your tabs", get: tbSyncGet, set: tbSyncSet, quiet: () => isPhone(), firstOld: true, joinPull: true };   // firstOld: a first look isn't a change; joinPull: joining takes the gist's list
+if (!isPhone()) TB.loadApplied = tbSyncLoad();          // a list pulled last time
 
 /* ---- the router: every page opens in a tab (Home's pages inside Home), Charts in a chart tab ---- */
 function goPage(id, keepTab) {
@@ -12428,9 +12434,12 @@ function goPage(id, keepTab) {
   tbActivate(tbOpenPage(id).id, keepTab);
 }
 window.goPage = goPage;
+const tbScrollKey = id => id === "home" ? "home:" + page : id;
 function tbActivate(id, keepTab) {
+  if (CHDLG.on) chDlgEnd(); if ($("dlg").open) $("dlg").close();             // the coin window has the chart: it gives it back first
   let t = id === "home" ? null : tbFind(id); if (!t) id = "home";
   if (t && t.bell) delete t.bell;
+  if (TB.shown && page !== "charts") TB.scroll.set(tbScrollKey(TB.shown), window.scrollY);    // page tabs keep their place
   if (t && t.kind === "chart" && TB.shown === id && page === "charts" && !OVC.on && !CHDLG.on) { TB.active = id; tbSave(); return; }   // already on screen
   const prev = tbFind(TB.shown); if (prev && prev.kind === "chart" && prev !== t) tbLeaveChart(prev);
   TB.active = id; TB.shown = id;
@@ -12438,6 +12447,7 @@ function tbActivate(id, keepTab) {
   if (!t) pgShow(TB.home, keepTab);
   else if (t.kind === "page") pgShow(t.page, keepTab);
   else { TB.last = t.id; tbShowChart(t); }
+  if (page !== "charts") { const y = TB.scroll.get(tbScrollKey(id)) || 0; if (y) { window.scrollTo(0, y); requestAnimationFrame(() => { if (TB.shown === id && Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y); }); } }
   tbSave();
 }
 /* ---- chart tabs take turns on the one chart: each keeps its market, timeframes, layout and view ---- */
@@ -12476,7 +12486,9 @@ function tbShowChart(t) {
     CHP.forEach(P => P.tok++);                         // candles still loading for the tab you left never land here
     TB.pv = {};
     (c.views || []).forEach((v, i) => { if (v) TB.pv[i] = { ...v, sym: c.sym, tf: c.tfs[i] }; });
-    if (chBuilt) chLeaves(chTree()).forEach(i => { const P = CHP[i]; if (!P || (P.sym === c.sym && P.t.length)) return; const m = tbMemFor(c.sym, P.tf); if (m) tbMemDraw(P, m, c.sym); });   // drawn from memory, no fetch
+    if (chBuilt) chLeaves(chTree()).forEach(i => { const P = CHP[i]; if (!P) return; const m = tbMemFor(c.sym, P.tf);
+      if (P.sym === c.sym && P.t.length) { if (m ? !tbTopUp(P, m) : Date.now() - P.t[P.t.length - 1] > 2 * (CH_IV[P.tf] || 0)) P.sym = null; }   // current again, else reloaded
+      else if (m) tbMemDraw(P, m, c.sym); });                                                                                                         // drawn from memory, no fetch
     chSave();
   } finally { TB.applying = false; }
   pgShow("charts");
@@ -12498,7 +12510,7 @@ const tbPanes = c => (c.max != null ? [c.max] : chLeaves(CH_LAYOUTS[c.layout] ??
 function tbRemember(tab) {                             // the tab you leave: its panes' candles go to memory
   if (!chBuilt) return;
   chVis().forEach(P => { if (P.sym !== chPS(P) || !P.t.length || P.rp) return; const k = P.sym + "|" + P.tf, n = TB_MEM_MAX;
-    TB.mem.set(k, { t: P.t.slice(-n), o: P.o.slice(-n), h: P.h.slice(-n), l: P.l.slice(-n), c: P.c.slice(-n), v: (P.v || []).slice(-n), at: Date.now() }); });
+    TB.mem.set(k, { t: P.t.slice(-n), o: P.o.slice(-n), h: P.h.slice(-n), l: P.l.slice(-n), c: P.c.slice(-n), v: (P.v || []).slice(-n), at: Date.now(), chk: Date.now() }); });
 }
 function tbMerge(m, bar) {                             // the forming candle: same time replaces, newer appends, older is ignored
   if (!bar || bar.t == null) return m; const n = m.t.length, v = bar.v == null ? 0 : +bar.v;
@@ -12508,9 +12520,17 @@ function tbMerge(m, bar) {                             // the forming candle: sa
     if (m.t.length > TB_MEM_MAX) ["t", "o", "h", "l", "c", "v"].forEach(f => m[f] = m[f].slice(-TB_MEM_MAX)); }
   m.at = Date.now(); return m;
 }
-function tbMemFor(sym, tf) {                           // null when it has fallen more than 2 candles behind (then the chart loads as usual)
-  const m = TB.mem.get(sym + "|" + tf), iv = CH_IV[tf]; if (!m || !m.t.length || !iv) return null;
-  return Date.now() - m.t[m.t.length - 1] > 3 * iv ? null : m;
+function tbMemFor(sym, tf) {                           // null unless the feed confirmed it in the last 45 s (then the chart loads as usual)
+  const m = TB.mem.get(sym + "|" + tf); if (!m || !m.t.length || !CH_IV[tf]) return null;
+  return Date.now() - (m.chk || 0) > 45e3 ? null : m;
+}
+function tbTopUp(P, m) {                               // a pane already on this market takes memory's newer candles; false = memory doesn't reach back (reload)
+  const n = P.t.length, last = P.t[n - 1], j = m.t.indexOf(last);
+  if (j < 0) return m.t[m.t.length - 1] < last;
+  if (j === m.t.length - 1 && m.c[j] === P.c[n - 1] && m.h[j] === P.h[n - 1] && m.l[j] === P.l[n - 1]) return true;
+  P.o[n - 1] = m.o[j]; P.h[n - 1] = m.h[j]; P.l[n - 1] = m.l[j]; P.c[n - 1] = m.c[j]; P.v = P.v || []; P.v[n - 1] = (m.v && m.v[j]) || 0;
+  for (let i = j + 1; i < m.t.length; i++) { P.t.push(m.t[i]); P.o.push(m.o[i]); P.h.push(m.h[i]); P.l.push(m.l[i]); P.c.push(m.c[i]); P.v.push((m.v && m.v[i]) || 0); }
+  P.alSig = null; chSetData(P); chDirty = true; return true;
 }
 function tbMemDraw(P, m, sym) {
   if (!P.chart) return false;
@@ -12525,19 +12545,22 @@ async function tbBgTick() {                            // every 15 s: the formin
     const onScreen = page === "charts" && !OVC.on && !CHDLG.on ? TB.shown : null, want = new Set(), pairs = new Map();
     tbCharts().forEach(t => tbPanes(t.ch).forEach(([sym, tf]) => { const k = sym + "|" + tf; want.add(k); if (t.id !== onScreen) pairs.set(k, [sym, tf]); }));
     if (onScreen) { const t = tbFind(onScreen); if (t) tbPanes(t.ch).forEach(([sym, tf]) => pairs.delete(sym + "|" + tf)); }   // the chart on screen keeps itself current
-    [...TB.mem.keys()].forEach(k => { if (!want.has(k)) TB.mem.delete(k); });
-    await Promise.all([...pairs].map(async ([k, [sym, tf]]) => {
+    [...TB.mem.keys()].forEach(k => { if (!want.has(k)) { TB.mem.delete(k); TB.memTry.delete(k); } });
+    for (const [k, [sym, tf]] of pairs) {                               // one after another: no burst into the cTrader queue ahead of the chart on screen
       try {
-        if (chSourceOK(sym)) return;                                     // e.g. a cTrader market while cTrader is off
+        if (sym.startsWith("CT:") && CT.state === "ready" && !CT_SYMS.has(sym)) { if (!CT.symbols[ctNorm(sym.slice(3))]) continue; CT_SYMS.add(sym); }   // as chLoad does
+        if (chSourceOK(sym)) continue;                                   // e.g. a cTrader market while cTrader is off
         let m = TB.mem.get(k);
-        if (!m || !tbMemFor(sym, tf)) {                                   // nothing in memory yet (or fallen behind): once from the candle cache
-          const r = await klines(sym, tf, 500); m = { t: r.t.slice(-TB_MEM_MAX), o: r.o.slice(-TB_MEM_MAX), h: r.h.slice(-TB_MEM_MAX), l: r.l.slice(-TB_MEM_MAX), c: r.c.slice(-TB_MEM_MAX), v: (r.qv || []).map(Number).slice(-TB_MEM_MAX), at: Date.now() };
+        if (!m || Date.now() - (m.chk || 0) > 120e3) {                    // nothing in memory (or not confirmed for 2 minutes): the history, at most every 2 minutes
+          if (Date.now() - (TB.memTry.get(k) || 0) < 120e3) { if (!m) continue; }
+          else { TB.memTry.set(k, Date.now()); const r = await klines(sym, tf, 500), N = TB_MEM_MAX;
+            m = { t: r.t.slice(-N), o: r.o.slice(-N), h: r.h.slice(-N), l: r.l.slice(-N), c: r.c.slice(-N), v: (r.qv || []).map(Number).slice(-N), at: Date.now(), chk: 0 }; }
         }
         const b = await formingBar(sym, tf), iv = CH_IV[tf];
-        if (b && m.t.length && b.t > m.t[m.t.length - 1] + iv * 1.5) { TB.mem.delete(k); return; }   // a gap: load fresh next time
-        TB.mem.set(k, tbMerge(m, b));
+        if (b && m.t.length && b.t > m.t[m.t.length - 1] + iv * 1.5) { TB.mem.delete(k); continue; }   // a gap: the history again (throttled)
+        tbMerge(m, b); m.chk = Date.now(); TB.mem.set(k, m);              // a closed market's unchanged candle still counts as current
       } catch (e) {}
-    }));
+    }
     if (!chOn && typeof chQuotesFetch === "function") chQuotesFetch();          // prices for the labels while a page is open
   } finally { TB.ticking = false; }
 }
@@ -12594,25 +12617,29 @@ tbChartModeMigrate();
 const TB_NAME = { macroov: "Forex overview", macromomo: "Forex momentum", macropair: "Pair Picker", macro: "All instruments" };
 const tbEsc = x => String(x == null ? "" : x).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const tbPageName = pg => TB_NAME[pg] || (PAGE_INFO[pg] || {}).label || pg;
-function tbTabHTML(t) {
-  if (t.kind === "page") { const nb = $("nb-" + t.page), n = nb ? nb.textContent.trim() : "";
-    return { html: `<span class="n">${tbEsc(tbPageName(t.page))}</span>${n ? `<span class="ct">${tbEsc(n)}</span>` : ""}`, name: tbPageName(t.page) }; }
-  const L = typeof tbLabel === "function" ? tbLabel(t) : { name: chName(t.ch.sym), tf: CH_TFL[t.ch.tfs[t.ch.max != null ? t.ch.max : 0]] };
-  const up = L.chg != null && L.chg >= 0;
-  return { html: `<span class="n">${tbEsc(L.name)}</span><span class="tf">${tbEsc(L.tf || "")}</span>${L.price != null ? `<span class="px ${L.chg == null ? "" : up ? "up" : "dn"}">${tbEsc(fmtPrice(L.price))}</span>` : ""}${L.chg != null ? `<span class="${up ? "up" : "dn"}">${up ? "+" : ""}${L.chg.toFixed(2)}%</span>` : ""}${t.bell ? `<span title="An alert fired on this market">🔔</span>` : ""}`, name: L.name };
+function tbTabParts(t) {                              // a tab's label as [class, text] spans: a fixed set per kind, so a label can change in place
+  if (t.kind === "page") { const nb = $("nb-" + t.page), n = nb ? nb.textContent.trim() : "", nm = tbPageName(t.page); return { name: nm, parts: [["n", nm], ["ct", n]] }; }
+  const L = tbLabel(t), up = L.chg != null && L.chg >= 0, cls = L.chg == null ? "" : up ? " up" : " dn";
+  return { name: L.name, parts: [["n", L.name], ["tf", L.tf || ""], ["px" + cls, L.price != null ? fmtPrice(L.price) : ""], ["chg" + cls, L.chg != null ? `${up ? "+" : ""}${L.chg.toFixed(2)}%` : ""], ["bl", t.bell ? "🔔" : ""]] };
 }
 const TB_HOUSE = `<svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3.5v-4.5h-5V17H4a1 1 0 0 1-1-1z"/></svg>`;
-let tbRowLast = "";
+let tbRowKey = "";
 function tbRender() {
   const row = $("tabRow"); if (!row) return;
-  const html = `<button class="tbhome ${TB.active === "home" ? "on" : ""}" data-tab="home" title="Home" aria-label="Home" ${TB.active === "home" ? 'aria-current="page"' : ""}>${TB_HOUSE}</button>`
-    + `<div class="tblist" role="tablist" aria-label="Open tabs">${TB.list.map(t => { const on = t.id === TB.active, L = tbTabHTML(t);
-      return `<div class="tbtab ${on ? "on" : ""}" data-tab="${t.id}" role="tab" tabindex="0" draggable="true" aria-selected="${on}" title="${tbEsc(L.name)}"><span class="tbl">${L.html}</span><button class="tbx" data-tclose="${t.id}" aria-label="Close ${tbEsc(L.name)}" title="Close">×</button></div>`; }).join("")}</div>`
-    + `<button class="tbplus" id="tabPlus" title="New tab" aria-label="New tab" aria-haspopup="true" aria-expanded="${!!$("tbMenu")}">+</button>`;
   tbHomeRender();
-  if (html === tbRowLast) return; tbRowLast = html;
+  const L = TB.list.map(tbTabParts), key = TB.active + "|" + TB.list.map(t => t.id + ":" + t.kind).join();
+  if (key === tbRowKey && row.querySelector(".tblist")) {         // the same tabs: change the labels in place, so a click never falls between two redraws
+    TB.list.forEach((t, i) => { const el = row.querySelector(`.tbtab[data-tab="${t.id}"]`); if (!el) return; const sp = el.querySelectorAll(".tbl > span");
+      L[i].parts.forEach(([c, x], j) => { const e = sp[j]; if (!e) return; if (e.className !== c) e.className = c; if (e.textContent !== x) e.textContent = x; });
+      if (el.title !== L[i].name) el.title = L[i].name; });
+    return;
+  }
+  tbRowKey = key;
   const foc = document.activeElement && row.contains(document.activeElement) ? (document.activeElement.closest("[data-tab]") || {}).dataset : null, sl = row.querySelector(".tblist") ? row.querySelector(".tblist").scrollLeft : 0;
-  row.innerHTML = html;
+  row.innerHTML = `<button class="tbhome ${TB.active === "home" ? "on" : ""}" data-tab="home" title="Home" aria-label="Home" ${TB.active === "home" ? 'aria-current="page"' : ""}>${TB_HOUSE}</button>`
+    + `<div class="tblist" role="tablist" aria-label="Open tabs">${TB.list.map((t, i) => { const on = t.id === TB.active;
+      return `<div class="tbtab ${on ? "on" : ""}" data-tab="${t.id}" role="tab" tabindex="0" draggable="true" aria-selected="${on}" title="${tbEsc(L[i].name)}"><span class="tbl">${L[i].parts.map(([c, x]) => `<span class="${c}">${tbEsc(x)}</span>`).join("")}</span><button class="tbx" data-tclose="${t.id}" aria-label="Close ${tbEsc(L[i].name)}" title="Close">×</button></div>`; }).join("")}</div>`
+    + `<button class="tbplus" id="tabPlus" title="New tab" aria-label="New tab" aria-haspopup="true" aria-expanded="${!!$("tbMenu")}">+</button>`;
   const li = row.querySelector(".tblist"); if (li) li.scrollLeft = sl;
   if (foc && foc.tab) { const e = row.querySelector(`[data-tab="${foc.tab}"]`); if (e) e.focus(); }
   const a = row.querySelector(".tbtab.on"); if (a && li && (a.offsetLeft < li.scrollLeft || a.offsetLeft + a.offsetWidth > li.scrollLeft + li.clientWidth)) a.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -12624,7 +12651,7 @@ function tbStatPaint() {                               // the last scan beside S
   const T = $("tbStatT"); if (T && T.textContent !== txt) T.textContent = txt;
   const S = $("tbStat"); if (S && S.title !== st) S.title = st;
   const P = $("tbStatP"), w = busy ? $("prog").style.width : "0"; if (P && P.style.width !== w) P.style.width = w;
-  const ex = $("exF"), d = $("dirF"), lb = $("liveBadge"), tip = `${ex.options[ex.selectedIndex].text} ${$("market").value === "spot" ? "spot" : "futures"} · ${d.options[d.selectedIndex].text} · stream ${lb.classList.contains("off") ? "off" : "live"}`;
+  const ex = $("exF"), d = $("dirF"), lb = $("liveBadge"), tip = (lb.dataset.tip ? lb.dataset.tip + "\n" : "") + `${ex.options[ex.selectedIndex].text} ${$("market").value === "spot" ? "spot" : "futures"} · ${d.options[d.selectedIndex].text}`;
   if (lb.title !== tip) lb.title = tip;
 }
 
@@ -12683,6 +12710,8 @@ document.addEventListener("click", e => { const m = $("tbMenu"); if (m && !m.con
     if (e.target.closest("#tabPlus")) { if ($("tbMenu")) tbMenuClose(); else tbMenuOpen($("tabPlus")); return; }
     const t = e.target.closest("[data-tab]"); if (t) { TB.touched = true; tbActivate(t.dataset.tab); }
   });
+  row.addEventListener("wheel", e => { const li = e.target.closest(".tblist"); if (!li || li.scrollWidth <= li.clientWidth || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    li.scrollLeft += e.deltaY; e.preventDefault(); }, { passive: false });                                              // tabs that don't fit: the wheel scrolls them
   row.addEventListener("auxclick", e => { const t = e.target.closest(".tbtab"); if (t && e.button === 1) { e.preventDefault(); TB.touched = true; tbClose(t.dataset.tab); } });   // middle click closes, like a browser
   row.addEventListener("keydown", e => { const t = e.target.closest(".tbtab"); if (!t || e.target.closest(".tbx")) return;
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); TB.touched = true; tbActivate(t.dataset.tab); }
@@ -12706,8 +12735,9 @@ document.addEventListener("click", e => { const m = $("tbMenu"); if (m && !m.con
 
 /* ---- open on the last tab (a link or a refresh keeps the page it names) ---- */
 (function tbBoot() {
+  TB.ready = true;
   const h = location.hash.slice(1), cur = tbFind(TB.active);
-  if (h && PAGE_INFO[h] && !(h === "charts" && cur && cur.kind === "chart")) goPage(h);
+  if (h && PAGE_INFO[h] && !TB.loadApplied && !(h === "charts" && cur && cur.kind === "chart")) goPage(h);     // after a pulled list, the old address could reopen a closed tab
   else tbActivate(TB.active);
   mirrorSide();
 })();

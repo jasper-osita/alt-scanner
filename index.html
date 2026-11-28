@@ -12249,6 +12249,91 @@ function trShown() { trStart(); }
 if (page === "charts" && !chBuilt) chPageShown(true);
 </script>
 
+<script id="tabs">/* ===================== Tabs across the top, like a browser: a pinned Home tab, chart tabs that share the one chart, page tabs =====================
+   TB.list = the open tabs in order (Home is the implicit id "home", never in the list). A chart tab keeps its own market, timeframes, layout and view;
+   indicators, chart style and drawings stay shared (drawings per market). Saved per device in finder-tabs; Sync carries the list (SYNC_PARTS.tabs). */
+const TB_KEY = "finder-tabs", TB_MAX_CHARTS = 12, HOME_PAGES = ["overview", "macroov", "tday", "calendar", "fund"];
+const TB_DEF = { tfs: ["4h", "1h", "15m", "5m"], layout: "4g" };
+const TB = { list: [], active: "home", home: "overview", last: null, touched: false, mem: new Map() };
+let tbN = 0;
+const tbId = () => Date.now().toString(36) + (tbN++);
+const tbFind = id => TB.list.find(t => t.id === id) || null;
+const tbCharts = () => TB.list.filter(t => t.kind === "chart");
+function tbValid(t) {                                  // a saved tab still makes sense: a page that still exists, a chart with a market; fills what's missing
+  if (!t || typeof t !== "object" || typeof t.id !== "string" || !t.id) return false;
+  if (t.kind === "page") return !!PAGE_INFO[t.page] && t.page !== "charts" && t.page !== "filters";
+  if (t.kind !== "chart" || !t.ch || typeof t.ch.sym !== "string" || !t.ch.sym) return false;
+  const c = t.ch;
+  if (typeof c.symExact !== "boolean") c.symExact = !!c.symExact;
+  if (!Array.isArray(c.tfs) || c.tfs.length !== 4 || !c.tfs.every(tf => CH_TFS.includes(tf))) c.tfs = TB_DEF.tfs.slice();
+  if (!CH_LAYOUTS[c.layout]) c.layout = TB_DEF.layout;
+  if (c.max === undefined) c.max = null;
+  if (!Array.isArray(c.views) || c.views.length !== 4) c.views = [null, null, null, null];
+  return true;
+}
+function tbChartTab(ch, sym, exact) {                  // a new chart tab with the given chart's timeframes and layout
+  const t = { id: tbId(), kind: "chart", ch: { sym: sym || ch.sym || "BTCUSDT", symExact: !!(sym ? exact : ch.symExact), tfs: (ch.tfs || TB_DEF.tfs).slice(), layout: ch.layout || TB_DEF.layout, max: null, views: [null, null, null, null] } };
+  tbValid(t); return t;
+}
+function tbFirst(ch, lastPage) {                       // the first open after the update: Home, a chart tab from today's chart, and the page you were on
+  const c = tbChartTab(ch || {}), list = [c];
+  if (lastPage && PAGE_INFO[lastPage] && lastPage !== "charts" && lastPage !== "filters" && !HOME_PAGES.includes(lastPage)) list.push({ id: tbId(), kind: "page", page: lastPage });
+  return { list, active: c.id, home: HOME_PAGES.includes(lastPage) ? lastPage : "overview", last: c.id };
+}
+function tbApply(s) {                                  // take a saved state, dropping what doesn't make sense any more
+  const seen = new Set(), list = [];
+  (Array.isArray(s.list) ? s.list : []).forEach(t => {
+    if (!tbValid(t) || seen.has(t.id)) return;
+    if (t.kind === "page" && list.some(x => x.page === t.page)) return;             // a page opens once
+    if (t.kind === "chart" && list.filter(x => x.kind === "chart").length >= TB_MAX_CHARTS) return;
+    seen.add(t.id); list.push(t);
+  });
+  TB.list = list;
+  TB.active = s.active === "home" || seen.has(s.active) ? s.active : "home";
+  TB.home = HOME_PAGES.includes(s.home) ? s.home : "overview";
+  const ch = tbCharts();
+  TB.last = ch.some(t => t.id === s.last) ? s.last : ch.length ? ch[0].id : null;
+}
+function tbRead() {
+  let s = null; try { s = JSON.parse(localStorage.getItem(TB_KEY)); } catch (e) {}
+  if (!s || typeof s !== "object") { let lp = null; try { lp = localStorage.getItem("finder-page"); } catch (e) {} s = tbFirst(chLoadJSON(CH_KEY, {}), lp); }
+  tbApply(s);
+}
+function tbSave() {
+  chSaveJSON(TB_KEY, { list: TB.list, active: TB.active, home: TB.home, last: TB.last });
+  if (typeof tbRender === "function") tbRender();
+}
+function tbOpenPage(pg) {                              // a page opens once: opening it again finds its tab
+  if (!PAGE_INFO[pg] || pg === "charts" || pg === "filters") return null;
+  let t = TB.list.find(x => x.kind === "page" && x.page === pg);
+  if (!t) { t = { id: tbId(), kind: "page", page: pg }; TB.list.push(t); tbSave(); }
+  return t;
+}
+function tbOpenChart(sym, o = {}) {                    // reuse: a tab already on that market; else a new one like the chart tab you used last
+  if (!sym) return null;
+  if (o.reuse) { const t = tbCharts().find(t => t.ch.sym === sym); if (t) return t; }
+  if (tbCharts().length >= TB_MAX_CHARTS) { toast("You have 12 chart tabs open: close one first."); return null; }
+  const L = tbFind(TB.last), t = tbChartTab(L && L.kind === "chart" ? L.ch : CH, sym, o.exact);
+  TB.list.push(t); tbSave(); return t;
+}
+function tbNextAfterClose(id) {                        // the tab to its right, else the one to its left, else Home
+  const i = TB.list.findIndex(t => t.id === id); if (i < 0) return "home";
+  return (TB.list[i + 1] || TB.list[i - 1] || { id: "home" }).id;
+}
+function tbClose(id) {
+  if (id === "home" || !tbFind(id)) return;
+  const was = TB.active === id, next = was ? tbNextAfterClose(id) : TB.active;
+  TB.list = TB.list.filter(t => t.id !== id);
+  if (TB.last === id) { const c = tbCharts(); TB.last = c.length ? c[c.length - 1].id : null; }
+  TB.active = next; tbSave();
+}
+function tbMove(id, to) {
+  const i = TB.list.findIndex(t => t.id === id); if (i < 0) return;
+  const [t] = TB.list.splice(i, 1); TB.list.splice(Math.max(0, Math.min(to, TB.list.length)), 0, t); tbSave();
+}
+tbRead();
+</script>
+
 
 <script>
 /* installable app: register the service worker (needs https or localhost) */

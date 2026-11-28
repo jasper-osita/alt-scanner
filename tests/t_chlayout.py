@@ -19,11 +19,10 @@ async def main():
             await asyncio.sleep(0.25)
         W = "() => chVis().map(P => P.i + ':' + Math.round(P.pane.getBoundingClientRect().width) + 'x' + Math.round(P.pane.getBoundingClientRect().height)).join(' ')"
         print("1) default 4g:", await q(W), "| grid width", await q("() => Math.round(document.getElementById('chGrid').getBoundingClientRect().width)"), "| filters panel shown:", await q("() => getComputedStyle(document.getElementById('fPanel')).display"))
-        # nav + watchlist collapse
+        # watchlist collapse (desktop has no sidebar now: tabs across the top)
         w0 = await q("() => CHP[0].pane.getBoundingClientRect().width")
-        await pg.click("#navTog"); await asyncio.sleep(0.4)
         await pg.click("#chWLHide"); await asyncio.sleep(0.4)
-        print("2) sidebar hidden:", await q("() => getComputedStyle(document.getElementById('side')).display"), "| watchlist strip:", await q("() => !!document.getElementById('chWLOpen')"), "| pane 0 width", round(w0), "→", await q("() => Math.round(CHP[0].pane.getBoundingClientRect().width)"), "| chart canvas width follows:", await q("() => CHP[0].chart.timeScale().width() > 0 && Math.abs(CHP[0].cv.clientWidth - CHP[0].pane.clientWidth) < 4"))
+        print("2) no sidebar on desktop:", await q("() => getComputedStyle(document.getElementById('side')).display"), "| watchlist strip:", await q("() => !!document.getElementById('chWLOpen')"), "| pane 0 width", round(w0), "→", await q("() => Math.round(CHP[0].pane.getBoundingClientRect().width)"), "| chart canvas width follows:", await q("() => CHP[0].chart.timeScale().width() > 0 && Math.abs(CHP[0].cv.clientWidth - CHP[0].pane.clientWidth) < 4"))
         # layout picker
         await pg.click("#chLayBtn"); await asyncio.sleep(0.2)
         print("3) picker rows:", await q("() => [...document.querySelectorAll('#chLayPop .chlr')].map(r => r.querySelector('span').textContent + ':' + r.querySelectorAll('button').length).join(' ')"))
@@ -66,12 +65,11 @@ async def main():
         for _ in range(40):
             if await q("() => typeof CHP !== 'undefined' && CHP.length === 4 && chVis().every(P => P.t.length > 0)"): break
             await asyncio.sleep(0.25)
-        print("9) after reload:", await q("() => ({ layout: CH.layout, navcol: document.body.classList.contains('navcol'), wl: CH.wl, sizes3L: JSON.stringify(CH.sizes['3L'].r.map(x => +x.toFixed(2))) })"))
-        await pg.click("#navTog"); await asyncio.sleep(0.2)
-        print("   sidebar back:", await q("() => getComputedStyle(document.getElementById('side')).display"))
-        await q("() => goPage('overview')"); await asyncio.sleep(0.3); await pg.click("#navTog"); await asyncio.sleep(0.3)
-        print("10) other page full width:", await q("() => Math.round(document.querySelector('main').getBoundingClientRect().width)"), "of", 1600)
-        await pg.click("#navTog")
+        print("9) after reload:", await q("() => ({ layout: CH.layout, wl: CH.wl, sizes3L: JSON.stringify(CH.sizes['3L'].r.map(x => +x.toFixed(2))) })"))
+        await q("() => goPage('day')"); await asyncio.sleep(0.3)
+        mw = await q("() => Math.round(document.querySelector('main').getBoundingClientRect().width)")
+        print("10) other page full width:", mw, "of", 1600)
+        if mw < 1500: errs.append(f"a page tab isn't full width ({mw}px)")
         await pg.set_viewport_size({"width": 390, "height": 844}); await q("() => goPage('charts')"); await asyncio.sleep(0.8)
         print("11) mobile overflow:", await q("() => document.documentElement.scrollWidth - innerWidth"))
         print("errors:", errs or "none")

@@ -37,7 +37,7 @@ async def main():
         # live price polling path
         await pg.evaluate("() => { MACRO.at = Date.now(); }"); await asyncio.sleep(11)
         print("polled price cell:", await pg.evaluate("() => document.querySelector('[data-mp=XAUUSDT]').textContent"))
-        await pg.click("#copyBtn"); await asyncio.sleep(0.2)
+        await pg.click("#mMore"); await pg.click("#chMenu >> text=Copy for Claude"); await asyncio.sleep(0.2)
         print("export:", await pg.evaluate("() => claudeText().split('\\n').find(l => l.startsWith('Forex, gold')).slice(0, 200)"))
         await pg.set_viewport_size({"width": 390, "height": 844}); await asyncio.sleep(0.5)
         print("mobile overflow:", await pg.evaluate("() => document.documentElement.scrollWidth - innerWidth"))

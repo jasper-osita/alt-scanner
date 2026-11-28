@@ -35,7 +35,7 @@ async def main():
         print("suggested setups with a rotation reason:", await pg.evaluate("() => (data.suggest || []).map(x => coin(x.r.symbol) + ': ' + x.reasons.join(', ')).join(' | ')"))
         await pg.evaluate("() => { goPage('overview'); document.getElementById('rotation').scrollIntoView(); }"); await asyncio.sleep(0.4)
         await pg.screenshot(path="rot_card.png", full_page=False)
-        await pg.click("#copyBtn"); await asyncio.sleep(0.2)
+        await pg.click("#mMore"); await pg.click("#chMenu >> text=Copy for Claude"); await asyncio.sleep(0.2)
         txt = await pg.evaluate("() => navigator.clipboard.readText()"); print("export:", [l for l in txt.split("\n") if l.startswith("Money flow")][0][:220])
         print("CSP:", csp or "none", "| errors:", errs or "none")
         await b.close()

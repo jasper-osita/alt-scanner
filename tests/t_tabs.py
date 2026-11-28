@@ -24,7 +24,30 @@ async def part1(q):
       const r = [tbNextAfterClose('y'), tbNextAfterClose('z')]; TB.list = [{ id: 'x', kind: 'page', page: 'day' }]; r.push(tbNextAfterClose('x')); return r.join() === 'z,y,home'; }"""))
     check("tabs survive a reload", await q("() => { tbSave(); const keep = JSON.stringify(TB.list); tbRead(); return JSON.stringify(TB.list) === keep; }"))
 
-PARTS = [part1]
+async def part2(pg, q):
+    print("2) the tab row and the router")
+    await q("() => { localStorage.removeItem('finder-tabs'); location.hash = ''; }"); await pg.reload(); await ready(pg)
+    check("desktop: no sidebar, a tab row with Home first", await q("() => getComputedStyle(document.getElementById('side')).display === 'none' && document.querySelector('#tabRow [data-tab]').dataset.tab === 'home'"))
+    check("opens on the chart tab built from the current chart", await q("() => TB.list[0].kind === 'chart' && TB.active === TB.list[0].id && page === 'charts'"))
+    await q("() => goPage('day')")
+    check("goPage opens a page tab once", await q("() => page === 'day' && TB.list.filter(t => t.page === 'day').length === 1 && TB.active === TB.list.find(t => t.page === 'day').id"))
+    await q("() => goPage('fund')")
+    check("a Home page goes to Home", await q("() => TB.active === 'home' && TB.home === 'fund' && page === 'fund'"))
+    await pg.click('#tabRow [data-tab="' + await q("() => TB.list.find(t => t.page === 'day').id") + '"]')
+    check("clicking a tab shows it", await q("() => page === 'day'"))
+    await pg.click("#tabPlus"); await pg.keyboard.type("gold")
+    txt = await q("() => document.getElementById('tbMenu').innerText")
+    check("+ menu search offers a chart for Gold", "New chart: Gold" in txt, txt[:200])
+    await pg.keyboard.press("Escape"); await pg.click("#tabPlus")
+    groups = await q("() => [...document.querySelectorAll('#tbMenu .tbgrp')].map(g => g.firstChild.textContent.trim())")
+    check("+ menu groups", groups == ["Home pages", "Boards", "Forex · metals · indices", "Screener", "My trading", "More"], groups)
+    await pg.keyboard.press("Escape"); await pg.keyboard.press("Alt+1")
+    check("Alt+1 is the first tab after Home", await q("() => TB.active === TB.list[0].id"))
+    await pg.set_viewport_size({"width": 390, "height": 844}); await asyncio.sleep(0.3)
+    check("phone: bottom bar, no tab row", await q("() => getComputedStyle(document.getElementById('mTab')).display !== 'none' && getComputedStyle(document.getElementById('tabRow')).display === 'none'"))
+    await pg.set_viewport_size({"width": 1440, "height": 900})
+
+PARTS = [part1, part2]
 
 async def main():
     serve()

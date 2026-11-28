@@ -1,4 +1,4 @@
-"""Opening the app lands on Charts (built and loaded); a link with a page keeps that page."""
+"""Opening the app the first time lands on Charts (built and loaded); after that on the last tab you had open; a link with a page keeps that page."""
 import asyncio, sys, os, functools
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from mock import *
 from playwright.async_api import async_playwright
@@ -16,15 +16,18 @@ async def main():
                 await asyncio.sleep(0.25)
             return False
         await pg.goto("http://localhost:8765/"); await q("() => localStorage.clear()"); await pg.goto("http://localhost:8765/")
-        print("1) fresh open:", await q("() => page + ' ' + location.hash"), "| charts loaded:", await charts_ok(), "| title:", await q("() => document.getElementById('pageTitle').textContent"))
+        def want(name, got, exp):
+            if got != exp: errs.append(f"{name}: {got} (wanted {exp})")
+        r = [await q("() => page + ' ' + location.hash"), await charts_ok()]
+        print("1) fresh open:", r[0], "| charts loaded:", r[1], "| title:", await q("() => document.getElementById('pageTitle').textContent")); want("fresh open", r, ["charts #charts", True])
         await q("() => goPage('day')"); await pg.goto("http://localhost:8765/"); await asyncio.sleep(0.5)
-        print("2) last page was Day Trade, open the app:", await q("() => page"), "| charts loaded:", await charts_ok())
+        r = await q("() => page"); print("2) last tab was Day Trade, open the app:", r); want("opens on the last tab", r, "day")
         await pg.goto("http://localhost:8765/#fund"); await pg.reload(); await asyncio.sleep(0.5)
-        print("3) link to #fund:", await q("() => page"))
+        r = await q("() => page"); print("3) link to #fund:", r); want("link to #fund", r, "fund")
         await q("() => goPage('swing')"); await pg.reload(); await asyncio.sleep(0.5)
-        print("4) refresh on Swing stays:", await q("() => page"))
-        await pg.click(".side .brand"); await asyncio.sleep(0.5)
-        print("5) logo:", await q("() => page"), "| charts loaded:", await charts_ok())
+        r = await q("() => page"); print("4) refresh on Swing stays:", r); want("refresh on Swing", r, "swing")
+        await pg.click("#tabRow .tbtab >> nth=0"); await asyncio.sleep(0.5)
+        r = [await q("() => page"), await charts_ok()]; print("5) the chart tab:", r[0], "| charts loaded:", r[1]); want("chart tab", r, ["charts", True])
         print("errors:", errs[:4] or "none")
         await b.close()
 asyncio.run(main())

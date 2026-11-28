@@ -13,7 +13,7 @@ async def main():
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
         q = lambda js: pg.evaluate(js)
-        await pg.click('#side [data-go="charts"]')
+        await pg.evaluate("() => goPage('charts')")
         for _ in range(60):
             if await q("() => CHP.length === 4 && CHP.every(P => P.t.length > 0)"): break
             await asyncio.sleep(0.25)
@@ -29,7 +29,7 @@ async def main():
             if k == "base": await pg.screenshot(path=f"{OUT}/tvx_base.png")
         await q("() => chSetType('ha')"); await q("() => { const P = CHP[1], n = P.t.length; chBar(P, { t: P.t[n - 1], o: P.o[n - 1], h: P.h[n - 1] * 1.01, l: P.l[n - 1], c: P.h[n - 1] * 1.005, v: 1 }); }")
         print("   HA live bar:", await q("() => { const P = CHP[1], n = P.t.length, d = P.cs.data().at(-1); return d.close === P.ha.c[n - 1] && P.ha.c.length === n; }"))
-        await pg.reload(); await ready(pg); await pg.click('#side [data-go="charts"]')
+        await pg.reload(); await ready(pg); await pg.evaluate("() => goPage('charts')")
         for _ in range(60):
             if await q("() => typeof CHP !== 'undefined' && CHP.length === 4 && CHP.every(P => P.t.length > 0)"): break
             await asyncio.sleep(0.25)

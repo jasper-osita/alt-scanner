@@ -11,7 +11,7 @@ async def main():
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
         q = lambda js: pg.evaluate(js)
-        await pg.click('#side [data-go="charts"]')
+        await pg.evaluate("() => goPage('charts')")
         for _ in range(60):
             if await q("() => CHP.length === 4 && CHP.every(P => P.t.length > 0)"): break
             await asyncio.sleep(0.25)

@@ -6447,7 +6447,7 @@ function ovcMigrate(st) {                            // once: the old session sw
   delete x.auto; x.m15 = 1; return st;
 }
 const OVC = { on: null, prev: null, home: null, act: 0, ro: null, resume: null, st: ovcMigrate(chLoadJSON("finder-ovch", {})) };   // the overview pages borrowing this chart (see ovcHost)
-const chSave = () => chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH), chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
+const chSave = () => { chSaveJSON(CH_KEY, OVC.on ? { ...CH, ...OVC.prev } : CH); if (typeof tbSyncActiveChart === "function") tbSyncActiveChart(); }, chSaveDraw = () => chSaveJSON(CHD_KEY, CHD), chSaveWL = () => chSaveJSON(CHW_KEY, CHW);
 const CHP = [];                                              // the four panes
 let CHM = null;                                              // a trade marked on the chart (clicked in the trade watch): { list: [trade], i: 0 }
 const chPS = P => P.psym || CH.sym;                          // the symbol a pane shows: its own on the forex overview, else the chart's
@@ -8066,7 +8066,9 @@ async function ovcHost(mode) {
   if (page !== OVC_PAGE[mode] || CHDLG.on || OVC.on === mode) return;
   if (OVC.on) ovcPark();
   chBuild(); const el = $("chPage");
-  OVC.prev = { sym: CH.sym, symExact: !!CH.symExact, tfs: CH.tfs.slice(), layout: CH.layout, max: CH.max }; OVC.home = [el.parentNode, el.nextSibling]; OVC.on = mode;
+  { const tc = typeof tbFind === "function" && tbFind(TB.last), c = tc && tc.kind === "chart" ? tc.ch : CH;      // the chart tab you used last gets it back
+    OVC.prev = { sym: c.sym, symExact: !!c.symExact, tfs: c.tfs.slice(), layout: c.layout, max: c.max }; }
+  OVC.home = [el.parentNode, el.nextSibling]; OVC.on = mode;
   chModalClose(); chMenuClose(); chColorClose(); chPickClose();
   host.innerHTML = ""; host.appendChild(el); el.classList.add("chovh", "chov-" + mode);
   const tfs = (OVC.st[mode] && OVC.st[mode].tfs) || [];
@@ -8148,7 +8150,14 @@ document.addEventListener("keydown", e => { if (e.key !== "Escape") return;
   CHDLG.escBusy = CHDLG.on && !!(chDraft || chMeasure || chSel || chTool !== "cursor" || $("chModBg") || $("chMenu") || $("chColPop") || ($("chPick") && !$("chPick").hidden));
   if (CHDLG.escBusy) e.preventDefault(); }, true);       // a handled Esc never reaches the dialog (the chart's own handlers still see it)
 $("dlg").addEventListener("cancel", e => { if (CHDLG.escBusy) { e.preventDefault(); CHDLG.escBusy = false; } });
-window.openInCharts = sym => { if (OVC.on) ovcPark(); if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; CH.symExact = false; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); };
+window.openInCharts = sym => {
+  if (typeof tbOpenChart !== "function") { if (OVC.on) ovcPark(); if (CHDLG.on) chDlgEnd(sym || CH.sym); if (sym) { CH.sym = sym; CH.symExact = false; chSave(); } if ($("dlg") && $("dlg").open) $("dlg").close(); goPage("charts"); if (chBuilt) chSetSym(CH.sym); return; }
+  if (CHDLG.on) chDlgEnd(); if ($("dlg") && $("dlg").open) $("dlg").close();
+  if (!sym) { goPage("charts"); return; }
+  const s = ctEquiv(sym) || sym;
+  if (!isPhone()) { const t = tbOpenChart(s, { reuse: true }); if (t) tbActivate(t.id); return; }        // a chart tab already on it, else a new one (or the 12-tab note)
+  goPage("charts"); if (chBuilt) chSetSym(s); else { CH.sym = s; CH.symExact = false; chSave(); }         // phones: the open chart tab takes the market
+};
 
 /* ---- chart type: candles, hollow candles, Heikin Ashi, bars, line, area, baseline (toolbar, like TradingView) ---- */
 const CH_TYPES = [
@@ -8244,7 +8253,7 @@ async function chLoad(P) {
     ["t", "o", "h", "l", "c"].forEach(f => P[f] = k[f].slice()); P.v = (k.qv || []).map(Number);
     if (fb && (!P.t.length || fb.t > P.t.at(-1))) { ["t", "o", "h", "l", "c"].forEach(f => P[f].push(fb[f])); P.v.push(fb.v || 0); }
     if (!P.t.length) throw new Error("no candles");
-    P.sym = sym; P.alSig = null; P.noOlder = false; P.older = false; chIndSync(P); chSetData(P); chFit(P); chCtSub(sym);
+    P.sym = sym; P.alSig = null; P.noOlder = false; P.older = false; chIndSync(P); chSetData(P); chFit(P); if (typeof tbViewHook === "function") tbViewHook(P); chCtSub(sym);
     P.msg.hidden = true; chLegend(P, null); chDirty = true; chHeader(); if (RP.on) rpLoaded(P); chCmpSync(P);
   } catch (e) { if (tok === P.tok) { P.msg.textContent = `Couldn't load ${chName(sym)} ${CH_TFL[tf]}: ${e.message}`; P.msg.hidden = false; } }
 }
@@ -12390,6 +12399,8 @@ window.goPage = goPage;
 function tbActivate(id, keepTab) {
   let t = id === "home" ? null : tbFind(id); if (!t) id = "home";
   if (t && t.bell) delete t.bell;
+  if (t && t.kind === "chart" && TB.shown === id && page === "charts" && !OVC.on && !CHDLG.on) { TB.active = id; tbSave(); return; }   // already on screen
+  const prev = tbFind(TB.shown); if (prev && prev.kind === "chart" && prev !== t) tbLeaveChart(prev);
   TB.active = id; TB.shown = id;
   document.body.classList.toggle("homeon", id === "home");
   if (!t) pgShow(TB.home, keepTab);
@@ -12397,13 +12408,60 @@ function tbActivate(id, keepTab) {
   else { TB.last = t.id; tbShowChart(t); }
   tbSave();
 }
-function tbShowChart(t) {                              // the open chart takes this tab's market, timeframes and layout (Task 4 adds views, memory and the tidy-up)
-  if (OVC.on) ovcPark();
-  const c = t.ch, re = CH.sym !== c.sym || CH.tfs.join() !== c.tfs.join() || CH.layout !== c.layout;
-  CH.sym = c.sym; CH.symExact = c.symExact; CH.tfs = c.tfs.slice(); CH.layout = c.layout; CH.max = c.max; chSave();
-  pgShow("charts");
-  if (re && chBuilt) { chApplyLayout(); CHP.forEach((P, i) => { P.tf = CH.tfs[i]; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; }); chVis().forEach(P => chLoad(P)); chHeader(); }
+/* ---- chart tabs take turns on the one chart: each keeps its market, timeframes, layout and view ---- */
+function tbSnapChart() {                               // the open chart as a chart tab's settings, with each visible pane's view
+  const views = [null, null, null, null];
+  chVis().forEach(P => { if (!P.chart || !P.t.length || P.sym !== chPS(P)) return; let r = null; try { r = P.chart.timeScale().getVisibleLogicalRange(); } catch (e) {}
+    if (!r) return; const n = P.t.length, ti = Math.max(0, Math.min(n - 1, Math.round(r.to)));
+    views[P.i] = { from: r.from, to: r.to, live: r.to >= n - 2, rt: r.to - (n - 1), toT: P.t[ti], sym: P.sym, tf: P.tf }; });
+  return { sym: CH.sym, symExact: !!CH.symExact, tfs: CH.tfs.slice(), layout: CH.layout, max: CH.max, views };
 }
+function tbSyncActiveChart() {                         // chSave → the open chart tab follows (market, timeframes, layout picked inside it)
+  if (TB.applying || OVC.on || CHDLG.on || page !== "charts") return;
+  const t = tbFind(TB.active); if (!t || t.kind !== "chart" || TB.shown !== t.id) return;
+  const s = tbSnapChart(); s.views = s.views.map((v, i) => v || t.ch.views[i] || null); t.ch = s; tbSave();
+}
+function tbTidy() {                                    // as when you change market: menus and dialogs close, the cursor tool, no half-finished drawing
+  if (!chBuilt) return;
+  chModalClose(); chMenuClose(); chColorClose(); chPickClose();
+  chSel = null; chDraft = null; chMeasure = null; chUndo = []; chRedo = []; chSetTool("cursor"); chSelBar();
+}
+function tbLeaveChart(prev) {                          // the chart tab you leave: keep its view and candles; replay ends
+  if (page === "charts" && !OVC.on && !CHDLG.on && chBuilt) { const s = tbSnapChart(); s.views = s.views.map((v, i) => v || prev.ch.views[i] || null); prev.ch = s; tbRemember(prev); }
+  if (RP.on) rpExit();
+  tbTidy();
+}
+function tbShowChart(t) {
+  TB.applying = true;
+  try {
+    if (OVC.on) ovcPark();
+    if (RP.on) rpExit();
+    tbTidy();
+    const c = t.ch;
+    if (CH.sym !== c.sym && CHM && CHM.tw) CHM = null;
+    CH.sym = c.sym; CH.symExact = !!c.symExact; CH.layout = c.layout; CH.max = c.max;
+    c.tfs.forEach((tf, i) => { CH.tfs[i] = tf; const P = CHP[i]; if (P && P.tf !== tf) { P.tf = tf; P.sym = null; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = tf; } });
+    CHP.forEach(P => P.tok++);                         // candles still loading for the tab you left never land here
+    TB.pv = {};
+    (c.views || []).forEach((v, i) => { if (v) TB.pv[i] = { ...v, sym: c.sym, tf: c.tfs[i] }; });
+    CHP.forEach(P => { if (P.sym === chPS(P) && P.tf === c.tfs[P.i] && P.t.length) { const m = tbMemFor(P.sym, P.tf); if (m) tbMemDraw(P, m); } });
+    chSave();
+  } finally { TB.applying = false; }
+  pgShow("charts");
+  requestAnimationFrame(() => { if (TB.shown !== t.id) return; chVis().forEach(P => { if (P.sym === chPS(P) && P.t.length) { P.msg.hidden = true; tbViewHook(P); } }); chHeader(); });
+}
+function tbViewHook(P) {                               // put a pane back where you left it (a pane that followed the newest candle keeps following)
+  const v = TB.pv && TB.pv[P.i]; if (!v || v.sym !== chPS(P) || v.tf !== P.tf || !P.chart || !P.t.length) return;
+  delete TB.pv[P.i];
+  const n = P.t.length, w = v.to - v.from; let to;
+  if (v.live) to = n - 1 + (v.rt || 0);
+  else { const i = v.toT != null ? chIdx(P, v.toT) : -1; to = i >= 0 ? i + (v.to - Math.round(v.to)) : v.to; }
+  try { P.chart.timeScale().setVisibleLogicalRange({ from: to - w, to }); } catch (e) {}
+  chDirty = true;
+}
+function tbRemember(tab) {}                            // hidden tabs' candles in memory: Task 5
+function tbMemFor(sym, tf) { return null; }
+function tbMemDraw(P, m) {}
 
 /* ---- the Home tab: Overview, Trading day, Calendar and Fundamentals behind a left menu ---- */
 const TB_HOME_NAV = [["overview", "Overview", 1], ["overview", "Crypto"], ["macroov", "Forex, metals & indices"], ["tday", "Trading day", 1], ["tday", "Today", 0, "today"], ["tday", "This week", 0, "week"], ["calendar", "Calendar", 1], ["fund", "Fundamentals", 1]];

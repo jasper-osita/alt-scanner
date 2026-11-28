@@ -9,7 +9,7 @@ async def main():
         await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
         await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
         q = lambda js: pg.evaluate(js)
-        await pg.click('#side [data-go="charts"]'); await asyncio.sleep(3)
+        await pg.evaluate("() => goPage('charts')"); await asyncio.sleep(3)
         await q("() => { CH.layout = '1'; CH.max = null; chApplyLayout(); }"); await asyncio.sleep(2.5)
         P = await q("() => chVis()[0].i"); bx = await pg.locator(f"#chCv{P}").bounding_box()
         X = lambda f: bx["x"] + bx["width"] * 0.8 * f; Y = lambda f: bx["y"] + bx["height"] * 0.65 * f

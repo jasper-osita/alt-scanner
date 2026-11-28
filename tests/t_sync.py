@@ -20,7 +20,7 @@ async def device(b, name):
     pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(name + ": " + str(e)))
     await pg.route_web_socket("wss://fstream.binance.com/stream", lambda ws: None)
     await pg.goto("http://localhost:8765/"); await pg.evaluate("() => localStorage.clear()"); await pg.reload(); await ready(pg)
-    await pg.click('#side [data-go="charts"]')
+    await pg.evaluate("() => goPage('charts')")
     for _ in range(60):
         if await pg.evaluate("() => CHP.length === 4 && CHP.every(P => P.t.length > 0)"): break
         await asyncio.sleep(0.25)

@@ -61,7 +61,31 @@ async def part3(pg, q):
     await q("() => goPage('tday')")
     check("with its own tab open, goPage goes to that tab", await q("() => TB.active === TB.list.find(t => t.page === 'tday').id"))
 
-PARTS = [part1, part2, part3]
+async def part4(pg, q, wait):
+    print("4) chart tabs share the chart")
+    await q("() => { TB.list = []; TB.active = 'home'; const a = tbOpenChart('BTCUSDT'), b = tbOpenChart('ETHUSDT'); b.ch.tfs = ['15m','1h','4h','1d']; b.ch.layout = '1'; window.__a = a.id; window.__b = b.id; tbActivate(a.id); }")
+    await wait("() => CH.sym === 'BTCUSDT' && chVis()[0].t.length > 50")
+    await q("() => { const P = chVis()[0]; P.chart.timeScale().setVisibleLogicalRange({ from: P.t.length - 60, to: P.t.length - 30 }); }")
+    await q("() => tbActivate(window.__b)"); await wait("() => CH.sym === 'ETHUSDT' && CH.layout === '1' && chVis()[0].tf === '15m' && chVis()[0].t.length > 50")
+    await q("() => tbActivate(window.__a)"); await wait("() => CH.sym === 'BTCUSDT' && chVis()[0].t.length > 50")
+    await asyncio.sleep(0.5)
+    v = await q("() => { const P = chVis()[0], r = P.chart.timeScale().getVisibleLogicalRange(); return [Math.round(r.to - (P.t.length - 30))]; }")
+    check("each chart tab keeps its market, timeframes, layout and zoom", abs(v[0]) <= 2, v)
+    await q("() => { chPush(); chList().push({ id: 'tbd', type: 'hline', pts: [{ t: chVis()[0].t.at(-5), p: chVis()[0].c.at(-1) }] }); chSaveDraw(); }")
+    await q("() => tbActivate(window.__b)"); await q("() => tbActivate(window.__a)")
+    check("drawings stay on their market", await q("() => chList('BTCUSDT').some(d => d.id === 'tbd') && !chList('ETHUSDT').some(d => d.id === 'tbd')"))
+    await q("() => rpEnter()"); await q("() => tbActivate(window.__b)")
+    check("replay ends when you leave its tab", await q("() => !RP.on"))
+    await q("() => { tbActivate(window.__a); chDraft = { type: 'trend', pts: [] }; tbActivate(window.__b); }")
+    check("a half-finished drawing is dropped on switching", await q("() => chDraft === null && chTool === 'cursor'"))
+    late = await q("""async () => { tbActivate(window.__a); const P = chVis()[0], tok = P.tok; tbActivate(window.__b); await new Promise(r => setTimeout(r, 1500)); return [CH.sym, chVis()[0].sym, chVis()[0].tok !== tok]; }""")
+    check("a chart still loading for the tab you left never lands in this one", late == ["ETHUSDT", "ETHUSDT", True], late)
+    await q("() => goPage('overview')"); await wait("() => OVC.on === 'c'"); await q("() => tbActivate(window.__a)")
+    check("the overview hands the chart back to the open chart tab", await wait("() => !OVC.on && page === 'charts' && CH.sym === 'BTCUSDT'"))
+    await q("() => openInCharts('ETHUSDT')")
+    check("open in a chart goes to the tab already on that market", await q("() => TB.active === window.__b && TB.list.filter(t => t.kind === 'chart').length === 2"))
+
+PARTS = [part1, part2, part3, part4]
 
 async def main():
     serve()

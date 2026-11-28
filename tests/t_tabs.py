@@ -47,7 +47,21 @@ async def part2(pg, q):
     check("phone: bottom bar, no tab row", await q("() => getComputedStyle(document.getElementById('mTab')).display !== 'none' && getComputedStyle(document.getElementById('tabRow')).display === 'none'"))
     await pg.set_viewport_size({"width": 1440, "height": 900})
 
-PARTS = [part1, part2]
+async def part3(pg, q):
+    print("3) the Home tab")
+    await q("() => tbActivate('home')")
+    rail = await q("() => [...document.querySelectorAll('#homeNav a, #homeNav button')].map(e => e.textContent.trim())")
+    check("Home rail", rail == ["Overview", "Crypto", "Forex, metals & indices", "Trading day", "Today", "This week", "Calendar", "Fundamentals"], rail)
+    await pg.click('#homeNav [data-hp="tday"][data-tdv="week"]')
+    check("This week opens Trading day on its week view", await q("() => page === 'tday' && TD_VIEW === 'week' && TB.home === 'tday'"))
+    await q("() => goPage('charts')"); await q("() => tbActivate('home')")
+    check("Home remembers its section", await q("() => page === 'tday'"))
+    await pg.click('[data-page="tday"] [data-owntab="tday"]')
+    check("Open in its own tab", await q("() => TB.list.some(t => t.page === 'tday') && TB.active === TB.list.find(t => t.page === 'tday').id && !document.body.classList.contains('homeon')"))
+    await q("() => goPage('tday')")
+    check("with its own tab open, goPage goes to that tab", await q("() => TB.active === TB.list.find(t => t.page === 'tday').id"))
+
+PARTS = [part1, part2, part3]
 
 async def main():
     serve()

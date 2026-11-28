@@ -1120,7 +1120,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .tbhome:hover,.tbplus:hover,.tbsrch:hover{color:var(--text);background:var(--hover)}
 .tbhome.on{color:var(--accent);background:var(--panel);border-color:var(--line)}
 .tblist{display:flex;gap:2px;min-width:0;flex:0 1 auto;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.tblist::-webkit-scrollbar{display:none}
-.tbtab{flex:0 1 210px;min-width:120px;display:flex;align-items:center;gap:6px;height:32px;box-sizing:border-box;padding:0 4px 0 10px;border:1px solid transparent;border-radius:8px;color:var(--mute);cursor:pointer;font:12.5px var(--display);white-space:nowrap;user-select:none}
+.tbtab{flex:0 1 auto;min-width:120px;max-width:230px;display:flex;align-items:center;gap:6px;height:32px;box-sizing:border-box;padding:0 4px 0 10px;border:1px solid transparent;border-radius:8px;color:var(--mute);cursor:pointer;font:12.5px var(--display);white-space:nowrap;user-select:none}
 .tbtab:hover{background:var(--hover);color:var(--text)}
 .tbtab.on{background:var(--panel);color:var(--text);border-color:var(--line)}
 .tbtab:focus-visible,.tbhome:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
@@ -1137,7 +1137,14 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
 .tbmi{display:flex;width:100%;align-items:center;gap:8px;text-align:left;background:transparent;border:0;border-radius:7px;color:var(--text);font:13px var(--display);padding:7px 8px;cursor:pointer}
 .tbmi:hover,.tbmi:focus-visible{background:var(--hover);outline:none}.tbmi.lead{font-weight:600}.tbmi .meta{margin-left:auto;color:var(--mute);font-size:11.5px}
 .tbempty{color:var(--mute);font-size:12.5px;padding:8px}
+.homenav,.ownrow{display:none}
+.homenav{flex-direction:column;gap:1px;position:sticky;top:12px;align-self:start;padding:4px 0}
+.homenav button{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:7px;color:var(--text);font:13px var(--display);padding:7px 10px;cursor:pointer}
+.homenav button:hover{background:var(--hover)}.homenav .hh{font-weight:600;margin-top:6px}.homenav .hh:first-child{margin-top:0}.homenav .hs{padding-left:22px;color:var(--mute)}
+.homenav button[aria-current]{background:var(--active);color:var(--accent)}
+.ownrow{justify-content:flex-end;margin:-6px 0 6px}
 @media (min-width:761px){
+  body.homeon .layout{grid-template-columns:188px minmax(0,1fr)!important}body.homeon .homenav{display:flex}body.homeon .ownrow:not(.pg-off){display:flex}
   #side{display:none!important}.shell{grid-template-columns:minmax(0,1fr)!important}.shell>.wrap{max-width:none}
   #crumb,#navTog,.actions .tog,#copyBtn,#jsonBtn,#fToggle{display:none!important}
   .topbar{flex-wrap:nowrap}
@@ -1179,7 +1186,12 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
   </div>
   <h1 id="pageTitle">Overview</h1>
   <div class="subline"><span id="title">Binance Perpetuals</span><span>·</span><span class="clock" id="clock">Loading time…</span></div>
-  <div class="layout"><main>
+  <div class="layout"><nav class="homenav" id="homeNav" aria-label="Home sections"></nav><main>
+  <div class="ownrow" data-page="overview"><button class="btn sm" data-owntab="overview">Open in its own tab</button></div>
+  <div class="ownrow" data-page="macroov"><button class="btn sm" data-owntab="macroov">Open in its own tab</button></div>
+  <div class="ownrow" data-page="tday"><button class="btn sm" data-owntab="tday">Open in its own tab</button></div>
+  <div class="ownrow" data-page="calendar"><button class="btn sm" data-owntab="calendar">Open in its own tab</button></div>
+  <div class="ownrow" data-page="fund"><button class="btn sm" data-owntab="fund">Open in its own tab</button></div>
 
   <div class="pills" data-page="overview playbook momentum day swing aots sessions screener watch backtest macroov macromomo macropair macro">   <!-- scan settings: only where they change what you see -->
     <button class="pillsum" id="pillSum" aria-expanded="false" aria-controls="exF"><span id="pillSumT">Scan settings</span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
@@ -12393,6 +12405,25 @@ function tbShowChart(t) {                              // the open chart takes t
   if (re && chBuilt) { chApplyLayout(); CHP.forEach((P, i) => { P.tf = CH.tfs[i]; const sel = P.pane.querySelector(".chtf"); if (sel) sel.value = P.tf; }); chVis().forEach(P => chLoad(P)); chHeader(); }
 }
 
+/* ---- the Home tab: Overview, Trading day, Calendar and Fundamentals behind a left menu ---- */
+const TB_HOME_NAV = [["overview", "Overview", 1], ["overview", "Crypto"], ["macroov", "Forex, metals & indices"], ["tday", "Trading day", 1], ["tday", "Today", 0, "today"], ["tday", "This week", 0, "week"], ["calendar", "Calendar", 1], ["fund", "Fundamentals", 1]];
+let tbHomeLast = "";
+function tbHomeRender() {
+  const el = $("homeNav"); if (!el) return;
+  const cur = TB.home, view = typeof TD_VIEW !== "undefined" ? TD_VIEW : "today";
+  const isCur = ([hp, , head, tdv]) => hp === cur && (tdv ? tdv === view : !head || !TB_HOME_NAV.some(x => x[0] === hp && !x[2]));     // the most specific item is marked
+  const html = TB_HOME_NAV.map(x => { const [hp, l, head, tdv] = x;
+    return `<button class="${head ? "hh" : "hs"}" data-hp="${hp}"${tdv ? ` data-tdv="${tdv}"` : ""}${isCur(x) ? ' aria-current="page"' : ""}>${l}</button>`; }).join("");
+  if (html !== tbHomeLast) { tbHomeLast = html; el.innerHTML = html; }
+}
+$("homeNav").addEventListener("click", e => {
+  const b = e.target.closest("[data-hp]"); if (!b) return; TB.touched = true;
+  if (b.dataset.tdv && typeof TD_VIEW !== "undefined") { TD_VIEW = b.dataset.tdv; TD_DAY = null; try { localStorage.setItem("finder-td-view", TD_VIEW); } catch (x) {} }
+  TB.home = b.dataset.hp; tbActivate("home");
+  if (b.dataset.tdv && typeof tdRender === "function") tdRender();
+});
+document.addEventListener("click", e => { const b = e.target.closest("[data-owntab]"); if (!b) return; const t = tbOpenPage(b.dataset.owntab); if (t) { TB.touched = true; tbActivate(t.id); } });
+
 /* ---- the tab row ---- */
 const TB_NAME = { macroov: "Forex overview", macromomo: "Forex momentum", macropair: "Pair Picker", macro: "All instruments" };
 const tbEsc = x => String(x == null ? "" : x).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -12412,6 +12443,7 @@ function tbRender() {
     + `<div class="tblist" role="tablist" aria-label="Open tabs">${TB.list.map(t => { const on = t.id === TB.active, L = tbTabHTML(t);
       return `<div class="tbtab ${on ? "on" : ""}" data-tab="${t.id}" role="tab" tabindex="0" draggable="true" aria-selected="${on}" title="${tbEsc(L.name)}"><span class="tbl">${L.html}</span><button class="tbx" data-tclose="${t.id}" aria-label="Close ${tbEsc(L.name)}" title="Close">×</button></div>`; }).join("")}</div>`
     + `<button class="tbplus" id="tabPlus" title="New tab" aria-label="New tab" aria-haspopup="true" aria-expanded="${!!$("tbMenu")}">+</button>`;
+  tbHomeRender();
   if (html === tbRowLast) return; tbRowLast = html;
   const foc = document.activeElement && row.contains(document.activeElement) ? (document.activeElement.closest("[data-tab]") || {}).dataset : null, sl = row.querySelector(".tblist") ? row.querySelector(".tblist").scrollLeft : 0;
   row.innerHTML = html;

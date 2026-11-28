@@ -66,8 +66,8 @@ async def part4(pg, q, wait):
     await q("() => { TB.list = []; TB.active = 'home'; const a = tbOpenChart('BTCUSDT'), b = tbOpenChart('ETHUSDT'); b.ch.tfs = ['15m','1h','4h','1d']; b.ch.layout = '1'; window.__a = a.id; window.__b = b.id; tbActivate(a.id); }")
     await wait("() => CH.sym === 'BTCUSDT' && chVis()[0].t.length > 50")
     await q("() => { const P = chVis()[0]; P.chart.timeScale().setVisibleLogicalRange({ from: P.t.length - 60, to: P.t.length - 30 }); }")
-    await q("() => tbActivate(window.__b)"); await wait("() => CH.sym === 'ETHUSDT' && CH.layout === '1' && chVis()[0].tf === '15m' && chVis()[0].t.length > 50")
-    await q("() => tbActivate(window.__a)"); await wait("() => CH.sym === 'BTCUSDT' && chVis()[0].t.length > 50")
+    await q("() => tbActivate(window.__b)"); await wait("() => CH.sym === 'ETHUSDT' && CH.layout === '1' && chVis()[0].tf === '15m' && chVis()[0].sym === 'ETHUSDT' && chVis()[0].t.length > 50")
+    await q("() => tbActivate(window.__a)"); await wait("() => CH.sym === 'BTCUSDT' && chVis()[0].sym === 'BTCUSDT' && chVis()[0].t.length > 50")
     await asyncio.sleep(0.5)
     v = await q("() => { const P = chVis()[0], r = P.chart.timeScale().getVisibleLogicalRange(); return [Math.round(r.to - (P.t.length - 30))]; }")
     check("each chart tab keeps its market, timeframes, layout and zoom", abs(v[0]) <= 2, v)
@@ -85,7 +85,26 @@ async def part4(pg, q, wait):
     await q("() => openInCharts('ETHUSDT')")
     check("open in a chart goes to the tab already on that market", await q("() => TB.active === window.__b && TB.list.filter(t => t.kind === 'chart').length === 2"))
 
-PARTS = [part1, part2, part3, part4]
+async def part5(pg, q):
+    print("5) hidden chart tabs stay live; the labels")
+    check("merge: same candle replaced, newer appended, older ignored", await q("""() => { const m = { t: [1, 2], o: [1, 1], h: [2, 2], l: [0, 0], c: [1, 1], v: [1, 1] };
+      tbMerge(m, { t: 2, o: 1, h: 3, l: 0, c: 2.5, v: 2 }); tbMerge(m, { t: 3, o: 2.5, h: 3, l: 2, c: 2.8, v: 1 }); tbMerge(m, { t: 1, o: 9, h: 9, l: 9, c: 9, v: 9 });
+      return m.t.join() === '1,2,3' && m.c.join() === '1,2.5,2.8'; }"""))
+    await q("() => { window.__fb = 0; const f = formingBar; window.formingBar = formingBar = (s, tf) => { window.__fb++; return f(s, tf); }; }")
+    await q("() => { TB.list = TB.list.filter(t => t.kind !== 'chart'); const ids = []; for (let i = 0; i < 5; i++) { const t = tbOpenChart('BTCUSDT'); t.ch.tfs = ['15m','15m','15m','15m']; t.ch.layout = '1'; ids.push(t.id); } const o = tbOpenChart('ETHUSDT'); o.ch.layout = '1'; tbActivate(o.id); window.__ids = ids; }")
+    await asyncio.sleep(1); await q("() => { window.__fb = 0; return tbBgTick(); }")
+    check("five tabs on BTC 15m: one fetch per tick", await q("() => window.__fb === 1"), await q("() => window.__fb"))
+    last = await q("() => TB.mem.get('BTCUSDT|15m').t.at(-1)")
+    await q("() => tbActivate(window.__ids[0])")
+    check("switching draws the newest candle at once, from memory", await q(f"() => chVis()[0].t.at(-1) === {last}"))
+    lab = await q("() => tbLabel(TB.list.find(t => t.kind === 'chart'))")
+    check("the label: market, timeframe, price, change", lab["name"] and lab["tf"] == "15m" and lab["price"] is not None and lab["chg"] is not None, lab)
+    await q("() => { tbActivate(TB.list.find(t => t.ch && t.ch.sym === 'ETHUSDT').id); notify('BTC alert', 'x', { sym: 'BTCUSDT', kind: 'Price', icon: '🔔', title: 'BTC crossed your level' }); tbRender(); }")
+    check("an alert lights its tab", await q("() => TB.list.filter(t => t.bell).length >= 1 && document.getElementById('tabRow').textContent.includes('🔔')"))
+    await q("() => tbActivate(window.__ids[0])")
+    check("opening it clears the bell", await q("() => !TB.list.find(t => t.id === window.__ids[0]).bell"))
+
+PARTS = [part1, part2, part3, part4, part5]
 
 async def main():
     serve()

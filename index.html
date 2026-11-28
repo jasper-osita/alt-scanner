@@ -9005,8 +9005,9 @@ function chWLRender() {
   el.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const s = b.dataset.add; CHW = CHW.includes(s) ? CHW.filter(x => x !== s) : [...CHW, s]; if (MACRO_INFO[chBase(s)] && !s.startsWith("CT:")) TRADFI_SYMS.add(s); chSaveWL(); chWLRender(); chQuotesFetch(); });
 }
 async function chQuotesFetch(list) {
-  if (!chOn) return;
-  const need = (list || chWLItems().map(x => x.sym)).filter(s => !s.startsWith("CT:") && !(bySym[s] && bySym[s].price != null) && !MACRO.by[s]).slice(0, 40);
+  const tabs = typeof tbCharts === "function" && !isPhone() ? tbCharts().map(t => t.ch.sym) : [];
+  if (!chOn && !list && !tabs.length) return;
+  const need = [...new Set(list || [...(chOn ? chWLItems().map(x => x.sym) : []), ...tabs])].filter(s => !s.startsWith("CT:") && !(bySym[s] && bySym[s].price != null) && !MACRO.by[s]).slice(0, 40);
   if (need.some(s => isMX(s) || (EXCHANGE === "mexc" && MODE === "futures" && !chIsTF(s)))) {     // MEXC: every ticker in one request
     try { const by = await mxTickers(8000);
       need.forEach(s => { if (!isMX(s) && !(EXCHANGE === "mexc" && MODE === "futures" && !chIsTF(s))) return; const x = by[mxF(s)]; if (x) CHQ[s] = { price: +x.lastPrice, chg24h: +x.riseFallRate * 100 }; }); } catch (e) {}
@@ -9024,7 +9025,7 @@ async function chQuotesFetch(list) {
       if (t) CHQ[s] = { price: +t.lastPrice, chg24h: +t.priceChangePercent };
     } catch (e) {}
   }
-  chWLRender(); chHeader(); if (list) chPickRender();
+  if (chOn) { chWLRender(); chHeader(); } if (list) chPickRender();
 }
 setInterval(() => { if (chOn && document.visibilityState === "visible" && !(chWLAdd && document.activeElement && document.activeElement.id === "chWLQ")) { chWLRender(); chHeader(); } }, 2000);
 setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotesFetch(); }, 15000);
@@ -12444,11 +12445,12 @@ function tbShowChart(t) {
     CHP.forEach(P => P.tok++);                         // candles still loading for the tab you left never land here
     TB.pv = {};
     (c.views || []).forEach((v, i) => { if (v) TB.pv[i] = { ...v, sym: c.sym, tf: c.tfs[i] }; });
-    CHP.forEach(P => { if (P.sym === chPS(P) && P.tf === c.tfs[P.i] && P.t.length) { const m = tbMemFor(P.sym, P.tf); if (m) tbMemDraw(P, m); } });
+    if (chBuilt) chLeaves(chTree()).forEach(i => { const P = CHP[i]; if (!P || (P.sym === c.sym && P.t.length)) return; const m = tbMemFor(c.sym, P.tf); if (m) tbMemDraw(P, m, c.sym); });   // drawn from memory, no fetch
     chSave();
   } finally { TB.applying = false; }
   pgShow("charts");
-  requestAnimationFrame(() => { if (TB.shown !== t.id) return; chVis().forEach(P => { if (P.sym === chPS(P) && P.t.length) { P.msg.hidden = true; tbViewHook(P); } }); chHeader(); });
+  requestAnimationFrame(() => requestAnimationFrame(() => {             // after the layout has its new sizes
+    if (TB.shown !== t.id) return; chVis().forEach(P => { if (P.sym === chPS(P) && P.t.length) { P.msg.hidden = true; tbViewHook(P); } }); chHeader(); }));
 }
 function tbViewHook(P) {                               // put a pane back where you left it (a pane that followed the newest candle keeps following)
   const v = TB.pv && TB.pv[P.i]; if (!v || v.sym !== chPS(P) || v.tf !== P.tf || !P.chart || !P.t.length) return;
@@ -12459,9 +12461,68 @@ function tbViewHook(P) {                               // put a pane back where 
   try { P.chart.timeScale().setVisibleLogicalRange({ from: to - w, to }); } catch (e) {}
   chDirty = true;
 }
-function tbRemember(tab) {}                            // hidden tabs' candles in memory: Task 5
-function tbMemFor(sym, tf) { return null; }
-function tbMemDraw(P, m) {}
+/* ---- hidden chart tabs stay live: their candles kept current in memory (one fetch per market and timeframe, however many tabs show it) ---- */
+const TB_MEM_MAX = 600;
+const tbPanes = c => (c.max != null ? [c.max] : chLeaves(CH_LAYOUTS[c.layout] ?? 0)).map(i => [c.sym, c.tfs[i]]);
+function tbRemember(tab) {                             // the tab you leave: its panes' candles go to memory
+  if (!chBuilt) return;
+  chVis().forEach(P => { if (P.sym !== chPS(P) || !P.t.length || P.rp) return; const k = P.sym + "|" + P.tf, n = TB_MEM_MAX;
+    TB.mem.set(k, { t: P.t.slice(-n), o: P.o.slice(-n), h: P.h.slice(-n), l: P.l.slice(-n), c: P.c.slice(-n), v: (P.v || []).slice(-n), at: Date.now() }); });
+}
+function tbMerge(m, bar) {                             // the forming candle: same time replaces, newer appends, older is ignored
+  if (!bar || bar.t == null) return m; const n = m.t.length, v = bar.v == null ? 0 : +bar.v;
+  if (n && bar.t < m.t[n - 1]) return m;
+  if (n && bar.t === m.t[n - 1]) { m.o[n - 1] = bar.o; m.h[n - 1] = bar.h; m.l[n - 1] = bar.l; m.c[n - 1] = bar.c; if (m.v) m.v[n - 1] = v; }
+  else { m.t.push(bar.t); m.o.push(bar.o); m.h.push(bar.h); m.l.push(bar.l); m.c.push(bar.c); (m.v = m.v || []).push(v);
+    if (m.t.length > TB_MEM_MAX) ["t", "o", "h", "l", "c", "v"].forEach(f => m[f] = m[f].slice(-TB_MEM_MAX)); }
+  m.at = Date.now(); return m;
+}
+function tbMemFor(sym, tf) {                           // null when it has fallen more than 2 candles behind (then the chart loads as usual)
+  const m = TB.mem.get(sym + "|" + tf), iv = CH_IV[tf]; if (!m || !m.t.length || !iv) return null;
+  return Date.now() - m.t[m.t.length - 1] > 3 * iv ? null : m;
+}
+function tbMemDraw(P, m, sym) {
+  if (!P.chart) return false;
+  ["t", "o", "h", "l", "c"].forEach(f => P[f] = m[f].slice()); P.v = (m.v || []).slice();
+  P.sym = sym; P.alSig = null; P.noOlder = false; P.older = false; P.lastPoll = 0; P.ctTries = 0;
+  chIndSync(P); chSetData(P); chFit(P); chCtSub(sym); P.msg.hidden = true; chLegend(P, null); chCmpSync(P); chDirty = true;
+  return true;
+}
+async function tbBgTick() {                            // every 15 s: the forming candle of each hidden chart tab's markets
+  if (TB.ticking) return; TB.ticking = true;
+  try {
+    const onScreen = page === "charts" && !OVC.on && !CHDLG.on ? TB.shown : null, want = new Set(), pairs = new Map();
+    tbCharts().forEach(t => tbPanes(t.ch).forEach(([sym, tf]) => { const k = sym + "|" + tf; want.add(k); if (t.id !== onScreen) pairs.set(k, [sym, tf]); }));
+    if (onScreen) { const t = tbFind(onScreen); if (t) tbPanes(t.ch).forEach(([sym, tf]) => pairs.delete(sym + "|" + tf)); }   // the chart on screen keeps itself current
+    [...TB.mem.keys()].forEach(k => { if (!want.has(k)) TB.mem.delete(k); });
+    await Promise.all([...pairs].map(async ([k, [sym, tf]]) => {
+      try {
+        if (chSourceOK(sym)) return;                                     // e.g. a cTrader market while cTrader is off
+        let m = TB.mem.get(k);
+        if (!m || !tbMemFor(sym, tf)) {                                   // nothing in memory yet (or fallen behind): once from the candle cache
+          const r = await klines(sym, tf, 500); m = { t: r.t.slice(-TB_MEM_MAX), o: r.o.slice(-TB_MEM_MAX), h: r.h.slice(-TB_MEM_MAX), l: r.l.slice(-TB_MEM_MAX), c: r.c.slice(-TB_MEM_MAX), v: (r.qv || []).map(Number).slice(-TB_MEM_MAX), at: Date.now() };
+        }
+        const b = await formingBar(sym, tf), iv = CH_IV[tf];
+        if (b && m.t.length && b.t > m.t[m.t.length - 1] + iv * 1.5) { TB.mem.delete(k); return; }   // a gap: load fresh next time
+        TB.mem.set(k, tbMerge(m, b));
+      } catch (e) {}
+    }));
+    if (!chOn && typeof chQuotesFetch === "function") chQuotesFetch();          // prices for the labels while a page is open
+  } finally { TB.ticking = false; }
+}
+setInterval(() => { if (!isPhone() && document.visibilityState === "visible" && TB.list.length) tbBgTick(); }, 15000);
+function tbLabel(tab) {                                // what a chart tab's label shows
+  const c = tab.ch, q = chQuote(c.sym), m = TB.mem.get(c.sym + "|" + c.tfs[c.max != null ? c.max : 0]);
+  return { name: chName(c.sym), tf: CH_TFL[c.tfs[c.max != null ? c.max : 0]] || "", price: q ? q.price : m && m.c.length ? m.c[m.c.length - 1] : null, chg: q && q.chg != null ? +q.chg : null };
+}
+/* ---- 🔔 on a chart tab when an alert fires on its market ---- */
+const tbSameMkt = (a, b) => a === b || (typeof pkKey === "function" && !!pkKey(a) && pkKey(a) === pkKey(b));
+function tbBell(sym) {
+  if (!sym) return; let hit = false;
+  tbCharts().forEach(t => { if (tbSameMkt(t.ch.sym, sym) && !(t.id === TB.shown && page === "charts")) { t.bell = true; hit = true; } });
+  if (hit) tbSave();
+}
+{ const _ncAddTb = ncAdd; ncAdd = function (n, push) { const it = _ncAddTb(n, push); try { tbBell((it && it.sym) || (n && n.sym)); } catch (e) {} return it; }; }
 
 /* ---- the Home tab: Overview, Trading day, Calendar and Fundamentals behind a left menu ---- */
 const TB_HOME_NAV = [["overview", "Overview", 1], ["overview", "Crypto"], ["macroov", "Forex, metals & indices"], ["tday", "Trading day", 1], ["tday", "Today", 0, "today"], ["tday", "This week", 0, "week"], ["calendar", "Calendar", 1], ["fund", "Fundamentals", 1]];

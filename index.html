@@ -9032,7 +9032,7 @@ setInterval(() => { if (chOn && document.visibilityState === "visible") chQuotes
 
 /* ===================== Sync across devices: a private GitHub gist holds your drawings, watchlists, alerts, indicators and chart style =====================
    The token stays in this browser (localStorage "finder-sync"), like the Telegram token. Each part carries the time it last changed; the newer copy wins.
-   Layout, timeframes and the open symbol stay per device (a phone wants one chart, the Mac four). */
+   Layout, timeframes, zoom and the open tab stay per device (a phone wants one chart, the Mac four); the list of open tabs syncs (SYNC_PARTS.tabs, desktop only). */
 const SYNC_FILE = "finder-sync.json", SYNC_DESC = "The Finder sync (charts, drawings, watchlists, alerts)";
 const SYNC_CH = ["ind", "cs", "csTpl", "cmp", "ctype", "toolFav", "toolDef", "indFav", "legMin", "icon"];
 const SYNC_PARTS = {
@@ -9054,7 +9054,7 @@ async function syApi(path, opt = {}) {
 }
 function syMark() {                                               // note which parts changed here since the last look
   const c = SY(), at = { ...c.at }, h = { ...c.h }; let ch = false;
-  Object.entries(SYNC_PARTS).forEach(([k, P]) => { let v; try { v = P.get(); } catch (e) { return; } const x = syHash(v); if (h[k] !== x) { h[k] = x; at[k] = Date.now(); ch = true; } });
+  Object.entries(SYNC_PARTS).forEach(([k, P]) => { if (P.quiet && P.quiet()) return; let v; try { v = P.get(); } catch (e) { return; } const x = syHash(v); if (h[k] !== x) { h[k] = x; at[k] = Date.now(); ch = true; } });
   if (ch) sySave({ at, h }); return ch;
 }
 let syBusy = false, syTimer = 0;
@@ -9078,11 +9078,12 @@ async function syNow(why) {                                      // pull, take w
     const g = await syApi("/gists/" + gist), f = g.files && g.files[SYNC_FILE];
     if (f) { let txt = f.content; if (f.truncated && f.raw_url) txt = await (await fetch(f.raw_url)).text(); try { remote = JSON.parse(txt) || remote; } catch (e) {} } remote.parts = remote.parts || {};
     const loc = SY(), at = { ...loc.at }, h = { ...loc.h }, first = !loc.last; let push = false, pulled = [];
-    Object.entries(SYNC_PARTS).forEach(([k, P]) => { const R = remote.parts[k], la = at[k] || 0;
-      if (R && first) {                                         // a device joining: keep both sides (the gist's copy plus anything only here)
+    Object.entries(SYNC_PARTS).forEach(([k, P]) => { const R = remote.parts[k], la = at[k] || 0, quiet = !!(P.quiet && P.quiet());
+      if (R && first && quiet) { try { P.set(R.v); } catch (e) {} at[k] = R.at; }                 // a part this device only receives
+      else if (R && first) {                                         // a device joining: keep both sides (the gist's copy plus anything only here)
         try { P.set(syUnion(k, P.get(), R.v)); pulled.push(P.l.toLowerCase()); } catch (e) {} at[k] = Date.now(); try { h[k] = syHash(P.get()); remote.parts[k] = { at: at[k], v: P.get() }; push = true; } catch (e) {} }
       else if (R && R.at > la) { try { P.set(R.v); pulled.push(P.l.toLowerCase()); } catch (e) {} at[k] = R.at; try { h[k] = syHash(P.get()); } catch (e) {} }
-      else if (!R || la > R.at) { try { remote.parts[k] = { at: la || Date.now(), v: P.get() }; at[k] = remote.parts[k].at; push = true; } catch (e) {} } });
+      else if ((!R || la > R.at) && !quiet) { try { remote.parts[k] = { at: la || Date.now(), v: P.get() }; at[k] = remote.parts[k].at; push = true; } catch (e) {} } });
     if (push) { remote.at = Date.now(); await syApi("/gists/" + gist, { method: "PATCH", body: JSON.stringify({ files: { [SYNC_FILE]: { content: JSON.stringify(remote) } } }) }); }
     sySave({ at, h, last: Date.now(), err: "" }); if (pulled.length && why !== "quiet") chToast(`Synced from your other device: ${chEsc(pulled.join(", "))}.`);
   } catch (e) { sySave({ err: e.message }); if (why === "manual") chToast(`Sync failed: ${chEsc(e.message)}.`); }
@@ -9095,7 +9096,7 @@ setTimeout(() => { if (SY().token) syNow(); }, 1500);
 function syncHTML() {
   const c = SY();
   return `<div id="syBox"><div class="chsgh">Sync across devices</div>
-    <p class="meta">Keep your drawings, watchlists, alerts, indicators, scripts and chart style the same on the Mac, the phone and the website. They're saved in a private GitHub gist on your account. Layout and timeframes stay per device.</p>
+    <p class="meta">Keep your drawings, watchlists, alerts, indicators, scripts and chart style the same on the Mac, the phone and the website. They're saved in a private GitHub gist on your account. Your open tabs follow you between computers; each device keeps its own layout, timeframes, zoom and open tab, and phones don't share tabs yet.</p>
     ${c.token ? `<div class="chsr"><label>Status</label><span class="ctl">${c.err ? `<span class="dn">${chEsc(c.err)}</span>` : c.last ? `Synced ${chEsc(fmtPHT(new Date(c.last + PHT_MS)))}` : "Not synced yet"}</span></div>
       <div class="chsr"><label>What's synced</label><span class="ctl meta">${Object.values(SYNC_PARTS).map(P => P.l).join(" · ")}</span></div>
       <div class="csrow"><button class="btn primary sm" id="sySync">Sync now</button><button class="btn sm" id="syOff">Disconnect this device</button></div>`
@@ -12384,6 +12385,36 @@ function tbMove(id, to) {
   const [t] = TB.list.splice(i, 1); TB.list.splice(Math.max(0, Math.min(to, TB.list.length)), 0, t); tbSave();
 }
 tbRead();
+var TB_BOOT = Date.now();                              // a tab list pulled in the first seconds (before you touch the tabs) applies at once
+function tbSyncGet() {                                 // what other devices get: the tabs in order (markets and pages) and Home's section
+  if (isPhone()) return TB.syncLast === undefined ? null : TB.syncLast;            // phones only keep what they received (and never send it)
+  return { list: TB.list.map(t => t.kind === "page" ? { kind: "page", page: t.page } : { kind: "chart", sym: t.ch.sym, symExact: !!t.ch.symExact }), home: TB.home };
+}
+function tbSyncSet(v) {
+  if (isPhone()) { TB.syncLast = v; return; }
+  if (!v || typeof v !== "object" || !Array.isArray(v.list)) return;
+  chSaveJSON("finder-tabs-in", v);
+  if (Date.now() - TB_BOOT < 5000 && !TB.touched) tbSyncApply(true);          // later: on the next open, never mid-session
+}
+function tbSyncApply(show) {                           // the pulled list replaces this one; each chart tab keeps this device's timeframes, layout and view
+  let v = null; try { v = JSON.parse(localStorage.getItem("finder-tabs-in")); localStorage.removeItem("finder-tabs-in"); } catch (e) {}
+  if (!v || !Array.isArray(v.list)) return false;
+  const L = tbFind(TB.last), base = L && L.kind === "chart" ? L.ch : CH, pool = tbCharts(), list = [];
+  v.list.forEach(x => {
+    if (!x || typeof x !== "object") return;
+    if (x.kind === "page") list.push(TB.list.find(t => t.kind === "page" && t.page === x.page) || { id: tbId(), kind: "page", page: x.page });
+    else if (x.kind === "chart" && typeof x.sym === "string" && x.sym) { const i = pool.findIndex(t => t.ch.sym === x.sym);
+      if (i >= 0) { const t = pool.splice(i, 1)[0]; t.ch.symExact = !!x.symExact; list.push(t); } else list.push(tbChartTab(base, x.sym, x.symExact)); }
+  });
+  const was = TB.active;
+  tbApply({ list, active: was, home: v.home, last: TB.last });
+  if (TB.active !== was && was !== "home") TB.active = TB.list.length ? TB.list[0].id : "home";          // the open tab went: the first tab
+  if (!HOME_PAGES.includes(v.home)) TB.home = HOME_PAGES.includes(TB.home) ? TB.home : "overview";
+  if (show) tbActivate(TB.active); else tbSave();
+  return true;
+}
+SYNC_PARTS.tabs = { l: "Your tabs", get: tbSyncGet, set: tbSyncSet, quiet: () => isPhone() };
+try { if (localStorage.getItem("finder-tabs-in") && !isPhone()) tbSyncApply(false); } catch (e) {}       // a list pulled last time
 
 /* ---- the router: every page opens in a tab (Home's pages inside Home), Charts in a chart tab ---- */
 function goPage(id, keepTab) {

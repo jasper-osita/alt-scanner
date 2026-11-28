@@ -113,7 +113,25 @@ async def part6(pg, q, wait):
     check("a board's Chart button opens that market in a chart tab", await wait(f"() => page === 'charts' && CH.sym === '{s}' && TB.list.find(t => t.id === TB.active).kind === 'chart'"))
     check("old 'New Tab' choice moves to a chart tab here once", await q("() => { localStorage.removeItem('finder-chartmode-v2'); $('chartMode').value = 'tab'; tbChartModeMigrate(); return $('chartMode').value === 'here'; }"))
 
-PARTS = [part1, part2, part3, part4, part5, part6]
+async def part7(pg, q):
+    print("7) sync, phones and links")
+    g = await q("() => { TB.list = []; const a = tbOpenChart('BTCUSDT'); a.ch.tfs = ['1m','5m','15m','1h']; tbOpenPage('day'); return tbSyncGet(); }")
+    check("sync carries markets and pages, not timeframes", g["list"] == [{"kind": "chart", "sym": "BTCUSDT", "symExact": False}, {"kind": "page", "page": "day"}], g)
+    r = await q("""() => { window.TB_BOOT = Date.now(); TB.touched = false; tbSyncSet({ list: [{ kind: 'page', page: 'swing' }, { kind: 'chart', sym: 'BTCUSDT', symExact: false }, { kind: 'chart', sym: 'ETHUSDT', symExact: false }], home: 'tday' });
+      const b = TB.list.find(t => t.ch && t.ch.sym === 'BTCUSDT'); return [TB.list.map(t => t.page || t.ch.sym).join(), b.ch.tfs.join(), TB.home]; }""")
+    check("a list pulled right after opening applies at once and keeps this device's timeframes", r == ["swing,BTCUSDT,ETHUSDT", "1m,5m,15m,1h", "tday"], r)
+    r = await q("() => { TB.touched = true; const before = TB.list.map(t => t.page || t.ch.sym).join(); tbSyncSet({ list: [{ kind: 'page', page: 'aots' }], home: 'fund' }); return [TB.list.map(t => t.page || t.ch.sym).join() === before, localStorage.getItem('finder-tabs-in') !== null]; }")
+    check("a list pulled later waits for the next open", r == [True, True], r)
+    await q("() => { location.hash = '#nbbwatch'; }"); await asyncio.sleep(0.3)
+    check("a link to a removed page lands on Home", await q("() => TB.active === 'home'"))
+    await pg.set_viewport_size({"width": 390, "height": 844})
+    r = await q("() => { const n = TB.list.length; openInCharts('SOLUSDT'); return [TB.list.length === n, CH.sym]; }")
+    check("phone: open in a chart changes the open chart tab, no new tab", r == [True, "SOLUSDT"], r)
+    r = await q("() => { const before = JSON.stringify(tbSyncGet()); tbSyncSet({ list: [{ kind: 'page', page: 'swing' }], home: 'calendar' }); return [JSON.stringify(tbSyncGet()) !== before, SYNC_PARTS.tabs.quiet(), TB.home !== 'calendar']; }")
+    check("phone: a pulled list isn't applied and the phone never sends its own", r == [True, True, True], r)
+    await pg.set_viewport_size({"width": 1440, "height": 900})
+
+PARTS = [part1, part2, part3, part4, part5, part6, part7]
 
 async def main():
     serve()

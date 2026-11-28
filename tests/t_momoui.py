@@ -27,7 +27,7 @@ async def main():
         print("panel:", await pg.evaluate("() => [...document.querySelectorAll('.dpane[data-pane=score] .kv span')].find(s => s.textContent === 'Momentum Stage').nextElementSibling.innerText.replace(/\\n/g, ' ')"))
         print("play:", await pg.evaluate("() => document.querySelector('.dright .play .phead').innerText"))
         await pg.keyboard.press("Escape")
-        await pg.click("#copyBtn"); await asyncio.sleep(0.2)
+        await pg.click("#mMore"); await pg.click("#chMenu >> text=Copy for Claude"); await asyncio.sleep(0.2)
         print("export:", [l for l in (await pg.evaluate("() => navigator.clipboard.readText()")).split("\n") if l.startswith("Momentum board")][0][:200])
         await pg.evaluate("() => goPage('momentum')"); await asyncio.sleep(0.3); await pg.screenshot(path="momo_card.png")
         print("CSP:", csp or "none", "| errors:", errs or "none")

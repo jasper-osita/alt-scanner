@@ -104,7 +104,16 @@ async def part5(pg, q):
     await q("() => tbActivate(window.__ids[0])")
     check("opening it clears the bell", await q("() => !TB.list.find(t => t.id === window.__ids[0]).bell"))
 
-PARTS = [part1, part2, part3, part4, part5]
+async def part6(pg, q, wait):
+    print("6) board Chart buttons open a chart tab")
+    opts = await q("() => [...document.querySelectorAll('#chartMode option')].map(o => o.value + ':' + o.textContent)")
+    check("Open charts in", opts == ["here:A chart tab here", "last:The chart tab I used last", "tab:TradingView (browser tab)", "helper:TradingView Helper App", "copy:Copy the TradingView link"], opts)
+    await q("() => goPage('day')"); await wait("() => document.querySelector('#dayBoard [data-tv]')")
+    s = await q("() => { const b = document.querySelector('#dayBoard [data-tv]'); b.click(); return b.dataset.tv; }")
+    check("a board's Chart button opens that market in a chart tab", await wait(f"() => page === 'charts' && CH.sym === '{s}' && TB.list.find(t => t.id === TB.active).kind === 'chart'"))
+    check("old 'New Tab' choice moves to a chart tab here once", await q("() => { localStorage.removeItem('finder-chartmode-v2'); $('chartMode').value = 'tab'; tbChartModeMigrate(); return $('chartMode').value === 'here'; }"))
+
+PARTS = [part1, part2, part3, part4, part5, part6]
 
 async def main():
     serve()

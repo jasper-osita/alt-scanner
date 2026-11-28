@@ -24,12 +24,12 @@ async def main():
             print(f"{p:10s} -> {info} | visible: {vis}")
             await pg.screenshot(path=f"{OUT}/{p}.png")
         # filters item opens the panel on the screener page
-        await pg.click('.nav[data-go="filters"]'); await asyncio.sleep(0.4)
+        await pg.click("#tabPlus"); await pg.click('#tbMenu [data-tbp="filters"]'); await asyncio.sleep(0.4)
         print("filters:", await pg.evaluate("() => ({ page, fopen: document.body.classList.contains('fopen'), hash: location.hash })"))
         await pg.screenshot(path=f"{OUT}/filters.png")
         await pg.click("#fClose"); await asyncio.sleep(0.2)
         # click flows on their pages
-        await pg.click('.nav[data-go="momentum"]'); await asyncio.sleep(0.3)
+        await pg.evaluate("() => goPage('momentum')"); await asyncio.sleep(0.3)
         r = await pg.query_selector("#momoBoard .row")
         if r: await r.click(); await asyncio.sleep(1.2); print("popup open:", await pg.evaluate("() => document.getElementById('dlg').open")); await pg.screenshot(path=f"{OUT}/popup.png"); await pg.keyboard.press("Escape")
         # hash routing + reload persistence

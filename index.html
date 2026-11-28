@@ -1204,7 +1204,7 @@ dialog#fbDlg:focus{outline:none}dialog#fbDlg::backdrop{background:rgba(6,7,8,.62
     <label class="pill"><span>Wicks</span><select id="wickF"><option value="hide" selected>Hide Wicky Coins</option><option value="show">Show All</option></select></label>
     <label class="pill"><span>Rating</span><select id="rateF"><option value="">Any</option><option>Strong buy</option><option value="buy">Buy or Better</option><option>Chop</option><option value="sell">Sell or Worse</option><option>Strong sell</option></select></label>
     <label class="pill check tog"><input type="checkbox" id="alts" checked> Alts Only</label>
-    <label class="pill"><span>Open Charts In</span><select id="chartMode"><option value="tab" selected>New Tab</option><option value="copy">Copy Link</option><option value="helper">TradingView Helper App</option></select></label>
+    <label class="pill"><span>Open charts in</span><select id="chartMode"><option value="here" selected>A chart tab here</option><option value="last">The chart tab I used last</option><option value="tab">TradingView (browser tab)</option><option value="helper">TradingView Helper App</option><option value="copy">Copy the TradingView link</option></select></label>
     <span class="sep"></span>
     <input id="search" class="search" type="search" placeholder="Search coins" aria-label="Search coin">
   </div>
@@ -3296,21 +3296,21 @@ const tvLink = sym => MACRO.by[sym] ? `https://www.tradingview.com/chart/?symbol
 const tvSymbol = sym => MACRO.by[sym] ? MACRO.by[sym].tv : `${tvEx()}:${sym}${data && data.mode === "futures" ? ".P" : ""}`;
 async function openTV(sym) {
   const url = tvLink(sym), mode = $("chartMode").value;
-  if (mode === "tab") { window.open(url, "_blank", "noopener"); return; }   // default: TradingView chart in a new tab
+  if (mode === "tab") { window.open(url, "_blank", "noopener"); return; }   // TradingView chart in a browser tab
   if (IS_MOBILE) { window.location.href = url; return; }
   let copied = true;
   try { await navigator.clipboard.writeText(url); } catch (e) { copied = false; }
   if (mode === "helper") {                          // Mac helper: jastv:// opens the chart in TradingView Desktop
     window.location.href = `jastv://${tvSymbol(sym)}`;
-    toast(`Opening <b>${coin(sym)}</b> in TradingView… If nothing happens, run <b>install-tv-helper.sh</b> once, or set Open Charts In to New Tab.`);
+    toast(`Opening <b>${coin(sym)}</b> in TradingView… If nothing happens, run <b>install-tv-helper.sh</b> once, or set Open charts in to TradingView (browser tab).`);
     return;
   }
   if (!copied) { prompt("Copy this chart link:", url); return; }
   toast(`<b>${coin(sym)}</b> chart link copied. In TradingView Desktop choose <b>Open link from clipboard</b>. `);
 }
-const chartBtn = sym => `<button class="btn chartbtn" data-tv="${sym}" title="Open chart in TradingView">Chart</button>`;
+const chartBtn = sym => `<button class="btn chartbtn" data-tv="${sym}" title="Open the chart">Chart</button>`;
 function bindRows(root) {
-  root.querySelectorAll("[data-tv]").forEach(b => b.onclick = ev => { ev.stopPropagation(); openTV(b.dataset.tv); });
+  root.querySelectorAll("[data-tv]").forEach(b => b.onclick = ev => { ev.stopPropagation(); openChart(b.dataset.tv); });
   root.querySelectorAll("[data-s]").forEach(el => { el.onclick = () => openDetail(el.dataset.s); el.onkeydown = e => { if (e.key === "Enter") openDetail(el.dataset.s); }; });
 }
 
@@ -5349,7 +5349,7 @@ function openDetail(sym) {
       </div>
     </div>`;
   $("dlgClose").onclick = () => $("dlg").close();
-  $("dlgBody").querySelectorAll("[data-tv]").forEach(b => b.onclick = () => openTV(b.dataset.tv));
+  $("dlgBody").querySelectorAll("[data-tv]").forEach(b => b.onclick = () => openChart(b.dataset.tv));
   $("dlgBody").querySelectorAll(".dtabs .tab").forEach(b => b.onclick = () => {
     $("dlgBody").querySelectorAll(".dtabs .tab").forEach(x => x.classList.toggle("on", x === b));
     $("dlgBody").querySelectorAll(".dpane").forEach(x => x.hidden = x.dataset.pane !== b.dataset.pane);
@@ -5636,7 +5636,7 @@ function ncGo(id) {                                  // open the market behind a
   if (!n.sym) return;
   if (bySym[n.sym] || MACRO.by[n.sym]) { openDetail(n.sym); return; }
   if (n.sym.startsWith("CT:") || isMX(n.sym) || TRADFI_SYMS.has(n.sym)) { goPage("macro"); toast(`<b>${coin(n.sym)}</b> loads with the Forex, Gold &amp; Indices page; open it there.`); return; }
-  openTV(n.sym);                                       // no longer in the current scan: fall back to its TradingView chart
+  openChart(n.sym);                                    // no longer in the current scan: open its chart (where "Open charts in" says)
 }
 function ncToast(n) {
   const box = $("ncToasts"), el = document.createElement("div");
@@ -12542,6 +12542,22 @@ $("homeNav").addEventListener("click", e => {
   if (b.dataset.tdv && typeof tdRender === "function") tdRender();
 });
 document.addEventListener("click", e => { const b = e.target.closest("[data-owntab]"); if (!b) return; const t = tbOpenPage(b.dataset.owntab); if (t) { TB.touched = true; tbActivate(t.id); } });
+
+/* ---- the boards' Chart buttons: "Open charts in" (scan settings) ---- */
+function openChart(sym) {
+  if (!sym) return; const mode = $("chartMode").value;
+  if (mode === "here") { openInCharts(sym); return; }                  // a chart tab already on it, else a new one
+  if (mode === "last") {                                               // the chart tab you used last takes the market
+    if (CHDLG.on) chDlgEnd(); if ($("dlg").open) $("dlg").close();
+    const s = ctEquiv(sym) || sym, t = tbFind(TB.last) || tbCharts()[0] || tbOpenChart(s); if (!t) return;
+    tbActivate(t.id); if (CH.sym !== s) chSetSym(s); return;
+  }
+  openTV(sym);                                                         // TradingView: a browser tab, the Helper App or a copied link
+}
+function tbChartModeMigrate() {                        // once: the old default "New Tab" (TradingView) becomes a chart tab here
+  try { if (localStorage.getItem("finder-chartmode-v2")) return; if ($("chartMode").value === "tab") { $("chartMode").value = "here"; savePrefs(); } localStorage.setItem("finder-chartmode-v2", "1"); } catch (e) {}
+}
+tbChartModeMigrate();
 
 /* ---- the tab row ---- */
 const TB_NAME = { macroov: "Forex overview", macromomo: "Forex momentum", macropair: "Pair Picker", macro: "All instruments" };
